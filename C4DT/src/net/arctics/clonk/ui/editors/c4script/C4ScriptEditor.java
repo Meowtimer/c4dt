@@ -270,7 +270,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			this.resetHighlightRange();
 
 		// inform auto edit strategy about cursor position change so it can delete its override regions
-		sourceViewerConfiguration().autoEditStrategy().handleCursorPositionChanged(
+		sourceViewerConfiguration().autoEditStrategy().removeOverrideRegionsNotAtLine(
 			cursorPos(), getDocumentProvider().getDocument(getEditorInput()));
 
 	}

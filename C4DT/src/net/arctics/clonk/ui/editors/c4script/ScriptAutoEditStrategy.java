@@ -218,7 +218,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 
 		AutoInsertedRegion newOne = null;
 
-		if (!overrideRegionTrespassed && !disabled) {
+		if (!(overrideRegionTrespassed || disabled)) {
 
 			// look out for creation of new override region
 			int situation = 0;
@@ -303,7 +303,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		}
 	}
 
-	public void handleCursorPositionChanged(int cursorPos, IDocument d) {
+	public void removeOverrideRegionsNotAtLine(int cursorPos, IDocument d) {
 		if (!overrideRegions.isEmpty())
 			try {
 				final IRegion r = d.getLineInformationOfOffset(cursorPos);

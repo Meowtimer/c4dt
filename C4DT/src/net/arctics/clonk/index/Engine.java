@@ -21,33 +21,31 @@ import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.ParameterStringOption;
 import net.arctics.clonk.c4script.IHasName;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.Function.ParameterStringOption;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.XMLDocImporter.ExtractedDeclarationDocumentation;
 import net.arctics.clonk.ini.CustomIniUnit;
 import net.arctics.clonk.ini.IniData;
-import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
+import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IStorageLocation;
-import net.arctics.clonk.util.LineNumberObtainer;
 import net.arctics.clonk.util.SettingsBase;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
@@ -105,7 +103,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @param settings The settings to apply
 	 */
 	public void applySettings(EngineSettings settings) {
-		EngineSettings oldSettings = this.currentSettings;
+		final EngineSettings oldSettings = this.currentSettings;
 		this.currentSettings = settings;
 		saveSettings();
 		if (
@@ -192,6 +190,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	@Override
 	public void postLoad(Declaration parent, Index root) {
 		super.postLoad(parent, root);
+		final Function f = findLocalFunction("this", false);
+		if (f != null)
+			removeDeclaration(f);
 		resetCache();
 	}
 
@@ -202,12 +203,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public void loadSettings() throws IOException {
 		// combine settings files in reverse-order so custom config is based on default
 		for (int i = storageLocations.length-1; i >= 0; i--) {
-			IStorageLocation loc = storageLocations[i];
+			final IStorageLocation loc = storageLocations[i];
 			if (loc == null)
 				continue;
-			URL settingsFile = loc.locatorForEntry(CONFIGURATION_INI_NAME, false);
+			final URL settingsFile = loc.locatorForEntry(CONFIGURATION_INI_NAME, false);
 			if (settingsFile != null) {
-				InputStream input = settingsFile.openStream();
+				final InputStream input = settingsFile.openStream();
 				try {
 					if (currentSettings == null) {
 						intrinsicSettings = SettingsBase.createFrom(EngineSettings.class, input);
@@ -231,14 +232,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private void loadIniConfigurations() {
 		try {
 			for (int i = storageLocations.length-1; i >= 0; i--) {
-				IStorageLocation loc = storageLocations[i];
+				final IStorageLocation loc = storageLocations[i];
 				if (loc == null)
 					continue;
-				URL confFile = loc.locatorForEntry("iniconfig.xml", false); //$NON-NLS-1$
+				final URL confFile = loc.locatorForEntry("iniconfig.xml", false); //$NON-NLS-1$
 				if (confFile != null) {
-					InputStream input = confFile.openStream();
+					final InputStream input = confFile.openStream();
 					try {
-						IniData data = new IniData(input);
+						final IniData data = new IniData(input);
 						data.parse();
 						iniConfigurations = data; // set this variable when parsing completed successfully
 					} finally {
@@ -246,9 +247,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					}
 				}
 			}
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -266,7 +267,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		this.clearDeclarations();
 		try {
 			createDeclarationsFromRepositoryDocumentationFiles();
-			CPPSourceDeclarationsImporter importer = new CPPSourceDeclarationsImporter();
+			final CPPSourceDeclarationsImporter importer = new CPPSourceDeclarationsImporter();
 			importer.overwriteExistingDeclarations = false;
 			importer.importFromRepository(this, settings().repositoryPath, new NullProgressMonitor());
 			if (findFunction("this") == null) //$NON-NLS-1$
@@ -280,14 +281,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private transient Thread documentationPrefetcherThread;
 	private void createDeclarationsFromRepositoryDocumentationFiles() {
-		File[] xmlFiles = new File(settings().repositoryPath+"/docs/sdk/script/fn").listFiles(); //$NON-NLS-1$
+		final File[] xmlFiles = new File(settings().repositoryPath+"/docs/sdk/script/fn").listFiles(); //$NON-NLS-1$
 		final List<IDocumentedDeclaration> createdDecs = new ArrayList<IDocumentedDeclaration>(xmlFiles.length);
-		for (File xmlFile : xmlFiles) {
+		for (final File xmlFile : xmlFiles) {
 			boolean isConst = false;
 			try {
-				FileReader r = new FileReader(xmlFile);
+				final FileReader r = new FileReader(xmlFile);
 				try {
-					for (String l : StringUtil.lines(r))
+					for (final String l : StringUtil.lines(r))
 						if (l.contains("<const>")) { //$NON-NLS-1$
 							isConst = true;
 							break;
@@ -298,11 +299,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				} finally {
 					r.close();
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 				continue;
 			}
-			String rawFileName = StringUtil.rawFileName(xmlFile.getName());
+			final String rawFileName = StringUtil.rawFileName(xmlFile.getName());
 			if (BuiltInDefinitions.KEYWORDS.contains(rawFileName))
 				continue;
 			IDocumentedDeclaration dec;
@@ -321,12 +322,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			@Override
 			public void run() {
 				try {
-					for (IDocumentedDeclaration dec : createdDecs) {
+					for (final IDocumentedDeclaration dec : createdDecs) {
 						if (this != documentationPrefetcherThread || Core.stopped())
 							break;
 						dec.fetchDocumentation();
 					}
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 				synchronized (Engine.this) {
@@ -373,12 +374,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.name());
 		// dynamically load from repository
 		if (settings().readDocumentationFromRepository) {
-			XMLDocImporter importer = repositoryDocImporter().initialize();
-			ExtractedDeclarationDocumentation d = importer.extractDeclarationInformationFromFunctionXml(declaration.name(), ClonkPreferences.languagePref(), XMLDocImporter.DOCUMENTATION);
+			final XMLDocImporter importer = repositoryDocImporter().initialize();
+			final ExtractedDeclarationDocumentation d = importer.extractDeclarationInformationFromFunctionXml(declaration.name(), ClonkPreferences.languagePref(), XMLDocImporter.DOCUMENTATION);
 			if (d != null) {
 				declaration.setUserDescription(d.description);
 				if (declaration instanceof Function) {
-					Function f = (Function)declaration;
+					final Function f = (Function)declaration;
 					if (d.parameters != null)
 						f.setParameters(d.parameters);
 				}
@@ -390,7 +391,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		// fallback to description inis
 		if (iniDescriptionsLoader == null)
 			iniDescriptionsLoader = new IniDescriptionsLoader(this);
-		String iniDescription = iniDescriptionsLoader.descriptionFor(declaration);
+		final String iniDescription = iniDescriptionsLoader.descriptionFor(declaration);
 		if (iniDescription != null)
 			declaration.setUserDescription(iniDescription);
 		return false;
@@ -398,34 +399,34 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private void loadDeclarationsConfiguration() {
 		for (int i = storageLocations.length-1; i >= 0; i--) {
-			IStorageLocation loc = storageLocations[i];
+			final IStorageLocation loc = storageLocations[i];
 			if (loc == null)
 				continue;
-			URL url = loc.locatorForEntry("declarations.ini", false); //$NON-NLS-1$
+			final URL url = loc.locatorForEntry("declarations.ini", false); //$NON-NLS-1$
 			if (url != null) {
 				InputStream stream;
 				try {
 					stream = url.openStream();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					e.printStackTrace();
 					continue;
 				}
 				try {
-					CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
+					final CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
 					try {
 						unit.parser().parse(false);
-					} catch (ProblemException e) {
+					} catch (final ProblemException e) {
 						e.printStackTrace();
 					}
-					for (IniSection section : unit.sections()) {
-						Declaration declaration = findDeclaration(section.name());
+					for (final IniSection section : unit.sections()) {
+						final Declaration declaration = findDeclaration(section.name());
 						if (declaration != null)
 							section.commit(declaration, false);
 					}
 				} finally {
 					try {
 						stream.close();
-					} catch (IOException e) {
+					} catch (final IOException e) {
 						e.printStackTrace();
 					}
 				}
@@ -435,59 +436,41 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private void parseEngineScript() {
 		final String lang = ClonkPreferences.languagePref();
-		for (IStorageLocation loc : storageLocations)
-			for (String s : new String[] {String.format("%s%s.c", name(), lang), String.format("%s.c", name())}) {
+		for (final IStorageLocation loc : storageLocations)
+			for (final String s : new String[] {String.format("%s%s.c", name(), lang), String.format("%s.c", name())}) {
 				final URL url = loc.locatorForEntry(s, false); //$NON-NLS-1$
 				if (url != null)
-					try (InputStream stream = url.openStream()) {
-						String scriptFromStream = StreamUtil.stringFromInputStream(stream);
-						final LineNumberObtainer lno = new LineNumberObtainer(scriptFromStream);
-						ScriptParser parser = new ScriptParser(scriptFromStream, this, null) {
-							private boolean firstMessage = true;
-							@Override
-							public void marker(Problem code,
-								int errorStart, int errorEnd, int flags,
-								int severity, Object... args) throws ProblemException {
-								if (firstMessage) {
-									firstMessage = false;
-									System.out.println("Messages while parsing " + url.toString()); //$NON-NLS-1$
-								}
-								System.out.println(String.format(
-									"%s @(%d, %d)", //$NON-NLS-1$
-									code.makeErrorString(args),
-									lno.obtainLineNumber(errorStart),
-									lno.obtainCharNumberInObtainedLine()
-								));
-								super.marker(code, errorStart, errorEnd, flags, severity, args);
-							}
-							@Override
-							protected Function newFunction(String nameWillBe) { return new EngineFunction(); }
-							@Override
-							public Variable newVariable(String varName, Scope scope) { return new EngineVariable(varName, scope); }
-						};
-						try {
-							parser.parse();
-						} catch (ProblemException e) {
-							e.printStackTrace();
-						}
-						postLoad((Declaration)null, (Index)null);
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
+					parseEngineScriptAtURL(url);
 			}
+	}
+
+	private void parseEngineScriptAtURL(final URL url) {
+		try (InputStream stream = url.openStream()) {
+			final String engineScript = StreamUtil.stringFromInputStream(stream);
+			final ScriptParser parser = new EngineScriptParser(engineScript, this, null, url);
+			try {
+				parser.parse();
+			} catch (final ProblemException e) {
+				e.printStackTrace();
+			}
+			postLoad((Declaration)null, (Index)null);
+		} catch (final IOException e1) {
+			e1.printStackTrace();
+		}
 	}
 
 	private void createSpecialRules() {
 		try {
 			@SuppressWarnings("unchecked")
+			final
 			Class<? extends SpecialEngineRules> rulesClass = (Class<? extends SpecialEngineRules>) Engine.class.getClassLoader().loadClass(
 				String.format("%s.SpecialEngineRules_%s", SpecialEngineRules.class.getPackage().getName(), name())); //$NON-NLS-1$
 			specialRules = rulesClass.newInstance();
 			specialRules.initialize();
-		} catch (ClassNotFoundException e) {
+		} catch (final ClassNotFoundException e) {
 			// ignore
 		}
-		catch (Exception e) {
+		catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -500,18 +483,18 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public static Engine loadFromStorageLocations(final IStorageLocation... locations) {
 		Engine result = null;
 		try {
-			for (IStorageLocation location : locations) {
+			for (final IStorageLocation location : locations) {
 				if (location == null)
 					continue;
 				// only consider valid engine folder if configuration.ini is present
-				URL url = location.locatorForEntry(CONFIGURATION_INI_NAME, false);
+				final URL url = location.locatorForEntry(CONFIGURATION_INI_NAME, false);
 				if (url != null) {
 					result = new Engine(location.name());
 					result.load(locations);
 					break;
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		return result;
@@ -535,7 +518,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		this.storageLocations = providers;
 		try {
 			loadSettings();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 		loadIniConfigurations();
@@ -545,7 +528,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		loadDeclarationsConfiguration();
 		try {
 			loadProjectConversionConfigurations();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		reinitializeDocImporter();
@@ -565,14 +548,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private void loadProjectConversionConfigurations() {
 		projectConversionConfigurations.clear();
 		for (int i = storageLocations.length-1; i >= 0; i--) {
-			IStorageLocation location = storageLocations[i];
-			List<URL> projectConverterFiles = new ArrayList<URL>();
+			final IStorageLocation location = storageLocations[i];
+			final List<URL> projectConverterFiles = new ArrayList<URL>();
 			location.collectURLsOfContainer("projectConverters", true, projectConverterFiles); //$NON-NLS-1$
 			if (projectConverterFiles.size() > 0) {
-				Map<String, List<URL>> buckets = new HashMap<String, List<URL>>();
-				for (URL url : projectConverterFiles) {
-					Path path = new Path(url.getPath());
-					String engineName = path.segment(path.segmentCount()-2);
+				final Map<String, List<URL>> buckets = new HashMap<String, List<URL>>();
+				for (final URL url : projectConverterFiles) {
+					final Path path = new Path(url.getPath());
+					final String engineName = path.segment(path.segmentCount()-2);
 					if (engineName.equals("projectConverters")) //$NON-NLS-1$
 						continue; // bogus file next to engine-specific folders
 					List<URL> bucket = buckets.get(engineName);
@@ -582,8 +565,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					}
 					bucket.add(url);
 				}
-				for (Map.Entry<String, List<URL>> bucket : buckets.entrySet()) {
-					ProjectConversionConfiguration conf = new ProjectConversionConfiguration(this);
+				for (final Map.Entry<String, List<URL>> bucket : buckets.entrySet()) {
+					final ProjectConversionConfiguration conf = new ProjectConversionConfiguration(this);
 					conf.load(bucket.getValue());
 					projectConversionConfigurations.put(bucket.getKey(), conf);
 				}
@@ -597,13 +580,13 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	public void writeEngineScript(Writer writer) throws IOException {
-		for (Variable v : variables()) {
-			String text = String.format("%s %s;\n", v.scope().toKeyword(), v.name()); //$NON-NLS-1$
+		for (final Variable v : variables()) {
+			final String text = String.format("%s %s;\n", v.scope().toKeyword(), v.name()); //$NON-NLS-1$
 			writer.append(text);
 		}
 		writer.append("\n"); //$NON-NLS-1$
-		for (Function f : functions()) {
-			String returnType = f.returnType().toString();
+		for (final Function f : functions()) {
+			final String returnType = f.returnType().toString();
 			String desc = f.obtainUserDescription();
 			if (desc != null) {
 				if (desc.contains("\n")) //$NON-NLS-1$
@@ -612,7 +595,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					desc = String.format("//%s\n", desc); //$NON-NLS-1$
 				writer.append(desc);
 			}
-			String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, //$NON-NLS-1$
+			final String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, //$NON-NLS-1$
 				f.parameterString(EnumSet.of(
 					ParameterStringOption.FunctionName,
 					ParameterStringOption.EngineCompatible,
@@ -623,10 +606,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	public void writeEngineScript() throws IOException {
-		for (IStorageLocation loc : storageLocations) {
-			URL scriptFile = loc.locatorForEntry(loc.name()+".c", true); //$NON-NLS-1$
+		for (final IStorageLocation loc : storageLocations) {
+			final URL scriptFile = loc.locatorForEntry(loc.name()+".c", true); //$NON-NLS-1$
 			if (scriptFile != null) {
-				OutputStream output = loc.outputStreamForURL(scriptFile);
+				final OutputStream output = loc.outputStreamForURL(scriptFile);
 				if (output != null) try (Writer writer = new OutputStreamWriter(output)) {
 					writeEngineScript(writer);
 				}
@@ -641,17 +624,17 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public void saveSettings() {
 		if (!hasCustomSettings())
 			return;
-		for (IStorageLocation loc : storageLocations) {
-			URL settingsFile = loc.locatorForEntry(CONFIGURATION_INI_NAME, true);
+		for (final IStorageLocation loc : storageLocations) {
+			final URL settingsFile = loc.locatorForEntry(CONFIGURATION_INI_NAME, true);
 			if (settingsFile != null) {
-				OutputStream output = loc.outputStreamForURL(settingsFile);
+				final OutputStream output = loc.outputStreamForURL(settingsFile);
 				if (output != null) {
 					try {
 						currentSettings.saveTo(output, intrinsicSettings);
 					} finally {
 						try {
 							output.close();
-						} catch (IOException e) {
+						} catch (final IOException e) {
 							e.printStackTrace();
 						}
 					}
@@ -662,8 +645,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	public Collection<URL> getURLsOfStorageLocationPath(String configurationFolder, boolean onlyFromReadonlyStorageLocation) {
-		LinkedList<URL> result = new LinkedList<URL>();
-		for (IStorageLocation loc : storageLocations) {
+		final LinkedList<URL> result = new LinkedList<URL>();
+		for (final IStorageLocation loc : storageLocations) {
 			if (onlyFromReadonlyStorageLocation && loc.toFolder() != null)
 				continue;
 			loc.collectURLsOfContainer(configurationFolder, true, result);
@@ -672,10 +655,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	public OutputStream outputStreamForStorageLocationEntry(String entryPath) {
-		for (IStorageLocation loc : storageLocations) {
-			URL url = loc.locatorForEntry(entryPath, true);
+		for (final IStorageLocation loc : storageLocations) {
+			final URL url = loc.locatorForEntry(entryPath, true);
 			if (url != null) {
-				OutputStream result = loc.outputStreamForURL(url);
+				final OutputStream result = loc.outputStreamForURL(url);
 				if (result != null)
 					return result;
 			}
@@ -692,15 +675,15 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public Variable[] variablesWithPrefix(String prefix) {
 		// FIXME: oh noes, will return array stored in map, making it possible to modify it
 		if (cachedPrefixedVariables != null) {
-			Variable[] inCache = cachedPrefixedVariables.get(prefix);
+			final Variable[] inCache = cachedPrefixedVariables.get(prefix);
 			if (inCache != null)
 				return inCache;
 		}
-		List<Variable> result = new LinkedList<Variable>();
-		for (Variable v : variables())
+		final List<Variable> result = new LinkedList<Variable>();
+		for (final Variable v : variables())
 			if (v.scope() == Scope.CONST && v.name().startsWith(prefix))
 				result.add(v);
-		Variable[] resultArray = result.toArray(new Variable[result.size()]);
+		final Variable[] resultArray = result.toArray(new Variable[result.size()]);
 		if (cachedPrefixedVariables == null)
 			cachedPrefixedVariables = new HashMap<String, Variable[]>();
 		cachedPrefixedVariables.put(prefix, resultArray);
@@ -710,9 +693,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public Process executeEmbeddedUtility(String name, String... args) {
 		if (!settings().supportsEmbeddedUtilities)
 			return null;
-		String path = settings().engineExecutablePath;
+		final String path = settings().engineExecutablePath;
 		if (path != null) {
-			String[] completeArgs = new String[2+args.length];
+			final String[] completeArgs = new String[2+args.length];
 			completeArgs[0] = path;
 			completeArgs[1] = "-x"+name; //$NON-NLS-1$
 			for (int i = 0; i < args.length; i++)
@@ -723,18 +706,18 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					@Override
 					public void run() {
 						try {
-							IOConsoleOutputStream stream = Utilities.clonkConsole().newOutputStream();
-							byte[] buffer = new byte[1024];
+							final IOConsoleOutputStream stream = Utilities.clonkConsole().newOutputStream();
+							final byte[] buffer = new byte[1024];
 							int bytesRead;
 							while ((bytesRead = p.getInputStream().read(buffer)) > 0)
 								stream.write(buffer, 0, bytesRead);
-						} catch (IOException e) {
+						} catch (final IOException e) {
 							e.printStackTrace();
 						}
 					};
 				}.start();
 				return p;
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				System.out.println("Failed to execute utility " + name); //$NON-NLS-1$
 				return null;
 			}
@@ -743,7 +726,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	public C4Group.GroupType groupTypeForExtension(String ext) {
-		C4Group.GroupType gt = currentSettings.fileExtensionToGroupTypeMapping().get(ext);
+		final C4Group.GroupType gt = currentSettings.fileExtensionToGroupTypeMapping().get(ext);
 		if (gt != null)
 			return gt;
 		else
@@ -755,9 +738,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	public Object image(String name, boolean returnDescriptor) {
-		Collection<URL> urls = getURLsOfStorageLocationPath("images", false); //$NON-NLS-1$
+		final Collection<URL> urls = getURLsOfStorageLocationPath("images", false); //$NON-NLS-1$
 		if (urls != null)
-			for (URL url : urls)
+			for (final URL url : urls)
 				if (url.getFile().endsWith(name+".png")) //$NON-NLS-1$
 					return returnDescriptor ? UI.imageDescriptorForURL(url) :  UI.imageForURL(url);
 		return null;
