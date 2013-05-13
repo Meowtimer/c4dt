@@ -561,8 +561,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	/**
 	 * Finds a declaration with the given name using information from the helper object
-	 * @param xname The name
-	 * @param info Additional info
+	 * @param info Information container describing the search
 	 * @return the declaration or <tt>null</tt> if not found
 	 */
 	@Override
