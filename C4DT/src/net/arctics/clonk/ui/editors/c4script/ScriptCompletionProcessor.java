@@ -166,8 +166,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			final Scenario s2 = _activeFunc.scenario();
 			if ((flags & DeclMask.FUNCTIONS) != 0)
 				for (final Function func : index.globalFunctions()) {
-					final Scenario s1 = func.scenario();
-					if (s1 != null && s2 != null && s1 != s2)
+					final Scenario fScen = func.scenario();
+					if (fScen != null && fScen != s2)
 						continue;
 					proposalForFunc(func, prefix, offset, proposals, true);
 				}
@@ -176,8 +176,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					// ignore static variables from editor script since those are proposed already
 					if (var.parentDeclaration() == editorScript)
 						continue;
-					final Scenario s1 = var.scenario();
-					if (s1 != null && s1 != s2)
+					final Scenario vScen = var.scenario();
+					if (vScen != null && vScen != s2)
 						continue;
 					proposalForVar(var,prefix,offset,proposals);
 				}
