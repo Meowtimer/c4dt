@@ -11,7 +11,6 @@ import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.StreamUtil;
-
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
@@ -37,6 +36,7 @@ public class CLI implements IApplication {
 	public String engineConfigurationRoot;
 
 	private int parseOptions(String[] args) {
+		readSettingsFromHome();
 		for (int i = 0; i < args.length; i++) {
 			final String a = args[i];
 			if (a.equals("-application")) {
@@ -58,6 +58,23 @@ public class CLI implements IApplication {
 				return i;
 		}
 		return args.length;
+	}
+
+	private void readSettingsFromHome() {
+		final File settingsFile = new File(new File(System.getenv().get("HOME")), ".c4dt");
+		if (settingsFile.exists()) {
+			final String[] settings = StreamUtil.stringFromFile(settingsFile).split("\n");
+			for (final String s : settings) {
+				final String[] split = s.split("=");
+				if (split.length != 2)
+					continue;
+				try {
+					getClass().getField(split[0]).set(this, split[1]);
+				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	/**
@@ -130,7 +147,7 @@ public class CLI implements IApplication {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void printAST(String fileName) throws ProblemException {
 		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

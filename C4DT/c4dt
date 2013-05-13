@@ -1,0 +1,1 @@
+java -classpath $(dirname $0)/bin:${ECLIPSE_HOME}/plugins/* net.arctics.clonk.CLI $*
