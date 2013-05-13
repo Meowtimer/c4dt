@@ -543,8 +543,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	};
 
 	private Declaration findUsingCache(FindDeclarationInfo info) {
-		if (info.name.equals("PrepareRescues"))
-			System.out.println("here");
 		final Class<? extends Declaration> decClass = info.declarationClass;
 		// prefer using the cache
 		requireLoaded();
@@ -560,7 +558,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Finds a declaration with the given name using information from the helper object
 	 * @param xname The name
@@ -576,7 +574,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 		final Class<? extends Declaration> decClass = info.declarationClass;
 		final String name = info.name;
-		
+
 		// local variable?
 		if (info.recursion == 0)
 			if (info.contextFunction != null && (decClass == Declaration.class || decClass == null || decClass == Variable.class)) {
