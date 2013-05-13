@@ -21,6 +21,8 @@ public class Tidy implements ITransformer {
 		return innerTidy(node);
 	}
 	private ASTNode innerTidy(ASTNode node) throws CloneNotSupportedException {
+		if (node == null)
+			return null;
 		final ITidyable tidyable = as(node, ITidyable.class);
 		if (tidyable != null)
 			node = tidyable.tidy(this);
