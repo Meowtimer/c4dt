@@ -29,6 +29,7 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 	@Override
 	public ProblemReporter localReporter(final Script script, int fragmentOffset, ProblemReporter chain) {
 		return new ProblemReporter() {
+			IASTVisitor<ProblemReporter> observer;
 			final Markers markers = new Markers();
 			@Override
 			public boolean judgement(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
@@ -49,7 +50,11 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public Script script() { return script; }
 			@Override
-			public Object visit(Function function) { return null; }
+			public Object visit(Function function) {
+				if (observer != null)
+					function.traverse(observer, this);
+				return null;
+			}
 			@Override
 			public void run() {}
 			@Override
@@ -65,7 +70,7 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public boolean isModifiable(ASTNode node) { return true; }
 			@Override
-			public void setObserver(IASTVisitor<ProblemReporter> observer) {}
+			public void setObserver(IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
 		};
 	}
 }
