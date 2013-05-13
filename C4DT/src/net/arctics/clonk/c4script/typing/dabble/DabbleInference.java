@@ -533,7 +533,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.parentOfType(Script.class);
-					final Visit fVisit = delegateFunctionVisit(f, other, false, true);
+					final Visit fVisit = delegateFunctionVisit(f, other, false, false);
 					final Visitor visitor = fVisit != null ? fVisit.visitor : null;
 					visitors[ci] = visitor;
 
