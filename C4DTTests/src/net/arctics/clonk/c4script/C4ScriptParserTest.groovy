@@ -96,6 +96,7 @@ public class ScriptParserTest extends TestBase {
 		final Setup setup = new Setup(String.format("func Test() {%s}", body.printed()))
 		try {
 			setup.parser.parse()
+			setup.script.deriveInformation()
 		} catch (final ProblemException e) {
 			e.printStackTrace()
 		}
