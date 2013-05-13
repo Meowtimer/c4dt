@@ -88,7 +88,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
 				))
 					return;
-			final String displayString = def.id().stringValue();
+			final String displayString = def.engine().settings().definitionsHaveProxyVariables ? def.id().stringValue() : def.name();
 			final int replacementLength = prefix != null ? prefix.length() : 0;
 
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
