@@ -76,7 +76,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private CachedEngineDeclarations cachedDeclarations;
 	private Map<String, Variable[]> cachedPrefixedVariables;
 	private EngineSettings intrinsicSettings;
-	private EngineSettings currentSettings;
+	private EngineSettings settings;
 	private IStorageLocation[] storageLocations;
 	private IniData iniConfigurations;
 	private SpecialEngineRules specialRules;
@@ -103,24 +103,28 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @param settings The settings to apply
 	 */
 	public void applySettings(EngineSettings settings) {
-		final EngineSettings oldSettings = this.currentSettings;
-		this.currentSettings = settings;
+		final EngineSettings oldSettings = this.settings;
+		this.settings = settings;
 		saveSettings();
 		if (
 			!Utilities.eq(oldSettings.repositoryPath, settings.repositoryPath) ||
 			oldSettings.readDocumentationFromRepository != settings.readDocumentationFromRepository
 		)
-			if (settings.readDocumentationFromRepository)
-				reinitializeDocImporter();
-			else
-				parseEngineScript();
+			loadDeclarations();
+	}
+
+	private void loadDeclarations() {
+		if (settings.readDocumentationFromRepository)
+			reinitializeDocImporter();
+		else
+			parseEngineScript();
 	}
 
 	/**
 	 * Return the currently active {@link EngineSettings}.
 	 * @return The current settings
 	 */
-	public EngineSettings settings() { return currentSettings; }
+	public EngineSettings settings() { return settings; }
 
 	/**
 	 * Return {@link CachedEngineDeclarations} for this engine.
@@ -176,7 +180,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @return Whether accepted or not
 	 */
 	public boolean acceptsId(String text) { return specialRules().parseId(new BufferedScanner(text)) != null; }
-	private boolean hasCustomSettings() { return !currentSettings.equals(intrinsicSettings); }
+	private boolean hasCustomSettings() { return !settings.equals(intrinsicSettings); }
 
 	/**
 	 * I am my own engine!
@@ -210,11 +214,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			if (settingsFile != null) {
 				final InputStream input = settingsFile.openStream();
 				try {
-					if (currentSettings == null) {
+					if (settings == null) {
 						intrinsicSettings = SettingsBase.createFrom(EngineSettings.class, input);
-						currentSettings = (EngineSettings) intrinsicSettings.clone();
+						settings = (EngineSettings) intrinsicSettings.clone();
 					} else
-						currentSettings.loadFrom(input);
+						settings.loadFrom(input);
 				} finally {
 					input.close();
 				}
@@ -222,7 +226,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		}
 		if (intrinsicSettings == null) {
 			intrinsicSettings = new EngineSettings();
-			currentSettings = (EngineSettings) intrinsicSettings.clone();
+			settings = (EngineSettings) intrinsicSettings.clone();
 		}
 	}
 
@@ -352,7 +356,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
 			xmlDocImporter.initialize();
 			createPlaceholderDeclarationsToBeFleshedOutFromDocumentation();
-			populateDictionary();
+			deriveInformation();
 		}
 	}
 
@@ -523,15 +527,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		}
 		loadIniConfigurations();
 		createSpecialRules();
-		if (!settings().readDocumentationFromRepository)
-			parseEngineScript();
+		loadDeclarations();
 		loadDeclarationsConfiguration();
-		try {
-			loadProjectConversionConfigurations();
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-		reinitializeDocImporter();
+		loadProjectConversionConfigurations();
 
 		index = new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -546,31 +544,35 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private final Map<String, ProjectConversionConfiguration> projectConversionConfigurations = new HashMap<String, ProjectConversionConfiguration>();
 
 	private void loadProjectConversionConfigurations() {
-		projectConversionConfigurations.clear();
-		for (int i = storageLocations.length-1; i >= 0; i--) {
-			final IStorageLocation location = storageLocations[i];
-			final List<URL> projectConverterFiles = new ArrayList<URL>();
-			location.collectURLsOfContainer("projectConverters", true, projectConverterFiles); //$NON-NLS-1$
-			if (projectConverterFiles.size() > 0) {
-				final Map<String, List<URL>> buckets = new HashMap<String, List<URL>>();
-				for (final URL url : projectConverterFiles) {
-					final Path path = new Path(url.getPath());
-					final String engineName = path.segment(path.segmentCount()-2);
-					if (engineName.equals("projectConverters")) //$NON-NLS-1$
-						continue; // bogus file next to engine-specific folders
-					List<URL> bucket = buckets.get(engineName);
-					if (bucket == null) {
-						bucket = new ArrayList<URL>();
-						buckets.put(engineName, bucket);
+		try {
+			projectConversionConfigurations.clear();
+			for (int i = storageLocations.length - 1; i >= 0; i--) {
+				final IStorageLocation location = storageLocations[i];
+				final List<URL> projectConverterFiles = new ArrayList<URL>();
+				location.collectURLsOfContainer("projectConverters", true, projectConverterFiles); //$NON-NLS-1$
+				if (projectConverterFiles.size() > 0) {
+					final Map<String, List<URL>> buckets = new HashMap<String, List<URL>>();
+					for (final URL url : projectConverterFiles) {
+						final Path path = new Path(url.getPath());
+						final String engineName = path.segment(path.segmentCount() - 2);
+						if (engineName.equals("projectConverters")) //$NON-NLS-1$
+							continue; // bogus file next to engine-specific folders
+						List<URL> bucket = buckets.get(engineName);
+						if (bucket == null) {
+							bucket = new ArrayList<URL>();
+							buckets.put(engineName, bucket);
+						}
+						bucket.add(url);
 					}
-					bucket.add(url);
-				}
-				for (final Map.Entry<String, List<URL>> bucket : buckets.entrySet()) {
-					final ProjectConversionConfiguration conf = new ProjectConversionConfiguration(this);
-					conf.load(bucket.getValue());
-					projectConversionConfigurations.put(bucket.getKey(), conf);
+					for (final Map.Entry<String, List<URL>> bucket : buckets.entrySet()) {
+						final ProjectConversionConfiguration conf = new ProjectConversionConfiguration(this);
+						conf.load(bucket.getValue());
+						projectConversionConfigurations.put(bucket.getKey(), conf);
+					}
 				}
 			}
+		} catch (final Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -630,7 +632,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				final OutputStream output = loc.outputStreamForURL(settingsFile);
 				if (output != null) {
 					try {
-						currentSettings.saveTo(output, intrinsicSettings);
+						settings.saveTo(output, intrinsicSettings);
 					} finally {
 						try {
 							output.close();
@@ -726,7 +728,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	}
 
 	public C4Group.GroupType groupTypeForExtension(String ext) {
-		final C4Group.GroupType gt = currentSettings.fileExtensionToGroupTypeMapping().get(ext);
+		final C4Group.GroupType gt = settings.fileExtensionToGroupTypeMapping().get(ext);
 		if (gt != null)
 			return gt;
 		else

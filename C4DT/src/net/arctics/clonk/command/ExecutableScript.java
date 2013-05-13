@@ -1,6 +1,5 @@
 package net.arctics.clonk.command;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
@@ -19,14 +18,14 @@ public class ExecutableScript extends SelfContainedScript {
 		main = this.findFunction("Main");
 	}
 
+
 	@Override
-	public Collection<Script> includes(Index index, Object origin, int options) {
-		return Arrays.asList(Command.COMMAND_BASESCRIPT);
+	public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
+		set.add(Command.BASE);
+		return super.gatherIncludes(contextIndex, origin, set, options);
 	}
 
-	public Function main() {
-		return main;
-	}
+	public Function main() { return main; }
 
 	public Object invoke(Object... args) {
 		return main.invoke(null);

@@ -2,7 +2,6 @@ package net.arctics.clonk.ui.editors.actions.c4script;
 
 import static net.arctics.clonk.util.Utilities.defaulting;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.ResourceBundle;
 
@@ -38,8 +37,10 @@ public class EvaluateC4Script extends ClonkTextEditorAction {
 					final Script script = new ExecutableScript("Eval", String.format("func Main() { %s; }", code), editor.script().index()) {
 						private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 						@Override
-						public Collection<Script> includes(Index index, Object origin, int options) {
-							return Arrays.asList(Command.COMMAND_BASESCRIPT, editor.script());
+						public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
+							set.add(Command.BASE);
+							set.add(editor.script());
+							return super.gatherIncludes(contextIndex, origin, set, options);
 						}
 					};
 					final Function main = script.findFunction("Main");

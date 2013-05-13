@@ -198,7 +198,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 				return;
 			}
 		}
-		entity = script.findDeclaration(doc.get(exprRegion.getOffset(), exprRegion.getLength()), new FindDeclarationInfo(script.index(), func));
+		entity = script.findDeclaration(new FindDeclarationInfo(doc.get(exprRegion.getOffset(), exprRegion.getLength()), script.index(), func));
 	}
 
 	/**

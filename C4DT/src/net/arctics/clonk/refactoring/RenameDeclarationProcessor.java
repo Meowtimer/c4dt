@@ -8,7 +8,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
@@ -16,9 +15,9 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ini.DefCoreUnit;
 import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniUnit;
+import net.arctics.clonk.ui.search.ReferencesSearchQuery;
 import net.arctics.clonk.ui.search.SearchMatch;
 import net.arctics.clonk.ui.search.SearchResult;
-import net.arctics.clonk.ui.search.ReferencesSearchQuery;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -66,28 +65,28 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 
 	@Override
 	public Change createChange(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
-		Object script = decl.script().source();
+		final Object script = decl.script().source();
 		if (!(script instanceof IResource))
 			return null;
-		IResource declaringFile = (IResource) script;
-		ReferencesSearchQuery query = new ReferencesSearchQuery(decl, ClonkProjectNature.get(declaringFile));
+		final IResource declaringFile = (IResource) script;
+		final ReferencesSearchQuery query = new ReferencesSearchQuery(decl, ClonkProjectNature.get(declaringFile));
 		query.run(monitor);
-		SearchResult searchResult = (SearchResult) query.getSearchResult();
+		final SearchResult searchResult = (SearchResult) query.getSearchResult();
 		// all references in code
-		Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
+		final Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
 		// declaration location
 		elements.add(decl.script());
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
-			Function fieldAsFunc = (Function)decl;
-			for (Function relatedFunc : decl.index().declarationsWithName(decl.name(), Function.class))
+			final Function fieldAsFunc = (Function)decl;
+			for (final Function relatedFunc : decl.index().declarationsWithName(decl.name(), Function.class))
 				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.script().source() instanceof IFile)
 					elements.add(relatedFunc);
 		}
-		CompositeChange composite = new CompositeChange(String.format(Messages.RenamingProgress, decl.toString()));
+		final CompositeChange composite = new CompositeChange(String.format(Messages.RenamingProgress, decl.toString()));
 		// now that references by the old name have been detected, rename the declaration (in case of Definition.ProxyVar, this will change the id of the definition being proxied)
 		//composite.add(new SetNameChange("Setting the declaration's name", decl, newName));
-		for (Object element : elements) {
+		for (final Object element : elements) {
 			IFile file;
 			if (element instanceof IFile)
 				file = (IFile)element;
@@ -100,37 +99,37 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			else
 				file = null;
 			if (file != null) {
-				TextFileChange fileChange = new TextFileChange(String.format(Messages.RenameChangeDescription, decl.toString(), file.getFullPath().toString()), file);
+				final TextFileChange fileChange = new TextFileChange(String.format(Messages.RenameChangeDescription, decl.toString(), file.getFullPath().toString()), file);
 				fileChange.setEdit(new MultiTextEdit());
 				// change declaration
 				if (file.equals(declaringFile))
 					if (decl instanceof Definition.ProxyVar) {
 						if ((options & CONSIDER_DEFCORE_ID_ALREADY_CHANGED) == 0) {
-							Definition def = ((Definition.ProxyVar)decl).definition();
-							DefCoreUnit unit = (DefCoreUnit) Structure.pinned(def.defCoreFile(), true, false);
+							final Definition def = ((Definition.ProxyVar)decl).definition();
+							final DefCoreUnit unit = (DefCoreUnit) Structure.pinned(def.defCoreFile(), true, false);
 							if (unit != null)
 								try {
-									IniEntry entry = (IniEntry) unit.sectionWithName("DefCore", false).subItemByKey("id");
-									TextFileChange defCoreChange = new TextFileChange(String.format("Change id in DefCore.txt of %s", decl.toString()), def.defCoreFile());
+									final IniEntry entry = (IniEntry) unit.sectionWithName("DefCore", false).subItemByKey("id");
+									final TextFileChange defCoreChange = new TextFileChange(String.format("Change id in DefCore.txt of %s", decl.toString()), def.defCoreFile());
 									defCoreChange.setEdit(new ReplaceEdit(entry.end()-entry.stringValue().length(), entry.stringValue().length(), newName));
 									composite.add(defCoreChange);
-								} catch (Exception e) {
+								} catch (final Exception e) {
 									e.printStackTrace();
 								}
 						}
 					} else {
-						int nameStart = decl.nameStart();
+						final int nameStart = decl.nameStart();
 						fileChange.addEdit(new ReplaceEdit(nameStart, decl.name().length(), newName));
 					}
 //				else if (element instanceof C4Function) {
 //					C4Function relatedFunc = (C4Function)element;
 //					fileChange.addEdit(new ReplaceEdit(relatedFunc.getLocation().getOffset(), relatedFunc.getLocation().getLength(), newName));
 //				}
-				for (Match m : searchResult.getMatches(element)) {
-					SearchMatch match = (SearchMatch) m;
+				for (final Match m : searchResult.getMatches(element)) {
+					final SearchMatch match = (SearchMatch) m;
 					try {
 						fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
-					} catch (MalformedTreeException e) {
+					} catch (final MalformedTreeException e) {
 						// gonna ignore that; there is one case where it's even normal this is thrown (for (e in a) ... <- e is reference and declaration)
 					}
 				}
@@ -151,14 +150,12 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			CheckConditionsContext context) throws CoreException,
 			OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
-		Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
+		final Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
 		if (!(baseDecl.index() instanceof ProjectIndex))
 			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.name()));
 
 		Declaration existingDec;
-		FindDeclarationInfo info = new FindDeclarationInfo(decl.index());
-		info.declarationClass = decl.getClass();
-		Structure parentStructure = decl.parentOfType(Structure.class);
+		final Structure parentStructure = decl.parentOfType(Structure.class);
 		if (parentStructure != null) {
 			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
 			if (existingDec != null)

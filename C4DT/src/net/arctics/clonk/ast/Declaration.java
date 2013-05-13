@@ -207,7 +207,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	public boolean seesSubDeclaration(Declaration subDeclaration) { return true; }
 
 	public Function findFunction(String functionName) { return null; }
-	public Declaration findDeclaration(String name, FindDeclarationInfo info) { return null; }
+	public Declaration findDeclaration(FindDeclarationInfo info) { return null; }
 
 	/**
 	 * Adds a sub-declaration

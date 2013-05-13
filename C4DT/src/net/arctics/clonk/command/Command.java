@@ -40,12 +40,10 @@ import org.eclipse.core.runtime.NullProgressMonitor;
  *
  */
 public class Command {
-	public static final Script COMMAND_BASESCRIPT;
-	public static final Index COMMANDS_INDEX = new Index();
-	public static final String COMMAND_SCRIPT_TEMPLATE = "func Main() {%s;}"; //$NON-NLS-1$
-
+	public static final Script BASE;
+	public static final Index INDEX = new Index();
 	static {
-		COMMAND_BASESCRIPT = new Script(COMMANDS_INDEX) {
+		BASE = new Script(INDEX) {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public IStorage source() {
@@ -62,12 +60,12 @@ public class Command {
 		};
 
 		for (final Class<?> c : Command.class.getDeclaredClasses())
-			registerCommandsFromClass(COMMAND_BASESCRIPT, c);
-		registerCommandsFromClass(COMMAND_BASESCRIPT, StaticTypingUtil.class);
+			registerCommandsFromClass(BASE, c);
+		registerCommandsFromClass(BASE, StaticTypingUtil.class);
 	}
 
 	public static ExecutableScript executableScriptFromCommand(String command) {
-		return new ExecutableScript("command", String.format(Command.COMMAND_SCRIPT_TEMPLATE, command), Command.COMMANDS_INDEX);
+		return new ExecutableScript("command", String.format("func Main() {%s;}", command), Command.INDEX);
 	}
 
 	public static void registerCommandsFromClass(Script script, Class<?> classs) {
@@ -107,7 +105,7 @@ public class Command {
 	}
 
 	public static void addCommand(Method method) {
-		addCommand(COMMAND_BASESCRIPT, method);
+		addCommand(BASE, method);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

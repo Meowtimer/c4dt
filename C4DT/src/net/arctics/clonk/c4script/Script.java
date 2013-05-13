@@ -458,14 +458,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	@Override
 	public Declaration findDeclaration(String name) {
-		return findDeclaration(name, new FindDeclarationInfo(index()));
+		return findDeclaration(new FindDeclarationInfo(name, index()));
 	}
 
 	@Override
 	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
-		final FindDeclarationInfo info = new FindDeclarationInfo(index());
+		final FindDeclarationInfo info = new FindDeclarationInfo(declarationName, index());
 		info.declarationClass = declarationClass;
-		return findDeclaration(declarationName, info);
+		return findDeclaration(info);
 	}
 
 	@Override
@@ -542,21 +542,41 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return candidate;
 	};
 
+	private Declaration findUsingCache(FindDeclarationInfo info) {
+		if (info.name.equals("PrepareRescues"))
+			System.out.println("here");
+		final Class<? extends Declaration> decClass = info.declarationClass;
+		// prefer using the cache
+		requireLoaded();
+		if (cachedVariableMap != null && (decClass == null || decClass == Variable.class)) {
+			final Declaration d = cachedVariableMap.get(info.name);
+			if (d != null)
+				return d;
+		}
+		if (cachedFunctionMap != null && (decClass == null || decClass == Function.class)) {
+			final Declaration d = cachedFunctionMap.get(info.name);
+			if (d != null)
+				return d;
+		}
+		return null;
+	}
+	
 	/**
 	 * Finds a declaration with the given name using information from the helper object
-	 * @param name The name
+	 * @param xname The name
 	 * @param info Additional info
 	 * @return the declaration or <tt>null</tt> if not found
 	 */
 	@Override
-	public Declaration findDeclaration(String name, FindDeclarationInfo info) {
+	public Declaration findDeclaration(FindDeclarationInfo info) {
 
 		// prevent infinite recursion
 		if (!info.startSearchingIn(this))
 			return null;
 
 		final Class<? extends Declaration> decClass = info.declarationClass;
-
+		final String name = info.name;
+		
 		// local variable?
 		if (info.recursion == 0)
 			if (info.contextFunction != null && (decClass == Declaration.class || decClass == null || decClass == Variable.class)) {
@@ -566,24 +586,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			}
 
 		final boolean knows = dictionary() == null || dictionary().contains(name);
-		boolean didUseCacheForLocalDeclarations = false;
 		if (knows) {
 			// prefer using the cache
 			requireLoaded();
-			if ((cachedVariableMap != null || cachedFunctionMap != null) && info.index == this.index() && (info.searchOrigin == null || scenario() == info.searchOrigin.scenario())) {
-				if (cachedVariableMap != null && (decClass == null || decClass == Variable.class)) {
-					final Declaration d = cachedVariableMap.get(name);
-					if (d != null)
-						return d;
-					didUseCacheForLocalDeclarations = true;
-				}
-				if (cachedFunctionMap != null && (decClass == null || decClass == Function.class)) {
-					final Declaration d = cachedFunctionMap.get(name);
-					if (d != null)
-						return d;
-					didUseCacheForLocalDeclarations = true;
-				}
-			}
+			final Declaration cacheFind = findUsingCache(info);
+			if (cacheFind != null)
+				return cacheFind;
 		}
 
 		// this object?
@@ -591,38 +599,20 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		if (thisDec != null)
 			return thisDec;
 
-		if (!didUseCacheForLocalDeclarations) {
-			if (knows) {
-				requireLoaded();
-				// a function defined in this object
-				if (decClass == null || decClass == Function.class) {
-					final Function f = declarationNamed(name, Function.class);
-					if (f != null)
-						return f;
-				}
-				// a variable
-				if (decClass == null || decClass == Variable.class) {
-					final Variable v = declarationNamed(name, Variable.class);
-					if (v != null)
-						return v;
-				}
+		info.recursion++;
+		{
+			for (final Script o : includes(info.index, info.searchOrigin(), 0)) {
+				final Declaration result = o.findDeclaration(info);
+				if (result != null)
+					return result;
 			}
-
-			info.recursion++;
-			{
-				for (final Script o : includes(info.index, info.searchOrigin, 0)) {
-					final Declaration result = o.findDeclaration(name, info);
-					if (result != null)
-						return result;
-				}
-			}
-			info.recursion--;
 		}
+		info.recursion--;
 
 		// finally look if it's something global
 		if (info.recursion == 0 && info.index != null) {
 			info.recursion++;
-			final Declaration f = findGlobalDeclaration(name, info);
+			final Declaration f = findGlobalDeclaration(info);
 			info.recursion--;
 			if (f != null && (info.declarationClass == null || info.declarationClass.isAssignableFrom(f.getClass())))
 				return f;
@@ -630,44 +620,49 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return null;
 	}
 
-	private Declaration findGlobalDeclaration(String name, FindDeclarationInfo info) {
-
+	private Declaration findGlobalDeclaration(FindDeclarationInfo info) {
 		// prefer declarations from scripts that were previously determined to be the providers of global declarations
 		// this will also probably and rightly lead to those scripts being fully loaded from their index file.
 		if (usedScripts != null)
 			for (final Script s : usedScripts()) {
-				final Declaration f = s.findDeclaration(name, info);
+				final Declaration f = s.findDeclaration(info);
 				if (f != null && f.isGlobal())
 					return f;
 			}
 
-		if (info.findGlobalVariables && engine().acceptsId(name)) {
-			final Definition d = info.index.definitionNearestTo(resource(), ID.get(name));
+		if (info.findGlobalVariables && engine().acceptsId(info.name)) {
+			final Declaration d  = findDefinition(info);
 			if (d != null)
-				if (info.declarationClass == Variable.class)
-					return d.proxyVar();
-				else
-					return d;
-			if (name.equals(Scenario.PROPLIST_NAME)) {
-				Scenario scenario = Scenario.nearestScenario(this.resource());
-				if (scenario == null)
-					scenario = engine().templateScenario();
-				if (scenario.propList() != null)
-					return scenario.propList();
-			}
-			else if (name.equals(Index.GLOBAL_PROPLIST_NAME) && index().global() != null)
-				return index().global();
+				return d;
 		}
 
 		// global stuff defined in relevant projects
 		for (final Index index : info.index.relevantIndexes()) {
-			final Declaration f = index.findGlobalDeclaration(name, resource());
+			final Declaration f = index.findGlobalDeclaration(info.name, resource());
 			if (f != null && (info.findGlobalVariables || !(f instanceof Variable)))
 				return f;
 		}
 
 		// engine function
-		return index().engine().findDeclaration(name, info);
+		return index().engine().findDeclaration(info);
+	}
+	private Declaration findDefinition(FindDeclarationInfo info) {
+		final Definition d = info.index.definitionNearestTo(resource(), ID.get(info.name));
+		if (d != null)
+			if (info.declarationClass == Variable.class)
+				return d.proxyVar();
+			else
+				return d;
+		if (info.name.equals(Scenario.PROPLIST_NAME)) {
+			Scenario scenario = Scenario.nearestScenario(this.resource());
+			if (scenario == null)
+				scenario = engine().templateScenario();
+			if (scenario.propList() != null)
+				return scenario.propList();
+		}
+		else if (info.name.equals(Index.GLOBAL_PROPLIST_NAME) && index().global() != null)
+			return index().global();
+		return null;
 	}
 
 	/**
@@ -759,27 +754,27 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public IResource resource() { return null; }
 
-	public Function findFunction(String functionName, FindDeclarationInfo info) {
+	public Function findFunction(FindDeclarationInfo info) {
 		info.resetState();
 		info.declarationClass = Function.class;
-		return (Function) findDeclaration(functionName, info);
+		return (Function) findDeclaration(info);
 	}
 
 	@Override
 	public Function findFunction(String functionName) {
-		final FindDeclarationInfo info = new FindDeclarationInfo(index());
-		return findFunction(functionName, info);
+		final FindDeclarationInfo info = new FindDeclarationInfo(functionName, index());
+		return findFunction(info);
 	}
 
 	public Variable findVariable(String varName) {
-		final FindDeclarationInfo info = new FindDeclarationInfo(index());
-		return findVariable(varName, info);
+		final FindDeclarationInfo info = new FindDeclarationInfo(varName, index());
+		return findVariable(info);
 	}
 
-	public Variable findVariable(String varName, FindDeclarationInfo info) {
+	public Variable findVariable(FindDeclarationInfo info) {
 		info.resetState();
 		info.declarationClass = Variable.class;
-		return (Variable) findDeclaration(varName, info);
+		return (Variable) findDeclaration(info);
 	}
 
 	public Function funcAt(int offset) {
@@ -896,26 +891,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public List<? extends Function> functions() {
 		requireLoaded();
 		return copyListOrReturnDefaultList(functions, Collections.<Function>emptyList());
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T extends Declaration> T declarationNamed(String name, Class<T> cls) {
-		List<T> list;
-		if (cls == Variable.class)
-			list = (List<T>)variables;
-		else if (cls == Function.class)
-			list = (List<T>)functions;
-		else if (cls == Directive.class)
-			list = (List<T>)directives;
-		else
-			return null;
-		synchronized (this) {
-			if (list != null)
-				for (final T f : list)
-					if (f.name().equals(name))
-						return f;
-			return null;
-		}
 	}
 
 	/**
@@ -1204,7 +1179,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 		populateDictionary(conglo);
 		generateFindDeclarationCache(conglo);
-		findInheritedFunctions();
 		generateNodeMaps();
 	}
 
