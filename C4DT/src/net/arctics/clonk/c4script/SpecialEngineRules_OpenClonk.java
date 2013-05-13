@@ -90,7 +90,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	})
 	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
 		@Override
-		public boolean assignDefaultParmTypes(ProblemReporter processor, Function function) {
+		public boolean assignDefaultParmTypes(Function function) {
 			final EffectFunction fun = as(function, EffectFunction.class);
 			if (fun != null && fun.effect() != null) {
 				fun.effect();

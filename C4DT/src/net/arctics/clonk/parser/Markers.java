@@ -36,6 +36,7 @@ public class Markers extends LinkedList<Marker> {
 
 	public Markers() {}
 	public Markers(IMarkerListener listener) { this(); this.listener = listener; }
+	public Markers(boolean enabled) { this.enabled = enabled; }
 
 	/**
 	 * Whether to not create any error markers at all - set if script is contained in linked group
@@ -206,10 +207,10 @@ public class Markers extends LinkedList<Marker> {
 		else
 			disabledErrors.addAll(set);
 	}
-	
+
 	public void enabled(boolean value) { enabled = value; }
 	public boolean enabled() { return enabled; }
-	
+
 	public boolean enableError(Problem error, boolean doEnable) {
 		final boolean result = errorEnabled(error);
 		if (doEnable)

@@ -132,6 +132,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	static final boolean UNUSEDPARMWARNING = false;
 
+	final Markers NULL_MARKERS = new Markers(false);
+
 	private static class Shared {
 		final Map<Script, Input> input = new HashMap<>();
 		boolean local = false;
@@ -232,6 +234,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 		FINISHED
 	}
 
+	enum Pass {
+		PRELIMINARY,
+		MAIN,
+		ADDITIONAL
+	}
+
 	/**
 	 * One script and associated information.
 	 * @author madeen
@@ -290,7 +298,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					this.script = script;
 				}
 				@Override
-				public String toString() { return function.qualifiedName(script); }
+				public String toString() {
+					return function.qualifiedName(script) + next != null ? (" " + next.toString()) : "";
+				}
 			}
 
 			Delayed delayedVisits;
@@ -300,6 +310,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public Visit(Function function) {
 				super(function);
 				state = State.UNDETERMINED;
+			}
+
+			@SuppressWarnings("unchecked")
+			public final <N extends ASTNode, T extends Expert<? super N>> T expert(N node, Class<T> cast) {
+				return (T) experts[node.localIdentifier()];
 			}
 
 			void prepare() {
@@ -315,6 +330,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				}, null);
 			}
+
 			@Override
 			public void apply(boolean soft) { /* done by Dabble */ }
 		}
@@ -327,23 +343,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 			ControlFlow controlFlow;
 			Markers markers;
 			TypeEnvironment typeEnvironment;
-			boolean inPreliminaryVisit;
+			Pass pass;
 			IASTVisitor<ProblemReporter> observer;
 			Thread thread;
-
-			final Thread thread() { return thread; }
-
 			Visit visit;
 
 			@Override
 			public void run() { visitAllPlanned(this); }
 
-			public Visitor(Visitor originator, Script... scope) {
+			public Visitor(Visitor originator) {
 				this.originator = originator;
 				this.markers = DabbleInference.this.markers();
 			}
-
-			public Visitor(Visitor originator) { this(originator, Input.this.script); }
 
 			@SuppressWarnings("unchecked")
 			private final <T extends ASTNode> Expert<? super T> expert(T node) {
@@ -386,14 +397,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return engine.specialRules().funcRuleFor(node.name(), role);
 				else
 					return null;
-			}
-
-			private boolean assignDefaultParmTypesToFunction(Function function) {
-				if (input().rules != null)
-					for (final SpecialFuncRule funcRule : input().rules.defaultParmTypeAssignerRules())
-						if (funcRule.assignDefaultParmTypes(this, function))
-							return true;
-				return false;
 			}
 
 			private void delayVisit(Function function, Script script) {
@@ -528,15 +531,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 			) {
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final CallDeclaration call = calls.get(ci);
+					final Function f = call.parentOfType(Function.class);
+					final Script other = f.parentOfType(Script.class);
+					final Visit fVisit = delegateFunctionVisit(f, other, false, true);
+					final Visitor visitor = fVisit != null ? fVisit.visitor : null;
+					visitors[ci] = visitor;
+
 					Function ref = as(call.declaration(), Function.class);
 					// not related - short circuit skip
 					if (ref != null && ref.baseFunction() != null && ref.baseFunction().latestVersion() != baseFunction)
 						continue;
-					final Function f = call.parentOfType(Function.class);
-					final Script other = f.parentOfType(Script.class);
-					final Visit fVisit = delegateFunctionVisit(f, other, false, true);
-					final Visitor visitor = visitors[ci] = fVisit != null ? fVisit.visitor : null;
-					ref = as(call.declaration(), Function.class);
 					if (ref != null) {
 						ref = ref.baseFunction();
 						if (ref != null)
@@ -576,13 +580,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return ty;
 			}
 
-			final boolean allParametersStaticallyTyped(Function function) {
-				for (final Variable p : function.parameters())
-					if (!p.staticallyTyped())
-						return false;
-				return true;
-			}
-
 			@Override
 			public TypeVariable visit(Function function) { return visit(function, null, true); }
 
@@ -603,7 +600,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						case FINISHED:
 							return _visit;
 						case INPROGRESS:
-							if (waitIfAlreadyInProgress && _visit.visitor.thread() != Thread.currentThread())
+							if (waitIfAlreadyInProgress && _visit.visitor.thread != Thread.currentThread())
 								waitForEndOfVisit(function, originator, _visit);
 							return _visit;
 						case UNDETERMINED:
@@ -614,7 +611,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				else
 					return null;
 
-				innerVisit();
+				try {
+					innerVisit();
+				} catch (final Exception e) {
+					log("Error visiting '%s'", function.qualifiedName());
+					e.printStackTrace();
+				}
 				endVisit();
 				return _visit;
 			}
@@ -629,12 +631,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					} catch (final InterruptedException e) {}
 				if (i == 3 && originator != null && originator.visit != null)
 					log("'%s' gave up waiting for '%s'", originator.visit.function().qualifiedName(originator.script()), function.qualifiedName(script())); //$NON-NLS-1$
-			}
-
-			boolean inPreliminaryVisit() {
-				if (DEBUG && inPreliminaryVisit)
-					log("%s: Preliminary visit - not typing from calls", this.toString());
-				return inPreliminaryVisit;
 			}
 
 			private void startVisit(Visit v) {
@@ -666,12 +662,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 						createFunctionLocalsTypeVariables(function);
 						final TypeVariable[] callTypes = createParameterTypeVariables(function, parameters);
 						if (ownedFunction && shouldTypeFromCalls(function)) {
+							pass = Pass.PRELIMINARY;
 							preliminaryVisit(function, statements);
 							typeParametersFromCalls(function, baseFunction, callTypes);
+							env.clear();
+							env.add(visit);
 						}
+						pass = Pass.MAIN;
 						actualVisit(ownedFunction, statements, callTypes);
+						while (delayedVisits()) {
+							if (DEBUG)
+								log("Additional visit for '%s'", function.qualifiedName());
+							pass = Pass.ADDITIONAL;
+							env.clear();
+							env.add(visit);
+							actualVisit(ownedFunction, statements, callTypes);
+						}
 						typeUntypedCallTargets(function);
-						delayedVisits();
 					}
 					if (ownedFunction)
 						env.apply(false);
@@ -712,20 +719,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}, this);
 			}
 
-			private boolean shouldTypeFromCalls(final Function function) {
-				if (!inPreliminaryVisit()) {
-					final boolean typeFromCalls =
-						input().typing == Typing.PARAMETERS_OPTIONALLY_TYPED &&
-						input().script instanceof Definition &&
-						function.numParameters() > 0 &&
-						!assignDefaultParmTypesToFunction(function) &&
-						(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
-					function.setTypeFromCallsHint(typeFromCalls);
-					return typeFromCalls;
-				} else
-					return false;
-			}
-
 			private void createFunctionLocalsTypeVariables(final Function function) {
 				for (final Variable l : function.locals()) {
 					final AccessVar av = AccessVar.temp(l, function.body());
@@ -748,10 +741,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return callTypes;
 			}
 
-			private void delayedVisits() {
-				for (Visit.Delayed d = visit.delayedVisits; d != null; d = d.next)
+			private boolean delayedVisits() {
+				boolean any = false;
+				for (Visit.Delayed d = visit.delayedVisits; d != null; d = d.next) {
 					delegateFunctionVisit(d.function, d.script, false, true);
+					any = true;
+				}
 				visit.delayedVisits = null;
+				return any;
 			}
 
 			private void actualVisit(final boolean ownedFunction, final ASTNode[] statements, final TypeVariable[] callTypes) throws ProblemException {
@@ -775,7 +772,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				// the chance of correctly deciding which kind of parameters are the 'right' ones to pass to the function.
 				if (DEBUG)
 					log("%s: Preliminary visit", toString());
-				inPreliminaryVisit = true;
 				startRoaming();
 				{
 					final ControlFlow old = controlFlow;
@@ -785,7 +781,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					controlFlow = old;
 				}
 				endRoaming();
-				inPreliminaryVisit = false;
 				function.traverse(CLEAR_DECLARATION_REFERENCES_VISITOR, null);
 			}
 
@@ -801,18 +796,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public final Visit delegateFunctionVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
 				if (function.body() == null)
 					return null;
-				if (inPreliminaryVisit) {
-					if (DEBUG)
-						log("%s: Skip delegating visit to function '%s'", toString(), function.qualifiedName(script));
-					return null;
+				switch (pass) {
+				case PRELIMINARY:
+					break;
+				case MAIN:
+					if (shouldTypeFromCalls(function)) {
+						delayVisit(function, script);
+						return null;
+					} else
+						break;
+				case ADDITIONAL:
+					break;
 				}
 				if (DEBUG)
 					log("Delegate function visit for '%s' from '%s'", //$NON-NLS-1$
 						function.qualifiedName(script),
 						visit != null ? visit.function.qualifiedName(script()) : "<null>"
 					);
-				if (function.body() == null)
-					return null;
 				for (Visitor v = this; v != null; v = v.originator)
 					if (v.visit != null && v.script() == script && v.visit.function() == function)
 						return v.visit;
@@ -865,7 +865,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							visit(e, true);
 				controlFlow = old;
 				expert.visit(expression, this);
-				if (observer != null && !inPreliminaryVisit())
+				if (observer != null && pass != Pass.PRELIMINARY)
 					observer.visitNode(expression, this);
 				if (controlFlow == ControlFlow.Continue)
 					controlFlow = expression.controlFlow();
@@ -878,8 +878,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return typeEnvironment = l;
 			}
 
-			public void endTypeEnvironment(TypeEnvironment env, boolean inject, boolean ignoreLocals) {
-				if (inject)
+			public void endTypeEnvironment(TypeEnvironment env, boolean injectToUpper, boolean ignoreLocals) {
+				if (injectToUpper)
 					if (env.up != null)
 						env.up.inject(env, ignoreLocals);
 					else synchronized (input().typeEnvironment) {
@@ -939,7 +939,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
-					if (node == null || node.parentOfType(Script.class) != origin || (inPreliminaryVisit && node.containedIn(visit.function)))
+					if (node == null || node.parentOfType(Script.class) != origin || (pass == Pass.PRELIMINARY && node.containedIn(visit.function)))
 						return;
 					else
 						oldMarkers.marker(positionProvider, code, node, markerStart, markerEnd, flags, severity, args);
@@ -975,8 +975,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			@Override
 			public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) {
+				final Expert<? super T> e = expert(access);
+				if (!(e instanceof AccessDeclarationExpert))
+					System.out.println("wat");
 				@SuppressWarnings("unchecked")
-				final AccessDeclarationExpert<T> expert = (AccessDeclarationExpert<T>)expert(access);
+				final AccessDeclarationExpert<T> expert = (AccessDeclarationExpert<T>)e;
 				return expert.obtainDeclaration(access, this);
 			}
 
@@ -1018,7 +1021,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public boolean isModifiable(ASTNode node) { return expert(node).isModifiable(node, this); }
 			@Override
-			public Markers markers() { return markers; }
+			public Markers markers() {
+				switch (pass) {
+				case PRELIMINARY:
+					return NULL_MARKERS;
+				case MAIN:
+					final Visit v = visit;
+					if (v != null && v.delayedVisits != null)
+						return NULL_MARKERS;
+					break;
+				default:
+					break;
+				}
+				return markers;
+			}
 			@Override
 			public void setMarkers(Markers markers) { this.markers = markers;}
 			@Override
@@ -1065,6 +1081,32 @@ public class DabbleInference extends ProblemReportingStrategy {
 			for (final Function f : script.functions())
 				result.put(f, new Visit(f));
 			return result;
+		}
+
+		boolean assignDefaultParmTypesToFunction(Function function) {
+			if (rules != null)
+				for (final SpecialFuncRule funcRule : rules.defaultParmTypeAssignerRules())
+					if (funcRule.assignDefaultParmTypes(function))
+						return true;
+			return false;
+		}
+
+		boolean shouldTypeFromCalls(final Function function) {
+			final boolean typeFromCalls =
+				typing == Typing.PARAMETERS_OPTIONALLY_TYPED &&
+				script instanceof Definition &&
+				function.numParameters() > 0 &&
+				!assignDefaultParmTypesToFunction(function) &&
+				(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
+			function.setTypeFromCallsHint(typeFromCalls);
+			return typeFromCalls;
+		}
+
+		final boolean allParametersStaticallyTyped(Function function) {
+			for (final Variable p : function.parameters())
+				if (!p.staticallyTyped())
+					return false;
+			return true;
 		}
 
 		public Input(Script script, int sourceFragmentOffset, Shared shared) {
@@ -1381,23 +1423,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (type == null)
 					return null;
 				for (final IType t : type) {
-					Script scriptToLookIn;
-					if ((scriptToLookIn = Definition.scriptFrom(t)) == null) {
+					final Script scriptToLookIn = Definition.scriptFrom(t);
+					if (scriptToLookIn != null) {
+						final FindDeclarationInfo info = new FindDeclarationInfo(node.name(), visitor.script().index());
+						info.searchOrigin(scriptToLookIn);
+						info.findGlobalVariables = predecessor == null;
+						Declaration v = scriptToLookIn.findDeclaration(info);
+						if (v instanceof Definition)
+							v = ((Definition)v).proxyVar();
+						return v;
+					} else
 						// find pseudo-variable from proplist expression
 						if (t instanceof IProplistDeclaration) {
 							final Variable proplistComponent = ((IProplistDeclaration)t).findComponent(node.name());
 							if (proplistComponent != null)
 								return proplistComponent;
 						}
-					} else {
-						final FindDeclarationInfo info = new FindDeclarationInfo(visitor.script().index());
-						info.searchOrigin = scriptToLookIn;
-						info.findGlobalVariables = predecessor == null;
-						Declaration v = scriptToLookIn.findDeclaration(node.name(), info);
-						if (v instanceof Definition)
-							v = ((Definition)v).proxyVar();
-						return v;
-					}
 				}
 				return null;
 			}
@@ -2034,11 +2075,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (script == null)
 							continue;
 						script.requireLoaded();
-						final FindDeclarationInfo info = new FindDeclarationInfo(visitor.script().index());
-						info.searchOrigin = visitor.script();
+						final FindDeclarationInfo info = new FindDeclarationInfo(functionName, visitor.script().index());
+						info.searchOrigin(visitor.script());
 						info.contextFunction = node.parentOfType(Function.class);
 						info.findGlobalVariables = type == null;
-						final Declaration dec = script.findDeclaration(functionName, info);
+						final Declaration dec = script.findDeclaration(info);
 						if (dec != null)
 							return dec;
 					}
@@ -2209,7 +2250,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					// when in local-mode (revisiting function being edited) delay visit to called function in any case,
 					// not only in case where the return type of the call is needed
-					if (shared.local && !visitor.inPreliminaryVisit()) {
+					if (shared.local && visitor.pass == Pass.MAIN) {
 						final IType predTy = predecessor != null ? visitor.ty(predecessor) : visitor.script();
 						if (predTy instanceof Script)
 							visitor.delayVisit(f, (Script)predTy);
@@ -2244,7 +2285,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final IType unified = unifyNoChoice(parmTy, givenTy);
 						if (unified == null)
 							visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
-						else if (visitor.inPreliminaryVisit())
+						else if (visitor.pass == Pass.PRELIMINARY)
 							visitor.judgement(given, unified, TypingJudgementMode.UNIFY);
 					}
 					if (noticeParameterCountMismatch)
@@ -2316,7 +2357,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (inherited != null)
 						if (inherited.body() != null) {
 							final Visit inhv = visitor.input().new Visit(inherited);
-							final Visitor inhVisitor = visitor.input().new Visitor(visitor, inherited.script());
+							final Visitor inhVisitor = visitor.input().new Visitor(visitor);
 							inhVisitor.startVisit(inhv);
 							inhVisitor.innerVisit();
 							inhVisitor.endVisit();

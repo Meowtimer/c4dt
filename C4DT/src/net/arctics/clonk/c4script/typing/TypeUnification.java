@@ -12,8 +12,16 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.ThisType;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.MetaDefinition;
+import net.arctics.clonk.util.IPredicate;
+import net.arctics.clonk.util.Utilities;
 
 public class TypeUnification {
+	private static final IPredicate<Script> IS_DEFINITION = new IPredicate<Script>() {
+		@Override
+		public boolean test(Script item) {
+			return item instanceof Definition;
+		}
+	};
 	private static IType unifyLeft(IType a, IType b) {
 		if (a == null)
 			return b;
@@ -133,43 +141,47 @@ public class TypeUnification {
 		if (a instanceof Definition && b instanceof Definition) {
 			final Definition da = (Definition)a;
 			final Definition db = (Definition)b;
-			if (db.doesInclude(db.index(), da))
-				return da;
-			else if (da.doesInclude(da.index(), db))
-				return db;
-			else {
-				final List<Script> cda = da.conglomerate();
-				final List<Script> cdb = db.conglomerate();
-				cda.retainAll(cdb);
-				if (cda.size() > 1) {
-					final List<Script> commonBases = new ArrayList<>(cda.size());
-					for (final Script x : cda) {
-						boolean includedByAll = true;
-						for (final Script y : cda)
-							if (x != y && !y.doesInclude(y.index(), x)) {
-								includedByAll = false;
-								break;
-							}
-						if (includedByAll)
-							commonBases.add(x);
-					}
-					cda.removeAll(commonBases);
-				}
-				return cda.size() > 0 ? TypeChoice.make(cda) : PrimitiveType.OBJECT.unified();
-			}
+			return unifyDefinitions(da, db);
 		}
 
 		if (a instanceof MetaDefinition && b instanceof MetaDefinition) {
-			final IType t = unifyNoChoice(((MetaDefinition)a).definition(), ((MetaDefinition)b).definition());
+			final IType t = unifyDefinitions(((MetaDefinition)a).definition(), ((MetaDefinition)b).definition());
 			return t instanceof Definition ? ((Definition)t).metaDefinition() : PrimitiveType.ID.unified();
 		}
-		
+
 		if (a instanceof CallTargetType)
 			if (b instanceof Definition || b instanceof MetaDefinition || b instanceof ProplistDeclaration ||
 				b == PrimitiveType.OBJECT || b == PrimitiveType.ID || b == PrimitiveType.PROPLIST)
 				return b;
 
 		return null;
+	}
+	private static IType unifyDefinitions(final Definition da, final Definition db) {
+		if (db.doesInclude(db.index(), da))
+			return da;
+		else if (da.doesInclude(da.index(), db))
+			return db;
+		else {
+			final List<Script> cda = da.conglomerate();
+			final List<Script> cdb = db.conglomerate();
+			cda.retainAll(cdb);
+			final List<Script> common = Utilities.filter(cda, IS_DEFINITION);
+			if (common.size() > 1) {
+				final List<Script> commonBases = new ArrayList<>(common.size());
+				for (final Script x : common) {
+					boolean includedByAll = true;
+					for (final Script y : common)
+						if (x != y && !y.doesInclude(y.index(), x)) {
+							includedByAll = false;
+							break;
+						}
+					if (includedByAll)
+						commonBases.add(x);
+				}
+				common.removeAll(commonBases);
+			}
+			return common.size() > 0 ? TypeChoice.make(common) : PrimitiveType.OBJECT.unified();
+		}
 	}
 	public static IType unifyNoChoice(IType a, IType b) {
 		IType u = unifyLeft(a, b);

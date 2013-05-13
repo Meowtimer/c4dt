@@ -289,12 +289,11 @@ public abstract class SpecialEngineRules {
 		}
 		/**
 		 * Assign default parameter types to a function.
-		 * @param processor processor
 		 * @param function The function
 		 * @return Returns false if this rule doesn't handle assigning default parameters of the passed function call. No types will be assigned and regular type inference takes place.
 		 */
 		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
-		public boolean assignDefaultParmTypes(ProblemReporter processor, Function function) {
+		public boolean assignDefaultParmTypes(Function function) {
 			return false;
 		}
 		/**
