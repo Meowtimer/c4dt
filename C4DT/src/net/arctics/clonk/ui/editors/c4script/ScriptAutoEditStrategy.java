@@ -7,8 +7,6 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.c4script.Conf;
-import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.MutableRegion;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
@@ -61,7 +59,8 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		PARM_BRACKETS_AUTOPAIR,
 		new Autopair("[", "]", Autopair.FOLLOWSIDENT|Autopair.PRECEDESWHITESPACE),
 		new Autopair("$", "$", 0),
-		new Autopair("\"", "\"", 0)
+		new Autopair("\"", "\"", 0),
+		new Autopair("{", "}", 0)
 	};
 
 	private static class AutoInsertedRegion extends MutableRegion {
@@ -128,13 +127,9 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
 		if (tabOverOverrideRegion(c))
 			return;
-		
+
 		if (tabToNextParameter(d, c))
 			return;
-
-		// auto-block
-		if (!disabled)
-			tryAutoBlock(d, c);
 
 		if (c.text.length() == 0 && c.length > 0)
 			regionDeleted(c.offset, c.length, null, c, d);
@@ -189,26 +184,6 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 				}
 			}
 		return false;
-	}
-
-	private void tryAutoBlock(IDocument d, DocumentCommand c) {
-		try {
-			if (c.text.endsWith("\n") && c.offset > 0 && d.getChar(c.offset-1) == '{') { //$NON-NLS-1$
-				final Function f = configuration().editor().functionAtCursor();
-				if (f != null && c.offset > f.bodyLocation().start() && unbalanced(d, f.bodyLocation())) {
-					final IRegion r = d.getLineInformationOfOffset(c.offset);
-					final int start = r.getOffset();
-					final int end = findEndOfWhiteSpace(d, start, c.offset);
-					if (end > start)
-						c.text += d.get(start, end-start) + Conf.indentString;
-					c.caretOffset = c.offset + c.text.length();
-					c.shiftsCaret = false;
-					c.text += "\n" + d.get(start, end-start) + "}"; //$NON-NLS-1$ //$NON-NLS-2$
-				}
-			}
-		} catch (final BadLocationException e1) {
-			e1.printStackTrace();
-		}
 	}
 
 	private void textAdded(IDocument d, DocumentCommand c) {
@@ -332,23 +307,6 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 			if (r.getOffset() >= proposal.replacementOffset())
 				r.incOffset(proposal.replacementString().length());
 		}
-	}
-
-	private boolean unbalanced(IDocument d, IRegion body) throws BadLocationException {
-		int open, close;
-		open = close = 0;
-		for (int x = 0; x < body.getLength()-1 && body.getOffset()+x < d.getLength(); x++) {
-			final char c = d.getChar(body.getOffset()+x);
-			switch (c) {
-			case '{':
-				open++;
-				break;
-			case '}':
-				close++;
-				break;
-			}
-		}
-		return open > close;
 	}
 
 	@Override
