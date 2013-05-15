@@ -206,8 +206,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		} catch (final BadLocationException e) { }
 
 		this.untamperedPrefix = prefix;
-		if (prefix != null)
+		if (prefix != null) {
+			if (prefix.startsWith("~"))
+				prefix = prefix.substring(1);
 			prefix = prefix.toLowerCase();
+		}
 		this.prefix = prefix;
 
 		final ClonkProjectNature nature = ClonkProjectNature.get(editor);
@@ -316,6 +319,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				case '.':
 					targetCall = true;
 					break Loop;
+				case '~':
+					arrowOffset--;
+					//$FALL-THROUGH$
 				case '>':
 					if (doc.getChar(arrowOffset-1) != '-')
 						return false;
@@ -341,7 +347,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return true;
 	}
 
-	private void innerProposalsInFunction(int offset, int wordOffset, IDocument doc, String prefix, List<ICompletionProposal> proposals, Index index, final Function activeFunc, Script editorScript, ScriptParser parser, final Sequence contextSequence, final ASTNode contextExpression, final IType sequenceType) {
+	private void innerProposalsInFunction(
+		int offset, int wordOffset, IDocument doc, String prefix, List<ICompletionProposal> proposals,
+		Index index, final Function activeFunc, Script editorScript, ScriptParser parser, final Sequence contextSequence,
+		final ASTNode contextExpression, final IType sequenceType
+	) {
 		if (DEBUG)
 			System.out.println(String.format("%s: %s %s %s",
 				prefix,
@@ -355,12 +365,13 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		setCategoryOrdering(contextExpression);
 		if (varInitializationProposals(offset, wordOffset, prefix, proposals, index, contextExpression))
 			return;
-		if (unifyNoChoice(PrimitiveType.PROPLIST, sequenceType) != null) {
+		if (unifyNoChoice(PrimitiveType.OBJECT, sequenceType) != null) {
 			engineProposals(offset, prefix, proposals, editorScript, contextSequence);
 			functionLocalProposals(wordOffset, prefix, proposals, activeFunc, contextSequence);
 			definitionProposals(offset, wordOffset, prefix, proposals, index, editorScript, whatToDisplayFromScripts);
-			structureProposals(offset, wordOffset, prefix, proposals, index, editorScript, contextSequence, sequenceType, whatToDisplayFromScripts);
 		}
+		if (unifyNoChoice(PrimitiveType.PROPLIST, sequenceType) != null)
+			structureProposals(offset, wordOffset, prefix, proposals, index, editorScript, contextSequence, sequenceType, whatToDisplayFromScripts);
 		ruleBasedProposals(offset, prefix, proposals, parser, contextExpression);
 		keywordProposals(offset, prefix, proposals, contextSequence);
 	}
@@ -898,7 +909,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 
 	private static void configureActivation() {
 		proposalAutoActivationCharacters[1] = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
-			? ":_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz$".toCharArray() //$NON-NLS-1$
+			? "~:_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz$".toCharArray() //$NON-NLS-1$
 			: new char[0];
 		proposalAutoActivationCharacters[0] = new char[0];
 		contextInformationAutoActivationCharacters = new char[] {'('};
