@@ -88,7 +88,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
 				))
 					return;
-			final String displayString = def.engine().settings().definitionsHaveProxyVariables ? def.id().stringValue() : def.name();
+			final String displayString = definitionDisplayString(def);
 			final int replacementLength = prefix != null ? prefix.length() : 0;
 
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
@@ -96,6 +96,13 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			prop.setCategory(cats.Definitions);
 			proposals.add(prop);
 		} catch (final Exception e) {}
+	}
+
+	private String definitionDisplayString(Definition def) {
+		if (def.engine().settings().definitionsHaveProxyVariables)
+			return def.id().stringValue();
+		else
+			return String.format("%s (%s)", def.name(), def.id().stringValue());
 	}
 
 	protected IFile pivotFile() {
