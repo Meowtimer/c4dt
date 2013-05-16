@@ -222,10 +222,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (editor().script().index().engine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 
+		final ProposalsLocation pl = new ProposalsLocation(offset, wordOffset, doc, prefix, proposals, index, activeFunc,
+			scriptForEditor(editor));
 		final boolean returnProposals = activeFunc == null
-			? proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index)
-			: computeProposalsInFunction(new ProposalsLocation(offset, wordOffset, doc, prefix, proposals, index, activeFunc,
-				scriptForEditor(editor)).setPreceding(preceding));
+			? proposalsOutsideOfFunction(viewer, pl)
+			: computeProposalsInFunction(pl);
 		if (!returnProposals)
 			return null;
 
@@ -245,8 +246,6 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		else
 			return null;
 	}
-
-	final PrecedingExpression preceding = new PrecedingExpression();
 
 	private boolean computeProposalsInFunction(ProposalsLocation pl) {
 		if (!checkProposalConditions(pl))
@@ -602,23 +601,19 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return prop;
 	}
 
-	private boolean proposalsOutsideOfFunction(
-		ITextViewer viewer, int offset,
-		int wordOffset, String prefix,
-		List<ICompletionProposal> proposals, Index index
-	) {
+	private boolean proposalsOutsideOfFunction(ITextViewer viewer, ProposalsLocation pl) {
 		// check whether func keyword precedes location (whole function blocks won't be created then)
-		final boolean funcSupplied = precededBy(viewer, offset, Keywords.Func);
+		final boolean funcSupplied = precededBy(viewer, pl.offset, Keywords.Func);
 		final boolean directiveExpectingDefinition =
-			precededBy(viewer, offset, "#" + Directive.DirectiveType.INCLUDE.toString()) || //$NON-NLS-1$
-			precededBy(viewer, offset, "#" + Directive.DirectiveType.APPENDTO.toString()); //$NON-NLS-1$
+			precededBy(viewer, pl.offset, "#" + Directive.DirectiveType.INCLUDE.toString()) || //$NON-NLS-1$
+			precededBy(viewer, pl.offset, "#" + Directive.DirectiveType.APPENDTO.toString()); //$NON-NLS-1$
 
 		for (final String kw: BuiltInDefinitions.DECLARATORS)
-			if (precededBy(viewer, offset, kw))
+			if (precededBy(viewer, pl.offset, kw))
 				return false;
 
 		final IDocument doc = viewer.getDocument();
-		Check: for (int i = offset; i >= 0; i--)
+		Check: for (int i = pl.offset; i >= 0; i--)
 			try {
 				switch (doc.getChar(i)) {
 				case '(': case ',': case '=': case ':':
@@ -631,84 +626,106 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			}
 
 		if (!directiveExpectingDefinition) {
-
-			// propose overriding inherited functions
-			final Script script = editor().script();
-			final List<Script> cong = script.conglomerate();
-			for (final Script c : cong)
-				if (c != script)
-					for (final Declaration dec : c.subDeclarations(index, DeclMask.FUNCTIONS)) {
-						if (!script.seesSubDeclaration(dec))
-							continue;
-						final Function func = as(dec, Function.class);
-						callbackProposal(prefix, func.name(), "%s", null, funcSupplied, proposals, offset, func.parameters().toArray(new Variable[func.numParameters()])).setCategory(cats.Callbacks);
-					}
-
-			// propose creating functions for standard callbacks
-			for(final String callback : script.engine().settings().callbackFunctions()) {
-				if (prefix != null)
-					if (!stringMatchesPrefix(callback, prefix))
-						continue;
-				callbackProposal(prefix, callback, "%s", null, funcSupplied, proposals, offset).setCategory(cats.Callbacks); //$NON-NLS-1$
-			}
-			// propose to just create function with the name already typed
-			if (untamperedPrefix != null && untamperedPrefix.length() > 0)
-				callbackProposal(prefix, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied, proposals, offset).setCategory(cats.NewFunction); //$NON-NLS-1$
-
-			// propose creating effect functions
-			for (final String s : EffectFunction.DEFAULT_CALLBACKS) {
-				final IType parameterTypes[] = Effect.parameterTypesForCallback(s, editor.script(), PrimitiveType.ANY);
-				final Variable parms[] = new Variable[] {
-					new Variable("obj", parameterTypes[0]), //$NON-NLS-1$
-					new Variable("effect", parameterTypes[1]) //$NON-NLS-1$
-				};
-				callbackProposal(prefix, null, EffectFunction.FUNCTION_NAME_PREFIX+"%s"+s, //$NON-NLS-1$
-					String.format(Messages.C4ScriptCompletionProcessor_EffectFunctionCallbackProposalDisplayStringFormat, s), funcSupplied, proposals, wordOffset, parms).setCategory(cats.EffectCallbacks);
-			}
-
+			overrideProposals(pl, funcSupplied);
+			standardCallbackProposals(pl, funcSupplied);
+			newFunctionProposal(pl, funcSupplied);
+			effectFunctionProposals(pl, funcSupplied);
 			if (!funcSupplied) {
-				// propose declaration keywords (var, static, ...)
-				for(final String declarator : BuiltInDefinitions.DECLARATORS) {
-					if (prefix != null)
-						if (!stringMatchesPrefix(declarator, prefix))
-							continue;
-					final Image declaratorImg = UI.imageForPath("icons/declarator.png"); //$NON-NLS-1$
-					int replacementLength = 0;
-					if (prefix != null) replacementLength = prefix.length();
-					final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
-					prop.setCategory(cats.Keywords);
-					proposals.add(prop);
-				}
-				// propose directives (#include, ...)
-				final Image directiveIcon = UI.imageForPath("icons/directive.png"); //$NON-NLS-1$
-				for(final Directive directive : Directive.CANONICALS) {
-					String txt = directive.type().toString();
-					if (prefix != null)
-						if (!stringMatchesPrefix(txt, prefix))
-							continue;
-					int replacementLength = 0;
-					if (prefix != null) replacementLength = prefix.length();
-					txt = "#"+txt+" "; //$NON-NLS-1$ //$NON-NLS-2$
-					final ClonkCompletionProposal prop = new ClonkCompletionProposal(
-						directive, txt, offset, replacementLength, txt.length(),
-						directiveIcon, directive.type().toString(), null, null,
-						Messages.C4ScriptCompletionProcessor_Engine, editor()
-					);
-					prop.setCategory(cats.Directives);
-					proposals.add(prop);
-				}
+				declaratorProposals(pl);
+				directiveProposals(pl);
 			}
-		}
-		// propose objects for #include or something
-		if (directiveExpectingDefinition) {
-			final Script editorScript = Utilities.scriptForEditor(editor);
-			if (prefix == null)
-				prefix = ""; //$NON-NLS-1$
-			for (final Index i : index.relevantIndexes())
-				proposalsForIndex(i, new ProposalsLocation(offset, wordOffset, null, prefix, proposals, null, null, editorScript)
-					.setDeclarationsMask(DeclMask.STATIC_VARIABLES));
-		}
+		} else
+			directiveDefinitionArgumentProposals(pl);
 		return true;
+	}
+
+	private void directiveDefinitionArgumentProposals(ProposalsLocation pl) {
+		// propose objects for #include or something
+		final Script editorScript = Utilities.scriptForEditor(editor);
+		if (prefix == null)
+			prefix = ""; //$NON-NLS-1$
+		for (final Index i : pl.index.relevantIndexes())
+			proposalsForIndex(i, new ProposalsLocation(pl.offset, pl.wordOffset, null, prefix, pl.proposals, null, null, editorScript)
+			.setDeclarationsMask(DeclMask.STATIC_VARIABLES));
+	}
+
+	private void directiveProposals(ProposalsLocation pl) {
+		// propose directives (#include, ...)
+		final Image directiveIcon = UI.imageForPath("icons/directive.png"); //$NON-NLS-1$
+		for(final Directive directive : Directive.CANONICALS) {
+			String txt = directive.type().toString();
+			if (prefix != null)
+				if (!stringMatchesPrefix(txt, prefix))
+					continue;
+			int replacementLength = 0;
+			if (prefix != null) replacementLength = prefix.length();
+			txt = "#"+txt+" "; //$NON-NLS-1$ //$NON-NLS-2$
+			final ClonkCompletionProposal prop = new ClonkCompletionProposal(
+				directive, txt, pl.offset, replacementLength, txt.length(),
+				directiveIcon, directive.type().toString(), null, null,
+				Messages.C4ScriptCompletionProcessor_Engine, editor()
+			);
+			prop.setCategory(cats.Directives);
+			pl.proposals.add(prop);
+		}
+	}
+
+	private void declaratorProposals(ProposalsLocation pl) {
+		// propose declaration keywords (var, static, ...)
+		for(final String declarator : BuiltInDefinitions.DECLARATORS) {
+			if (prefix != null)
+				if (!stringMatchesPrefix(declarator, prefix))
+					continue;
+			final Image declaratorImg = UI.imageForPath("icons/declarator.png"); //$NON-NLS-1$
+			int replacementLength = 0;
+			if (prefix != null) replacementLength = prefix.length();
+			final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,pl.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
+			prop.setCategory(cats.Keywords);
+			pl.proposals.add(prop);
+		}
+	}
+
+	private void effectFunctionProposals(ProposalsLocation pl, final boolean funcSupplied) {
+		// propose creating effect functions
+		for (final String s : EffectFunction.DEFAULT_CALLBACKS) {
+			final IType parameterTypes[] = Effect.parameterTypesForCallback(s, editor.script(), PrimitiveType.ANY);
+			final Variable parms[] = new Variable[] {
+				new Variable("obj", parameterTypes[0]), //$NON-NLS-1$
+				new Variable("effect", parameterTypes[1]) //$NON-NLS-1$
+			};
+			callbackProposal(prefix, null, EffectFunction.FUNCTION_NAME_PREFIX+"%s"+s, //$NON-NLS-1$
+				String.format(Messages.C4ScriptCompletionProcessor_EffectFunctionCallbackProposalDisplayStringFormat, s), funcSupplied, pl.proposals, pl.wordOffset, parms).setCategory(cats.EffectCallbacks);
+		}
+	}
+
+	private void newFunctionProposal(ProposalsLocation pl, final boolean funcSupplied) {
+		// propose to just create function with the name already typed
+		if (untamperedPrefix != null && untamperedPrefix.length() > 0)
+			callbackProposal(prefix, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied, pl.proposals, pl.offset).setCategory(cats.NewFunction); //$NON-NLS-1$
+	}
+
+	private void standardCallbackProposals(ProposalsLocation pl, final boolean funcSupplied) {
+		// propose creating functions for standard callbacks
+		for(final String callback : editor().script().engine().settings().callbackFunctions()) {
+			if (prefix != null)
+				if (!stringMatchesPrefix(callback, prefix))
+					continue;
+			callbackProposal(prefix, callback, "%s", null, funcSupplied, pl.proposals, pl.offset).setCategory(cats.Callbacks); //$NON-NLS-1$
+		}
+	}
+
+	private void overrideProposals(ProposalsLocation pl, final boolean funcSupplied) {
+		// propose overriding inherited functions
+		final Script script = editor().script();
+		final List<Script> cong = script.conglomerate();
+		for (final Script c : cong)
+			if (c != script)
+				for (final Declaration dec : c.subDeclarations(pl.index, DeclMask.FUNCTIONS)) {
+					if (!script.seesSubDeclaration(dec))
+						continue;
+					final Function func = as(dec, Function.class);
+					callbackProposal(prefix, func.name(), "%s", null, funcSupplied, pl.proposals, pl.offset, func.parameters().toArray(new Variable[func.numParameters()])).setCategory(cats.Callbacks);
+				}
 	}
 
 	private static boolean precededBy(ITextViewer viewer, int offset, String what) {
