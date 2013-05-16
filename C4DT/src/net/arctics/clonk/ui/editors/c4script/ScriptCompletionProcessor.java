@@ -184,12 +184,18 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		super.computeCompletionProposals(viewer, offset);
-		int wordOffset = offset - 1;
+		int wordOffset;
 		final IDocument doc = viewer.getDocument();
+		for (wordOffset = offset - 1; wordOffset >= 0; wordOffset--)
+			try {
+				final char c = doc.getChar(wordOffset);
+				if (!(BufferedScanner.isWordPart(c) || Character.isLetter(c)))
+					break;
+			} catch (final BadLocationException e) {
+				break;
+			}
 		String prefix = null;
 		try {
-			while (BufferedScanner.isWordPart(doc.getChar(wordOffset)) || Character.isLetter(doc.getChar(wordOffset)))
-				wordOffset--;
 			wordOffset++;
 			if (wordOffset < offset) {
 				prefix = doc.get(wordOffset, offset - wordOffset);
