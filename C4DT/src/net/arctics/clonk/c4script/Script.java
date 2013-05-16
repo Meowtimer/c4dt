@@ -1179,12 +1179,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		generateNodeMaps();
 	}
 
-	private void findInheritedFunctions() {
-		if (functions != null && index() != null)
-			for (final Function f : functions())
-				f.findInherited();
-	}
-
 	private void generateNodeMaps() {
 		callMap = new HashMap<>();
 		varReferencesMap = new HashMap<>();

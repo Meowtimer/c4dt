@@ -1,10 +1,9 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.Flags.DEBUG;
-import static net.arctics.clonk.c4script.typing.TypeUnification.unifyNoChoice;
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
+import static net.arctics.clonk.util.Utilities.scriptForEditor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,11 +18,9 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Placeholder;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
@@ -34,7 +31,6 @@ import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IHasIncludes;
 import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.Script;
@@ -42,11 +38,9 @@ import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
-import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
-import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
@@ -161,29 +155,30 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	 * @param flags Flags indicating what kind of proposals should be included. {@link DeclMask#STATIC_VARIABLES} needs to be or-ed to flags if {@link Definition} and static variable proposals are to be shown.
 	 * @param editorScript Script the proposals are invoked on.
 	 */
-	private void proposalsForIndex(Index index, int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, int flags, Script editorScript) {
+	private void proposalsForIndex(Index index, ProposalsLocation pl) {
+		final int declarationsMask = pl.declarationsMask();
 		if (_activeFunc != null) {
 			final Scenario s2 = _activeFunc.scenario();
-			if ((flags & DeclMask.FUNCTIONS) != 0)
+			if ((declarationsMask & DeclMask.FUNCTIONS) != 0)
 				for (final Function func : index.globalFunctions()) {
 					final Scenario fScen = func.scenario();
 					if (fScen != null && fScen != s2)
 						continue;
-					proposalForFunc(func, prefix, offset, proposals, true);
+					proposalForFunc(func, prefix, pl.offset, pl.proposals, true);
 				}
-			if ((flags & DeclMask.STATIC_VARIABLES) != 0)
+			if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0)
 				for (final Variable var : index.staticVariables()) {
 					// ignore static variables from editor script since those are proposed already
-					if (var.parentDeclaration() == editorScript)
+					if (var.parentDeclaration() == pl.script)
 						continue;
 					final Scenario vScen = var.scenario();
 					if (vScen != null && vScen != s2)
 						continue;
-					proposalForVar(var,prefix,offset,proposals);
+					proposalForVar(var,prefix,pl.offset,pl.proposals);
 				}
 		}
-		if ((flags & DeclMask.STATIC_VARIABLES) != 0)
-			proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
+		if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0)
+			proposalsForIndexedDefinitions(index, pl.offset, pl.wordOffset, prefix, pl.proposals);
 	}
 
 	@Override
@@ -229,7 +224,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 
 		final boolean returnProposals = activeFunc == null
 			? proposalsOutsideOfFunction(viewer, offset, wordOffset, prefix, proposals, index)
-			: computeProposalsInFunction(offset, wordOffset, doc, prefix, proposals, index, activeFunc);
+			: computeProposalsInFunction(new ProposalsLocation(offset, wordOffset, doc, prefix, proposals, index, activeFunc,
+				scriptForEditor(editor)).setPreceding(preceding));
 		if (!returnProposals)
 			return null;
 
@@ -250,71 +246,33 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			return null;
 	}
 
-	class PrecedingExpressionTypeExtractor extends ExpressionLocator<ProblemReporter> {
-		public ASTNode contextExpression;
-		public Sequence contextSequence;
-		public IType precedingType;
-		public void pos(int pos) { this.exprRegion = new Region(pos, 0); exprAtRegion = null; }
-		public PrecedingExpressionTypeExtractor() { super(-1); }
-		@Override
-		public TraversalContinuation visitNode(ASTNode expression, ProblemReporter context) {
-			final ASTNode old = exprAtRegion;
-			final TraversalContinuation c = super.visitNode(expression, context);
-			if (old != exprAtRegion) {
-				contextExpression = exprAtRegion;
-				if (
-					contextExpression instanceof MemberOperator ||
-					(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), exprRegion.getOffset()))
-				) {
-					// we only care about sequences
-					final ASTNode pred = contextExpression.predecessorInSequence();
-					contextSequence = pred != null ? Utilities.as(contextExpression.parent(), Sequence.class) : null;
-					if (contextSequence != null)
-						contextSequence = contextSequence.subSequenceIncluding(contextExpression);
-					precedingType = pred != null ? context.typeOf(pred) : null;
-				}
-			}
-			return c;
-		}
-		public IType precedingType() { return defaulting(precedingType, PrimitiveType.UNKNOWN); }
-	}
+	final PrecedingExpression preceding = new PrecedingExpression();
 
-	final PrecedingExpressionTypeExtractor typeExtractor = new PrecedingExpressionTypeExtractor();
-
-	private boolean computeProposalsInFunction(int offset, int wordOffset,
-		IDocument doc, String prefix,
-		List<ICompletionProposal> proposals, Index index,
-		final Function activeFunc
-	) {
-		if (!checkProposalConditions(wordOffset, doc))
+	private boolean computeProposalsInFunction(ProposalsLocation pl) {
+		if (!checkProposalConditions(pl))
 			return false;
-		final Script editorScript = Utilities.scriptForEditor(editor);
-		final int preservedOffset = offset - (activeFunc != null?activeFunc.bodyLocation().start():0);
+		final int preservedOffset = pl.offset - (pl.function != null?pl.function.bodyLocation().start():0);
 
-		typeExtractor.pos(preservedOffset);
+		pl.pos(preservedOffset);
 		ScriptParser parser = null;
-		if (editorScript != null)
+		if (pl.script != null)
 			if (parser == null) {
 				final ScriptEditingState editingState = editor().editingState();
-				parser = editingState.updateFunctionFragment(activeFunc, typeExtractor, true);
+				parser = editingState.updateFunctionFragment(pl.function, pl, true);
 			}
 
-		if (!skipProposalsInFunction(typeExtractor.contextExpression)) {
-			innerProposalsInFunction(
-				offset, wordOffset, doc, prefix,
-				proposals, index, activeFunc, editorScript, parser,
-				typeExtractor.contextSequence, typeExtractor.contextExpression, typeExtractor.precedingType()
-			);
+		if (!skipProposalsInFunction(pl.contextExpression)) {
+			innerProposalsInFunction(pl, parser);
 			return true;
 		} else
 			return false;
 	}
 
-	private boolean checkProposalConditions(int wordOffset, IDocument doc) {
+	private boolean checkProposalConditions(ProposalsLocation pl) {
 		try {
 			boolean targetCall = false;
-			Loop: for (int arrowOffset = wordOffset - 1; arrowOffset >= 1; arrowOffset--) {
-				final char c = doc.getChar(arrowOffset);
+			Loop: for (int arrowOffset = pl.wordOffset - 1; arrowOffset >= 1; arrowOffset--) {
+				final char c = pl.document.getChar(arrowOffset);
 				switch (c) {
 				case '.':
 					targetCall = true;
@@ -323,12 +281,12 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					arrowOffset--;
 					//$FALL-THROUGH$
 				case '>':
-					if (doc.getChar(arrowOffset-1) != '-')
+					if (pl.document.getChar(arrowOffset-1) != '-')
 						return false;
 					targetCall = true;
 					break Loop;
 				case ':':
-					if (doc.getChar(arrowOffset-1) != ':')
+					if (pl.document.getChar(arrowOffset-1) != ':')
 						return false;
 					targetCall = true;
 					break Loop;
@@ -339,7 +297,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 						break Loop;
 				}
 			}
-			if (!targetCall && wordOffset >= 0 && Character.isWhitespace(doc.getChar(wordOffset)))
+			if (!targetCall && pl.wordOffset >= 0 && Character.isWhitespace(pl.document.getChar(pl.wordOffset)))
 				return false;
 		} catch (final BadLocationException bl) {
 			return false;
@@ -347,115 +305,90 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return true;
 	}
 
-	private void innerProposalsInFunction(
-		int offset, int wordOffset, IDocument doc, String prefix, List<ICompletionProposal> proposals,
-		Index index, final Function activeFunc, Script editorScript, ScriptParser parser, final Sequence contextSequence,
-		final ASTNode contextExpression, final IType sequenceType
-	) {
-		if (DEBUG)
-			System.out.println(String.format("%s: %s %s %s",
-				prefix,
-				contextExpression != null ? contextExpression.printed() : "null",
-				contextSequence != null ? contextSequence.printed() : "null",
-				sequenceType != null ? sequenceType.typeName(true) : "null"
-			));
-		final int whatToDisplayFromScripts = declarationMask(contextSequence);
-		if (computeStringProposals(offset, doc, prefix, proposals, editorScript, contextExpression))
+	private void innerProposalsInFunction(ProposalsLocation pl, ScriptParser parser) {
+		if (computeStringProposals(pl) || varInitializationProposals(pl))
 			return;
-		setCategoryOrdering(contextExpression);
-		if (varInitializationProposals(offset, wordOffset, prefix, proposals, index, contextExpression))
-			return;
-		if (unifyNoChoice(PrimitiveType.OBJECT, sequenceType) != null) {
-			engineProposals(offset, prefix, proposals, editorScript, contextSequence);
-			functionLocalProposals(wordOffset, prefix, proposals, activeFunc, contextSequence);
-			definitionProposals(offset, wordOffset, prefix, proposals, index, editorScript, whatToDisplayFromScripts);
-		}
-		if (unifyNoChoice(PrimitiveType.PROPLIST, sequenceType) != null)
-			structureProposals(offset, wordOffset, prefix, proposals, index, editorScript, contextSequence, sequenceType, whatToDisplayFromScripts);
-		ruleBasedProposals(offset, prefix, proposals, parser, contextExpression);
-		keywordProposals(offset, prefix, proposals, contextSequence);
+		setCategoryOrdering(pl);
+		functionLocalProposals(pl);
+		definitionProposals(pl);
+		engineProposals(pl);
+		structureProposals(pl);
+		ruleBasedProposals(pl, parser);
+		keywordProposals(pl);
 	}
 
 	private boolean skipProposalsInFunction(ASTNode contextExpression) {
 		return contextExpression instanceof Comment;
 	}
 
-	private void engineProposals(int offset, String prefix, List<ICompletionProposal> proposals, Script editorScript, final Sequence contextSequence) {
+	private void engineProposals(ProposalsLocation pl) {
 		if (proposalCycle == ProposalCycle.ALL)
-			if (editorScript.index().engine() != null && (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))) {
-				for (final Function func : editorScript.index().engine().functions())
-					proposalForFunc(func, prefix, offset, proposals, true);
-				if (contextSequence == null)
-					for (final Variable var : editorScript.index().engine().variables())
-						proposalForVar(var,prefix,offset,proposals);
+			if (pl.script.index().engine() != null) {
+				if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
+					for (final Function func : pl.script.index().engine().functions())
+						proposalForFunc(func, prefix, pl.offset, pl.proposals, true);
+				if ((pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
+					for (final Variable var : pl.script.index().engine().variables())
+						proposalForVar(var, prefix, pl.offset, pl.proposals);
 			}
 	}
 
-	private void functionLocalProposals(int wordOffset, String prefix, List<ICompletionProposal> proposals, final Function activeFunc, final Sequence contextSequence) {
-		if (contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && activeFunc != null) {
-			for (final Variable v : activeFunc.parameters())
-				proposalForVar(v, prefix, wordOffset, proposals);
-			for (final Variable v : activeFunc.locals())
-				proposalForVar(v, prefix, wordOffset, proposals);
-		}
+	private void functionLocalProposals(ProposalsLocation pl) {
+		if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
+			if (pl.contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && pl.function != null) {
+				for (final Variable v : pl.function.parameters())
+					proposalForVar(v, prefix, pl.wordOffset, pl.proposals);
+				for (final Variable v : pl.function.locals())
+					proposalForVar(v, prefix, pl.wordOffset, pl.proposals);
+			}
 	}
 
-	private int declarationMask(final Sequence contextSequence) {
-		int whatToDisplayFromScripts = 0;
-		if (contextSequence == null || MemberOperator.endsWithDot(contextSequence))
-			whatToDisplayFromScripts |= DeclMask.VARIABLES;
-		if (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))
-			whatToDisplayFromScripts |= DeclMask.FUNCTIONS;
-		if (contextSequence == null)
-			whatToDisplayFromScripts |= DeclMask.STATIC_VARIABLES;
-		return whatToDisplayFromScripts;
+	private void definitionProposals(ProposalsLocation pl) {
+		if ((pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
+			if (proposalCycle != ProposalCycle.OBJECT)
+				for (final Index i : pl.index.relevantIndexes())
+					proposalsForIndex(i, pl);
 	}
 
-	private void definitionProposals(int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, Index index, Script editorScript, int whatToDisplayFromScripts) {
-		if (proposalCycle != ProposalCycle.OBJECT)
-			for (final Index i : index.relevantIndexes())
-				proposalsForIndex(i, offset, wordOffset, prefix, proposals, whatToDisplayFromScripts, editorScript);
-	}
-
-	private void structureProposals(int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, Index index, Script editorScript, final Sequence contextSequence, final IType sequenceType, int whatToDisplayFromScripts) {
-		final Set<Declaration> proposalTypes = determineProposalTypes(editorScript, contextSequence, sequenceType);
+	private void structureProposals(ProposalsLocation pl) {
+		final Set<Declaration> proposalTypes = determineProposalTypes(pl);
 		if (proposalTypes.size() > 0)
 			for (final Declaration s : proposalTypes) {
-				proposalsForStructure(s, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
+				proposalsForStructure(s, pl.prefix, pl.offset, pl.wordOffset, pl.proposals, pl.index, pl.declarationsMask(), s);
 				if (s instanceof IHasIncludes) {
 					@SuppressWarnings("unchecked")
 					final Iterable<? extends IHasIncludes<?>> includes =
-						((IHasIncludes<IHasIncludes<?>>)s).includes(index, editorScript, GatherIncludesOptions.Recursive);
+						((IHasIncludes<IHasIncludes<?>>)s).includes(pl.index, pl.script, GatherIncludesOptions.Recursive);
 					for (final IHasIncludes<?> inc : includes)
-						proposalsForStructure((Declaration) inc, prefix, offset, wordOffset, proposals, index, whatToDisplayFromScripts, s);
+						proposalsForStructure((Declaration) inc, prefix, pl.offset, pl.wordOffset, pl.proposals, pl.index, pl.declarationsMask(), s);
 				}
 			}
 		else
-			proposeAllTheThings(offset, prefix, proposals, index);
+			proposeAllTheThings(pl);
 	}
 
-	public void proposeAllTheThings(int offset, String prefix, List<ICompletionProposal> proposals, Index index) {
-		final List<ICompletionProposal> old = new ArrayList<>(proposals);
-		final List<Index> relevantIndexes = index.relevantIndexes();
+	public void proposeAllTheThings(ProposalsLocation pl) {
+		final List<ICompletionProposal> old = new ArrayList<>(pl.proposals);
+		final List<Index> relevantIndexes = pl.index.relevantIndexes();
 		for (final Index x : relevantIndexes)
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if (d instanceof Function && !((Function)d).isGlobal())
-					proposalForFunc((Function) d, prefix, offset, proposals, true);
+					proposalForFunc((Function) d, prefix, pl.offset, pl.proposals, true);
 				else if (d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
-					proposalForVar((Variable)d, prefix, offset, proposals);
+					proposalForVar((Variable)d, prefix, pl.offset, pl.proposals);
 			}
-		for (final ICompletionProposal p : proposals)
+		for (final ICompletionProposal p : pl.proposals)
 			if (p instanceof ClonkCompletionProposal && !old.contains(p)) {
 				final ClonkCompletionProposal ccp = (ClonkCompletionProposal)p;
 				ccp.setImage(UI.halfTransparent(ccp.getImage()));
 			}
 	}
 
-	private Set<Declaration> determineProposalTypes(Script editorScript, final Sequence contextSequence, final IType sequenceType) {
+	private Set<Declaration> determineProposalTypes(ProposalsLocation pl) {
 		final Set<Declaration> contextStructures = new HashSet<Declaration>();
-		if (contextSequence != null)
-			for (final IType t : sequenceType) {
+		if (pl.contextSequence != null)
+			for (final IType t : pl.precedingType()) {
 				Declaration structure;
 				if (t instanceof Declaration)
 					structure = (Declaration) t;
@@ -467,41 +400,41 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					contextStructures.add(structure);
 			}
 		else
-			contextStructures.add(editorScript);
+			contextStructures.add(pl.script);
 		return contextStructures;
 	}
 
-	private void keywordProposals(int offset, String prefix, List<ICompletionProposal> proposals, final Sequence contextSequence) {
-		if (contextSequence == null && proposalCycle == ProposalCycle.ALL) {
+	private void keywordProposals(ProposalsLocation pl) {
+		if (pl.contextSequence == null && proposalCycle == ProposalCycle.ALL) {
 			final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 			for(final String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (prefix != null && !stringMatchesPrefix(keyword, prefix))
 					continue;
-				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword, offset, prefix != null ? prefix.length() : 0, keyword.length(), keywordImg ,
+				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword, pl.offset, prefix != null ? prefix.length() : 0, keyword.length(), keywordImg ,
 					keyword, null ,null, ": keyword", editor());
 				prop.setCategory(cats.Keywords);
-				proposals.add(prop);
+				pl.proposals.add(prop);
 			}
 		}
 	}
 
-	private boolean varInitializationProposals(int offset, int wordOffset, String prefix, List<ICompletionProposal> proposals, Index index, final ASTNode contextExpression) {
-		if (contextExpression instanceof VarInitialization) {
-			final VarInitialization vi = (VarInitialization)contextExpression;
+	private boolean varInitializationProposals(ProposalsLocation pl) {
+		if (pl.contextExpression instanceof VarInitialization) {
+			final VarInitialization vi = (VarInitialization)pl.contextExpression;
 			Typing typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
-			if (index instanceof ProjectIndex)
-				typing = ((ProjectIndex)index).nature().settings().typing;
+			if (pl.index instanceof ProjectIndex)
+				typing = ((ProjectIndex)pl.index).nature().settings().typing;
 			switch (typing) {
 			case STATIC:
 				if (eq(vi.type, PrimitiveType.ERRONEOUS)) {
-					proposalsForIndexedDefinitions(index, offset, wordOffset, prefix, proposals);
+					proposalsForIndexedDefinitions(pl.index, pl.offset, pl.wordOffset, prefix, pl.proposals);
 					final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 					for (final PrimitiveType t : PrimitiveType.values())
-						if (t != PrimitiveType.UNKNOWN && index.engine().supportsPrimitiveType(t)) {
-							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, t.scriptName(), offset, prefix != null ? prefix.length() : 0 , t.scriptName().length(),
+						if (t != PrimitiveType.UNKNOWN && pl.index.engine().supportsPrimitiveType(t)) {
+							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, t.scriptName(), pl.offset, prefix != null ? prefix.length() : 0 , t.scriptName().length(),
 								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 							prop.setCategory(cats.Keywords);
-							proposals.add(prop);
+							pl.proposals.add(prop);
 						}
 				}
 				break;
@@ -513,32 +446,32 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			return false;
 	}
 
-	private void ruleBasedProposals(int offset, String prefix, List<ICompletionProposal> proposals, ScriptParser parser, ASTNode contextExpression) {
-		if (contextExpression == null)
+	private void ruleBasedProposals(ProposalsLocation pl, ScriptParser parser) {
+		if (pl.contextExpression == null)
 			return;
-		final CallDeclaration innermostCallFunc = contextExpression.thisOrParentOfType(CallDeclaration.class);
+		final CallDeclaration innermostCallFunc = pl.contextExpression.thisOrParentOfType(CallDeclaration.class);
 		if (innermostCallFunc != null) {
 			final SpecialEngineRules rules = parser.specialEngineRules();
 			if (rules != null) {
 				final SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
-					final ASTNode parmExpr = innermostCallFunc.findSubElementContaining(contextExpression);
-					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, offset, proposals);
+					final ASTNode parmExpr = innermostCallFunc.findSubElementContaining(pl.contextExpression);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, pl.offset, pl.proposals);
 				}
 			}
 		}
 	}
 
-	private void setCategoryOrdering(ASTNode contextExpression) {
+	private void setCategoryOrdering(ProposalsLocation pl) {
 		cats.defaultOrdering();
-		if (contextExpression == null)
+		if (pl.contextExpression == null)
 			return;
-		CallDeclaration innermostCallFunc = contextExpression.parentOfType(CallDeclaration.class);
+		CallDeclaration innermostCallFunc = pl.contextExpression.parentOfType(CallDeclaration.class);
 		// elevate definition proposals for parameters of id type
 		Variable parm;
-		if (innermostCallFunc != null && contextExpression.parent() == innermostCallFunc)
-			parm = innermostCallFunc.parmDefinitionForParmExpression(contextExpression);
-		else if ((innermostCallFunc = as(contextExpression, CallDeclaration.class)) != null && innermostCallFunc.params().length == 0 &&
+		if (innermostCallFunc != null && pl.contextExpression.parent() == innermostCallFunc)
+			parm = innermostCallFunc.parmDefinitionForParmExpression(pl.contextExpression);
+		else if ((innermostCallFunc = as(pl.contextExpression, CallDeclaration.class)) != null && innermostCallFunc.params().length == 0 &&
 			innermostCallFunc.declaration() instanceof Function && ((Function)innermostCallFunc.declaration()).numParameters() > 0)
 			parm = ((Function)innermostCallFunc.declaration()).parameter(0);
 		else
@@ -551,18 +484,18 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			}
 	}
 
-	private boolean computeStringProposals(int offset, IDocument doc, String prefix, List<ICompletionProposal> proposals, Script editorScript, ASTNode contextExpression) {
+	private boolean computeStringProposals(ProposalsLocation pl) {
 		// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
-		if (contextExpression instanceof Placeholder || contextExpression instanceof StringLiteral) {
+		if (pl.contextExpression instanceof Placeholder || pl.contextExpression instanceof StringLiteral) {
 			try {
-				if (doc.getChar(offset-1) != '$')
+				if (pl.document.getChar(pl.offset-1) != '$')
 					return true;
 			} catch (final BadLocationException e1) {
 				return true;
 			}
 			final Set<String> availableLocalizationStrings = new HashSet<>();
 			try {
-				for (final IResource r : (editorScript.resource() instanceof IContainer ? (IContainer)editorScript.resource() : editorScript.resource().getParent()).members()) {
+				for (final IResource r : (pl.script.resource() instanceof IContainer ? (IContainer)pl.script.resource() : pl.script.resource().getParent()).members()) {
 					if (!(r instanceof IFile))
 						continue;
 					final IFile f = (IFile) r;
@@ -580,10 +513,10 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			for (final String loc : availableLocalizationStrings) {
 				if (prefix != null && !stringMatchesPrefix(loc, prefix))
 					continue;
-				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, loc, offset, prefix != null ? prefix.length() : 0 , loc.length(),
+				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, loc, pl.offset, prefix != null ? prefix.length() : 0 , loc.length(),
 					keywordImg , loc, null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 				prop.setCategory(cats.Keywords);
-				proposals.add(prop);
+				pl.proposals.add(prop);
 			}
 			return true;
 		} else
@@ -600,12 +533,15 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	 * @param document The {@link IDocument} the expression was read from
 	 * @return A list of proposals that (hopefully) represent a valid continuation of the given expression
 	 */
-	public static List<ICompletionProposal> computeProposalsForExpression(ASTNode expression, Function function, ScriptParser parser, IDocument document) {
+	public static List<ICompletionProposal> computeProposalsForExpression
+		(ASTNode expression, Function function, ScriptParser parser, IDocument document) {
 		final List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(parser.script());
-		processor.innerProposalsInFunction(
+		final ProposalsLocation pl = new ProposalsLocation(
 			expression != null ? expression.end() : 0,
-			0, document, "", result, function.index(), function, function.script(), parser, expression.parentOfType(Sequence.class), expression, PrimitiveType.UNKNOWN);
+			0, document, "", result, function.index(), function, parser.script()
+		).setPreceding(new PrecedingExpression(expression, expression.parentOfType(Sequence.class), PrimitiveType.UNKNOWN));
+		processor.innerProposalsInFunction(pl, parser);
 		return result;
 	}
 
@@ -769,7 +705,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (prefix == null)
 				prefix = ""; //$NON-NLS-1$
 			for (final Index i : index.relevantIndexes())
-				proposalsForIndex(i, offset, wordOffset, prefix, proposals, DeclMask.STATIC_VARIABLES, editorScript);
+				proposalsForIndex(i, new ProposalsLocation(offset, wordOffset, null, prefix, proposals, null, null, editorScript)
+					.setDeclarationsMask(DeclMask.STATIC_VARIABLES));
 		}
 		return true;
 	}
