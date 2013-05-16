@@ -5,7 +5,7 @@ import java.util.List;
 
 
 
-public class BuiltInDefinitions {	
+public class BuiltInDefinitions {
 	public static final List<String> KEYWORDS = Arrays.asList(
 		Keywords.Break,
 		Keywords.Continue,
@@ -19,9 +19,10 @@ public class BuiltInDefinitions {
 		Keywords.New,
 		Keywords.Nil,
 		Keywords.False,
-		Keywords.True
+		Keywords.True,
+		Variable.THIS.name()
 	);
-	
+
 	public static final List<String> DECLARATORS = Arrays.asList(
 		Keywords.Const,
 		Keywords.Func,
@@ -33,6 +34,6 @@ public class BuiltInDefinitions {
 		Keywords.GlobalNamed,
 		Keywords.VarNamed
 	);
-	
-	public static final String[] SCRIPTOPERATORS = Operator.operatorNames(); 
+
+	public static final String[] SCRIPTOPERATORS = Operator.operatorNames();
 }
