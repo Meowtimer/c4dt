@@ -62,6 +62,8 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.PrecedingExpression;
+import net.arctics.clonk.ui.editors.ProposalsLocation;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
@@ -164,7 +166,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					final Scenario fScen = func.scenario();
 					if (fScen != null && fScen != s2)
 						continue;
-					proposalForFunc(func, prefix, pl.offset, pl.proposals, true);
+					proposalForFunc(pl, func, true);
 				}
 			if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0)
 				for (final Variable var : index.staticVariables()) {
@@ -174,11 +176,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					final Scenario vScen = var.scenario();
 					if (vScen != null && vScen != s2)
 						continue;
-					proposalForVar(var,prefix,pl.offset,pl.proposals);
+					proposalForVar(pl, var);
 				}
 		}
 		if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0)
-			proposalsForIndexedDefinitions(index, pl.offset, pl.wordOffset, prefix, pl.proposals);
+			proposalsForIndexedDefinitions(pl, index);
 	}
 
 	@Override
@@ -206,14 +208,6 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				return null;
 		} catch (final BadLocationException e) { }
 
-		this.untamperedPrefix = prefix;
-		if (prefix != null) {
-			if (prefix.startsWith("~"))
-				prefix = prefix.substring(1);
-			prefix = prefix.toLowerCase();
-		}
-		this.prefix = prefix;
-
 		final ClonkProjectNature nature = ClonkProjectNature.get(editor);
 		final List<String> statusMessages = new ArrayList<String>(4);
 		final List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
@@ -228,8 +222,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (editor().script().index().engine() != null)
 				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
 
-		final ProposalsLocation pl = new ProposalsLocation(offset, wordOffset, doc, prefix, proposals, index, activeFunc,
-			scriptForEditor(editor));
+		final ProposalsLocation pl = new ProposalsLocation
+			(offset, wordOffset, doc, prefix, proposals, index, activeFunc, scriptForEditor(editor));
+		this.pl = pl;
 		final boolean returnProposals = activeFunc == null
 			? proposalsOutsideOfFunction(viewer, pl)
 			: computeProposalsInFunction(pl);
@@ -331,10 +326,10 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (pl.script.index().engine() != null) {
 				if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
 					for (final Function func : pl.script.index().engine().functions())
-						proposalForFunc(func, prefix, pl.offset, pl.proposals, true);
+						proposalForFunc(pl, func, true);
 				if ((pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
 					for (final Variable var : pl.script.index().engine().variables())
-						proposalForVar(var, prefix, pl.offset, pl.proposals);
+						proposalForVar(pl, var);
 			}
 	}
 
@@ -342,9 +337,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
 			if (pl.contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && pl.function != null) {
 				for (final Variable v : pl.function.parameters())
-					proposalForVar(v, prefix, pl.wordOffset, pl.proposals);
+					proposalForVar(pl, v);
 				for (final Variable v : pl.function.locals())
-					proposalForVar(v, prefix, pl.wordOffset, pl.proposals);
+					proposalForVar(pl, v);
 			}
 	}
 
@@ -359,13 +354,13 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		final Set<Declaration> proposalTypes = determineProposalTypes(pl);
 		if (proposalTypes.size() > 0)
 			for (final Declaration s : proposalTypes) {
-				proposalsForStructure(s, pl.prefix, pl.offset, pl.wordOffset, pl.proposals, pl.index, pl.declarationsMask(), s);
+				proposalsForStructure(s, pl, s);
 				if (s instanceof IHasIncludes) {
 					@SuppressWarnings("unchecked")
 					final Iterable<? extends IHasIncludes<?>> includes =
 						((IHasIncludes<IHasIncludes<?>>)s).includes(pl.index, pl.script, GatherIncludesOptions.Recursive);
 					for (final IHasIncludes<?> inc : includes)
-						proposalsForStructure((Declaration) inc, prefix, pl.offset, pl.wordOffset, pl.proposals, pl.index, pl.declarationsMask(), s);
+						proposalsForStructure((Declaration) inc, pl, s);
 				}
 			}
 		else
@@ -379,9 +374,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if (d instanceof Function && !((Function)d).isGlobal())
-					proposalForFunc((Function) d, prefix, pl.offset, pl.proposals, true);
+					proposalForFunc(pl, (Function) d, true);
 				else if (d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
-					proposalForVar((Variable)d, prefix, pl.offset, pl.proposals);
+					proposalForVar(pl, (Variable)d);
 			}
 		for (final ICompletionProposal p : pl.proposals)
 			if (p instanceof ClonkCompletionProposal && !old.contains(p)) {
@@ -413,9 +408,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		if (pl.contextSequence == null && proposalCycle == ProposalCycle.ALL) {
 			final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 			for(final String keyword : BuiltInDefinitions.KEYWORDS) {
-				if (prefix != null && !stringMatchesPrefix(keyword, prefix))
+				if (pl.prefix != null && !stringMatchesPrefix(keyword, pl.prefix))
 					continue;
-				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword, pl.offset, prefix != null ? prefix.length() : 0, keyword.length(), keywordImg ,
+				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword, pl.offset, pl.prefix != null ? pl.prefix.length() : 0, keyword.length(), keywordImg ,
 					keyword, null ,null, ": keyword", editor());
 				prop.setCategory(cats.Keywords);
 				pl.proposals.add(prop);
@@ -432,11 +427,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			switch (typing) {
 			case STATIC:
 				if (eq(vi.type, PrimitiveType.ERRONEOUS)) {
-					proposalsForIndexedDefinitions(pl.index, pl.offset, pl.wordOffset, prefix, pl.proposals);
+					proposalsForIndexedDefinitions(pl, pl.index);
 					final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 					for (final PrimitiveType t : PrimitiveType.values())
 						if (t != PrimitiveType.UNKNOWN && pl.index.engine().supportsPrimitiveType(t)) {
-							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, t.scriptName(), pl.offset, prefix != null ? prefix.length() : 0 , t.scriptName().length(),
+							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
 								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 							prop.setCategory(cats.Keywords);
 							pl.proposals.add(prop);
@@ -461,7 +456,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					final ASTNode parmExpr = innermostCallFunc.findSubElementContaining(pl.contextExpression);
-					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, prefix, pl.offset, pl.proposals);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl.prefix, pl.offset, pl.proposals);
 				}
 			}
 		}
@@ -516,9 +511,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			}
 			final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 			for (final String loc : availableLocalizationStrings) {
-				if (prefix != null && !stringMatchesPrefix(loc, prefix))
+				if (pl.prefix != null && !stringMatchesPrefix(loc, pl.prefix))
 					continue;
-				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, loc, pl.offset, prefix != null ? prefix.length() : 0 , loc.length(),
+				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, loc, pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , loc.length(),
 					keywordImg , loc, null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 				prop.setCategory(cats.Keywords);
 				pl.proposals.add(prop);
@@ -648,10 +643,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private void directiveDefinitionArgumentProposals(ProposalsLocation pl) {
 		// propose objects for #include or something
 		final Script editorScript = Utilities.scriptForEditor(editor);
-		if (prefix == null)
-			prefix = ""; //$NON-NLS-1$
 		for (final Index i : pl.index.relevantIndexes())
-			proposalsForIndex(i, new ProposalsLocation(pl.offset, pl.wordOffset, null, prefix, pl.proposals, null, null, editorScript)
+			proposalsForIndex(i, new ProposalsLocation(pl.offset, pl.wordOffset, null, pl.prefix == null ? "" : pl.prefix, pl.proposals, null, null, editorScript)
 			.setDeclarationsMask(DeclMask.STATIC_VARIABLES));
 	}
 
@@ -660,11 +653,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		final Image directiveIcon = UI.imageForPath("icons/directive.png"); //$NON-NLS-1$
 		for(final Directive directive : Directive.CANONICALS) {
 			String txt = directive.type().toString();
-			if (prefix != null)
-				if (!stringMatchesPrefix(txt, prefix))
+			if (pl.prefix != null)
+				if (!stringMatchesPrefix(txt, pl.prefix))
 					continue;
 			int replacementLength = 0;
-			if (prefix != null) replacementLength = prefix.length();
+			if (pl.prefix != null) replacementLength = pl.prefix.length();
 			txt = "#"+txt+" "; //$NON-NLS-1$ //$NON-NLS-2$
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(
 				directive, txt, pl.offset, replacementLength, txt.length(),
@@ -679,12 +672,12 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private void declaratorProposals(ProposalsLocation pl) {
 		// propose declaration keywords (var, static, ...)
 		for(final String declarator : BuiltInDefinitions.DECLARATORS) {
-			if (prefix != null)
-				if (!stringMatchesPrefix(declarator, prefix))
+			if (pl.prefix != null)
+				if (!stringMatchesPrefix(declarator, pl.prefix))
 					continue;
 			final Image declaratorImg = UI.imageForPath("icons/declarator.png"); //$NON-NLS-1$
 			int replacementLength = 0;
-			if (prefix != null) replacementLength = prefix.length();
+			if (pl.prefix != null) replacementLength = pl.prefix.length();
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,pl.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Keywords);
 			pl.proposals.add(prop);
@@ -699,24 +692,24 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				new Variable("obj", parameterTypes[0]), //$NON-NLS-1$
 				new Variable("effect", parameterTypes[1]) //$NON-NLS-1$
 			};
-			callbackProposal(prefix, null, EffectFunction.FUNCTION_NAME_PREFIX+"%s"+s, //$NON-NLS-1$
+			callbackProposal(pl.prefix, null, EffectFunction.FUNCTION_NAME_PREFIX+"%s"+s, //$NON-NLS-1$
 				String.format(Messages.C4ScriptCompletionProcessor_EffectFunctionCallbackProposalDisplayStringFormat, s), funcSupplied, pl.proposals, pl.wordOffset, parms).setCategory(cats.EffectCallbacks);
 		}
 	}
 
 	private void newFunctionProposal(ProposalsLocation pl, final boolean funcSupplied) {
 		// propose to just create function with the name already typed
-		if (untamperedPrefix != null && untamperedPrefix.length() > 0)
-			callbackProposal(prefix, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied, pl.proposals, pl.offset).setCategory(cats.NewFunction); //$NON-NLS-1$
+		if (pl.untamperedPrefix != null && pl.untamperedPrefix.length() > 0)
+			callbackProposal(pl.prefix, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied, pl.proposals, pl.offset).setCategory(cats.NewFunction); //$NON-NLS-1$
 	}
 
 	private void standardCallbackProposals(ProposalsLocation pl, final boolean funcSupplied) {
 		// propose creating functions for standard callbacks
 		for(final String callback : editor().script().engine().settings().callbackFunctions()) {
-			if (prefix != null)
-				if (!stringMatchesPrefix(callback, prefix))
+			if (pl.prefix != null)
+				if (!stringMatchesPrefix(callback, pl.prefix))
 					continue;
-			callbackProposal(prefix, callback, "%s", null, funcSupplied, pl.proposals, pl.offset).setCategory(cats.Callbacks); //$NON-NLS-1$
+			callbackProposal(pl.prefix, callback, "%s", null, funcSupplied, pl.proposals, pl.offset).setCategory(cats.Callbacks); //$NON-NLS-1$
 		}
 	}
 
@@ -730,7 +723,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					if (!script.seesSubDeclaration(dec))
 						continue;
 					final Function func = as(dec, Function.class);
-					callbackProposal(prefix, func.name(), "%s", null, funcSupplied, pl.proposals, pl.offset, func.parameters().toArray(new Variable[func.numParameters()])).setCategory(cats.Callbacks);
+					callbackProposal(pl.prefix, func.name(), "%s", null, funcSupplied, pl.proposals, pl.offset, func.parameters().toArray(new Variable[func.numParameters()])).setCategory(cats.Callbacks);
 				}
 	}
 
@@ -751,8 +744,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
 	}
 
-	private void proposalsForStructure(Declaration structure, String prefix, int offset, int wordOffset, List<ICompletionProposal> proposals, Index index, int mask, Declaration target) {
-		for (final Declaration dec : structure.subDeclarations(index, mask)) {
+	private void proposalsForStructure(Declaration structure, ProposalsLocation pl, Declaration target) {
+		for (final Declaration dec : structure.subDeclarations(pl.index, pl.declarationsMask())) {
 			if (!target.seesSubDeclaration(dec))
 				continue;
 			final Function func = as(dec, Function.class);
@@ -760,12 +753,12 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (func != null && func.visibility() != FunctionScope.GLOBAL) {
 				if (target instanceof Script && !((Script)target).seesFunction(func))
 					continue;
-				final ClonkCompletionProposal prop = proposalForFunc(func, prefix, offset, proposals, true);
+				final ClonkCompletionProposal prop = proposalForFunc(pl, func, true);
 				if (prop != null)
 					prop.setCategory(cats.LocalFunction);
 			}
 			else if (var != null)
-				proposalForVar(var, prefix, wordOffset, proposals);
+				proposalForVar(pl, var);
 		}
 	}
 

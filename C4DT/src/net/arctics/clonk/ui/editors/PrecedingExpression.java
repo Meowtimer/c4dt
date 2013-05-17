@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.defaulting;
 import net.arctics.clonk.ast.ASTNode;

@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.c4script;
+package net.arctics.clonk.ui.editors;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class ProposalsLocation extends PrecedingExpression {
 	public final int offset;
 	public final int wordOffset;
 	public final IDocument document;
-	public final String prefix;
+	public final String untamperedPrefix, prefix;
 	public final List<ICompletionProposal> proposals;
 	public final Index index;
 	public final Function function;
@@ -21,13 +21,21 @@ public class ProposalsLocation extends PrecedingExpression {
 	public Integer declarationsMask;
 	public ProposalsLocation(
 		int offset, int wordOffset, IDocument document,
-		String prefix, List<ICompletionProposal> proposals,
+		String untamperedPrefix, List<ICompletionProposal> proposals,
 		Index index, Function function, Script script
 	) {
 		this.offset = offset;
 		this.wordOffset = wordOffset;
 		this.document = document;
-		this.prefix = prefix;
+		this.untamperedPrefix = untamperedPrefix;
+		if (untamperedPrefix != null) {
+			String tamper = untamperedPrefix;
+			if (tamper.startsWith("~"))
+				tamper = tamper.substring(1);
+			tamper = tamper.toLowerCase();
+			this.prefix = tamper;
+		} else
+			this.prefix = null;
 		this.proposals = proposals;
 		this.index = index;
 		this.function = function;

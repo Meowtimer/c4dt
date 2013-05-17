@@ -24,8 +24,8 @@ import org.eclipse.ui.IFileEditorInput;
 public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEditor> implements IContentAssistProcessor, ICompletionProposalSorter {
 
 	protected EditorType editor;
-	protected String prefix, untamperedPrefix;
 	protected Image defIcon;
+	protected ProposalsLocation pl;
 
 	protected static class CategoryOrdering {
 		public int
@@ -109,48 +109,48 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return ((IFileEditorInput)editor.getEditorInput()).getFile();
 	}
 
-	protected void proposalsForIndexedDefinitions(Index index, int offset, int wordOffset, String prefix, Collection<ICompletionProposal> proposals) {
+	protected void proposalsForIndexedDefinitions(ProposalsLocation pl, Index index) {
 		for (final Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
-			proposalForDefinition(obj, prefix, wordOffset, proposals);
+			proposalForDefinition(obj, pl.prefix, pl.wordOffset, pl.proposals);
 	}
 
 	protected boolean stringMatchesPrefix(String name, String lowercasedPrefix) {
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
 
-	protected ClonkCompletionProposal proposalForFunc(Function func, String prefix, int offset, Collection<ICompletionProposal> proposals, boolean brackets) {
+	protected ClonkCompletionProposal proposalForFunc(ProposalsLocation pl, Function func, boolean brackets) {
 		if (func instanceof InitializationFunction)
 			return null;
-		if (prefix != null)
-			if (!stringMatchesPrefix(func.name(), prefix))
+		if (pl.prefix != null)
+			if (!stringMatchesPrefix(func.name(), pl.prefix))
 				return null;
-		final int replacementLength = prefix != null ? prefix.length() : 0;
+		final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
 		final String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
 		final String postInfo = func.returnType(as(editor().structure(), Script.class)).typeName(true);
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
-			func, replacement, offset, replacementLength,
+			func, replacement, pl.offset, replacementLength,
 			UI.functionIcon(func), null/*contextInformation*/, null, ": " + postInfo, editor() //$NON-NLS-1$
 		);
 		prop.setCategory(cats.Functions);
-		proposals.add(prop);
+		pl.proposals.add(prop);
 		return prop;
 	}
 
-	protected ClonkCompletionProposal proposalForVar(Variable var, String prefix, int offset, Collection<ICompletionProposal> proposals) {
-		if (prefix != null && !stringMatchesPrefix(var.name(), prefix))
+	protected ClonkCompletionProposal proposalForVar(ProposalsLocation pl, Variable var) {
+		if (pl.prefix != null && !stringMatchesPrefix(var.name(), pl.prefix))
 			return null;
 		final String displayString = var.name();
 		int replacementLength = 0;
-		if (prefix != null)
-			replacementLength = prefix.length();
+		if (pl.prefix != null)
+			replacementLength = pl.prefix.length();
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			var,
-			var.name(), offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
+			var.name(), pl.offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
 			null, null, ": " + var.type(as(editor().structure(), Script.class)).typeName(true), //$NON-NLS-1$
 			editor()
 		);
 		setVariableCategory(var, prop);
-		proposals.add(prop);
+		pl.proposals.add(prop);
 		return prop;
 	}
 
@@ -182,7 +182,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		final ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
 		if (ca != null && cb != null) {
 			int bonus = 0;
-			final String pfx = untamperedPrefix;
+			final String pfx = pl != null ? pl.untamperedPrefix : "";
 			if (pfx != null) {
 				class Match {
 					boolean startsWith, match, local;
