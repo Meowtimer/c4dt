@@ -209,29 +209,15 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	@Override
-	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
-		return null;
-	}
-
+	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) { return null; }
 	@Override
-	public char[] getCompletionProposalAutoActivationCharacters() {
-		return new char[] {'='};
-	}
-
+	public char[] getCompletionProposalAutoActivationCharacters() { return new char[] {'='}; }
 	@Override
-	public char[] getContextInformationAutoActivationCharacters() {
-		return null;
-	}
-
+	public char[] getContextInformationAutoActivationCharacters() { return null; }
 	@Override
-	public IContextInformationValidator getContextInformationValidator() {
-		return null;
-	}
-
+	public IContextInformationValidator getContextInformationValidator() { return null; }
 	@Override
-	public void assistSessionEnded(ContentAssistEvent event) {
-		editor().unlockUnit();
-	}
+	public void assistSessionEnded(ContentAssistEvent event) { editor().unlockUnit(); }
 
 	@Override
 	public void assistSessionStarted(ContentAssistEvent event) {
@@ -244,7 +230,6 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	@Override
-	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
-	}
+	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
 
 }
