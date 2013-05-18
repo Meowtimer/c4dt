@@ -57,13 +57,12 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 		if (contextSequence == null)
 			mask |= DeclMask.STATIC_VARIABLES;
 
-		final ASTNode pred =
+		final ASTNode mo =
 			contextExpression instanceof MemberOperator ? contextExpression :
 			contextExpression != null ? contextExpression.predecessorInSequence() : null;
 
-		if (pred instanceof MemberOperator) {
-			final MemberOperator mo = (MemberOperator) pred;
-			if (mo.dotNotation())
+		if (mo instanceof MemberOperator) {
+			if (((MemberOperator) mo).dotNotation())
 				return DeclMask.VARIABLES;
 			else
 				mask &= ~DeclMask.VARIABLES;

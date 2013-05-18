@@ -16,4 +16,6 @@ public class CallTargetType implements IType {
 	public IType simpleType() { return PrimitiveType.OBJECT; }
 	@Override
 	public boolean equals(Object obj) { return obj instanceof CallTargetType; }
+	@Override
+	public String toString() { return typeName(true); }
 }
