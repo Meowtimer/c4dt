@@ -237,7 +237,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 	enum Pass {
 		PRELIMINARY,
 		MAIN,
-		ADDITIONAL
+		DELAYEDVISITS,
+		ADDITIONAL,
+		INACTIVE
 	}
 
 	/**
@@ -533,7 +535,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.parentOfType(Script.class);
-					final Visit fVisit = delegateFunctionVisit(f, other, false, false);
+					final Visit fVisit = delegateFunctionVisit(f, other, false, true);
 					final Visitor visitor = fVisit != null ? fVisit.visitor : null;
 					visitors[ci] = visitor;
 
@@ -687,6 +689,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				catch (final ProblemException e) { return; }
 				finally {
+					pass = Pass.INACTIVE;
 					synchronized (visit) {
 						if (ownedFunction)
 							function.assignType(visit.get(), false);
@@ -742,6 +745,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private boolean delayedVisits() {
+				pass = Pass.DELAYEDVISITS;
 				boolean any = false;
 				for (Visit.Delayed d = visit.delayedVisits; d != null; d = d.next) {
 					delegateFunctionVisit(d.function, d.script, false, true);
@@ -797,7 +801,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (function.body() == null)
 					return null;
 				switch (pass) {
-				case PRELIMINARY:
+				case PRELIMINARY: case DELAYEDVISITS: case ADDITIONAL:
 					break;
 				case MAIN:
 					if (shouldTypeFromCalls(function)) {
@@ -805,8 +809,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return null;
 					} else
 						break;
-				case ADDITIONAL:
-					break;
+				case INACTIVE:
+					return null;
 				}
 				if (DEBUG)
 					log("Delegate function visit for '%s' from '%s'", //$NON-NLS-1$
@@ -2252,8 +2256,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// not only in case where the return type of the call is needed
 					if (shared.local && visitor.pass == Pass.MAIN) {
 						final IType predTy = predecessor != null ? visitor.ty(predecessor) : visitor.script();
-						if (predTy instanceof Script)
-							visitor.delayVisit(f, (Script)predTy);
+						if (predTy != null)
+							for (final IType pt : predTy)
+								if (pt instanceof Script)
+									visitor.delayVisit(f, (Script)pt);
 					}
 
 					if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
