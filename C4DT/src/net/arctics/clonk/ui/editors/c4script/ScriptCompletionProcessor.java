@@ -368,7 +368,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	public void proposeAllTheThings(ProposalsLocation pl) {
-		final List<ICompletionProposal> old = new ArrayList<>(pl.proposals);
+		final List<ClonkCompletionProposal> old = new ArrayList<>(pl.proposals.values());
 		final List<Index> relevantIndexes = pl.index.relevantIndexes();
 		for (final Index x : relevantIndexes)
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
@@ -378,11 +378,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				else if (d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
 					proposalForVar(pl, (Variable)d);
 			}
-		for (final ICompletionProposal p : pl.proposals)
-			if (p instanceof ClonkCompletionProposal && !old.contains(p)) {
-				final ClonkCompletionProposal ccp = (ClonkCompletionProposal)p;
+		for (final ClonkCompletionProposal ccp : pl.proposals.values())
+			if (!old.contains(ccp))
 				ccp.setImage(UI.halfTransparent(ccp.getImage()));
-			}
 	}
 
 	private Set<Declaration> determineProposalTypes(ProposalsLocation pl) {
@@ -413,7 +411,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword, pl.offset, pl.prefix != null ? pl.prefix.length() : 0, keyword.length(), keywordImg ,
 					keyword, null ,null, ": keyword", editor());
 				prop.setCategory(cats.Keywords);
-				pl.proposals.add(prop);
+				pl.addProposal(prop);
 			}
 		}
 	}
@@ -434,7 +432,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
 								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 							prop.setCategory(cats.Keywords);
-							pl.proposals.add(prop);
+							pl.addProposal(prop);
 						}
 				}
 				break;
@@ -456,7 +454,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					final ASTNode parmExpr = innermostCallFunc.findSubElementContaining(pl.contextExpression);
-					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl.prefix, pl.offset, pl.proposals);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl);
 				}
 			}
 		}
@@ -516,7 +514,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, loc, pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , loc.length(),
 					keywordImg , loc, null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 				prop.setCategory(cats.Keywords);
-				pl.proposals.add(prop);
+				pl.addProposal(prop);
 			}
 			return true;
 		} else
@@ -546,21 +544,19 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	private ClonkCompletionProposal callbackProposal(
-		final String prefix,
+		ProposalsLocation pl,
 		final String callback,
 		final String nameFormat,
 		final String displayString,
 		final boolean funcSupplied,
-		final List<ICompletionProposal> proposals,
-		final int offset,
 		final Variable... parameters
 	) {
 		final Image img = UI.imageForPath("icons/callback.png"); //$NON-NLS-1$
 		int replacementLength = 0;
-		if (prefix != null)
-			replacementLength = prefix.length();
+		if (pl.prefix != null)
+			replacementLength = pl.prefix.length();
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
-			null, "", offset, replacementLength,  //$NON-NLS-1$
+			null, "", pl.wordOffset, replacementLength,  //$NON-NLS-1$
 			0, img, callback != null ? callback : displayString,
 			null, null, Messages.C4ScriptCompletionProcessor_Callback, editor()
 		) {
@@ -598,7 +594,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			@Override
 			public boolean requiresDocumentReparse() { return true; }
 		};
-		proposals.add(prop);
+		pl.addProposal(prop);
 		return prop;
 	}
 
@@ -642,10 +638,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 
 	private void directiveDefinitionArgumentProposals(ProposalsLocation pl) {
 		// propose objects for #include or something
-		final Script editorScript = Utilities.scriptForEditor(editor);
 		for (final Index i : pl.index.relevantIndexes())
-			proposalsForIndex(i, new ProposalsLocation(pl.offset, pl.wordOffset, null, pl.prefix == null ? "" : pl.prefix, pl.proposals, null, null, editorScript)
-			.setDeclarationsMask(DeclMask.STATIC_VARIABLES));
+			proposalsForIndex(i, pl);
 	}
 
 	private void directiveProposals(ProposalsLocation pl) {
@@ -665,7 +659,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				Messages.C4ScriptCompletionProcessor_Engine, editor()
 			);
 			prop.setCategory(cats.Directives);
-			pl.proposals.add(prop);
+			pl.addProposal(prop);
 		}
 	}
 
@@ -680,7 +674,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (pl.prefix != null) replacementLength = pl.prefix.length();
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,pl.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Keywords);
-			pl.proposals.add(prop);
+			pl.addProposal(prop);
 		}
 	}
 
@@ -692,15 +686,15 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				new Variable("obj", parameterTypes[0]), //$NON-NLS-1$
 				new Variable("effect", parameterTypes[1]) //$NON-NLS-1$
 			};
-			callbackProposal(pl.prefix, null, EffectFunction.FUNCTION_NAME_PREFIX+"%s"+s, //$NON-NLS-1$
-				String.format(Messages.C4ScriptCompletionProcessor_EffectFunctionCallbackProposalDisplayStringFormat, s), funcSupplied, pl.proposals, pl.wordOffset, parms).setCategory(cats.EffectCallbacks);
+			callbackProposal(pl, null, EffectFunction.FUNCTION_NAME_PREFIX+"%s"+s, //$NON-NLS-1$
+				String.format(Messages.C4ScriptCompletionProcessor_EffectFunctionCallbackProposalDisplayStringFormat, s), funcSupplied, parms).setCategory(cats.EffectCallbacks);
 		}
 	}
 
 	private void newFunctionProposal(ProposalsLocation pl, final boolean funcSupplied) {
 		// propose to just create function with the name already typed
 		if (pl.untamperedPrefix != null && pl.untamperedPrefix.length() > 0)
-			callbackProposal(pl.prefix, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied, pl.proposals, pl.offset).setCategory(cats.NewFunction); //$NON-NLS-1$
+			callbackProposal(pl, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied).setCategory(cats.NewFunction); //$NON-NLS-1$
 	}
 
 	private void standardCallbackProposals(ProposalsLocation pl, final boolean funcSupplied) {
@@ -709,7 +703,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (pl.prefix != null)
 				if (!stringMatchesPrefix(callback, pl.prefix))
 					continue;
-			callbackProposal(pl.prefix, callback, "%s", null, funcSupplied, pl.proposals, pl.offset).setCategory(cats.Callbacks); //$NON-NLS-1$
+			callbackProposal(pl, callback, "%s", null, funcSupplied).setCategory(cats.Callbacks); //$NON-NLS-1$
 		}
 	}
 
@@ -723,7 +717,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					if (!script.seesSubDeclaration(dec))
 						continue;
 					final Function func = as(dec, Function.class);
-					callbackProposal(pl.prefix, func.name(), "%s", null, funcSupplied, pl.proposals, pl.offset, func.parameters().toArray(new Variable[func.numParameters()])).setCategory(cats.Callbacks);
+					callbackProposal(pl, func.name(), "%s", null, funcSupplied, func.parameters().toArray(new Variable[func.numParameters()])).setCategory(cats.Callbacks);
 				}
 	}
 

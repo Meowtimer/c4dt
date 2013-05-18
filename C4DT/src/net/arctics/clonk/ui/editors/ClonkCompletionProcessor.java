@@ -2,7 +2,6 @@ package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
 
-import java.util.Collection;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.InitializationFunction;
@@ -74,27 +73,27 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return null;
 	}
 
-	protected void proposalForDefinition(Definition def, String prefix, int offset, Collection<ICompletionProposal> proposals) {
+	protected void proposalForDefinition(ProposalsLocation pl, Definition def) {
 		try {
 			if (def == null || def.id() == null)
 				return;
 
-			if (prefix != null)
+			if (pl.prefix != null)
 				if (!(
-					stringMatchesPrefix(def.name(), prefix) ||
-					stringMatchesPrefix(def.id().stringValue(), prefix)
+					stringMatchesPrefix(def.name(), pl.prefix) ||
+					stringMatchesPrefix(def.id().stringValue(), pl.prefix)
 					/* // also check if the user types in the folder name
 					(def instanceof Definition && def.definitionFolder() != null &&
 					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
 				))
 					return;
 			final String displayString = definitionDisplayString(def);
-			final int replacementLength = prefix != null ? prefix.length() : 0;
+			final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
 
-			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), offset, replacementLength, def.id().stringValue().length(),
+			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), pl.offset, replacementLength, def.id().stringValue().length(),
 				defIcon, displayString.trim(), null, null, "", editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
-			proposals.add(prop);
+			pl.addProposal(prop);
 		} catch (final Exception e) {}
 	}
 
@@ -111,7 +110,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 	protected void proposalsForIndexedDefinitions(ProposalsLocation pl, Index index) {
 		for (final Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
-			proposalForDefinition(obj, pl.prefix, pl.wordOffset, pl.proposals);
+			proposalForDefinition(pl, obj);
 	}
 
 	protected boolean stringMatchesPrefix(String name, String lowercasedPrefix) {
@@ -132,7 +131,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			UI.functionIcon(func), null/*contextInformation*/, null, ": " + postInfo, editor() //$NON-NLS-1$
 		);
 		prop.setCategory(cats.Functions);
-		pl.proposals.add(prop);
+		pl.addProposal(prop);
 		return prop;
 	}
 
@@ -150,7 +149,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			editor()
 		);
 		setVariableCategory(var, prop);
-		pl.proposals.add(prop);
+		pl.addProposal(prop);
 		return prop;
 	}
 

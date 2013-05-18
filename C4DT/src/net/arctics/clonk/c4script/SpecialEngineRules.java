@@ -68,6 +68,7 @@ import net.arctics.clonk.ini.SignedInteger;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.ui.editors.ProposalsLocation;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPredicate;
@@ -80,7 +81,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 /**
  * This class contains some special rules that are applied to certain objects during parsing
@@ -309,8 +309,7 @@ public abstract class SpecialEngineRules {
 		@SignifiesRole(role=FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
 		public void contributeAdditionalProposals(
 			CallDeclaration callFunc, ProblemReporter processor, int index, ASTNode parmExpression,
-			ScriptCompletionProcessor completions, String prefix,
-			int offset, List<ICompletionProposal> proposals) {}
+			ScriptCompletionProcessor completions, ProposalsLocation pl) {}
 	}
 
 	private final Map<String, SpecialRule> allRules = new HashMap<String, SpecialEngineRules.SpecialRule>();

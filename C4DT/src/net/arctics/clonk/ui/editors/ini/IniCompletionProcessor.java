@@ -163,7 +163,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 					for (final IResource res : ((ProjectIndex)index).nature().getProject().members())
 						if (res instanceof IContainer && nature.index().engine().groupTypeForFileName(res.getName()) == GroupType.DefinitionGroup)
 							if (res.getName().toLowerCase().contains(pl.prefix))
-								pl.proposals.add(new CompletionProposal(res.getName(), pl.wordOffset, pl.prefix.length(), res.getName().length()));
+								pl.addProposal(new CompletionProposal(res.getName(), pl.wordOffset, pl.prefix.length(), res.getName().length()));
 				} catch (final CoreException e) {
 					e.printStackTrace();
 				}
@@ -173,7 +173,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		for (final IniDataBase sec : sectionData)
 			if (sec instanceof IniSectionDefinition && ((IniSectionDefinition) sec).sectionName().toLowerCase().contains(pl.prefix)) {
 				final String secString = "["+((IniSectionDefinition) sec).sectionName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
-				pl.proposals.add(new CompletionProposal(secString, pl.wordOffset, pl.prefix.length(), secString.length(), null, null, null, "ugh")); //$NON-NLS-1$
+				pl.addProposal(new CompletionProposal(secString, pl.wordOffset, pl.prefix.length(), secString.length(), null, null, null, "ugh")); //$NON-NLS-1$
 			}
 	}
 
@@ -183,7 +183,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				final IniEntryDefinition e = (IniEntryDefinition) entry;
 				if (!e.name().toLowerCase().contains(pl.prefix))
 					continue;
-				pl.proposals.add(new CompletionProposal(e.name(), pl.wordOffset, pl.prefix.length(), e.name().length(), null, e.name(), null, e.description()));
+				pl.addProposal(new CompletionProposal(e.name(), pl.wordOffset, pl.prefix.length(), e.name().length(), null, e.name(), null, e.description()));
 			}
 			else if (entry instanceof IniSectionDefinition) {
 				// FIXME
@@ -205,7 +205,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	private void proposalsForBooleanEntry(ProposalsLocation pl) {
 		final int[] choices = new int[] {0, 1};
 		for (final int i : choices)
-			pl.proposals.add(new CompletionProposal(String.valueOf(i), pl.wordOffset, pl.prefix.length(), String.valueOf(i).length()));
+			pl.addProposal(new CompletionProposal(String.valueOf(i), pl.wordOffset, pl.prefix.length(), String.valueOf(i).length()));
 	}
 
 	@Override
