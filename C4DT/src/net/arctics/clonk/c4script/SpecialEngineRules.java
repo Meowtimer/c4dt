@@ -468,71 +468,80 @@ public abstract class SpecialEngineRules {
 			IType result = null;
 			final String declarationName = node.name();
 			// parameters to FindObjects itself are also &&-ed together
-			If: if (topLevel || declarationName.equals("Find_And")) {
-				final List<IType> types = new LinkedList<IType>();
-				for (final ASTNode parm : node.params())
-					if (parm instanceof CallDeclaration) {
-						final CallDeclaration call = (CallDeclaration)parm;
-						final IType t = searchCriteriaAssumedResult(processor, call, false);
-						if (t != null && call.name().equals("Find_ID")) {
-							result = t;
-							break If;
-						}
-					}
-				result = TypeUnification.unify(types);
-			}
-			else if (declarationName.equals("Find_Or")) {
-				final List<IType> types = new LinkedList<IType>();
-				for (final ASTNode parm : node.params())
-					if (parm instanceof CallDeclaration) {
-						final CallDeclaration call = (CallDeclaration)parm;
-						final IType t = searchCriteriaAssumedResult(processor, call, false);
-						if (t != null) for (final IType ty : t)
-							types.add(ty);
-					}
-				result = TypeUnification.unify(types);
-			}
-			else if (declarationName.equals("Find_ID")) { //$NON-NLS-1$
-				if (node.params().length >= 1) {
-					final IType ty = processor.typeOf(node.params()[0]);
-					if (ty != null)
-						for (final IType t : ty) {
-							final MetaDefinition mdef = as(t, MetaDefinition.class);
-							if (mdef != null)
-								result = TypeUnification.unify(result, mdef.definition());
-						}
-				}
-			}
+			if (topLevel || declarationName.equals("Find_And"))
+				result = andSubConditions(processor, node);
+			else if (declarationName.equals("Find_Or"))
+				result = orSubConditions(processor, node);
+			else if (declarationName.equals("Find_ID"))
+				result = typeByID(processor, node);
 			else if (declarationName.equals("Find_Func") && node.params().length >= 1) {
 				final Object ev = node.params()[0].evaluateStatic(node.parentOfType(Function.class));
-				if (ev instanceof String) {
-					final List<Declaration> functions = functionsNamed(processor, (String)ev);
-					final List<IType> types = new ArrayList<IType>(functions.size());
-					for (final Declaration f : functions)
-						if (f.script() instanceof Definition)
-							types.add(f.script());
-						else if (f.script() != null)
-							for (final Directive directive : f.script().directives())
-								if (directive.type() == DirectiveType.APPENDTO) {
-									final Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
-									if (def != null)
-										types.add(def);
-								}
-					for (final Index index : processor.script().index().relevantIndexes())
-						for (final Function f : index.declarationsWithName((String)ev, Function.class))
-							if (f.script() instanceof Definition)
-								types.add(f.script());
-							else for (final Directive directive : f.script().directives())
-								if (directive.type() == DirectiveType.APPENDTO) {
-									final Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
-									if (def != null)
-										types.add(def);
-								}
-					final IType ty = TypeUnification.unify(types);
-					return ty;
-				}
+				if (ev instanceof String)
+					return typeByFunction(processor, ev);
 			}
 			return result;
+		}
+		private IType typeByID(ProblemReporter processor, CallDeclaration node) {
+			IType unified = null;
+			if (node.params().length >= 1) {
+				final IType ty = processor.typeOf(node.params()[0]);
+				if (ty != null)
+					for (final IType t : ty) {
+						final MetaDefinition mdef = as(t, MetaDefinition.class);
+						if (mdef != null)
+							unified = TypeUnification.unify(unified, mdef.definition());
+					}
+			}
+			return unified;
+		}
+		private IType orSubConditions(ProblemReporter processor, CallDeclaration node) {
+			final List<IType> types = new LinkedList<IType>();
+			for (final ASTNode parm : node.params())
+				if (parm instanceof CallDeclaration) {
+					final CallDeclaration call = (CallDeclaration)parm;
+					final IType t = searchCriteriaAssumedResult(processor, call, false);
+					if (t != null) for (final IType ty : t)
+						types.add(ty);
+				}
+			return TypeUnification.unify(types);
+		}
+		private IType andSubConditions(ProblemReporter processor, CallDeclaration node) {
+			final List<IType> types = new LinkedList<IType>();
+			for (final ASTNode parm : node.params())
+				if (parm instanceof CallDeclaration) {
+					final CallDeclaration call = (CallDeclaration)parm;
+					final IType t = searchCriteriaAssumedResult(processor, call, false);
+					if (t != null)
+						types.add(t);
+
+				}
+			return TypeUnification.unify(types);
+		}
+		private IType typeByFunction(ProblemReporter processor, final Object ev) {
+			final List<Declaration> functions = functionsNamed(processor, (String)ev);
+			final List<IType> types = new ArrayList<IType>(functions.size());
+			for (final Declaration f : functions)
+				if (f.script() instanceof Definition)
+					types.add(f.script());
+				else if (f.script() != null)
+					for (final Directive directive : f.script().directives())
+						if (directive.type() == DirectiveType.APPENDTO) {
+							final Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
+							if (def != null)
+								types.add(def);
+						}
+			for (final Index index : processor.script().index().relevantIndexes())
+				for (final Function f : index.declarationsWithName((String)ev, Function.class))
+					if (f.script() instanceof Definition)
+						types.add(f.script());
+					else for (final Directive directive : f.script().directives())
+						if (directive.type() == DirectiveType.APPENDTO) {
+							final Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
+							if (def != null)
+								types.add(def);
+						}
+			final IType ty = TypeUnification.unify(types);
+			return ty;
 		};
 	};
 
@@ -790,7 +799,7 @@ public abstract class SpecialEngineRules {
 
 	/**
 	 * Rule which causes the first argument in a Format call (the format string) to link to a resource as
-	 * required by a containing call the result of Format is the first argument for. 
+	 * required by a containing call the result of Format is the first argument for.
 	 */
 	@AppliedTo(functions={"Format"})
 	public final SpecialFuncRule linkFormat = new LocateResourceByNameRule() {
