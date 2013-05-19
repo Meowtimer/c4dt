@@ -464,21 +464,20 @@ public abstract class SpecialEngineRules {
 			return t;
 		}
 		private IType searchCriteriaAssumedResult(ProblemReporter processor, CallDeclaration node, boolean topLevel) {
-			IType result = null;
 			final String declarationName = node.name();
 			// parameters to FindObjects itself are also &&-ed together
 			if (topLevel || declarationName.equals("Find_And"))
-				result = andSubConditions(processor, node);
-			else if (declarationName.equals("Find_Or"))
-				result = orSubConditions(processor, node);
-			else if (declarationName.equals("Find_ID"))
-				result = typeByID(processor, node);
-			else if (declarationName.equals("Find_Func") && node.params().length >= 1) {
+				return andSubConditions(processor, node);
+			if (declarationName.equals("Find_Or"))
+				return orSubConditions(processor, node);
+			if (declarationName.equals("Find_ID"))
+				return typeByID(processor, node);
+			if (declarationName.equals("Find_Func") && node.params().length >= 1) {
 				final Object ev = node.params()[0].evaluateStatic(node.parentOfType(Function.class));
 				if (ev instanceof String)
 					return typeByFunction(processor, ev);
 			}
-			return result;
+			return null;
 		}
 		private IType typeByID(ProblemReporter processor, CallDeclaration node) {
 			IType unified = null;
@@ -510,6 +509,8 @@ public abstract class SpecialEngineRules {
 				if (parm instanceof CallDeclaration) {
 					final CallDeclaration call = (CallDeclaration)parm;
 					final IType t = searchCriteriaAssumedResult(processor, call, false);
+					if (call.name().equals("Find_ID"))
+						return t; // short-circuit
 					if (t != null)
 						types.add(t);
 
