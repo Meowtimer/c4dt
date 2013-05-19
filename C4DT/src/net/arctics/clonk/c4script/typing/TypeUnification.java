@@ -44,7 +44,9 @@ public class TypeUnification {
 			case BOOL:
 				if (eq(b, PrimitiveType.INT))
 					return b;
-				break;
+				else
+					// anything can be passed for a bool
+					return TypeChoice.make(PrimitiveType.BOOL, b);
 			case PROPLIST:
 				if (b == PrimitiveType.OBJECT || b == PrimitiveType.ID)
 					return b;
