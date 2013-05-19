@@ -535,7 +535,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.parentOfType(Script.class);
-					final Visit fVisit = delegateFunctionVisit(f, other, false, true);
+					final Visit fVisit = delegateFunctionVisit(f, other, false);
 					final Visitor visitor = fVisit != null ? fVisit.visitor : null;
 					visitors[ci] = visitor;
 
@@ -583,9 +583,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			@Override
-			public TypeVariable visit(Function function) { return visit(function, null, true); }
+			public TypeVariable visit(Function function) { return visit(function, null); }
 
-			public Visit visit(Function function, Visitor originator, boolean waitIfAlreadyInProgress) {
+			public Visit visit(Function function, Visitor originator) {
 				if (thread == null)
 					thread = Thread.currentThread();
 				if (function == null || function.body() == null)
@@ -602,7 +602,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						case FINISHED:
 							return _visit;
 						case INPROGRESS:
-							if (waitIfAlreadyInProgress && _visit.visitor.thread != Thread.currentThread())
+							if (_visit.visitor.thread != Thread.currentThread())
 								waitForEndOfVisit(function, originator, _visit);
 							return _visit;
 						case UNDETERMINED:
@@ -748,7 +748,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				pass = Pass.DELAYEDVISITS;
 				boolean any = false;
 				for (Visit.Delayed d = visit.delayedVisits; d != null; d = d.next) {
-					delegateFunctionVisit(d.function, d.script, false, true);
+					delegateFunctionVisit(d.function, d.script, false);
 					any = true;
 				}
 				visit.delayedVisits = null;
@@ -797,7 +797,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			}
 
-			public final Visit delegateFunctionVisit(Function function, Script script, boolean allowThis, boolean allowWait) {
+			public final Visit delegateFunctionVisit(Function function, Script script, boolean allowThis) {
 				if (function.body() == null)
 					return null;
 				switch (pass) {
@@ -821,12 +821,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (v.visit != null && v.script() == script && v.visit.function() == function)
 						return v.visit;
 				final Visit tv = allowThis
-					? new Visitor(this).visit(function, this, allowWait)
+					? new Visitor(this).visit(function, this)
 					: null;
 				if (tv == null) {
 					final Visitor other = requestVisitor(script, function, this);
 					if (other != null)
-						return other.visit(function, this, allowWait);
+						return other.visit(function, this);
 					else
 						return null;
 				} else
@@ -1172,7 +1172,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final Function[] plan_;
 			synchronized (plan) { plan_ = plan.keySet().toArray(new Function[plan.size()]); }
 			for (final Function f : plan_)
-				visitor.visit(f, null, false);
+				visitor.visit(f, null);
 			visitor.endTypeEnvironment(env2, true, false);
 		}
 
@@ -1656,7 +1656,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						for (final AccessVar ref : references)
 							for (ASTNode p = ref.parent(); p != null; p = p.parent())
 								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
-									visitor.delegateFunctionVisit(ref.parentOfType(Function.class), visitor.script(), true, true);
+									visitor.delegateFunctionVisit(ref.parentOfType(Function.class), visitor.script(), true);
 									break;
 								}
 				}
@@ -2181,7 +2181,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									t = TypeUnification.unify(t, rtv != null ? rtv.get() : fn.returnType(_s));
 								}
 					} else {
-						final Visit v = visitor.delegateFunctionVisit(fn, visitor.script(), true, false);
+						final Visit v = visitor.delegateFunctionVisit(fn, visitor.script(), true);
 						if (v != null)
 							t = v.get();
 					}
