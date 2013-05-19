@@ -19,17 +19,15 @@ public class WhileStatement extends ConditionalStatement implements ILoop {
 	}
 
 	@Override
-	public String keyword() {
-		return Keywords.While;
-	}
-	
+	public String keyword() { return Keywords.While; }
+
 	@Override
 	public EnumSet<ControlFlow> possibleControlFlows() {
 		final EnumSet<ControlFlow> result = body.possibleControlFlows();
 		result.removeAll(EnumSet.of(ControlFlow.BreakLoop, ControlFlow.NextIteration));
 		return result;
 	}
-	
+
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		Object ev = null;

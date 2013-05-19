@@ -394,7 +394,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";
 
-	private static final ASTNode PLACE_CALL = ASTNodeMatcher.matchingExpr
+	private static final ASTNode PLACE_CALL = ASTNodeMatcher.prepareForMatching
 		("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)", Core.instance().loadEngine("OpenClonk"));
 
 	public static class ComputedScenarioConfigurationEntry extends ComplexIniEntry {

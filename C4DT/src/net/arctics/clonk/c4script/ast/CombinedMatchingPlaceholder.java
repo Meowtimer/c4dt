@@ -21,6 +21,11 @@ public class CombinedMatchingPlaceholder extends MatchingPlaceholder {
 	}
 
 	@Override
+	public Multiplicity multiplicity() {
+		return Multiplicity.values()[Math.min(left.multiplicity().ordinal(), right.multiplicity().ordinal())];
+	}
+
+	@Override
 	public boolean satisfiedBy(ASTNode element) {
 		switch (operator) {
 		case And: case BitAnd:

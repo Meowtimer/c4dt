@@ -10,20 +10,26 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.MatchingPlaceholder.Multiplicity;
 import net.arctics.clonk.c4script.ScriptsHelper;
 import net.arctics.clonk.c4script.ast.AccessVar;
-import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.Block;
-import net.arctics.clonk.c4script.ast.CallExpr;
-import net.arctics.clonk.c4script.ast.CombinedMatchingPlaceholder;
-import net.arctics.clonk.c4script.ast.Parenthesized;
 import net.arctics.clonk.c4script.ast.Unfinished;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.util.ArrayUtil;
 
+/**
+ * {@link ASTComparisonDelegate} used by {@link ASTNode#match(ASTNode)}.
+ * {@link MatchingPlaceholder} objects present in the target of the {@link ASTNode#match(ASTNode)} call
+ * will guide the comparison invocation.
+ * A map mapping {@link MatchingPlaceholder} names to arrays of matched {@link ASTNode}s will be populated
+ * and returned by {@link ASTNode#match(ASTNode)} on successful matching of all nodes.
+ * To prepare a node for being the target of {@link ASTNode#match(ASTNode)} {@link #prepareForMatching(ASTNode)} needs
+ * to be called with this node as argument.
+ * @author madeen
+ */
 public class ASTNodeMatcher extends ASTComparisonDelegate {
 	public ASTNodeMatcher(ASTNode top) { super(top); }
 	public Map<String, Object> result;
 	@Override
-	public boolean ignoreClassDifference() {
+	public boolean acceptClassDifference() {
 		return
 			(left instanceof MatchingPlaceholder &&
 			 ((MatchingPlaceholder)left).multiplicity() == Multiplicity.One &&
@@ -49,15 +55,27 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		return false;
 	}
 	@Override
-	public void applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) {
+	public boolean applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) {
 		for (int i = 0; i < leftSubElements.length; i++) {
 			final ASTNode left = leftSubElements[i];
-			if (left instanceof MatchingPlaceholder)
-				if (leftToRightMapping[i] != null)
-					addToResult(leftToRightMapping[i], (MatchingPlaceholder)left);
+			final ASTNode[] mapping = leftToRightMapping[i];
+			if (left instanceof MatchingPlaceholder) {
+				final MatchingPlaceholder mp = (MatchingPlaceholder)left;
+				switch (mp.multiplicity()) {
+				case AtLeastOne:
+					if (mapping == null || mapping.length < 1)
+						return false;
+					break;
+				default:
+					break;
+				}
+				if (mapping != null)
+					addToResult(mp, mapping);
+			}
 		}
+		return true;
 	}
-	private void addToResult(ASTNode extra[], MatchingPlaceholder mp) {
+	private void addToResult(MatchingPlaceholder mp, ASTNode extra[]) {
 		if (result == null)
 			result = new HashMap<String, Object>();
 		Object existing = result.get(mp.entryName());
@@ -70,77 +88,44 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		result.put(mp.entryName(), existing);
 	}
 	@Override
-	public boolean ignoreLeftSubElement(ASTNode leftNode) {
-		return leftNode instanceof MatchingPlaceholder && ((MatchingPlaceholder)leftNode).multiplicity() == Multiplicity.Multiple;
+	public boolean acceptLeftExtraElement(ASTNode leftNode) {
+		if (leftNode instanceof MatchingPlaceholder)
+			switch (((MatchingPlaceholder) leftNode).multiplicity()) {
+			case AtLeastOne: case Multiple:
+				return true;
+			default:
+				return false;
+			}
+		else
+			return false;
 	}
 	@Override
-	public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
+	public boolean acceptSubElementDifference(ASTNode left, ASTNode right) {
 		final MatchingPlaceholder mp = as(left, MatchingPlaceholder.class);
 		return mp != null && mp.multiplicity() == Multiplicity.One && mp.subElements().length == 0 && mp.satisfiedBy(right);
 	}
 	/**
-	 * Replace {@link Placeholder} objects with {@link MatchingPlaceholder} objects that bring
-	 * improved matching capabilities with them.
+	 * Replace {@link Placeholder} objects with {@link MatchingPlaceholder}, making the result suitable for
+	 * being the target of a {@link ASTNode#match(ASTNode)} call.
 	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
 	 */
-	public static ASTNode matchingExpr(ASTNode node) {
+	public static ASTNode prepareForMatching(ASTNode node) {
 		if (node instanceof Unfinished) {
 			final ASTNode orig = node;
 			node = Unfinished.unwrap(node);
 			node.setParent(orig.parent());
 		}
-		return node.transformRecursively(new ITransformer() {
-			private ASTNode toMatchingPlaceholder(ASTNode expression) {
-				if (expression != null)
-					if (expression.getClass() == Placeholder.class)
-						try {
-							return new MatchingPlaceholder(((Placeholder)expression));
-						} catch (final ProblemException e) {
-							e.printStackTrace();
-							return null;
-						}
-					else if (expression instanceof BinaryOp) {
-						final BinaryOp bop = (BinaryOp) expression;
-						switch (bop.operator()) {
-						case And: case Or: case BitAnd: case BitOr:
-							final MatchingPlaceholder mpl = as(bop.leftSide(), MatchingPlaceholder.class);
-							final MatchingPlaceholder mpr = as(bop.rightSide(), MatchingPlaceholder.class);
-							if (mpl != null && mpr != null)
-								try {
-									return new CombinedMatchingPlaceholder(mpl, mpr, bop.operator());
-								} catch (final ProblemException e) {
-									e.printStackTrace();
-									return null;
-								}
-							break;
-						default:
-							break;
-						}
-					} else if (expression instanceof Parenthesized && ((Parenthesized)expression).innerExpression() instanceof MatchingPlaceholder)
-						return ((Parenthesized)expression).innerExpression();
-				return null;
-			}
-			@Override
-			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
-				final ASTNode matchingPlaceholder = toMatchingPlaceholder(expression);
-				if (matchingPlaceholder != null)
-					return matchingPlaceholder;
-				else if (expression instanceof CallExpr && prevT instanceof MatchingPlaceholder) {
-					((MatchingPlaceholder)prevT).setSubElements(expression.transformRecursively(this).subElements());
-					return REMOVE;
-				} else if (
-					expression instanceof Sequence &&
-					expression.subElements().length == 1 && expression.subElements()[0] instanceof MatchingPlaceholder
-				)
-					return expression.subElements()[0];
-				return expression;
-			}
-		});
-
+		return node.transformRecursively(MatchingPlaceholderTransformer.INSTANCE);
 	}
-	public static ASTNode matchingExpr(final String statementText, Engine engine) {
+	/**
+	 * Parse a node from a C4Script source string and return the result of calling {@link #prepareForMatching(ASTNode)} with that node.
+	 * @param statementText C4Script string to parse the node from
+	 * @param engine Engine to use for parsing.
+	 * @return Prepared-for-matching version of the node parsed from the string or null if something went wrong.
+	 */
+	public static ASTNode prepareForMatching(final String statementText, Engine engine) {
 		try {
-			return matchingExpr(ScriptsHelper.parse(statementText, engine));
+			return prepareForMatching(ScriptsHelper.parse(statementText, engine));
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 			return null;

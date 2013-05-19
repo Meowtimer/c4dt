@@ -11,7 +11,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
  */
 public class CallExpr extends Tuple implements IFunctionCall {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public CallExpr(ASTNode[] params) { super(params); }
+	public CallExpr(ASTNode... params) { super(params); }
 	@Override
 	public ASTNode[] params() { return subElements(); }
 	@Override

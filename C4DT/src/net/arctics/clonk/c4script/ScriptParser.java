@@ -2577,7 +2577,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 	public static ASTNode matchingExpr(final String statementText, Engine engine) {
 		try {
-			return ASTNodeMatcher.matchingExpr(parse(statementText, engine));
+			return ASTNodeMatcher.prepareForMatching(parse(statementText, engine));
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 			return null;

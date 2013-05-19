@@ -46,8 +46,8 @@ public class ProjectConversionConfiguration {
 			this.chain = chain;
 			if (stmt instanceof BinaryOp && ((BinaryOp)stmt).operator() == Operator.Transform) {
 				final BinaryOp op = (BinaryOp)stmt;
-				this.template = ASTNodeMatcher.matchingExpr(op.leftSide());
-				this.transformation = ASTNodeMatcher.matchingExpr(op.rightSide());
+				this.template = ASTNodeMatcher.prepareForMatching(op.leftSide());
+				this.transformation = ASTNodeMatcher.prepareForMatching(op.rightSide());
 			} else
 				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", stmt.toString()));
 		}

@@ -72,8 +72,8 @@ public class ASTSearchQuery extends SearchQuery {
 	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ProblemException {
 		this.templateText = templateExpressionText;
 		final Engine engine = commonEngine(scope);
-		this.template = ASTNodeMatcher.matchingExpr(templateExpressionText, engine);
-		this.replacement = replacementExpressionText != null ? ASTNodeMatcher.matchingExpr(replacementExpressionText, engine) : null;
+		this.template = ASTNodeMatcher.prepareForMatching(templateExpressionText, engine);
+		this.replacement = replacementExpressionText != null ? ASTNodeMatcher.prepareForMatching(replacementExpressionText, engine) : null;
 		this.scope = scope;
 	}
 

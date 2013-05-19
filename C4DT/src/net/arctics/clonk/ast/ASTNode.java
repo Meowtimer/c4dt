@@ -500,19 +500,18 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		delegate.right = other;
 		try {
 
-			if ((other == null || other.getClass() != this.getClass()) && !delegate.ignoreClassDifference())
+			if ((other == null || other.getClass() != this.getClass()) && !delegate.acceptClassDifference())
 				return false;
-			if (delegate.considerDifferent() || !(equalAttributes(other) || delegate.ignoreAttributeDifference()))
+			if (delegate.considerDifferent() || !(equalAttributes(other) || delegate.acceptAttributeDifference()))
 				return false;
 
 			final ASTNode[] mine = this.subElements();
 			final ASTNode[] others = other.subElements();
 			final ASTNode[][] leftToRightMapping = delegate.compareSubElements(mine, others);
 
-			if (leftToRightMapping != null) {
-				delegate.applyLeftToRightMapping(mine, leftToRightMapping);
-				return true;
-			} else
+			if (leftToRightMapping != null)
+				return delegate.applyLeftToRightMapping(mine, leftToRightMapping);
+			else
 				return false;
 		} finally {
 			delegate.left = oldLeft;
@@ -657,7 +656,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		});
 	}
 
-	private int localIdentifier = -1;
+	private transient int localIdentifier = -1;
 	public final int localIdentifier() { return localIdentifier; }
 	public final void localIdentifier(int v) { localIdentifier = v; }
 

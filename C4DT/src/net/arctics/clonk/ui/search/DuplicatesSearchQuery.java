@@ -46,14 +46,15 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	private final Map<Function, List<FindDuplicatesMatch>> detectedDupes = new HashMap<Function, List<FindDuplicatesMatch>>();
 	private final ASTComparisonDelegate comparisonDelegate = new ASTComparisonDelegate(null) {
 		private boolean irrelevant(ASTNode leftNode) {
+			// ignore comments and function description
 			return leftNode instanceof Comment || leftNode instanceof FunctionDescription;
 		}
 		@Override
-		public boolean ignoreLeftSubElement(ASTNode leftNode) { return irrelevant(leftNode); }
+		public boolean acceptLeftExtraElement(ASTNode leftNode) { return irrelevant(leftNode); }
 		@Override
-		public boolean ignoreRightSubElement(ASTNode rightNode) { return irrelevant(rightNode); }
+		public boolean acceptRightExtraElement(ASTNode rightNode) { return irrelevant(rightNode); }
 		@Override
-		public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
+		public boolean acceptSubElementDifference(ASTNode left, ASTNode right) {
 			if (left == null || right == null)
 				return false;
 			if (left instanceof Parenthesized)
@@ -87,10 +88,10 @@ public class DuplicatesSearchQuery extends SearchQuery {
 						final ASTComparisonDelegate moi = this;
 						final ASTComparisonDelegate proxy = new ASTComparisonDelegate(right) {
 							@Override
-							public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) {
+							public boolean acceptSubElementDifference(ASTNode left, ASTNode right) {
 								if (left == aCounterpart || left == bCounterpart)
 									return false;
-								return moi.ignoreSubElementDifference(left, right);
+								return moi.acceptSubElementDifference(left, right);
 							}
 						};
 						if (aCounterpart.compare(right, proxy) && left.compare(bCounterpart, proxy))

@@ -10,12 +10,16 @@ public abstract class ConditionalStatement extends KeywordStatement {
 	protected ASTNode condition;
 	protected ASTNode body;
 
-	public ASTNode condition() {
-		return condition;
-	}
-
-	public void setCondition(ASTNode condition) {
-		this.condition = condition;
+	public ASTNode condition() { return condition; }
+	public void setCondition(ASTNode condition) { this.condition = condition; }
+	public ASTNode body() { return body; }
+	public void setBody(ASTNode body) { this.body = body; }
+	@Override
+	public ASTNode[] subElements() { return new ASTNode[] {condition, body}; }
+	@Override
+	public void setSubElements(ASTNode[] elms) {
+		condition = elms[0];
+		body      = elms[1];
 	}
 
 	public ConditionalStatement(ASTNode condition, ASTNode body) {
@@ -37,26 +41,5 @@ public abstract class ConditionalStatement extends KeywordStatement {
 		builder.append(")"); //$NON-NLS-1$
 		printBody(builder, depth);
 	}
-
-	public ASTNode body() {
-		return body;
-	}
-
-	public void setBody(ASTNode body) {
-		this.body = body;
-	}
-
-	@Override
-	public ASTNode[] subElements() {
-		return new ASTNode[] {condition, body};
-	}
-
-	@Override
-	public void setSubElements(ASTNode[] elms) {
-		condition = elms[0];
-		body      = elms[1];
-	}
-
-
 
 }

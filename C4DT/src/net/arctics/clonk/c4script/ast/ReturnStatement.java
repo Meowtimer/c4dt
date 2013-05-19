@@ -1,5 +1,8 @@
 package net.arctics.clonk.c4script.ast;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -12,14 +15,14 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode returnExpr;
-	
+
 	public ASTNode returnExpr() { return returnExpr; }
 
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		throw new ReturnException(returnExpr.evaluate(context));
 	}
-	
+
 	public ReturnStatement(ASTNode returnExpr) {
 		super();
 		this.returnExpr = returnExpr;
@@ -75,18 +78,15 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 			return new ReturnStatement(tidy.tidy(((Parenthesized)returnExpr).innerExpression()));
 		// return (0, Sound("Ugh")); -> { Sound("Ugh"); return 0; }
 		// FIXME: should declare temporary variable so that order of expression execution isn't changed
-		/*
 		if (returnExpr instanceof Tuple) {
-			Tuple tuple = (Tuple) returnExpr;
-			ExprElm[] tupleElements = tuple.getElements();
-			List<Statement> statements = new LinkedList<Statement>();
-			for (int i = 1; i < tupleElements.length; i++) {
-				statements.add(new SimpleStatement(tupleElements[i].newStyleReplacement(parser)));
-			}
-			statements.add(new ReturnStatement(tupleElements[0].newStyleReplacement(parser)));
-			return getParent() instanceof ConditionalStatement ? new Block(statements) : new BunchOfStatements(statements);
+			final Tuple tuple = (Tuple) returnExpr;
+			final ASTNode[] tupleElements = tuple.subElements();
+			final List<ASTNode> statements = new LinkedList<>();
+			for (int i = 1; i < tupleElements.length; i++)
+				statements.add(new SimpleStatement(tupleElements[i]));
+			statements.add(new ReturnStatement(tupleElements[0]));
+			return parent() instanceof ConditionalStatement ? new Block(statements) : new BunchOfStatements(statements);
 		}
-		 */
 		return this;
 	}
 }

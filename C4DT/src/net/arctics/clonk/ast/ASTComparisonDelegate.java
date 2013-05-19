@@ -1,7 +1,6 @@
 package net.arctics.clonk.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.concat;
-import static net.arctics.clonk.util.Utilities.token;
 
 /**
  * A delegate consulted when comparing AST trees. Its job is deciding whether differences should be ignored or not
@@ -10,27 +9,6 @@ import static net.arctics.clonk.util.Utilities.token;
  *
  */
 public class ASTComparisonDelegate {
-
-	/**
-	 * Passed as the 'what' parameter to {@link #differs(ASTNode, ASTNode, Object)} if length of respective sub elements differs.
-	 */
-	public static final Object SUBELEMENTS_LENGTH = token("SUBELEMENTS_LENGTH");
-
-	/**
-	 * Passed as the 'what' parameter to {@link #differs(ASTNode, ASTNode, Object)} if the {@link ASTNode} elements being compared have differen types.
-	 */
-	public static final Object CLASS = token("CLASS");
-
-	/**
-	 * Special 'what' token informing delegate that previous cautious {@link boolean#IgnoreLeftSideOrTryNext} answer
-	 * was honored.
-	 */
-	public static final Object IGNORELEFTSIDEHONORED = token("IGNORELEFTSIDECHOSEN");
-
-	/**
-	 * Special node passed for {@link Difference#left} or {@link Difference#right} if the respective side has run out of nodes while the other one has not.
-	 */
-	public static final ASTNode OUTOFSTOCK = new ASTNode();
 
 	public final ASTNode top;
 	public ASTNode left, right;
@@ -48,23 +26,29 @@ public class ASTComparisonDelegate {
 	}
 
 	/**
-	 * Called if class of left and right node differs. Can order the comparer to ignore this difference.
-	 * @return True if the class difference is to be ignored, false if not.
+	 * Called if class of left and right node differs. Returns true if the difference is accepted by this delegate
+	 * and comparison continues.
+	 * @return True if the class difference is to be accepted, false if not.
 	 */
-	public boolean ignoreClassDifference() { return false; }
-	public boolean ignoreAttributeDifference() { return false; }
-	public boolean ignoreLeftSubElement(ASTNode leftNode) { return false; }
-	public boolean ignoreRightSubElement(ASTNode rightNode) { return false; }
-	public boolean ignoreSubElementDifference(ASTNode left, ASTNode right) { return false; }
+	public boolean acceptClassDifference() { return false; }
+	/**
+	 * Return whether to accept attribute differences between the two current nodes.
+	 * @return Whether to accept attribute differences or not.
+	 */
+	public boolean acceptAttributeDifference() { return false; }
+
+	public boolean acceptLeftExtraElement(ASTNode leftNode) { return false; }
+	public boolean acceptRightExtraElement(ASTNode rightNode) { return false; }
+	public boolean acceptSubElementDifference(ASTNode left, ASTNode right) { return false; }
 	public boolean considerDifferent() { return false; }
 
-	public void applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) {}
+	public boolean applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) { return true; }
 
 	public boolean equal(ASTNode left, ASTNode right) {
 		if (
 			(left == null && right == null) ||
 			(left != null && left.compare(right, this)) ||
-			ignoreSubElementDifference(left, right)
+			acceptSubElementDifference(left, right)
 		) {
 			if (top == right)
 				applyLeftToRightMapping(new ASTNode[] {left}, new ASTNode[][] {{right}});
@@ -74,44 +58,48 @@ public class ASTComparisonDelegate {
 	}
 
 	public ASTNode[][] compareSubElements(ASTNode[] mine, ASTNode[] others) {
-		ASTNode[][] leftToRightMapping = new ASTNode[mine.length][];
+		final ASTNode[][] leftToRightMapping = new ASTNode[mine.length][];
 
 		int l, r;
 		for (l = 0, r = 0; l < mine.length && r < others.length; l++, r++) {
-			ASTNode left = mine[l];
-			ASTNode nextLeft = l + 1 < mine.length ? mine[l+1] : null;
-			ASTNode right = r < others.length ? others[r] : null;
+			final ASTNode left = mine[l];
+			final ASTNode nextLeft = l + 1 < mine.length ? mine[l+1] : null;
+			final ASTNode right = r < others.length ? others[r] : null;
 
 			if (equal(left, right))
 				leftToRightMapping[l] = new ASTNode[] { right };
 			else if  (consume(left, right)) {
-				if (nextLeft == null || !equal(nextLeft, right)) {
-					leftToRightMapping[l] = concat(leftToRightMapping[l], right);
-					l--;
-				} else {
+				if (nextLeft != null && equal(nextLeft, right)) {
+					// look ahead if the next left one is equal to the current right one
 					leftToRightMapping[l+1] = new ASTNode[] { right };
 					l++;
+				} else {
+					// consume
+					leftToRightMapping[l] = concat(leftToRightMapping[l], right);
+					l--;
 				}
 			}
-			else if (ignoreLeftSubElement(left)) {
-				leftToRightMapping[l] = new ASTNode[0];
+			else if (acceptLeftExtraElement(left)) {
+				if (leftToRightMapping[l] == null)
+					leftToRightMapping[l] = new ASTNode[0];
 				r--;
 			}
-			else if (ignoreRightSubElement(right))
+			else if (acceptRightExtraElement(right))
 				l--;
 			else
 				return null;
 		}
 
+		// not all nodes looked at - see whether the extra elements can be accepted or consumed
 		if (l != mine.length || r != others.length) {
 			for (; l < mine.length; l++)
 				if (leftToRightMapping[l] != null)
 					continue;
-				else if (ignoreLeftSubElement(mine[l]))
+				else if (acceptLeftExtraElement(mine[l]))
 					leftToRightMapping[l] = new ASTNode[0];
 				else
 					return null;
-			ASTNode lastLeft = mine.length > 0 ? mine[mine.length-1] : null;
+			final ASTNode lastLeft = mine.length > 0 ? mine[mine.length-1] : null;
 			if (lastLeft != null)
 				for (; r < others.length; r++)
 					if (consume(lastLeft, others[r]))
@@ -119,9 +107,10 @@ public class ASTComparisonDelegate {
 					else
 						break;
 			for (; r < others.length; r++)
-				if (!ignoreRightSubElement(others[r]))
+				if (!acceptRightExtraElement(others[r]))
 					return null;
 		}
+
 		return leftToRightMapping;
 	}
 }

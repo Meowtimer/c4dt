@@ -11,8 +11,8 @@ public class Tuple extends ASTNodeWithSubElementsArray {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public Tuple(ASTNode[] elms) {
-		super(elms);		
+	public Tuple(ASTNode... elms) {
+		super(elms);
 	}
 
 	@Override
