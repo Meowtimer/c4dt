@@ -19,7 +19,7 @@ public class FindReferencesAction extends ClonkTextEditorAction {
 	public FindReferencesAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 	}
-	
+
 	@Override
 	public void run() {
 		try {
@@ -27,16 +27,16 @@ public class FindReferencesAction extends ClonkTextEditorAction {
 			if (declaration == null)
 				declaration = ((ClonkTextEditor)getTextEditor()).structure();
 			if (declaration != null) {
-				ClonkProjectNature nature = ClonkProjectNature.get(declaration.script());				
+				ClonkProjectNature nature = ClonkProjectNature.get(declaration.script());
 				if (nature == null)
-					nature = ClonkProjectNature.get(getTextEditor());
+					nature = ClonkProjectNature.get(declaration.resource());
 				if (nature == null) {
 					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_Label, Messages.FindReferencesAction_OnlyWorksWithinProject);
 					return;
 				}
 				NewSearchUI.runQueryInBackground(new ReferencesSearchQuery(declaration, nature));
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}

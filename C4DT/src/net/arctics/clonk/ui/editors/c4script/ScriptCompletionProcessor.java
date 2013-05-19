@@ -63,7 +63,7 @@ import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.PrecedingExpression;
-import net.arctics.clonk.ui.editors.ProposalsLocation;
+import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
@@ -85,6 +85,8 @@ import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
 import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.IContentAssistantExtension2;
+import org.eclipse.jface.text.contentassist.IContentAssistantExtension3;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -102,8 +104,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4ScriptEditor> implements ICompletionListener, ICompletionListenerExtension {
 
 	private final ContentAssistant assistant;
-	private ProposalCycle proposalCycle = ProposalCycle.ALL;
-	private Function _activeFunc;
+	private ProposalCycle proposalCycle = null;
 	private ProblemReportingStrategy typingStrategy;
 
 	private void setTypingStrategyFromScript(Script script) {
@@ -122,30 +123,34 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		if (editor != null)
 			setTypingStrategyFromScript(editor.script());
 		this.assistant = assistant;
-		if (assistant != null) {
-			assistant.setRepeatedInvocationTrigger(iterationBinding());
+		if (assistant != null)
 			assistant.addCompletionListener(this);
-		}
 	}
 
 	@Override
 	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
 
 	@Override
-	public void assistSessionStarted(ContentAssistEvent event) { proposalCycle = ProposalCycle.ALL; }
+	public void assistSessionStarted(ContentAssistEvent event) {
+		final IContentAssistantExtension3 ex3 = as(event.assistant, IContentAssistantExtension3.class);
+		final IContentAssistantExtension2 ex2 = as(event.assistant, IContentAssistantExtension2.class);
+		if (ex2 != null) {
+			ex2.setRepeatedInvocationMode(true);
+			ex2.setStatusLineVisible(true);
+		}
+		if (ex3 != null)
+			ex3.setRepeatedInvocationTrigger(iterationBinding());
 
-	@Override
-	public void assistSessionEnded(ContentAssistEvent event) {}
-
-	@Override
-	public void assistSessionRestarted(ContentAssistEvent event) {
-		// needs to be reversed because it gets cycled after computing the proposals...
-		proposalCycle = proposalCycle.reverseCycle();
+		proposalCycle = null;
 	}
 
-	protected void doCycle() {
-		proposalCycle = proposalCycle.cycle();
+	@Override
+	public void assistSessionEnded(ContentAssistEvent event) {
+		proposalCycle = null;
 	}
+
+	@Override
+	public void assistSessionRestarted(ContentAssistEvent event) {}
 
 	/**
 	 * Add to an existing list the proposals originating from some {@link Index}. Those proposals are comprised of global functions, static variables and {@link Definition}s.
@@ -157,10 +162,10 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	 * @param flags Flags indicating what kind of proposals should be included. {@link DeclMask#STATIC_VARIABLES} needs to be or-ed to flags if {@link Definition} and static variable proposals are to be shown.
 	 * @param editorScript Script the proposals are invoked on.
 	 */
-	private void proposalsForIndex(Index index, ProposalsLocation pl) {
+	private void proposalsForIndex(Index index, ProposalsSite pl) {
 		final int declarationsMask = pl.declarationsMask();
-		if (_activeFunc != null) {
-			final Scenario s2 = _activeFunc.scenario();
+		if (pl.function != null) {
+			final Scenario s2 = pl.function.scenario();
 			if ((declarationsMask & DeclMask.FUNCTIONS) != 0)
 				for (final Function func : index.globalFunctions()) {
 					final Scenario fScen = func.scenario();
@@ -183,9 +188,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			proposalsForIndexedDefinitions(pl, index);
 	}
 
-	@Override
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-		super.computeCompletionProposals(viewer, offset);
+	private ProposalsSite makeProposalsSite(ITextViewer viewer, int offset) {
 		int wordOffset;
 		final IDocument doc = viewer.getDocument();
 		for (wordOffset = offset - 1; wordOffset >= 0; wordOffset--)
@@ -208,50 +211,36 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				return null;
 		} catch (final BadLocationException e) { }
 
-		final ClonkProjectNature nature = ClonkProjectNature.get(editor);
-		final List<String> statusMessages = new ArrayList<String>(4);
-		final List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
-		final Index index = nature.index();
-
-		final Function activeFunc = funcAt(doc, offset);
-		this._activeFunc = activeFunc;
-
-		statusMessages.add(Messages.C4ScriptCompletionProcessor_ProjectFiles);
-
-		if (proposalCycle == ProposalCycle.ALL || activeFunc == null)
-			if (editor().script().index().engine() != null)
-				statusMessages.add(Messages.C4ScriptCompletionProcessor_EngineFunctions);
-
-		final ProposalsLocation pl = new ProposalsLocation
-			(offset, wordOffset, doc, prefix, proposals, index, activeFunc, scriptForEditor(editor));
-		this.pl = pl;
-		final boolean returnProposals = activeFunc == null
-			? computeProposalsOutsideFunction(viewer, pl)
-			: computeProposalsInsideFunction(pl);
-		if (!returnProposals)
-			return null;
-
-		final StringBuilder statusMessage = new StringBuilder(Messages.C4ScriptCompletionProcessor_ShownData);
-		for(final String message : statusMessages) {
-			statusMessage.append(message);
-			if (statusMessages.get(statusMessages.size() - 1) != message) statusMessage.append(", "); //$NON-NLS-1$
-		}
-
-		//assistant.setStatusMessage(statusMessage.toString());
-		assistant.setStatusMessage(proposalCycleMessage());
-
-		doCycle();
-
-		if (proposals.size() > 0)
-			return proposals.toArray(new ICompletionProposal[proposals.size()]);
-		else
-			return null;
+		return new ProposalsSite(
+			offset, wordOffset, doc, prefix, new ArrayList<ICompletionProposal>(),
+			ClonkProjectNature.get(editor().script().resource()).index(),
+			funcAt(doc, offset), scriptForEditor(editor)
+		);
 	}
 
-	private boolean computeProposalsInsideFunction(ProposalsLocation pl) {
+	@Override
+	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+		super.computeCompletionProposals(viewer, offset);
+		pl = makeProposalsSite(viewer, offset);
+		if (pl == null)
+			return null;
+		if (!(pl.function == null
+			? computeProposalsOutsideFunction(viewer, pl)
+			: computeProposalsInsideFunction(pl)))
+			return null;
+		assistant.setStatusMessage(proposalCycleMessage());
+		return pl.finish(proposalCycle);
+	}
+
+	@SuppressWarnings("unused")
+	private void setStatusMessage(final Function activeFunc) {
+		assistant.setStatusMessage(proposalCycleMessage());
+	}
+
+	private boolean computeProposalsInsideFunction(ProposalsSite pl) {
 		if (!checkProposalConditions(pl))
 			return false;
-		final int preservedOffset = pl.offset - (pl.function != null?pl.function.bodyLocation().start():0);
+		final int preservedOffset = pl.offset - (pl.function != null ? pl.function.bodyLocation().start() : 0);
 
 		pl.pos(preservedOffset);
 		ScriptParser parser = null;
@@ -259,6 +248,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			final ScriptEditingState editingState = editor().editingState();
 			parser = editingState.updateFunctionFragment(pl.function, pl, true);
 		}
+
+		proposalCycle = proposalCycle == null ? ProposalCycle.ALL : proposalCycle.cycle();
 
 		if (!skipProposalsInFunction(pl.contextExpression)) {
 			final boolean restrictedProposals = computeStringProposals(pl) || varInitializationProposals(pl);
@@ -276,7 +267,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			return false;
 	}
 
-	private boolean checkProposalConditions(ProposalsLocation pl) {
+	private boolean checkProposalConditions(ProposalsSite pl) {
 		try {
 			boolean targetCall = false;
 			Loop: for (int arrowOffset = pl.wordOffset - 1; arrowOffset >= 1; arrowOffset--) {
@@ -313,7 +304,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return true;
 	}
 
-	private void innerProposalsInFunction(ProposalsLocation pl, ScriptParser parser) {
+	private void innerProposalsInFunction(ProposalsSite pl, ScriptParser parser) {
 		//if (computeStringProposals(pl) || varInitializationProposals(pl))
 		//	return;
 		setCategoryOrdering(pl);
@@ -329,21 +320,20 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return contextExpression instanceof Comment;
 	}
 
-	private void engineProposals(ProposalsLocation pl) {
-		if (proposalCycle == ProposalCycle.ALL)
-			if (pl.script.index().engine() != null) {
-				if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
-					for (final Function func : pl.script.index().engine().functions())
-						proposalForFunc(pl, func, true);
-				if ((pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
-					for (final Variable var : pl.script.index().engine().variables())
-						proposalForVar(pl, var);
-			}
+	private void engineProposals(ProposalsSite pl) {
+		if (pl.script.index().engine() != null) {
+			if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
+				for (final Function func : pl.script.index().engine().functions())
+					proposalForFunc(pl, func, true);
+			if ((pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
+				for (final Variable var : pl.script.index().engine().variables())
+					proposalForVar(pl, var);
+		}
 	}
 
-	private void functionLocalProposals(ProposalsLocation pl) {
+	private void functionLocalProposals(ProposalsSite pl) {
 		if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
-			if (pl.contextSequence == null && (proposalCycle == ProposalCycle.ALL || proposalCycle == ProposalCycle.LOCAL) && pl.function != null) {
+			if (pl.contextSequence == null && pl.function != null) {
 				for (final Variable v : pl.function.parameters())
 					proposalForVar(pl, v);
 				for (final Variable v : pl.function.locals())
@@ -351,14 +341,13 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			}
 	}
 
-	private void definitionProposals(ProposalsLocation pl) {
+	private void definitionProposals(ProposalsSite pl) {
 		if ((pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
-			if (proposalCycle != ProposalCycle.OBJECT)
-				for (final Index i : pl.index.relevantIndexes())
-					proposalsForIndex(i, pl);
+			for (final Index i : pl.index.relevantIndexes())
+				proposalsForIndex(i, pl);
 	}
 
-	private void structureProposals(ProposalsLocation pl) {
+	private void structureProposals(ProposalsSite pl) {
 		final Set<Declaration> proposalTypes = determineProposalTypes(pl);
 		if (proposalTypes.size() > 0)
 			for (final Declaration s : proposalTypes) {
@@ -375,7 +364,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			proposeAllTheThings(pl);
 	}
 
-	public void proposeAllTheThings(ProposalsLocation pl) {
+	public void proposeAllTheThings(ProposalsSite pl) {
 		final List<ClonkCompletionProposal> old = new ArrayList<>(pl.proposals.values());
 		final List<Index> relevantIndexes = pl.index.relevantIndexes();
 		for (final Index x : relevantIndexes)
@@ -391,7 +380,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				ccp.setImage(UI.halfTransparent(ccp.getImage()));
 	}
 
-	private Set<Declaration> determineProposalTypes(ProposalsLocation pl) {
+	private Set<Declaration> determineProposalTypes(ProposalsSite pl) {
 		final Set<Declaration> contextStructures = new HashSet<Declaration>();
 		if (pl.contextSequence != null)
 			for (final IType t : pl.precedingType()) {
@@ -410,8 +399,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return contextStructures;
 	}
 
-	private void keywordProposals(ProposalsLocation pl) {
-		if (pl.contextSequence == null && proposalCycle == ProposalCycle.ALL) {
+	private void keywordProposals(ProposalsSite pl) {
+		if (pl.contextSequence == null && (pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0) {
 			final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 			for(final String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (pl.prefix != null && !stringMatchesPrefix(keyword, pl.prefix))
@@ -424,7 +413,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		}
 	}
 
-	private boolean varInitializationProposals(ProposalsLocation pl) {
+	private boolean varInitializationProposals(ProposalsSite pl) {
 		if (pl.contextExpression instanceof VarInitialization) {
 			final VarInitialization vi = (VarInitialization)pl.contextExpression;
 			Typing typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
@@ -452,7 +441,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			return false;
 	}
 
-	private void ruleBasedProposals(ProposalsLocation pl, ScriptParser parser) {
+	private void ruleBasedProposals(ProposalsSite pl, ScriptParser parser) {
 		if (pl.contextExpression == null)
 			return;
 		final CallDeclaration innermostCallFunc = pl.contextExpression.thisOrParentOfType(CallDeclaration.class);
@@ -468,7 +457,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		}
 	}
 
-	private void setCategoryOrdering(ProposalsLocation pl) {
+	private void setCategoryOrdering(ProposalsSite pl) {
 		cats.defaultOrdering();
 		if (pl.contextExpression == null)
 			return;
@@ -490,7 +479,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			}
 	}
 
-	private boolean computeStringProposals(ProposalsLocation pl) {
+	private boolean computeStringProposals(ProposalsSite pl) {
 		// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 		if (pl.contextExpression instanceof Placeholder || pl.contextExpression instanceof StringLiteral) {
 			try {
@@ -543,7 +532,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		(ASTNode expression, Function function, ScriptParser parser, IDocument document) {
 		final List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(parser.script());
-		final ProposalsLocation pl = new ProposalsLocation(
+		final ProposalsSite pl = new ProposalsSite(
 			expression != null ? expression.end() : 0,
 			0, document, "", result, function.index(), function, parser.script()
 		).setPreceding(new PrecedingExpression(expression, expression.parentOfType(Sequence.class), PrimitiveType.UNKNOWN));
@@ -552,7 +541,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	private ClonkCompletionProposal callbackProposal(
-		ProposalsLocation pl,
+		ProposalsSite pl,
 		final String callback,
 		final String nameFormat,
 		final String displayString,
@@ -606,7 +595,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return prop;
 	}
 
-	private boolean computeProposalsOutsideFunction(ITextViewer viewer, ProposalsLocation pl) {
+	private boolean computeProposalsOutsideFunction(ITextViewer viewer, ProposalsSite pl) {
+		proposalCycle = ProposalCycle.ALL;
 		// check whether func keyword precedes location (whole function blocks won't be created then)
 		final boolean funcSupplied = precededBy(viewer, pl.offset, Keywords.Func);
 		final boolean directiveExpectingDefinition =
@@ -644,13 +634,13 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return true;
 	}
 
-	private void directiveDefinitionArgumentProposals(ProposalsLocation pl) {
+	private void directiveDefinitionArgumentProposals(ProposalsSite pl) {
 		// propose objects for #include or something
 		for (final Index i : pl.index.relevantIndexes())
 			proposalsForIndex(i, pl);
 	}
 
-	private void directiveProposals(ProposalsLocation pl) {
+	private void directiveProposals(ProposalsSite pl) {
 		// propose directives (#include, ...)
 		final Image directiveIcon = UI.imageForPath("icons/directive.png"); //$NON-NLS-1$
 		for(final Directive directive : Directive.CANONICALS) {
@@ -671,7 +661,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		}
 	}
 
-	private void declaratorProposals(ProposalsLocation pl) {
+	private void declaratorProposals(ProposalsSite pl) {
 		// propose declaration keywords (var, static, ...)
 		for(final String declarator : BuiltInDefinitions.DECLARATORS) {
 			if (pl.prefix != null)
@@ -686,7 +676,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		}
 	}
 
-	private void effectFunctionProposals(ProposalsLocation pl, final boolean funcSupplied) {
+	private void effectFunctionProposals(ProposalsSite pl, final boolean funcSupplied) {
 		// propose creating effect functions
 		for (final String s : EffectFunction.DEFAULT_CALLBACKS) {
 			final IType parameterTypes[] = Effect.parameterTypesForCallback(s, editor.script(), PrimitiveType.ANY);
@@ -699,13 +689,13 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		}
 	}
 
-	private void newFunctionProposal(ProposalsLocation pl, final boolean funcSupplied) {
+	private void newFunctionProposal(ProposalsSite pl, final boolean funcSupplied) {
 		// propose to just create function with the name already typed
 		if (pl.untamperedPrefix != null && pl.untamperedPrefix.length() > 0)
-			callbackProposal(pl, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied).setCategory(cats.NewFunction); //$NON-NLS-1$
+			callbackProposal(pl, pl.untamperedPrefix, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied).setCategory(cats.NewFunction); //$NON-NLS-1$
 	}
 
-	private void standardCallbackProposals(ProposalsLocation pl, final boolean funcSupplied) {
+	private void standardCallbackProposals(ProposalsSite pl, final boolean funcSupplied) {
 		// propose creating functions for standard callbacks
 		for(final String callback : editor().script().engine().settings().callbackFunctions()) {
 			if (pl.prefix != null)
@@ -715,7 +705,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		}
 	}
 
-	private void overrideProposals(ProposalsLocation pl, final boolean funcSupplied) {
+	private void overrideProposals(ProposalsSite pl, final boolean funcSupplied) {
 		// propose overriding inherited functions
 		final Script script = editor().script();
 		final List<Script> cong = script.conglomerate();
@@ -743,10 +733,13 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 
 	private String proposalCycleMessage() {
 		final TriggerSequence sequence = iterationBinding();
-		return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
+		if (proposalCycle != null)
+			return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
+		else
+			return "";
 	}
 
-	private void proposalsForStructure(Declaration structure, ProposalsLocation pl, Declaration target) {
+	private void proposalsForStructure(Declaration structure, ProposalsSite pl, Declaration target) {
 		for (final Declaration dec : structure.subDeclarations(pl.index, pl.declarationsMask())) {
 			if (!target.seesSubDeclaration(dec))
 				continue;

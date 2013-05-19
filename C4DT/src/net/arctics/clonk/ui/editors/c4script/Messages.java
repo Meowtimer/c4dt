@@ -5,7 +5,6 @@ import org.eclipse.osgi.util.NLS;
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = Messages.class.getPackage().getName()+".messages"; //$NON-NLS-1$
 	public static String C4ScriptCompletionProcessor_AllCompletions;
-	public static String C4ScriptCompletionProcessor_LocalCompletions;
 	public static String C4ScriptCompletionProcessor_EffectFunctionCallbackProposalDisplayStringFormat;
 	public static String C4ScriptCompletionProcessor_Engine;
 	public static String C4ScriptCompletionProcessor_ObjectCompletions;

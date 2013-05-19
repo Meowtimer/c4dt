@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
+import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
@@ -49,25 +50,25 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 	}
 	public IType precedingType() { return defaulting(precedingType, PrimitiveType.UNKNOWN); }
 	public int declarationsMask() {
-		int mask = 0;
-		if (contextSequence == null || MemberOperator.endsWithDot(contextSequence))
-			mask |= DeclMask.VARIABLES;
-		if (contextSequence == null || !MemberOperator.endsWithDot(contextSequence))
-			mask |= DeclMask.FUNCTIONS;
+		int mask = DeclMask.VARIABLES|DeclMask.FUNCTIONS;
 		if (contextSequence == null)
 			mask |= DeclMask.STATIC_VARIABLES;
 
-		final ASTNode mo =
-			contextExpression instanceof MemberOperator ? contextExpression :
-			contextExpression != null ? contextExpression.predecessorInSequence() : null;
-
-		if (mo instanceof MemberOperator) {
+		final ASTNode mo = memberOperator();
+		if (mo instanceof MemberOperator)
 			if (((MemberOperator) mo).dotNotation())
 				return DeclMask.VARIABLES;
 			else
 				mask &= ~DeclMask.VARIABLES;
-		}
 
 		return mask;
+	}
+	public MemberOperator memberOperator() {
+		if (contextExpression instanceof MemberOperator)
+			return (MemberOperator)contextExpression;
+		else if (contextExpression != null)
+			return as(contextExpression.predecessorInSequence(), MemberOperator.class);
+		else
+			return null;
 	}
 }

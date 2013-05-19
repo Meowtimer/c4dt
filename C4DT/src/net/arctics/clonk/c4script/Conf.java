@@ -19,7 +19,7 @@ import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
  *
  */
 public abstract class Conf {
-	
+
 	// options
 	/** Always convert ObjectCall/Call constructs to ->(~) calls when tidying up code */
 	public static boolean alwaysConvertObjectCalls = true;
@@ -39,7 +39,7 @@ public abstract class Conf {
 		for (int i = 0; i < indentDepth; i++)
 			output.append(indentString);
 	}
-	
+
 	/**
 	 * Print indentation/new line prelude before a braces block. Depends on {@link #braceStyle}.
 	 * @param output Printer to print prelude into
@@ -58,7 +58,7 @@ public abstract class Conf {
 	}
 
 	// install property change listener so the indentString and braceStyle will match with corresponding preferences
-	
+
 	private static void configureByEditorPreferences() {
 		final boolean tabsToSpaces = EditorsUI.getPreferenceStore().getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
 		if (tabsToSpaces)
@@ -71,9 +71,9 @@ public abstract class Conf {
 		else
 			braceStyle = BraceStyleType.NewLine;
 	}
-	
+
 	static {
-		if (!Core.instance().runsHeadless()) {
+		if (Core.instance() != null && !Core.instance().runsHeadless()) {
 			final IPropertyChangeListener listener = new IPropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent event) {

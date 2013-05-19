@@ -22,29 +22,19 @@ public class Block extends Statement implements ITidyable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode[] statements;
-	
+
 	public Block(List<ASTNode> statements) {
 		this(statements.toArray(new ASTNode[statements.size()]));
 	}
 
-	public Block(Statement... statements) {
+	public Block(ASTNode... statements) {
 		super();
 		this.statements = statements;
 		assignParentToSubElements();
 	}
-	
-	// helper constructor that wraps expressions in statement if necessary
-	public Block(ASTNode... expressions) {
-		this(SimpleStatement.wrapExpressions(expressions));
-	}
-	
-	public ASTNode[] statements() {
-		return statements;
-	}
 
-	public void setStatements(ASTNode[] statements) {
-		this.statements = statements;
-	}
+	public ASTNode[] statements() { return statements; }
+	public void setStatements(ASTNode[] statements) { this.statements = statements; }
 
 	@Override
 	public void setSubElements(ASTNode[] elms) {
@@ -74,12 +64,12 @@ public class Block extends Statement implements ITidyable {
 		}
 		Conf.printIndent(builder, depth); builder.append("}"); //$NON-NLS-1$
 	}
-	
+
 	private static Comment commentedOut(ASTNode node) {
 		final String str = node.printed();
 		return new Comment(str, str.contains("\n"), false); //$NON-NLS-1$
 	}
-	
+
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		if (parent() != null && !(parent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements))
@@ -106,7 +96,7 @@ public class Block extends Statement implements ITidyable {
 		else
 			return this;
 	}
-	
+
 	@Override
 	public ControlFlow controlFlow() {
 		for (final ASTNode s : statements) {
@@ -117,7 +107,7 @@ public class Block extends Statement implements ITidyable {
 		}
 		return ControlFlow.Continue;
 	}
-	
+
 	@Override
 	public EnumSet<ControlFlow> possibleControlFlows() {
 		final EnumSet<ControlFlow> result = EnumSet.noneOf(ControlFlow.class);
@@ -130,7 +120,7 @@ public class Block extends Statement implements ITidyable {
 		}
 		return result;
 	}
-	
+
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		for (final ASTNode s : subElements())
@@ -138,11 +128,11 @@ public class Block extends Statement implements ITidyable {
 				s.evaluate(context);
 		return null;
 	}
-	
-	public void addStatements(Statement... statements) {
+
+	public void addStatements(ASTNode... statements) {
 		this.statements = ArrayUtil.concat(this.statements, statements);
 	}
-	
+
 	public void removeStatement(ASTNode s) {
 		final List<ASTNode> l = new ArrayList<ASTNode>(Arrays.asList(statements));
 		l.remove(s);

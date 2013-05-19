@@ -68,7 +68,7 @@ import net.arctics.clonk.ini.SignedInteger;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.ui.editors.ProposalsLocation;
+import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPredicate;
@@ -309,7 +309,7 @@ public abstract class SpecialEngineRules {
 		@SignifiesRole(role=FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
 		public void contributeAdditionalProposals(
 			CallDeclaration callFunc, ProblemReporter processor, int index, ASTNode parmExpression,
-			ScriptCompletionProcessor completions, ProposalsLocation pl) {}
+			ScriptCompletionProcessor completions, ProposalsSite pl) {}
 	}
 
 	private final Map<String, SpecialRule> allRules = new HashMap<String, SpecialEngineRules.SpecialRule>();

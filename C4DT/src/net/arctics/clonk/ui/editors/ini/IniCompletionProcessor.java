@@ -26,7 +26,7 @@ import net.arctics.clonk.ini.IniData.IniDataBase;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
-import net.arctics.clonk.ui.editors.ProposalsLocation;
+import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -89,7 +89,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 		prefix = prefix.toLowerCase();
 
-		pl = new ProposalsLocation(offset, wordOffset, doc, prefix, proposals, editor().structure().index(), null, null);
+		pl = new ProposalsSite(offset, wordOffset, doc, prefix, proposals, editor().structure().index(), null, null);
 
 		editor().ensureIniUnitUpToDate();
 		section = editor().unit().sectionAtOffset(offset);
@@ -140,21 +140,21 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		return proposals.toArray(new ICompletionProposal[proposals.size()]);
 	}
 
-	private void proposalsForCategoriesValue(ProposalsLocation pl, IniEntryDefinition entryDef) {
+	private void proposalsForCategoriesValue(ProposalsSite pl, IniEntryDefinition entryDef) {
 		if (pl.prefix != null)
 			for (final Variable v : editor().unit().engine().variablesWithPrefix(entryDef.constantsPrefix()))
 				if (v.scope() == Scope.CONST)
 					proposalForVar(pl, v);
 	}
 
-	private void proposalsForIndex(ProposalsLocation pl) {
+	private void proposalsForIndex(ProposalsSite pl) {
 		final Index index = ProjectIndex.fromResource(editor().unit().file());
 		if (index != null)
 			for (final Index i : index.relevantIndexes())
 				proposalsForIndexedDefinitions(pl, i);
 	}
 
-	private void proposalsForDefinitionPackEntry(ProposalsLocation pl) {
+	private void proposalsForDefinitionPackEntry(ProposalsSite pl) {
 		final ClonkProjectNature nature = ClonkProjectNature.get(this.editor.structure().resource().getProject());
 		final List<Index> indexes = nature.index().relevantIndexes();
 		for (final Index index : indexes)
@@ -169,7 +169,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				}
 	}
 
-	private void proposalsForIniDataEntries(ProposalsLocation pl, Iterable<? extends IniDataBase> sectionData) {
+	private void proposalsForIniDataEntries(ProposalsSite pl, Iterable<? extends IniDataBase> sectionData) {
 		for (final IniDataBase sec : sectionData)
 			if (sec instanceof IniSectionDefinition && ((IniSectionDefinition) sec).sectionName().toLowerCase().contains(pl.prefix)) {
 				final String secString = "["+((IniSectionDefinition) sec).sectionName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -177,7 +177,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			}
 	}
 
-	private void proposalsForSection(ProposalsLocation pl, IniSectionDefinition sectionData) {
+	private void proposalsForSection(ProposalsSite pl, IniSectionDefinition sectionData) {
 		for (final IniDataBase entry : sectionData.entries().values())
 			if (entry instanceof IniEntryDefinition) {
 				final IniEntryDefinition e = (IniEntryDefinition) entry;
@@ -190,7 +190,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			}
 	}
 
-	private void proposalsForFunctionEntry(ProposalsLocation pl) {
+	private void proposalsForFunctionEntry(ProposalsSite pl) {
 		final Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileEditedBy(editor).getParent());
 		if (obj != null)
 			for (final Script include : obj.conglomerate()) {
@@ -202,7 +202,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			}
 	}
 
-	private void proposalsForBooleanEntry(ProposalsLocation pl) {
+	private void proposalsForBooleanEntry(ProposalsSite pl) {
 		final int[] choices = new int[] {0, 1};
 		for (final int i : choices)
 			pl.addProposal(new CompletionProposal(String.valueOf(i), pl.wordOffset, pl.prefix.length(), String.valueOf(i).length()));

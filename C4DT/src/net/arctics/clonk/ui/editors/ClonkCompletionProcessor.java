@@ -24,7 +24,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 	protected EditorType editor;
 	protected Image defIcon;
-	protected ProposalsLocation pl;
+	protected ProposalsSite pl;
 
 	protected static class CategoryOrdering {
 		public int
@@ -73,7 +73,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return null;
 	}
 
-	protected void proposalForDefinition(ProposalsLocation pl, Definition def) {
+	protected void proposalForDefinition(ProposalsSite pl, Definition def) {
 		try {
 			if (def == null || def.id() == null)
 				return;
@@ -108,7 +108,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return ((IFileEditorInput)editor.getEditorInput()).getFile();
 	}
 
-	protected void proposalsForIndexedDefinitions(ProposalsLocation pl, Index index) {
+	protected void proposalsForIndexedDefinitions(ProposalsSite pl, Index index) {
 		for (final Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
 			proposalForDefinition(pl, obj);
 	}
@@ -117,7 +117,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
 
-	protected ClonkCompletionProposal proposalForFunc(ProposalsLocation pl, Function func, boolean brackets) {
+	protected ClonkCompletionProposal proposalForFunc(ProposalsSite pl, Function func, boolean brackets) {
 		if (func instanceof InitializationFunction)
 			return null;
 		if (pl.prefix != null)
@@ -135,7 +135,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return prop;
 	}
 
-	protected ClonkCompletionProposal proposalForVar(ProposalsLocation pl, Variable var) {
+	protected ClonkCompletionProposal proposalForVar(ProposalsSite pl, Variable var) {
 		if (pl.prefix != null && !stringMatchesPrefix(var.name(), pl.prefix))
 			return null;
 		final String displayString = var.name();
