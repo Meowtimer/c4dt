@@ -23,9 +23,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 	private final Timer reparseTimer = new Timer("Reparse Timer");
 	private TimerTask reparseTask;
 
-	public IniUnitEditingState() {
-		super();
-	}
+	public IniUnitEditingState() { super(); }
 
 	@Override
 	public void documentChanged(DocumentEvent event) {

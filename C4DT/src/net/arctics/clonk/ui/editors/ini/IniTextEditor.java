@@ -32,7 +32,7 @@ public class IniTextEditor extends ClonkTextEditor {
 
 	@Override
 	public void refreshOutline() {
-		textChangeListener.forgetUnitParsed();
+		editingState.forgetUnitParsed();
 		if (outlinePage != null)
 			outlinePage.setInput(unit());
 	}
@@ -45,22 +45,22 @@ public class IniTextEditor extends ClonkTextEditor {
 	public IniUnit unit() {
 		IniUnit unit = null;
 		unit = (IniUnit) Structure.pinned(Utilities.fileEditedBy(this), true, false);
-		if (textChangeListener == null && unit != null && unit.isEditable())
-			textChangeListener = IniUnitEditingState.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
-		else if (textChangeListener != null)
-			textChangeListener.ensureIniUnitUpToDate(this);
+		if (editingState == null && unit != null && unit.isEditable())
+			editingState = IniUnitEditingState.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
+		else if (editingState != null)
+			editingState.ensureIniUnitUpToDate(this);
 		return unit;
 	}
 
 	public void lockUnit() {
-		textChangeListener.unitLocked++;
+		editingState.unitLocked++;
 	}
 
 	public void unlockUnit() {
-		textChangeListener.unitLocked--;
+		editingState.unitLocked--;
 	}
 
-	private IniUnitEditingState textChangeListener;
+	private IniUnitEditingState editingState;
 
 	private void collectAnnotationPositions(IniItem item, List<Position> positions) {
 		if (item.childCollection() != null)
@@ -99,11 +99,11 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	public boolean ensureIniUnitUpToDate() {
-		return textChangeListener.ensureIniUnitUpToDate(this);
+		return editingState.ensureIniUnitUpToDate(this);
 	}
 
 	public void forgetUnitParsed() {
-		textChangeListener.forgetUnitParsed();
+		editingState.forgetUnitParsed();
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class IniTextEditor extends ClonkTextEditor {
 
 	@Override
 	protected StructureEditingState<?, ?> editingState() {
-		return textChangeListener;
+		return editingState;
 	}
 
 	@Override
