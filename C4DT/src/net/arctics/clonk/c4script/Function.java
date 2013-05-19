@@ -79,9 +79,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Hash code of the string the block was parsed from.
 	 */
 	private int blockSourceHash;
-	
+
 	private int totalNumASTNodes;
-	
+
 	public int totalNumASTNodes() { return totalNumASTNodes; }
 
 	/**
@@ -729,7 +729,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		for (final Variable v : locals())
 			v.forceType(PrimitiveType.UNKNOWN);
 	}
-	
+
 	private static final IASTVisitor<Function> AST_ASSIGN_IDENTIFIER_VISITOR = new IASTVisitor<Function>() {
 		@Override
 		public TraversalContinuation visitNode(ASTNode node, Function context) {
@@ -738,15 +738,26 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return TraversalContinuation.Continue;
 		}
 	};
-	
+
 	public void storeBody(ASTNode block, String source) {
 		body = (FunctionBody)block;
 		blockSourceHash = source.hashCode();
 		if (bodyLocation != null)
 			body.setLocation(0, bodyLocation.getLength());
-		totalNumASTNodes = 0;
-		body.traverse(AST_ASSIGN_IDENTIFIER_VISITOR, this);
+		assignLocalIdentifiers();
 		body.setParent(this);
+	}
+
+	private void assignLocalIdentifiers() {
+		totalNumASTNodes = 0;
+		if (body != null)
+			body.traverse(AST_ASSIGN_IDENTIFIER_VISITOR, this);
+	}
+
+	@Override
+	public void postLoad(ASTNode parent) {
+		super.postLoad(parent);
+		assignLocalIdentifiers();
 	}
 
 	/**
