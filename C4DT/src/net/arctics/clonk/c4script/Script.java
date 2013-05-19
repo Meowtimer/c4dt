@@ -88,7 +88,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	protected transient Map<String, ProplistDeclaration> proplistDeclarations;
 
 	/**
-	 * Typing judgements on variables and function return types.
+	 * Typing judgments on variables and function return types.
 	 * @author madeen
 	 *
 	 */
@@ -205,7 +205,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			typings,
 			proplistDeclarations
 		);
-		stream.writeObject(state);
+		try {
+			stream.writeObject(state);
+		} catch (final Exception e) {
+			System.out.println(String.format("Problems saving %s", name()));
+			e.printStackTrace();
+		}
 		populateDictionary();
 	}
 
