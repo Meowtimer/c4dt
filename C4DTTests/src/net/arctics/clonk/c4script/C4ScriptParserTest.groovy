@@ -43,7 +43,6 @@ import net.arctics.clonk.c4script.ast.UnaryOp.Placement
 import org.eclipse.core.resources.IStorage
 import org.junit.Test
 
-
 public class ScriptParserTest extends TestBase {
 
 	static class Setup {

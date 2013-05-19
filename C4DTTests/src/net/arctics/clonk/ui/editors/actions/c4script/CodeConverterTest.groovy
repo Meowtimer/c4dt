@@ -34,12 +34,7 @@ Initialize:
 				}
 			}
 
-			converter.runOnDocument(setup.script, setup.parser, [
-				get: { offset, len ->
-					(offset != null && len != null) ? source.substring(offset, offset+len-1) : source },
-				getChar: { ndx -> source[ndx] as char },
-				getLength: { source.length() }
-			] as IDocument)
+			converter.runOnDocument(setup.script, setup.parser, documentMock(source))
 		} catch (e) {
 			e.printStackTrace()
 		}

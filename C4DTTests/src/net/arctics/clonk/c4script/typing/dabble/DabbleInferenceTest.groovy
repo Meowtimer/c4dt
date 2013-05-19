@@ -41,6 +41,8 @@ public class DabbleInferenceTest extends TestBase {
 	Log(obj->Unknown());
 }""")
 		setup.parser.parse()
+		setup.index.refresh()
+		setup.script.deriveInformation()
 		setup.inference.run()
 		Assert.assertTrue(setup.inferenceMarkers.size() == 0)
 	}
