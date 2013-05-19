@@ -226,8 +226,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			(offset, wordOffset, doc, prefix, proposals, index, activeFunc, scriptForEditor(editor));
 		this.pl = pl;
 		final boolean returnProposals = activeFunc == null
-			? proposalsOutsideOfFunction(viewer, pl)
-			: computeProposalsInFunction(pl);
+			? computeProposalsOutsideFunction(viewer, pl)
+			: computeProposalsInsideFunction(pl);
 		if (!returnProposals)
 			return null;
 
@@ -248,21 +248,29 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			return null;
 	}
 
-	private boolean computeProposalsInFunction(ProposalsLocation pl) {
+	private boolean computeProposalsInsideFunction(ProposalsLocation pl) {
 		if (!checkProposalConditions(pl))
 			return false;
 		final int preservedOffset = pl.offset - (pl.function != null?pl.function.bodyLocation().start():0);
 
 		pl.pos(preservedOffset);
 		ScriptParser parser = null;
-		if (pl.script != null)
-			if (parser == null) {
-				final ScriptEditingState editingState = editor().editingState();
-				parser = editingState.updateFunctionFragment(pl.function, pl, true);
-			}
+		if (pl.script != null) {
+			final ScriptEditingState editingState = editor().editingState();
+			parser = editingState.updateFunctionFragment(pl.function, pl, true);
+		}
 
 		if (!skipProposalsInFunction(pl.contextExpression)) {
-			innerProposalsInFunction(pl, parser);
+			final boolean restrictedProposals = computeStringProposals(pl) || varInitializationProposals(pl);
+			if (!restrictedProposals) {
+				setCategoryOrdering(pl);
+				functionLocalProposals(pl);
+				definitionProposals(pl);
+				engineProposals(pl);
+				structureProposals(pl);
+				ruleBasedProposals(pl, parser);
+				keywordProposals(pl);
+			}
 			return true;
 		} else
 			return false;
@@ -306,8 +314,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	private void innerProposalsInFunction(ProposalsLocation pl, ScriptParser parser) {
-		if (computeStringProposals(pl) || varInitializationProposals(pl))
-			return;
+		//if (computeStringProposals(pl) || varInitializationProposals(pl))
+		//	return;
 		setCategoryOrdering(pl);
 		functionLocalProposals(pl);
 		definitionProposals(pl);
@@ -598,7 +606,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return prop;
 	}
 
-	private boolean proposalsOutsideOfFunction(ITextViewer viewer, ProposalsLocation pl) {
+	private boolean computeProposalsOutsideFunction(ITextViewer viewer, ProposalsLocation pl) {
 		// check whether func keyword precedes location (whole function blocks won't be created then)
 		final boolean funcSupplied = precededBy(viewer, pl.offset, Keywords.Func);
 		final boolean directiveExpectingDefinition =
