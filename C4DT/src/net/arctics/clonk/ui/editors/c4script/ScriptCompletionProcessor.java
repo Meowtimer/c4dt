@@ -162,7 +162,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	 * @param flags Flags indicating what kind of proposals should be included. {@link DeclMask#STATIC_VARIABLES} needs to be or-ed to flags if {@link Definition} and static variable proposals are to be shown.
 	 * @param editorScript Script the proposals are invoked on.
 	 */
-	private void proposalsForIndex(Index index, ProposalsSite pl) {
+	private void proposalsForIndex(ProposalsSite pl, Index index) {
 		final int declarationsMask = pl.declarationsMask();
 		if (pl.function != null) {
 			final Scenario s2 = pl.function.scenario();
@@ -344,7 +344,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private void definitionProposals(ProposalsSite pl) {
 		if ((pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
 			for (final Index i : pl.index.relevantIndexes())
-				proposalsForIndex(i, pl);
+				proposalsForIndex(pl, i);
 	}
 
 	private void structureProposals(ProposalsSite pl) {
@@ -637,7 +637,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private void directiveDefinitionArgumentProposals(ProposalsSite pl) {
 		// propose objects for #include or something
 		for (final Index i : pl.index.relevantIndexes())
-			proposalsForIndex(i, pl);
+			proposalsForIndex(pl, i);
 	}
 
 	private void directiveProposals(ProposalsSite pl) {
@@ -692,7 +692,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private void newFunctionProposal(ProposalsSite pl, final boolean funcSupplied) {
 		// propose to just create function with the name already typed
 		if (pl.untamperedPrefix != null && pl.untamperedPrefix.length() > 0)
-			callbackProposal(pl, pl.untamperedPrefix, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied).setCategory(cats.NewFunction); //$NON-NLS-1$
+			callbackProposal(pl, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied).setCategory(cats.NewFunction); //$NON-NLS-1$
 	}
 
 	private void standardCallbackProposals(ProposalsSite pl, final boolean funcSupplied) {
