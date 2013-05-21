@@ -808,36 +808,36 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (function.body() == null)
 					return null;
 				switch (pass) {
-				case PRELIMINARY: case DELAYEDVISITS: case ADDITIONAL:
-					break;
+				case PRELIMINARY:
+					return null;
 				case MAIN:
 					if (shouldTypeFromCalls(function)) {
 						delayVisit(function, script);
 						return null;
-					} else
-						break;
-				case INACTIVE:
-					return null;
-				}
-				if (DEBUG && pass != Pass.ADDITIONAL)
-					log("Delegate function visit for '%s' from '%s'", //$NON-NLS-1$
-						function.qualifiedName(script),
-						visit != null ? visit.function.qualifiedName(script()) : "<null>"
-					);
-				for (Visitor v = this; v != null; v = v.originator)
-					if (v.visit != null && v.script() == script && v.visit.function() == function)
-						return v.visit;
-				final Visit tv = allowThis
-					? new Visitor(this).visit(function, this)
-					: null;
-				if (tv == null) {
+					}
+					//$FALL-THROUGH$
+				case DELAYEDVISITS: case ADDITIONAL:
+					if (DEBUG && pass != Pass.ADDITIONAL)
+						log("Delegate function visit for '%s' from '%s'", //$NON-NLS-1$
+							function.qualifiedName(script),
+							visit != null ? visit.function.qualifiedName(script()) : "<null>"
+						);
+					for (Visitor v = originator; v != null; v = v.originator)
+						if (v.visit != null && v.script() == script && v.visit.function() == function)
+							return v.visit;
+					if (allowThis) {
+						final Visit tv = new Visitor(this).visit(function, this);
+						if (tv != null)
+							return tv;
+					}
 					final Visitor other = requestVisitor(script, function, this);
 					if (other != null)
 						return other.visit(function, this);
 					else
 						return null;
-				} else
-					return tv;
+				default:
+					return null;
+				}
 			}
 
 			public void concreteArgumentMismatch(ASTNode argument, Variable parameter, Function callee, IType expected, IType got) {
