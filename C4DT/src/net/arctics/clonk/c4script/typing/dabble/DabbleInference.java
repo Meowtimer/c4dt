@@ -1,7 +1,6 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
 import static net.arctics.clonk.Flags.DEBUG;
-import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import static net.arctics.clonk.c4script.typing.TypeUnification.unifyNoChoice;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -18,7 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 
-import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -42,6 +40,7 @@ import net.arctics.clonk.c4script.IProplistDeclaration;
 import net.arctics.clonk.c4script.InitializationFunction;
 import net.arctics.clonk.c4script.InitializationFunction.VarInitializationAccess;
 import net.arctics.clonk.c4script.Keywords;
+import net.arctics.clonk.c4script.Marker;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
@@ -355,7 +354,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			public Visitor(Visitor originator) {
 				this.originator = originator;
-				this.markers = DabbleInference.this.markers();
+				this.markers = new Markers();
 			}
 
 			@SuppressWarnings("unchecked")
@@ -671,23 +670,24 @@ public class DabbleInference extends ProblemReportingStrategy {
 							env.add(visit);
 						}
 						pass = Pass.MAIN;
+						final Marker mainVisitMarkers = markers().last();
 						actualVisit(ownedFunction, statements, callTypes);
 						while (delayedVisits()) {
 							if (DEBUG)
 								log("Additional visit for '%s'", function.qualifiedName());
-							pass = Pass.ADDITIONAL;
-							env.clear();
-							env.add(visit);
-							actualVisit(ownedFunction, statements, callTypes);
+							// discard markers that were added during regular main visit
+							markers().discardFrom(mainVisitMarkers);
+							additionalVisit(ownedFunction, statements, env, callTypes);
 						}
-						typeUntypedCallTargets(function);
+						DabbleInference.this.markers().take(markers);
+						//typeUntypedCallTargets(function);
 					}
 					if (ownedFunction)
 						env.apply(false);
 					endTypeEnvironment(env, true, true);
 					warnAboutUnusedLocals(function, statements);
 				}
-				catch (final ProblemException e) { return; }
+				catch (final ProblemException e) {}
 				finally {
 					pass = Pass.INACTIVE;
 					synchronized (visit) {
@@ -700,27 +700,34 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			}
 
-			private void typeUntypedCallTargets(Function function) {
-				function.body().traverse(new IASTVisitor<Visitor>() {
-					final IType[] types = visit.inferredTypes;
-					@Override
-					public TraversalContinuation visitNode(ASTNode node, Visitor context) {
-						final ASTNode pred = node.predecessorInSequence();
-						if (node instanceof CallDeclaration && pred != null) {
-							final CallDeclaration cd = (CallDeclaration) node;
-							final IType predTy = types[pred.localIdentifier()];
-							if (predTy instanceof CallTargetType) {
-								IType unified = null;
-								for (final Function f : script.index().declarationsWithName(cd.name(), Function.class))
-									unified = unify(unified, f.script());
-								if (unified instanceof Script && ((Script)unified).findFunction(cd.name()) != null)
-									judgement(pred, unified, TypingJudgementMode.UNIFY);
-							}
-						}
-						return TraversalContinuation.Continue;
-					}
-				}, this);
+			private void additionalVisit(final boolean ownedFunction, final ASTNode[] statements, final TypeEnvironment env, final TypeVariable[] callTypes) throws ProblemException {
+				pass = Pass.ADDITIONAL;
+				env.clear();
+				env.add(visit);
+				actualVisit(ownedFunction, statements, callTypes);
 			}
+
+//			private void typeUntypedCallTargets(Function function) {
+//				function.body().traverse(new IASTVisitor<Visitor>() {
+//					final IType[] types = visit.inferredTypes;
+//					@Override
+//					public TraversalContinuation visitNode(ASTNode node, Visitor context) {
+//						final ASTNode pred = node.predecessorInSequence();
+//						if (node instanceof CallDeclaration && pred != null) {
+//							final CallDeclaration cd = (CallDeclaration) node;
+//							final IType predTy = types[pred.localIdentifier()];
+//							if (predTy instanceof CallTargetType) {
+//								IType unified = null;
+//								for (final Function f : script.index().declarationsWithName(cd.name(), Function.class))
+//									unified = unify(unified, f.script());
+//								if (unified instanceof Script && ((Script)unified).findFunction(cd.name()) != null)
+//									judgement(pred, unified, TypingJudgementMode.UNIFY);
+//							}
+//						}
+//						return TraversalContinuation.Continue;
+//					}
+//				}, this);
+//			}
 
 			private void createFunctionLocalsTypeVariables(final Function function) {
 				for (final Variable l : function.locals()) {
@@ -745,12 +752,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private boolean delayedVisits() {
+				if (DEBUG)
+					log("Delayed visits");
 				pass = Pass.DELAYEDVISITS;
 				boolean any = false;
-				for (Visit.Delayed d = visit.delayedVisits; d != null; d = d.next) {
-					delegateFunctionVisit(d.function, d.script, false);
-					any = true;
-				}
+				for (Visit.Delayed d = visit.delayedVisits; d != null; d = d.next)
+					any |= delegateFunctionVisit(d.function, d.script, false) != null;
 				visit.delayedVisits = null;
 				return any;
 			}
@@ -812,7 +819,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				case INACTIVE:
 					return null;
 				}
-				if (DEBUG)
+				if (DEBUG && pass != Pass.ADDITIONAL)
 					log("Delegate function visit for '%s' from '%s'", //$NON-NLS-1$
 						function.qualifiedName(script),
 						visit != null ? visit.function.qualifiedName(script()) : "<null>"
@@ -932,7 +939,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private final class RoamingMarkers extends Markers {
-				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 				public final Markers oldMarkers;
 				public final Script origin;
 				public int depth;
@@ -1027,17 +1033,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public Markers markers() {
 				switch (pass) {
-				case PRELIMINARY:
+				case PRELIMINARY: case INACTIVE:
 					return NULL_MARKERS;
-				case MAIN:
-					final Visit v = visit;
-					if (v != null && v.delayedVisits != null)
-						return NULL_MARKERS;
-					break;
 				default:
-					break;
+					return markers;
 				}
-				return markers;
 			}
 			@Override
 			public void setMarkers(Markers markers) { this.markers = markers;}
@@ -1098,7 +1098,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean shouldTypeFromCalls(final Function function) {
 			final boolean typeFromCalls =
 				typing == Typing.PARAMETERS_OPTIONALLY_TYPED &&
-				script instanceof Definition &&
+				//script instanceof Definition &&
 				function.numParameters() > 0 &&
 				!assignDefaultParmTypesToFunction(function) &&
 				(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
@@ -2267,7 +2267,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					// not a special case... check regular parameter types
 					if (!applyRuleBasedValidation(node, visitor, params))
-						regularValidation(node, visitor, params, f);
+						regularParameterValidation(node, visitor, params, f);
 				}
 				private void maybeUnknownMarker(CallDeclaration node, Visitor visitor, final String declarationName) throws ProblemException {
 					final IType container = unknownFunctionShouldBeError(node, visitor);
@@ -2277,7 +2277,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							node, start, start+declarationName.length(), Markers.NO_THROW, declarationName, container.typeName(true));
 					}
 				}
-				private void regularValidation(CallDeclaration node, Visitor visitor, final ASTNode[] params, final Function f) {
+				private void regularParameterValidation(CallDeclaration node, Visitor visitor, final ASTNode[] params, final Function f) {
 					int givenParam = 0;
 					for (final Variable parm : f.parameters()) {
 						if (givenParam >= params.length)

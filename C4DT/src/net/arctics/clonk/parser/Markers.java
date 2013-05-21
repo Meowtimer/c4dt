@@ -3,10 +3,8 @@ package net.arctics.clonk.parser;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
@@ -29,8 +27,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
-public class Markers extends LinkedList<Marker> {
-	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+public class Markers implements Iterable<Marker> {
 	public static final String MARKER_PROBLEM = "c4dtProblem"; //$NON-NLS-1$
 	public static final String MARKER_EXPECTEDTYPE = "c4dtExpectedType";
 
@@ -44,20 +43,38 @@ public class Markers extends LinkedList<Marker> {
 	private boolean enabled = true;
 	private final Set<Problem> disabledErrors = new HashSet<Problem>();
 	private IMarkerListener listener;
+	private Marker first, last;
+
+	public Marker clear() {
+		synchronized (this) {
+			final Marker r = first;
+			first = last = null;
+			return r;
+		}
+	}
 
 	public void setListener(IMarkerListener markerListener) { this.listener = markerListener; }
 	public IMarkerListener listener() { return listener; }
 
+	public Marker last() { return last; }
+
+	public void discardFrom(Marker start) {
+		if (start == null) {
+			clear();
+			return;
+		}
+		if (start.prev != null)
+			start.prev.next = null;
+		else
+			first = null;
+		last = start.prev;
+	}
+
 	public void deploy() {
 		if (Core.instance().runsHeadless())
 			return;
-		final List<Marker> markersToDeploy;
-		synchronized (this) {
-			markersToDeploy = new ArrayList<Marker>(this);
-			this.clear();
-		}
-		for (final Marker m : markersToDeploy)
-			deploy(m);
+		for (Marker deploy = clear(); deploy != null; deploy = deploy.next)
+			deploy(deploy);
 	}
 
 	public IMarker deploy(Marker marker) {
@@ -85,10 +102,30 @@ public class Markers extends LinkedList<Marker> {
 		return null;
 	}
 
-	@Override
 	public boolean add(Marker e) {
 		synchronized (this) {
-			return super.add(e);
+			if (last == null) {
+				first = last = e;
+				e.prev = e.next = null;
+			}
+			else {
+				e.prev = last;
+				e.next = null;
+				last.next = e;
+				last = e;
+			}
+			return true;
+		}
+	}
+
+	public void take(Markers others) {
+		final Marker f = others.clear();
+		synchronized (this) {
+			for (Marker m = f, n; m != null; m = n) {
+				n = m.next;
+				if (errorEnabled(m.code))
+					this.add(m);
+			}
 		}
 	}
 
@@ -240,5 +277,25 @@ public class Markers extends LinkedList<Marker> {
 	public static PrimitiveType expectedType(IMarker marker) {
 		final String attr = marker.getAttribute(MARKER_EXPECTEDTYPE, null);
 		return attr != null ? PrimitiveType.fromString(attr) : PrimitiveType.ANY;
+	}
+	@Override
+	public Iterator<Marker> iterator() {
+		return new Iterator<Marker>() {
+			private Marker current;
+			@Override
+			public void remove() {
+				throw new NotImplementedException();
+			}
+			@Override
+			public Marker next() { return current; }
+			@Override
+			public boolean hasNext() {
+				if (current == null)
+					current = first;
+				else
+					current = current.next;
+				return current != null;
+			}
+		};
 	}
 }

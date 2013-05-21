@@ -16,6 +16,7 @@ public class Marker {
 	public final ASTNode reporter;
 	public final IFile scriptFile;
 	public final Declaration container;
+	public Marker prev, next;
 	public Marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int start, int end, int severity, Object[] args) {
 		super();
 		this.code = code;
