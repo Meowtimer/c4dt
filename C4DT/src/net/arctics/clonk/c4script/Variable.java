@@ -213,10 +213,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 				return Keywords.GlobalNamed;
 			case LOCAL:
 				return Keywords.LocalNamed;
-			case VAR:
-				return Keywords.VarNamed;
 			default:
-				return null;
+				return Keywords.VarNamed;
 			}
 		}
 
