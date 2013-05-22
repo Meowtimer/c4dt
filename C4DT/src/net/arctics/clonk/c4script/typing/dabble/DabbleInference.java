@@ -435,8 +435,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 				if (bestSeed != null)
 					result = unifyFromSeed(function, par, parTyVar, calls, callTypes, callVisitors, lenient, bestSeed);
-				else if (!lenient)
-					result = warnAtAllCalls(function, par, parTyVar, calls, callTypes, callVisitors);
+				else if (!lenient) {
+					warnAtAllCalls(function, par, parTyVar, calls, callTypes, callVisitors);
+					result = parTyVar.get();
+				}
 				else
 					result = PrimitiveType.ANY;
 
@@ -445,10 +447,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				parTyVar.set(result);
 			}
 
-			private IType warnAtAllCalls(Function function, final Variable par, TypeVariable parTyVar, List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors) {
-				IType result;
+			private void warnAtAllCalls(Function function, final Variable par, TypeVariable parTyVar, List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors) {
 				// no consensus at all - warnings at all call sides
-				result = parTyVar.get();
+				final IType t = parTyVar.get();
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final IType concreteTy = callTypes[ci];
 					if (concreteTy == null)
@@ -456,9 +457,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Visitor visitor = callVisitors[ci];
 					final ASTNode concretePar = calls.get(ci).params()[par.parameterIndex()];
 					if (visitor != null)
-						visitor.concreteArgumentMismatch(concretePar, par, function, result, concreteTy);
+						visitor.concreteArgumentMismatch(concretePar, par, function, t, concreteTy);
 				}
-				return result;
 			}
 
 			private IType unifyFromSeed(
@@ -631,7 +631,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 						_visit.wait(40);
 					} catch (final InterruptedException e) {}
 				if (i == 3 && originator != null && originator.visit != null)
-					log("'%s' gave up waiting for '%s'", originator.visit.function().qualifiedName(originator.script()), function.qualifiedName(script())); //$NON-NLS-1$
+					log("'%s' (%s) gave up waiting for '%s' (%s)", //$NON-NLS-1$
+						originator.visit.function().qualifiedName(originator.script()),
+						originator.thread.toString(),
+						function.qualifiedName(script()),
+						_visit.visitor.thread.toString()
+					);
 			}
 
 			private void startVisit(Visit v) {
@@ -808,15 +813,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (function.body() == null)
 					return null;
 				switch (pass) {
-				case PRELIMINARY:
-					return null;
 				case MAIN:
 					if (shouldTypeFromCalls(function)) {
 						delayVisit(function, script);
 						return null;
 					}
 					//$FALL-THROUGH$
-				case DELAYEDVISITS: case ADDITIONAL:
+				case PRELIMINARY: case DELAYEDVISITS: case ADDITIONAL:
 					if (DEBUG && pass != Pass.ADDITIONAL)
 						log("Delegate function visit for '%s' from '%s'", //$NON-NLS-1$
 							function.qualifiedName(script),
@@ -842,7 +845,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			public void concreteArgumentMismatch(ASTNode argument, Variable parameter, Function callee, IType expected, IType got) {
 				try {
-					this.markers().marker(this,
+					DabbleInference.this.markers().marker(this,
 						Problem.ConcreteArgumentMismatch,
 						argument, argument.start(), argument.end(),
 						Markers.NO_THROW, IMarker.SEVERITY_WARNING,
@@ -2736,7 +2739,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// use two separate type environments for if and else statement, merging
 					// gathered information afterwards
 					final TypeEnvironment ifEnvironment = visitor.newTypeEnvironment();
-					// visit condition with new type environment so judgments arising from will not be unified inside
+					// visit condition with new type environment so judgments arising from condition will not be unified inside
 					// the true case
 					visitor.visit(condition, true);
 					visitor.visit(node.body(), true);
