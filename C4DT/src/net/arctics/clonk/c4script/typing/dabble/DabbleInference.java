@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import static net.arctics.clonk.c4script.typing.TypeUnification.unifyNoChoice;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -443,7 +444,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					result = PrimitiveType.ANY;
 
 				if (lenient)
-					result = TypeUnification.unify(result, PrimitiveType.ANY);
+					result = unify(result, PrimitiveType.ANY);
 				parTyVar.set(result);
 			}
 
@@ -466,12 +467,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors,
 				final boolean lenient, final PrimitiveType seed
 			) {
-				IType result = TypeUnification.unify(parTyVar.get(), seed);
+				IType result = unify(parTyVar.get(), seed);
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final IType concreteTy = callTypes[ci];
 					if (concreteTy == null)
 						continue;
-					final IType unified = TypeUnification.unifyNoChoice(result, concreteTy);
+					final IType unified = unifyNoChoice(result, concreteTy);
 					if (unified == null) {
 						final Visitor visitor = callVisitors[ci];
 						final ASTNode concretePar = calls.get(ci).params()[par.parameterIndex()];
@@ -494,7 +495,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				PrimitiveType bestSeed = null;
 				Seeding: {
 					for (final PrimitiveType seed : callTypingSeeds) {
-						result = TypeUnification.unifyNoChoice(parTyVar.get(), seed);
+						result = unifyNoChoice(parTyVar.get(), seed);
 						if (result == null)
 							continue; // disagreement with usage inside body - ignore
 						int discord = 0;
@@ -502,7 +503,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							final IType concreteTy = types[ci];
 							if (concreteTy == null)
 								continue;
-							final IType unified = TypeUnification.unifyNoChoice(result, concreteTy);
+							final IType unified = unifyNoChoice(result, concreteTy);
 							if (unified == null)
 								discord++;
 							else
@@ -1256,7 +1257,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final IType myType = visitor.ty(node);
 			if (type == null)
 				return myType;
-			return TypeUnification.unifyNoChoice(type, myType);
+			return unifyNoChoice(type, myType);
 		}
 
 		public TypeVariable findTypeVariable(T node, Visitor visitor) {
@@ -1339,7 +1340,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					tyvar.set(type);
 					break;
 				case UNIFY:
-					tyvar.set(TypeUnification.unify(tyvar.get(), type));
+					tyvar.set(unify(tyvar.get(), type));
 					break;
 				}
 				return true;
@@ -1514,7 +1515,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (nput != null)
 									nput.new Visitor(visitor).run();
 								final IType frt = ((Script)_t).typings().variableTypes.get(d.name());
-								t = TypeUnification.unify(t, frt);
+								t = unify(t, frt);
 							}
 				}
 				return t != PrimitiveType.UNKNOWN ? t : ((Variable)d).type();
@@ -1761,7 +1762,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					IType elmType = PrimitiveType.UNKNOWN;
 					for (final ASTNode e : node.subElements())
 						if (e != null)
-							elmType = TypeUnification.unify(elmType, visitor.ty(e));
+							elmType = unify(elmType, visitor.ty(e));
 					return new ArrayType(elmType);
 				}
 				@Override
@@ -1814,13 +1815,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final IType argType = visitor.ty(arg);
 						final ASTNode pred = node.predecessorInSequence();
 						if (eq(argType, PrimitiveType.STRING)) {
-							if (TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
+							if (unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
 								visitor.markers().warning(visitor, Problem.NotAProplist, node, pred, 0);
 							else
 								visitor.judgement(pred, PrimitiveType.PROPLIST, TypingJudgementMode.UNIFY);
 						}
 						else if (eq(argType, PrimitiveType.INT))
-							if (TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null)
+							if (unifyNoChoice(PrimitiveType.ARRAY, type) == null)
 								visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, pred, 0);
 							//else
 							//	expert(pred).typingJudgement(pred, PrimitiveType.ARRAY, info, TypingJudgementMode.Unify);
@@ -1833,8 +1834,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
 				private void warnIfNotArray(ASTNode node, Visitor visitor, IType type) {
 					if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
-						TypeUnification.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
-						TypeUnification.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
+						unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
+						unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
 						visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, node, 0);
 				}
 				@Override
@@ -1867,7 +1868,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (leftSideType == rightSideType)
 							return leftSideType;
 						else
-							return TypeUnification.unify(leftSideType, rightSideType);
+							return unify(leftSideType, rightSideType);
 					case Assign:
 						return visitor.ty(node.rightSide());
 					default:
@@ -2181,7 +2182,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									final Script _s = (Script)_t;
 									final Visitor other = requestVisitor(_s, fn, visitor);
 									final TypeVariable rtv = other != null ? other.visit(_s.override(fn)) : null;
-									t = TypeUnification.unify(t, rtv != null ? rtv.get() : fn.returnType(_s));
+									t = unify(t, rtv != null ? rtv.get() : fn.returnType(_s));
 								}
 					} else {
 						final Visit v = visitor.delegateFunctionVisit(fn, visitor.script(), true);
