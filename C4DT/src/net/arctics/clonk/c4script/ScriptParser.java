@@ -484,7 +484,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			final String word = readIdent();
 			final Scope scope = word != null ? Scope.makeScope(word) : null;
 			if (scope != null) {
-				final List<VarInitialization> vars = parseVariableDeclaration(false, true, scope, collectPrecedingComment(startOfDeclaration));
+				final List<VarInitialization> vars = parseVariableDeclaration(true, scope, collectPrecedingComment(startOfDeclaration));
 				if (vars != null) {
 					for (final VarInitialization vi : vars)
 						if (vi.expression != null)
@@ -635,16 +635,51 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		}
 	}
 
-	private List<VarInitialization> parseVariableDeclaration(boolean reportErrors, boolean checkForFinalSemicolon, Scope scope, Comment comment) throws ProblemException {
+	private List<VarInitialization> parseVariableDeclaration(boolean checkForFinalSemicolon, Scope scope, Comment comment) throws ProblemException {
 		if (scope == null)
 			return null;
 
 		final int backtrack = this.offset;
-
-		List<VarInitialization> createdVariables = null;
-		final Function currentFunc = currentFunction;
-
+		final List<VarInitialization> createdVariables = new LinkedList<VarInitialization>();
 		eatWhitespace();
+		scope = adjustScope(scope, backtrack);
+		int rewind;
+
+		rewind = this.offset;
+		do {
+			final VarInitialization vi = parseVarInitialization(scope, comment, backtrack);
+			if (vi == null)
+				break;
+			createdVariables.add(vi);
+			rewind = this.offset;
+			eatWhitespace();
+		} while(read() == ',');
+		seek(rewind);
+
+		if (checkForFinalSemicolon) {
+			rewind = this.offset;
+			eatWhitespace();
+			if (read() != ';') {
+				seek(rewind);
+				error(Problem.CommaOrSemicolonExpected, this.offset-1, this.offset, Markers.NO_THROW);
+			}
+		}
+
+		// look for comment following directly and decorate the newly created variables with it
+		assignInlineComment(createdVariables);
+		return createdVariables != null && createdVariables.size() > 0 ? createdVariables : null;
+	}
+
+	private void assignInlineComment(final List<VarInitialization> createdVariables) {
+		String inlineComment = textOfInlineComment();
+		if (inlineComment != null) {
+			inlineComment = inlineComment.trim();
+			for (final VarInitialization v : createdVariables)
+				v.variable.setUserDescription(inlineComment);
+		}
+	}
+
+	private Scope adjustScope(Scope scope, final int backtrack) throws ProblemException {
 		switch (scope) {
 		case STATIC:
 			final int pos = this.offset;
@@ -654,7 +689,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				this.seek(pos);
 			break;
 		case VAR:
-			if (currentFunc == null) {
+			if (currentFunction == null) {
 				error(Problem.VarOutsideFunction, backtrack-scope.toKeyword().length(), backtrack, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
 				scope = Scope.LOCAL;
 			}
@@ -662,112 +697,93 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		default:
 			break;
 		}
+		return scope;
+	}
 
-		{
-			int rewind = this.offset;
-			do {
+	private VarInitialization parseVarInitialization(Scope scope, Comment comment, final int backtrack) throws ProblemException {
+		eatWhitespace();
+		parsedTypeAnnotation = null;
+		IType staticType;
+		TypeAnnotation typeAnnotation;
+		final int bt = this.offset;
+		int typeExpectedAt = -1;
+		// when parsing an engine script from (res/engines/...), allow specifying the type directly
+		if (script == engine || typing.allowsNonParameterAnnotations()) {
+			staticType = parseTypeAnnotation(true, false);
+			if (staticType != null) {
+				typeAnnotation = parsedTypeAnnotation;
 				eatWhitespace();
-				parsedTypeAnnotation = null;
-				IType staticType;
-				TypeAnnotation typeAnnotation;
-				final int bt = this.offset;
-				int typeExpectedAt = -1;
-				// when parsing an engine script from (res/engines/...), allow specifying the type directly
-				if (script == engine || typing.allowsNonParameterAnnotations()) {
-					staticType = parseTypeAnnotation(true, false);
-					if (staticType != null) {
-						typeAnnotation = parsedTypeAnnotation;
-						eatWhitespace();
-					}
-					else if (typing == Typing.STATIC) {
-						typeAnnotation = null;
-						typeExpectedAt = this.offset;
-						staticType = PrimitiveType.ERRONEOUS;
-					} else
-						typeAnnotation = null;
-				}
-				else {
-					typeAnnotation = placeholderTypeAnnotationIfMigrating(this.offset);
-					staticType = null;
-				}
-
-				int s = this.offset;
-				String varName = readIdent();
-				if (s > bt && (
-					varName.length() == 0 ||
-					// ugh - for (var object in ...) workaround
-					(migrationTyping == Typing.STATIC && varName.equals(Keywords.In))
-					)) {
-					seek(s = bt);
-					typeAnnotation = null;
-					staticType = null;
-					varName = readIdent();
-				}
-				if (varName.length() == 0) {
-					seek(backtrack);
-					return null;
-				} else if (typeExpectedAt != -1)
-					typeRequiredAt(typeExpectedAt);
-
-				final Declaration outerDec = currentDeclaration();
-				try {
-					final Variable var = script.createVarInScope(this, currentFunction, varName, scope,
-						fragmentOffset()+bt, fragmentOffset()+this.offset, comment);
-					if (typeAnnotation != null)
-						typeAnnotation.setTarget(var);
-					if (staticType != null)
-						var.assignType(staticType, true);
-					if (parsedTypeAnnotation != null)
-						parsedTypeAnnotation.setTarget(var);
-					setCurrentDeclaration(var);
-					VarInitialization varInitialization;
-					ASTNode initializationExpression = null;
-					{
-						eatWhitespace();
-						if (peek() == '=') {
-							if (scope != Variable.Scope.CONST && currentFunc == null && !engine.settings().supportsNonConstGlobalVarAssignment)
-								error(Problem.NonConstGlobalVarAssignment, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
-							read();
-							eatWhitespace();
-							initializationExpression = parseExpression(reportErrors);
-							var.setInitializationExpression(initializationExpression);
-						} else if (scope == Scope.CONST && script != engine)
-							error(Problem.ConstantValueExpected, this.offset-1, this.offset, Markers.NO_THROW);
-						else if (scope == Scope.STATIC && script == engine)
-							var.forceType(PrimitiveType.INT); // most likely
-					}
-					varInitialization = new VarInitialization(varName, initializationExpression, bt-sectionOffset(), this.offset-sectionOffset(), var);
-					varInitialization.type = staticType;
-					if (createdVariables == null)
-						createdVariables = new LinkedList<VarInitialization>();
-					createdVariables.add(varInitialization);
-					rewind = this.offset;
-					eatWhitespace();
-				} finally {
-					setCurrentDeclaration(outerDec);
-				}
-			} while(read() == ',');
-			seek(rewind);
-		}
-
-		if (checkForFinalSemicolon) {
-			final int rewind = this.offset;
-			eatWhitespace();
-			if (read() != ';') {
-				seek(rewind);
-				error(Problem.CommaOrSemicolonExpected, this.offset-1, this.offset, Markers.NO_THROW);
 			}
+			else if (typing == Typing.STATIC) {
+				typeAnnotation = null;
+				typeExpectedAt = this.offset;
+				staticType = PrimitiveType.ERRONEOUS;
+			} else
+				typeAnnotation = null;
+		}
+		else {
+			typeAnnotation = placeholderTypeAnnotationIfMigrating(this.offset);
+			staticType = null;
 		}
 
-		// look for comment following directly and decorate the newly created variables with it
-		String inlineComment = textOfInlineComment();
-		if (inlineComment != null) {
-			inlineComment = inlineComment.trim();
-			for (final VarInitialization v : createdVariables)
-				v.variable.setUserDescription(inlineComment);
-		}
+		final int s = this.offset;
+		String varName = readIdent();
+		if (s > bt)
+			if (varName.length() == 0) {
+				typeAnnotation = null;
+				if (typing == Typing.STATIC) {
+					staticType = PrimitiveType.ERRONEOUS;
+					error(Problem.TypeExpected, bt, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
+				}
+				staticType = typing == Typing.STATIC ? PrimitiveType.ERRONEOUS : null;
+				seek(bt);
+				varName = readIdent();
+			} else if (migrationTyping == Typing.STATIC && varName.equals(Keywords.In)) {
+				// ugh - for (var object in ...) workaround
+				typeAnnotation = null;
+				staticType = null;
+				seek(bt);
+				varName = readIdent();
+			}
+		if (varName.length() == 0) {
+			seek(backtrack);
+			return null;
+		} else if (typeExpectedAt != -1)
+			typeRequiredAt(typeExpectedAt);
 
-		return createdVariables != null && createdVariables.size() > 0 ? createdVariables : null;
+		final Declaration outerDec = currentDeclaration();
+		try {
+			final Variable var = script.createVarInScope(this, currentFunction, varName, scope,
+				fragmentOffset()+bt, fragmentOffset()+this.offset, comment);
+			if (typeAnnotation != null)
+				typeAnnotation.setTarget(var);
+			if (staticType != null)
+				var.assignType(staticType, true);
+			if (parsedTypeAnnotation != null)
+				parsedTypeAnnotation.setTarget(var);
+			setCurrentDeclaration(var);
+			VarInitialization varInitialization;
+			ASTNode initializationExpression = null;
+			{
+				eatWhitespace();
+				if (peek() == '=') {
+					if (scope != Variable.Scope.CONST && currentFunction == null && !engine.settings().supportsNonConstGlobalVarAssignment)
+						error(Problem.NonConstGlobalVarAssignment, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
+					read();
+					eatWhitespace();
+					initializationExpression = parseExpression();
+					var.setInitializationExpression(initializationExpression);
+				} else if (scope == Scope.CONST && script != engine)
+					error(Problem.ConstantValueExpected, this.offset-1, this.offset, Markers.NO_THROW);
+				else if (scope == Scope.STATIC && script == engine)
+					var.forceType(PrimitiveType.INT); // most likely
+			}
+			varInitialization = new VarInitialization(varName, initializationExpression, bt-sectionOffset(), this.offset-sectionOffset(), var);
+			varInitialization.type = staticType;
+			return varInitialization;
+		} finally {
+			setCurrentDeclaration(outerDec);
+		}
 	}
 
 	private TypeAnnotation placeholderTypeAnnotationIfMigrating(int offset) {
@@ -1257,7 +1273,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private transient ASTNode[] _elementsReusable = new ASTNode[4];
 	private transient boolean _elementsInUse = false;
 
-	private ASTNode parseSequence(boolean reportErrors) throws ProblemException {
+	private ASTNode parseSequence() throws ProblemException {
 		ASTNode[] _elements;
 		final boolean useReusable = !_elementsInUse;
 		if (useReusable) {
@@ -1272,7 +1288,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		final Operator preop = parseOperator();
 		ASTNode result = null;
 		if (preop != null && preop.isPrefix()) {
-			ASTNode followingExpr = parseSequence(reportErrors);
+			ASTNode followingExpr = parseSequence();
 			if (followingExpr == null) {
 				error(Problem.ExpressionExpected, this.offset, this.offset+1, Markers.NO_THROW);
 				followingExpr = placeholderExpression(offset);
@@ -1330,13 +1346,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					// tricky new keyword parsing that also respects use of new as regular identifier
 					if (!noNewProplist && word.equals(Keywords.New)) {
 						// don't report errors here since there is the possibility that 'new' will be interpreted as variable name in which case this expression will be parsed again
-						final ASTNode prototype = parseExpression(OPENING_BLOCK_BRACKET_DELIMITER, false);
+						final ASTNode prototype = parseExpression(OPENING_BLOCK_BRACKET_DELIMITER);
 						boolean treatNewAsVarName = false;
 						if (prototype == null)
 							treatNewAsVarName = true;
 						else {
 							eatWhitespace();
-							final ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
+							final ProplistDeclaration proplDec = parsePropListDeclaration();
 							if (proplDec != null)
 								elm = new NewProplist(proplDec, prototype);
 							else
@@ -1357,7 +1373,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							final int s = this.offset;
 							// function call
 							final List<ASTNode> args = new LinkedList<ASTNode>();
-							parseRestOfTuple(args, reportErrors);
+							parseRestOfTuple(args);
 							CallDeclaration callFunc;
 							final ASTNode[] a = args.toArray(new ASTNode[args.size()]);
 							if (word.equals(Keywords.Inherited))
@@ -1391,10 +1407,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 			// array
 			if (elm == null)
-				elm = parseArrayExpression(reportErrors, prevElm);
+				elm = parseArrayExpression(prevElm);
 
 			if (elm == null)
-				elm = parsePropListExpression(reportErrors, prevElm);
+				elm = parsePropListExpression(prevElm);
 
 			// ->
 			if (elm == null) {
@@ -1423,10 +1439,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					if (prevElm != null) {
 						// CallExpr
 						final List<ASTNode> tupleElms = new LinkedList<ASTNode>();
-						parseRestOfTuple(tupleElms, reportErrors);
+						parseRestOfTuple(tupleElms);
 						elm = new CallExpr(tupleElms.toArray(new ASTNode[tupleElms.size()]));
 					} else {
-						ASTNode firstExpr = parseExpression(reportErrors);
+						ASTNode firstExpr = parseExpression();
 						if (firstExpr == null)
 							firstExpr = whitespace(this.offset, 0);
 							// might be disabled
@@ -1438,7 +1454,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							// tuple (just for multiple parameters for return)
 							final List<ASTNode> tupleElms = new LinkedList<ASTNode>();
 							tupleElms.add(firstExpr);
-							parseRestOfTuple(tupleElms, reportErrors);
+							parseRestOfTuple(tupleElms);
 							elm = new Tuple(tupleElms.toArray(new ASTNode[0]));
 						} else
 							tokenExpectedError(")"); //$NON-NLS-1$
@@ -1511,16 +1527,16 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return new Placeholder(placeholder);
 	}
 
-	private ASTNode parsePropListExpression(boolean reportErrors, ASTNode prevElm) throws ProblemException {
-		final ProplistDeclaration proplDec = parsePropListDeclaration(reportErrors);
+	private ASTNode parsePropListExpression(ASTNode prevElm) throws ProblemException {
+		final ProplistDeclaration proplDec = parsePropListDeclaration();
 		if (proplDec != null) {
 			final ASTNode elm = new PropListExpression(proplDec);
 			return elm;
 		}
 		return null;
 	}
-	
-	protected ProplistDeclaration parsePropListDeclaration(boolean reportErrors) throws ProblemException {
+
+	protected ProplistDeclaration parsePropListDeclaration() throws ProblemException {
 		final int propListStart = offset;
 		int c = read();
 		if (c == '{') {
@@ -1561,7 +1577,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							ASTNode value = null;
 							try {
 								v.setParent(outerDec);
-								value = parseExpression(COMMA_OR_CLOSE_BLOCK, reportErrors);
+								value = parseExpression(COMMA_OR_CLOSE_BLOCK);
 								if (value == null) {
 									error(Problem.ValueExpected, offset-1, offset, Markers.NO_THROW);
 									value = placeholderExpression(offset);
@@ -1601,18 +1617,18 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 	}
 
-	private ASTNode parseArrayExpression(boolean reportErrors, ASTNode prevElm) throws ProblemException {
+	private ASTNode parseArrayExpression(ASTNode prevElm) throws ProblemException {
 		ASTNode elm = null;
 		int c = read();
 		if (c == '[') {
 			if (prevElm != null) {
 				// array access
-				final ASTNode arg = parseExpression(reportErrors);
+				final ASTNode arg = parseExpression();
 				eatWhitespace();
 				int t;
 				switch (t = read()) {
 				case ':':
-					final ASTNode arg2 = parseExpression(reportErrors);
+					final ASTNode arg2 = parseExpression();
 					eatWhitespace();
 					expect(']');
 					elm = new ArraySliceExpression(arg, arg2);
@@ -1646,7 +1662,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						break Loop;
 					default:
 						unread();
-						final ASTNode arrayElement = parseExpression(COMMA_OR_CLOSE_BRACKET, reportErrors);
+						final ASTNode arrayElement = parseExpression(COMMA_OR_CLOSE_BRACKET);
 						if (arrayElement != null) {
 							if (expectingComma) {
 								final ASTNode last = arrayElms.get(arrayElms.size()-1);
@@ -1672,7 +1688,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return elm;
 	}
 
-	private void parseRestOfTuple(List<ASTNode> listToAddElementsTo, boolean reportErrors) throws ProblemException {
+	private void parseRestOfTuple(List<ASTNode> listToAddElementsTo) throws ProblemException {
 		boolean expectingComma = false;
 		int lastStart = this.offset;
 		Loop: while (!reachedEOF()) {
@@ -1694,7 +1710,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				if (listToAddElementsTo.size() > 100)
 					error(Problem.InternalError, this.offset, this.offset, 0, Messages.InternalError_WayTooMuch);
 				//	break;
-				ASTNode arg = parseTupleElement(reportErrors);
+				ASTNode arg = parseTupleElement();
 				if (arg == null) {
 					error(Problem.ExpressionExpected, this.offset, this.offset+1, Markers.NO_THROW);
 					break Loop;
@@ -1711,11 +1727,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		}
 	}
 
-	protected ASTNode parseTupleElement(boolean reportErrors) throws ProblemException {
-		return parseExpression(reportErrors);
+	protected ASTNode parseTupleElement() throws ProblemException {
+		return parseExpression();
 	}
 
-	protected ASTNode parseExpression(char[] delimiters, boolean reportErrors) throws ProblemException {
+	protected ASTNode parseExpression(char[] delimiters) throws ProblemException {
 
 		final int offset = this.offset;
 
@@ -1739,7 +1755,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			for (int state = START; state != DONE;)
 				switch (state) {
 				case START:
-					root = parseSequence(reportErrors);
+					root = parseSequence();
 					if (root != null) {
 						current = root;
 						state = OPERATOR;
@@ -1790,7 +1806,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					}
 					break;
 				case SECONDOPERAND:
-					ASTNode rightSide = parseSequence(reportErrors);
+					ASTNode rightSide = parseSequence();
 					if (rightSide == null) {
 						error(Problem.OperatorNeedsRightSide, offset, offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
 						rightSide = placeholderExpression(offset);
@@ -1829,12 +1845,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			return new Region(offset+region.getOffset(), region.getLength());
 	}
 
-	protected ASTNode parseExpression(boolean reportErrors) throws ProblemException {
-		return parseExpression(SEMICOLON_DELIMITER, reportErrors);
-	}
-
 	protected ASTNode parseExpression() throws ProblemException {
-		return parseExpression(true);
+		return parseExpression(SEMICOLON_DELIMITER);
 	}
 
 	/**
@@ -2004,7 +2016,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				}
 			}
 			else if ((scope = Scope.makeScope(readWord)) != null) {
-				final List<VarInitialization> initializations = parseVariableDeclaration(true, false, scope, null);
+				final List<VarInitialization> initializations = parseVariableDeclaration(false, scope, null);
 				if (initializations != null) {
 					result = new VarDeclarationStatement(initializations, initializations.get(0).variable.scope());
 					if (!options.contains(ParseStatementOption.InitializationStatement)) {

@@ -38,7 +38,7 @@ public class ScriptsHelper {
 			@Override
 			public int sectionOffset() { return 0; }
 			@Override
-			protected ASTNode parseTupleElement(boolean reportErrors) throws ProblemException {
+			protected ASTNode parseTupleElement() throws ProblemException {
 				final Statement s = parseStatement();
 				if (s instanceof SimpleStatement)
 					return ((SimpleStatement)s).expression();
