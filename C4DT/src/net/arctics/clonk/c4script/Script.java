@@ -511,10 +511,24 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public List<Declaration> subDeclarations(Index contextIndex, int mask) {
 		requireLoaded();
 		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
+		List<Variable> vars = null;
+		if ((mask & DeclMask.VARIABLES|DeclMask.STATIC_VARIABLES) != 0)
+			if (variables != null)
+				synchronized (variables) {
+					vars = new ArrayList<>(variables);
+				}
 		if ((mask & DeclMask.DIRECTIVES) != 0)
 			addAllSynchronized(directives, decs, null);
-		if ((mask & DeclMask.VARIABLES) != 0)
-			addAllSynchronized(variables, decs, null);
+		if (vars != null) {
+			if ((mask & DeclMask.VARIABLES) != 0)
+				for (final Variable v : vars)
+					if (!v.isGlobal())
+						decs.add(v);
+			if ((mask & DeclMask.STATIC_VARIABLES) != 0)
+				for (final Variable v : vars)
+					if (v.isGlobal())
+						decs.add(v);
+		}
 		if ((mask & DeclMask.FUNCTIONS) != 0)
 			addAllSynchronized(functions, decs, null);
 		if ((mask & DeclMask.EFFECTS) != 0 && effects != null)
