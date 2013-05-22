@@ -422,10 +422,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			switch (typing) {
 			case STATIC:
 				if (eq(vi.type, PrimitiveType.ERRONEOUS)) {
-					proposalsForIndexedDefinitions(pl, pl.index);
+					for (final Index ndx : pl.index.relevantIndexes())
+						proposalsForIndexedDefinitions(pl, ndx);
 					final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 					for (final PrimitiveType t : PrimitiveType.values())
-						if (t != PrimitiveType.UNKNOWN && pl.index.engine().supportsPrimitiveType(t)) {
+						if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ERRONEOUS && pl.index.engine().supportsPrimitiveType(t)) {
 							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
 								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 							prop.setCategory(cats.Keywords);
