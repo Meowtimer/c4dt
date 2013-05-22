@@ -835,21 +835,21 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				addGlobalsFromScript((Script)entity, appendages);
 		}
 	}
-	
+
 	private transient EntityLoader entityLoader;
-	
+
 	{ shallowAwake(); }
-	
+
 	protected void shallowAwake() {
 		entityLoader = new EntityLoader();
 	}
-	
+
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
 		if (DEBUG)
 			System.out.println("Load entity " + entity.toString());
 		entityLoader.loadEntity(entity);
 	}
-	
+
 	public void saveEntity(IndexEntity entity) throws IOException {
 		final ObjectOutputStream s = newEntityOutputStream(entity);
 		try {
@@ -945,6 +945,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				};
 				objStream.writeObject(index());
 				objStream.close();
+			} catch (final Exception e) {
+				System.out.println(String.format("Error saving index for '%s'", this.nature().getProject().getName()));
+				e.printStackTrace();
 			} finally {
 				out.close();
 			}
@@ -1055,7 +1058,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		});
 		return result.size() > 0 ? result : null;
 	}
-	
+
 	@Override
 	public ASTNode[] subElements() {
 		final List<ASTNode> nodes = new ArrayList<>(100);
