@@ -32,7 +32,7 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			IASTVisitor<ProblemReporter> observer;
 			final Markers markers = new Markers();
 			@Override
-			public boolean judgement(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
+			public boolean judgment(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
 			@Override
 			public <T extends IType> T typeOf(ASTNode node, Class<T> cls) { return as((IType)PrimitiveType.ANY, cls); }
 			@Override

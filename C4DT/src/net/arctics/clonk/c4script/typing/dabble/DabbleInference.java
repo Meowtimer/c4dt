@@ -377,12 +377,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			@Override
-			public final boolean judgement(ASTNode node, IType type, TypingJudgementMode mode) {
-				return expert(node).judgement(node, type, null, this, mode);
+			public final boolean judgment(ASTNode node, IType type, TypingJudgementMode mode) {
+				return expert(node).judgment(node, type, null, this, mode);
 			}
 
-			public final boolean judgement(ASTNode node, IType type, ASTNode origin, TypingJudgementMode mode) {
-				return expert(node).judgement(node, type, origin, this, mode);
+			public final boolean judgment(ASTNode node, IType type, ASTNode origin, TypingJudgementMode mode) {
+				return expert(node).judgment(node, type, origin, this, mode);
 			}
 
 			@Override
@@ -431,7 +431,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			private void typeParameterFromCalls(Function function, Variable par, TypeVariable parTyVar, List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors) {
 				IType result;
-				final boolean lenient = parTyVar.get() == PrimitiveType.UNKNOWN;
+				final boolean lenient = parTyVar.get() == PrimitiveType.ANY;
 				final PrimitiveType bestSeed = findBestTypingSeed(parTyVar, calls, callTypes);
 
 				if (bestSeed != null)
@@ -740,7 +740,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final AccessVar av = AccessVar.temp(l, function.body());
 					final TypeVariable ti = expert(av).requestTypeVariable(av, this);
 					if (ti != null)
-						ti.set(PrimitiveType.UNKNOWN);
+						ti.set(PrimitiveType.ANY);
 				}
 			}
 
@@ -750,7 +750,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				for (int i = 0; i < callTypes.length; i++) {
 					final Variable p = function.parameter(i);
 					final TypeVariable tyvar = new VariableTypeVariable(p);
-					tyvar.set(p.staticallyTyped() ? p.type() : PrimitiveType.UNKNOWN);
+					tyvar.set(p.staticallyTyped() ? p.type() : PrimitiveType.ANY);
 					typeEnvironment.add(tyvar);
 					callTypes[i] = tyvar;
 				}
@@ -1102,7 +1102,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean shouldTypeFromCalls(final Function function) {
 			final boolean typeFromCalls =
 				typing == Typing.PARAMETERS_OPTIONALLY_TYPED &&
-				//script instanceof Definition &&
+				script instanceof Definition &&
 				function.numParameters() > 0 &&
 				!assignDefaultParmTypesToFunction(function) &&
 				(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
@@ -1332,7 +1332,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return newtyvar;
 		}
 
-		public boolean judgement(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
+		public boolean judgment(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
 			final TypeVariable tyvar = requestTypeVariable(node, visitor);
 			if (tyvar != null) {
 				switch (mode) {
@@ -1357,7 +1357,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					visitor.incompatibleTypesMarker(rightSide, rightSide, leftTy, rightTy);
 				break;
 			case PARAMETERS_OPTIONALLY_TYPED:
-				visitor.judgement(leftSide, visitor.ty(rightSide), rightSide, TypingJudgementMode.OVERWRITE);
+				visitor.judgment(leftSide, visitor.ty(rightSide), rightSide, TypingJudgementMode.OVERWRITE);
 				break;
 			case DYNAMIC:
 				break;
@@ -1577,7 +1577,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			@Override
-			public boolean judgement(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
+			public boolean judgment(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
 				final Declaration declaration = internalObtainDeclaration(node, visitor);
 				if (declaration == Variable.THIS)
 					return true;
@@ -1606,7 +1606,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							typeAsProplist(node, type, origin, visitor);
 					}
 				}
-				return super.judgement(node, type, origin, visitor, mode);
+				return super.judgment(node, type, origin, visitor, mode);
 			}
 
 			private void addFieldToScript(T node, IType type, ASTNode origin, Visitor visitor) {
@@ -1630,7 +1630,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				var.setLocation(node.absolute());
 				node.setDeclaration(var);
 				initializeFromAssignment(node, type, origin, visitor, var);
-				visitor.judgement(node.predecessorInSequence(), proplDecl, TypingJudgementMode.UNIFY);
+				visitor.judgment(node.predecessorInSequence(), proplDecl, TypingJudgementMode.UNIFY);
 				visitor.script().addDeclaration(proplDecl);
 			}
 
@@ -1690,7 +1690,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		class LiteralExpert<T extends Literal<?>> extends Expert<T> {
 			public LiteralExpert(Class<T> cls) { super(cls); }
 			@Override
-			public boolean judgement(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
+			public boolean judgment(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
 				// constantly steadfast do i resist the pressure of expectancy lied upon me
 				return true;
 			}
@@ -1743,10 +1743,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new AccessVarExpert<InitializationFunction.VarInitializationAccess>(InitializationFunction.VarInitializationAccess.class) {
 				@Override
-				public boolean judgement(VarInitializationAccess leftSide, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
-					super.judgement(leftSide, type, origin, visitor, mode);
+				public boolean judgment(VarInitializationAccess node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
+					super.judgment(node, type, origin, visitor, mode);
 					if (origin != null)
-						if (leftSide.declaration() instanceof Variable && ((Variable)leftSide.declaration()).scope() == Scope.CONST && !origin.isConstant())
+						if (node.declaration() instanceof Variable && ((Variable)node.declaration()).scope() == Scope.CONST && !origin.isConstant())
 							try {
 								visitor.markers().error(visitor, Problem.NonConstGlobalVarAssignment, origin, origin, Markers.NO_THROW);
 							} catch (final ProblemException e) { }
@@ -1788,7 +1788,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return PrimitiveType.ANY;
 				}
 				@Override
-				public boolean judgement(ArrayElementExpression leftSide, IType rightSideType, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
+				public boolean judgment(ArrayElementExpression leftSide, IType rightSideType, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
 					final IType predType_ = predecessorType(leftSide, visitor);
 					final ASTNode pred = leftSide.predecessorInSequence();
 					if (predType_ == null)
@@ -1797,8 +1797,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final IType elmTy = visitor.ty(leftSide.argument());
 						for (final IType e : elmTy)
 							if (eq(e, PrimitiveType.STRING))
-								return visitor.judgement(pred, PrimitiveType.PROPLIST, mode);
-						return visitor.judgement(pred, new ArrayType(rightSideType), TypingJudgementMode.UNIFY);
+								return visitor.judgment(pred, PrimitiveType.PROPLIST, mode);
+						return visitor.judgment(pred, new ArrayType(rightSideType), TypingJudgementMode.UNIFY);
 					}
 					return true;
 				}
@@ -1818,7 +1818,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
 								visitor.markers().warning(visitor, Problem.NotAProplist, node, pred, 0);
 							else
-								visitor.judgement(pred, PrimitiveType.PROPLIST, TypingJudgementMode.UNIFY);
+								visitor.judgment(pred, PrimitiveType.PROPLIST, TypingJudgementMode.UNIFY);
 						}
 						else if (eq(argType, PrimitiveType.INT))
 							if (unifyNoChoice(PrimitiveType.ARRAY, type) == null)
@@ -1911,9 +1911,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 
 					if (expectedLeft != null)
-						visitor.judgement(left, expectedLeft, TypingJudgementMode.UNIFY);
+						visitor.judgment(left, expectedLeft, TypingJudgementMode.UNIFY);
 					if (expectedRight != null)
-						visitor.judgement(right, expectedRight, TypingJudgementMode.UNIFY);
+						visitor.judgment(right, expectedRight, TypingJudgementMode.UNIFY);
 				}
 				private void detectProblems(BinaryOp node, Visitor visitor, final Operator op, final ASTNode left, final ASTNode right) throws ProblemException {
 					// i'm an assignment operator and i can't modify my left side :C
@@ -1938,7 +1938,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					) {
 						final IType type = PrimitiveType.fromString(((AccessVar)right).name().substring(4).toLowerCase());
 						if (type != null) {
-							visitor.judgement(
+							visitor.judgment(
 								((CallDeclaration)left).params()[0],
 								type,
 								TypingJudgementMode.OVERWRITE
@@ -1981,7 +1981,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (rarg.unifyDeclaredAndGiven(arg, firstArgType, visitor) == null)
 						visitor.incompatibleTypesMarker(node, arg, firstArgType, visitor.ty(arg, rarg));
 					if (firstArgType != PrimitiveType.UNKNOWN)
-						rarg.judgement(arg, firstArgType, null, visitor, TypingJudgementMode.UNIFY);
+						rarg.judgment(arg, firstArgType, null, visitor, TypingJudgementMode.UNIFY);
 				}
 				@Override
 				public boolean isModifiable(UnaryOp node, Visitor visitor) {
@@ -2048,7 +2048,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 						else {
 							final IType type = visitor.ty(returnExpr);
-							visitor.judgement(node, type, TypingJudgementMode.UNIFY);
+							visitor.judgment(node, type, TypingJudgementMode.UNIFY);
 						}
 				}
 				@Override
@@ -2296,7 +2296,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (unified == null)
 							visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
 						else if (visitor.pass == Pass.PRELIMINARY)
-							visitor.judgement(given, unified, TypingJudgementMode.UNIFY);
+							visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
 					}
 					if (noticeParameterCountMismatch)
 						validateParameterCount(node, visitor, params, f);
@@ -2371,7 +2371,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							inhVisitor.startVisit(inhv);
 							inhVisitor.innerVisit();
 							inhVisitor.endVisit();
-							visitor.judgement(node, inhv.get(), TypingJudgementMode.OVERWRITE);
+							visitor.judgment(node, inhv.get(), TypingJudgementMode.OVERWRITE);
 							return inhv.get();
 						} else
 							return inherited.returnType();
@@ -2405,8 +2405,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						: visitor.ty(elements[elements.length-1]);
 				}
 				@Override
-				public boolean judgement(Sequence node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
-					return visitor.judgement(node.lastElement(), type, origin, mode);
+				public boolean judgment(Sequence node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
+					return visitor.judgment(node.lastElement(), type, origin, mode);
 				}
 				@Override
 				public void visit(Sequence node, Visitor visitor) throws ProblemException {
@@ -2589,7 +2589,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 									);
 								else {
 									final AccessVar av = AccessVar.temp(initialization.variable, initialization);
-									visitor.judgement(av, initializationType, TypingJudgementMode.OVERWRITE);
+									visitor.judgment(av, initializationType, TypingJudgementMode.OVERWRITE);
 								}
 							}
 				}
@@ -2609,7 +2609,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							visitor.script().engine().name());
 					for (final Variable v : node.components())
 						if (v.initializationExpression() != null)
-							visitor.judgement(AccessVar.temp(v, node), visitor.ty(v.initializationExpression()), TypingJudgementMode.UNIFY);
+							visitor.judgment(AccessVar.temp(v, node), visitor.ty(v.initializationExpression()), TypingJudgementMode.UNIFY);
 				}
 				@Override
 				public boolean isModifiable(PropListExpression node, Visitor visitor) { return false; }
@@ -2637,9 +2637,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return pred != null ? visitor.ty(pred) : supr.type(node, visitor);
 				}
 				@Override
-				public boolean judgement(MemberOperator node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
+				public boolean judgment(MemberOperator node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
 					final ASTNode p = node.predecessorInSequence();
-					return p != null ? visitor.expert(p).judgement(p, type, origin, visitor, mode) : false;
+					return p != null ? visitor.expert(p).judgment(p, type, origin, visitor, mode) : false;
 				}
 				@Override
 				public void visit(MemberOperator node, Visitor visitor) throws ProblemException {
@@ -2655,7 +2655,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						else {
 							final IType predTy = visitor.ty(pred);
 							if (eq(predTy, PrimitiveType.UNKNOWN) || eq(predTy, PrimitiveType.ANY))
-								visitor.judgement(pred, requiredType, TypingJudgementMode.UNIFY);
+								visitor.judgment(pred, requiredType, TypingJudgementMode.UNIFY);
 						}
 					}
 					if (node.getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde)
@@ -2700,7 +2700,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					{
 						if (loopVariable != null) {
 							loopVariable.setUsed(true);
-							visitor.judgement(AccessVar.temp(loopVariable, node), elmType, TypingJudgementMode.UNIFY);
+							visitor.judgment(AccessVar.temp(loopVariable, node), elmType, TypingJudgementMode.UNIFY);
 						}
 						visitor.visit(node.body(), true);
 					}

@@ -646,7 +646,7 @@ public abstract class SpecialEngineRules {
 						if (TypeUnification.unifyNoChoice(parmType, givenType) == null)
 							processor.incompatibleTypesMarker(node, given, parmType, processor.typeOf(given));
 						else
-							processor.judgement(given, parmType, TypingJudgementMode.UNIFY);
+							processor.judgment(given, parmType, TypingJudgementMode.UNIFY);
 					}
 					return true;
 				}
