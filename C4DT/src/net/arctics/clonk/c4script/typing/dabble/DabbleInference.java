@@ -1102,9 +1102,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean shouldTypeFromCalls(final Function function) {
 			final boolean typeFromCalls =
 				typing == Typing.PARAMETERS_OPTIONALLY_TYPED &&
+				!assignDefaultParmTypesToFunction(function) &&
 				script instanceof Definition &&
 				function.numParameters() > 0 &&
-				!assignDefaultParmTypesToFunction(function) &&
 				(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
 			function.setTypeFromCallsHint(typeFromCalls);
 			return typeFromCalls;
