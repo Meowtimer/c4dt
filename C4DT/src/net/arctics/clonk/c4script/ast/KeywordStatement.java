@@ -18,7 +18,7 @@ public abstract class KeywordStatement extends Statement {
 	 * @return The keyword that this statement starts with.
 	 */
 	public abstract String keyword();
-	
+
 	@Override
 	public void doPrint(ASTNodePrinter builder, int depth) {
 		builder.append(keyword());
@@ -28,8 +28,10 @@ public abstract class KeywordStatement extends Statement {
 	protected void printBody(ASTNode body, ASTNodePrinter builder, int depth) {
 		if (!(body instanceof Block))
 			depth++;
-		if (!(body instanceof EmptyStatement))
-			Conf.blockPrelude(builder, depth);
+		if (!(body instanceof EmptyStatement)) {
+			builder.append('\n');
+			Conf.printIndent(builder, depth);
+		}
 		body.print(builder, depth);
 	}
 }

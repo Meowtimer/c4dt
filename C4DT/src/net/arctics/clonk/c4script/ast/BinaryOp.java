@@ -9,7 +9,6 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.ControlFlow;
 import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
-import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Operator;
 
 public class BinaryOp extends OperatorExpression implements ITidyable {
@@ -129,14 +128,16 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 
 		output.append(" "); //$NON-NLS-1$
 		output.append(operator().operatorName());
-		output.append(" "); //$NON-NLS-1$
 
 		needsBrackets = rightSide instanceof BinaryOp && operator().priority() > ((BinaryOp)rightSide).operator().priority();
 		if (needsBrackets)
-			output.append("("); //$NON-NLS-1$
-		if (rightSide instanceof PropListExpression)
-			Conf.blockPrelude(output, depth);
-		rightSide.print(output, depth);
+			output.append(" ("); //$NON-NLS-1$
+		else {
+			final String printed = rightSide.printed(depth);
+			if (!printed.startsWith("\n"))
+				output.append(" ");
+			output.append(printed.replaceFirst(" *", ""));
+		}
 		if (needsBrackets)
 			output.append(")"); //$NON-NLS-1$
 	}

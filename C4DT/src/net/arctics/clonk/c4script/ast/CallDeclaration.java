@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.ArrayUtil.set;
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
@@ -22,6 +23,7 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.text.Region;
@@ -109,8 +111,31 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	 * @param output Output to print to
 	 * @param depth Indentation level of parameter expressions.
 	 */
-	public static void printParmString(ASTNodePrinter output, ASTNode[] params, int depth) {
-		StringUtil.writeBlock(output, "(", ")", ", ", iterable(params)); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	public static void printParmString(ASTNodePrinter output, ASTNode[] params, final int depth) {
+		final Iterable<String> parmStrings = map(iterable(params), new IConverter<ASTNode, String>() {
+			@Override
+			public String convert(ASTNode from) { return from.printed(depth+(Conf.braceStyle==BraceStyleType.NewLine?1:0)).trim(); }
+		});
+		int len = 0;
+		for (final String ps : parmStrings)
+			len += ps.length();
+		if (len < 80)
+			StringUtil.writeBlock(output, "(", ")", ", ", parmStrings);
+		else {
+			final String indent = "\n"+StringUtil.multiply(Conf.indentString, depth+1);
+			String startBlock, endBlock;
+			switch (Conf.braceStyle) {
+			case NewLine:
+				startBlock = "\n"+StringUtil.multiply(Conf.indentString, depth)+"("+indent;
+				endBlock = "\n"+StringUtil.multiply(Conf.indentString, depth)+")";
+				break;
+			default:
+				startBlock = "(";
+				endBlock = ")";
+				break;
+			}
+			StringUtil.writeBlock(output, startBlock, endBlock, ","+indent, parmStrings);
+		}
 	}
 
 	@Override

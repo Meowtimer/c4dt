@@ -367,12 +367,13 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	public void proposeAllTheThings(ProposalsSite pl) {
 		final List<ClonkCompletionProposal> old = new ArrayList<>(pl.proposals.values());
 		final List<Index> relevantIndexes = pl.index.relevantIndexes();
+		final int declarationMask = pl.declarationsMask();
 		for (final Index x : relevantIndexes)
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
-				if (d instanceof Function && !((Function)d).isGlobal())
+				if ((declarationMask & DeclMask.FUNCTIONS) != 0 && d instanceof Function && !((Function)d).isGlobal())
 					proposalForFunc(pl, (Function) d, true);
-				else if (d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
+				else if ((declarationMask & DeclMask.VARIABLES) != 0 && d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
 					proposalForVar(pl, (Variable)d);
 			}
 		for (final ClonkCompletionProposal ccp : pl.proposals.values())

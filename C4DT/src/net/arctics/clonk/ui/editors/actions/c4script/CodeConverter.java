@@ -108,11 +108,10 @@ public abstract class CodeConverter {
 		final IRegion region = e.absolute();
 		int oldStart = region.getOffset();
 		int oldLength = region.getLength();
-		if (d instanceof Function)
-			while (oldStart - 1 >= 0 && superflousBetweenFuncHeaderAndBody(document.getChar(oldStart-1))) {
-				oldStart--;
-				oldLength++;
-			}
+		while (oldStart - 1 >= 0 && superflousBetweenFuncHeaderAndBody(document.getChar(oldStart-1))) {
+			oldStart--;
+			oldLength++;
+		}
 		oldLength = Math.min(oldLength, document.getLength()-oldStart);
 		final String oldString = document.get(oldStart, oldLength);
 		final StringBuilder builder = new StringBuilder();
