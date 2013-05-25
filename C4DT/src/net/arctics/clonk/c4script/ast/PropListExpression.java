@@ -82,7 +82,7 @@ public class PropListExpression extends ASTNode {
 		if (definedDeclaration == null)
 			return EMPTY_EXPR_ARRAY;
 		final Collection<Variable> components = components();
-		final ASTNode[] result = new ASTNode[components.size()];
+		final ASTNode[] result = new ASTNode[components.size()*2];
 		int i = 0;
 		for (final Variable c : components)
 			result[i++] = c.initializationExpression();

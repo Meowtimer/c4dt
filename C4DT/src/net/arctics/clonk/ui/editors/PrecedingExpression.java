@@ -30,13 +30,13 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 	}
 	@Override
 	public TraversalContinuation visitNode(ASTNode expression, ProblemReporter context) {
-		final ASTNode old = exprAtRegion;
 		final TraversalContinuation c = super.visitNode(expression, context);
-		if (old != exprAtRegion) {
+		if (exprAtRegion != null) {
 			contextExpression = exprAtRegion;
 			if (
 				contextExpression instanceof MemberOperator ||
-				(contextExpression instanceof AccessDeclaration && Utilities.regionContainsOffset(contextExpression.identifierRegion(), exprRegion.getOffset()))
+				(contextExpression instanceof AccessDeclaration &&
+				 Utilities.regionContainsOffset(contextExpression.identifierRegion(), exprRegion.getOffset()))
 			) {
 				// we only care about sequences
 				final ASTNode pred = contextExpression.predecessorInSequence();
@@ -45,7 +45,8 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 					contextSequence = contextSequence.subSequenceIncluding(contextExpression);
 				precedingType = pred != null ? context.typeOf(pred) : null;
 			}
-		}
+		} else
+			super.visitNode(expression, context);
 		return c;
 	}
 	public IType precedingType() { return defaulting(precedingType, PrimitiveType.UNKNOWN); }

@@ -41,6 +41,7 @@ import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
+import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
@@ -238,33 +239,27 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	private boolean computeProposalsInsideFunction(ProposalsSite pl) {
+		pl.pos(pl.offset - (pl.function != null ? pl.function.bodyLocation().start() : 0));
+		final ScriptParser parser = pl.script != null ? editor().editingState().updateFunctionFragment(pl.function, pl, true) : null;
+
 		if (!checkProposalConditions(pl))
 			return false;
-		final int preservedOffset = pl.offset - (pl.function != null ? pl.function.bodyLocation().start() : 0);
-
-		pl.pos(preservedOffset);
-		ScriptParser parser = null;
-		if (pl.script != null) {
-			final ScriptEditingState editingState = editor().editingState();
-			parser = editingState.updateFunctionFragment(pl.function, pl, true);
-		}
 
 		proposalCycle = proposalCycle == null ? ProposalCycle.ALL : proposalCycle.cycle();
 
 		if (!skipProposalsInFunction(pl.contextExpression)) {
-			final boolean restrictedProposals = computeStringProposals(pl) || varInitializationProposals(pl);
-			if (!restrictedProposals) {
-				setCategoryOrdering(pl);
-				functionLocalProposals(pl);
-				definitionProposals(pl);
-				engineProposals(pl);
-				structureProposals(pl);
-				ruleBasedProposals(pl, parser);
-				keywordProposals(pl);
-			}
+			final boolean restrictedProposals = computeStringProposals(pl) || varInitializationProposals(pl) || proplistKeyProposals(pl);
+			if (!restrictedProposals)
+				innerProposalsInFunction(pl, parser);
 			return true;
 		} else
 			return false;
+	}
+
+	private boolean proplistKeyProposals(ProposalsSite pl) {
+		if (pl.contextExpression instanceof PropListExpression)
+			return true;
+		return false;
 	}
 
 	private boolean checkProposalConditions(ProposalsSite pl) {
@@ -285,6 +280,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					targetCall = true;
 					break Loop;
 				case ':':
+					if (pl.contextExpression != null && pl.contextExpression.parentOfType(PropListExpression.class) != null)
+						return true;
 					if (pl.document.getChar(arrowOffset-1) != ':')
 						return false;
 					targetCall = true;

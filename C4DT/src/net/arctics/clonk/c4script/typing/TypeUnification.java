@@ -128,7 +128,8 @@ public class TypeUnification {
 				return _b;
 			else if (_b.numComponents(true) == 0)
 				return _a;
-			return PrimitiveType.PROPLIST.unified(); // screw it
+			return TypeChoice.make(_a, _b);
+			//return PrimitiveType.PROPLIST.unified(); // screw it
 		}
 
 		if (a instanceof WrappedType) {
