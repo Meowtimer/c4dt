@@ -36,6 +36,10 @@ public class TypeUnification {
 			case ID:
 				if (b instanceof MetaDefinition)
 					return b;
+				else if (b instanceof Definition)
+					return ((Definition)b).metaDefinition();
+				else if (eq(b, PrimitiveType.OBJECT))
+					return PrimitiveType.ID;
 				break;
 			case OBJECT:
 			case INT:
