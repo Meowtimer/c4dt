@@ -431,7 +431,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			private void typeParameterFromCalls(Function function, Variable par, TypeVariable parTyVar, List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors) {
 				IType result;
-				final boolean lenient = parTyVar.get() == PrimitiveType.ANY;
+				final boolean lenient = parTyVar.get() == PrimitiveType.UNKNOWN;
 				final PrimitiveType bestSeed = findBestTypingSeed(parTyVar, calls, callTypes);
 
 				if (bestSeed != null)
@@ -740,7 +740,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final AccessVar av = AccessVar.temp(l, function.body());
 					final TypeVariable ti = expert(av).requestTypeVariable(av, this);
 					if (ti != null)
-						ti.set(PrimitiveType.ANY);
+						ti.set(PrimitiveType.UNKNOWN);
 				}
 			}
 
@@ -750,7 +750,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				for (int i = 0; i < callTypes.length; i++) {
 					final Variable p = function.parameter(i);
 					final TypeVariable tyvar = new VariableTypeVariable(p);
-					tyvar.set(p.staticallyTyped() ? p.type() : PrimitiveType.ANY);
+					tyvar.set(p.staticallyTyped() ? p.type() : PrimitiveType.UNKNOWN);
 					typeEnvironment.add(tyvar);
 					callTypes[i] = tyvar;
 				}
@@ -990,8 +990,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) {
 				final Expert<? super T> e = expert(access);
-				if (!(e instanceof AccessDeclarationExpert))
-					System.out.println("wat");
 				@SuppressWarnings("unchecked")
 				final AccessDeclarationExpert<T> expert = (AccessDeclarationExpert<T>)e;
 				return expert.obtainDeclaration(access, this);
@@ -1427,7 +1425,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 	}
 
-	private void assembleCommittee() {
+	private synchronized void assembleCommittee() {
 
 		class AccessVarExpert<T extends AccessVar> extends AccessDeclarationExpert<T> {
 			private AccessVarExpert(Class<T> cls) { super(cls); }
@@ -1902,7 +1900,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					case AssignMultiply: case AssignModulo: case AssignDivide:
 						visitor.expert(left).assignment(left, right, visitor);
 						break;
-					case Equal:
+					case Equal: case NotEqual:
 						if (node.parentOfType(IfStatement.class) != null && runtimeTypeCheck(visitor, left, right, true))
 							return;
 						break;
@@ -1944,7 +1942,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (type != null) {
 							visitor.judgment(
 								((CallDeclaration)left).params()[0],
-								type,
+								unify(PrimitiveType.ANY, type),
 								TypingJudgementMode.OVERWRITE
 							);
 							return true;
@@ -2299,7 +2297,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final IType unified = unifyNoChoice(parmTy, givenTy);
 						if (unified == null)
 							visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
-						else if (visitor.pass == Pass.PRELIMINARY)
+						else
 							visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
 					}
 					if (noticeParameterCountMismatch)
@@ -2743,12 +2741,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public void visit(IfStatement node, Visitor visitor) throws ProblemException {
 					final ControlFlow old = visitor.controlFlow;
 					final ASTNode condition = node.condition();
+					visitor.visit(condition, true);
 					// use two separate type environments for if and else statement, merging
 					// gathered information afterwards
 					final TypeEnvironment ifEnvironment = visitor.newTypeEnvironment();
 					// visit condition with new type environment so judgments arising from condition will not be unified inside
 					// the true case
-					visitor.visit(condition, true);
 					visitor.visit(node.body(), true);
 					visitor.endTypeEnvironment(ifEnvironment, false, false);
 					visitor.controlFlow = old;
@@ -2759,6 +2757,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						ifEnvironment.inject(elseEnvironment, false);
 					}
 					if (ifEnvironment.up != null)
+						//						for (final TypeVariable tv : ifEnvironment.values())
+//							tv.set(unify(tv.get(), PrimitiveType.ANY));
 						ifEnvironment.up.inject(ifEnvironment, false);
 					visitor.controlFlow = old;
 
