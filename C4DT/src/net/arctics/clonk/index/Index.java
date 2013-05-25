@@ -43,6 +43,7 @@ import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.index.serialization.IndexEntityInputStream;
 import net.arctics.clonk.index.serialization.IndexEntityOutputStream;
 import net.arctics.clonk.index.serialization.replacements.EngineRef;
@@ -107,7 +108,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			final ProplistDeclaration type = new ProplistDeclaration(GLOBAL_PROPLIST_NAME);
 			type.setLocation(SourceLocation.ZERO);
 			type.setParent(this);
-			globalProplist = new Variable(GLOBAL_PROPLIST_NAME, type);
+			globalProplist = new Variable(GLOBAL_PROPLIST_NAME, (IType)type);
 			globalProplist.setParent(this);
 			globalProplist.setScope(Scope.STATIC);
 		}

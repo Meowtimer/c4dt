@@ -1042,7 +1042,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			}
 			@Override
-			public void setMarkers(Markers markers) { this.markers = markers;}
+			public void setGlobalMarkers(Markers markers) { DabbleInference.this.markers = markers; }
 			@Override
 			public Object valueForVariable(AccessVar access) { return null; }
 			@Override

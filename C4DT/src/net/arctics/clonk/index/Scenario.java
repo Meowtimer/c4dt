@@ -11,6 +11,7 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.ini.ScenarioUnit;
 
 import org.eclipse.core.resources.IContainer;
@@ -34,7 +35,7 @@ public class Scenario extends Definition {
 			final ProplistDeclaration type = new ProplistDeclaration(PROPLIST_NAME);
 			type.setLocation(SourceLocation.ZERO);
 			type.setParent(this);
-			final Variable v = new Variable(PROPLIST_NAME, type);
+			final Variable v = new Variable(PROPLIST_NAME, (IType)type);
 			v.setParent(this);
 			v.setScope(Scope.STATIC);
 			scenarioPropList = v;
@@ -53,25 +54,25 @@ public class Scenario extends Definition {
 	public Scenario(Index index, String name, IContainer container) {
 		super(index, ID.get(container != null ? container.getName() : name), name, container);
 	}
-	
+
 	@Override
 	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		super.load(stream);
 	}
-	
+
 	protected static class ScenarioSaveState extends SaveState {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		public ScenarioSaveState() {}
 		public Declaration scenarioProplist;
 	}
-	
+
 	@Override
 	public SaveState makeSaveState() {
 		final ScenarioSaveState state = new ScenarioSaveState();
 		state.scenarioProplist = scenarioPropList;
 		return state;
 	}
-	
+
 	@Override
 	public void extractSaveState(SaveState state) {
 		super.extractSaveState(state);
@@ -106,7 +107,7 @@ public class Scenario extends Definition {
 		final IFile scenarioFile = as(definitionFolder().findMember(ScenarioUnit.FILENAME), IFile.class);
 		return scenarioFile != null ? Structure.pinned(scenarioFile, true, false, ScenarioUnit.class) : null;
 	}
-	
+
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		if (declarationName.equals(PROPLIST_NAME))

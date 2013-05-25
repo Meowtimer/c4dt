@@ -157,7 +157,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		if (!onlyDeclarations) {
 			if (this.typingStrategy() != null) {
 				final ProblemReporter localTyping = this.typingStrategy().localReporter(parser.script(), parser.fragmentOffset(), null);
-				localTyping.setMarkers(markers);
+				localTyping.setGlobalMarkers(markers);
 				localTyping.run();
 			}
 			markers.deploy();
@@ -275,7 +275,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
 			final ProblemReporter mainTyping = strategy.localReporter(updater.script(), updater.fragmentOffset(), null);
 			if (markers != null)
-				mainTyping.setMarkers(markers);
+				mainTyping.setGlobalMarkers(markers);
 			mainTyping.visit(function);
 		}
 		return markers;

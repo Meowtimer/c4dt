@@ -49,7 +49,7 @@ public class TypeUtil {
 			@Override
 			public Markers markers() { return null; }
 			@Override
-			public void setMarkers(Markers markers) { /* ignore */ }
+			public void setGlobalMarkers(Markers markers) { /* ignore */ }
 			@Override
 			public void run() {}
 			@Override
