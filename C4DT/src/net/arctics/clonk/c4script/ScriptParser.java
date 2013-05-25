@@ -1528,9 +1528,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	private ASTNode parsePropListExpression(ASTNode prevElm) throws ProblemException {
+		final int off = this.offset;
 		final ProplistDeclaration proplDec = parsePropListDeclaration();
 		if (proplDec != null) {
 			final ASTNode elm = new PropListExpression(proplDec);
+			final int sectionOffset = sectionOffset();
+			elm.setLocation(off-sectionOffset, this.offset-sectionOffset);
 			return elm;
 		}
 		return null;
@@ -1567,37 +1570,38 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							final int c_ = read();
 							if (c_ != ':' && c_ != '=') {
 								unread();
-								error(Problem.UnexpectedToken, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION, (char)read());
-							}
-							eatWhitespace();
-							final Variable v = new Variable(name, currentFunction != null ? Scope.VAR : Scope.LOCAL);
-							v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
-							final Declaration outerDec = currentDeclaration();
-							setCurrentDeclaration(v);
-							ASTNode value = null;
-							try {
-								v.setParent(outerDec);
-								value = parseExpression(COMMA_OR_CLOSE_BLOCK);
-								if (value == null) {
-									error(Problem.ValueExpected, offset-1, offset, Markers.NO_THROW);
-									value = placeholderExpression(offset);
+								error(Problem.UnexpectedToken, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, (char)c_);
+							} else {
+								eatWhitespace();
+								final Variable v = new Variable(name, currentFunction != null ? Scope.VAR : Scope.LOCAL);
+								v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
+								final Declaration outerDec = currentDeclaration();
+								setCurrentDeclaration(v);
+								ASTNode value = null;
+								try {
+									v.setParent(outerDec);
+									value = parseExpression(COMMA_OR_CLOSE_BLOCK);
+									if (value == null) {
+										error(Problem.ValueExpected, offset-1, offset, Markers.NO_THROW);
+										value = placeholderExpression(offset);
+									}
+									v.setInitializationExpression(value);
+									//v.forceType(value.type(this));
+								} finally {
+									setCurrentDeclaration(outerDec);
 								}
-								v.setInitializationExpression(value);
-								//v.forceType(value.type(this));
-							} finally {
-								setCurrentDeclaration(outerDec);
+								pl.addComponent(v, false);
+								expectingComma = true;
 							}
-							pl.addComponent(v, false);
-							expectingComma = true;
 						}
 						else {
-							error(Problem.TokenExpected, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION, Messages.TokenStringOrIdentifier);
+							error(Problem.TokenExpected, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, Messages.TokenStringOrIdentifier);
 							break;
 						}
 					}
 				}
 				if (!properlyClosed)
-					error(Problem.MissingClosingBracket, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, "}"); //$NON-NLS-1$
+					error(Problem.MissingClosingBracket, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, "}"); //$NON-NLS-1$
 				pl.setLocation(absoluteSourceLocation(propListStart, offset));
 				script.addDeclaration(pl);
 				return pl;
