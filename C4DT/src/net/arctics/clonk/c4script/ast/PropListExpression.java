@@ -67,13 +67,11 @@ public class PropListExpression extends ASTNode {
 				.replaceAll(String.format("%c", FIRSTBREAK), "\n"+StringUtil.multiply(Conf.indentString, depth+1))
 				.replaceAll(String.valueOf(BREAK), "\n"+StringUtil.multiply(Conf.indentString, depth+1))
 				.replace(String.valueOf(LASTBREAK), "\n"+StringUtil.multiply(Conf.indentString, depth));
-		}
-		else {
-			output_.append(' ');
+		} else
+			//output_.append(' ');
 			s = s
 				.replaceAll(String.format("[%c%c]", FIRSTBREAK, LASTBREAK), "")
 				.replaceAll(String.valueOf(BREAK), " ");
-		}
 		output_.append(s);
 	}
 

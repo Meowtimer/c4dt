@@ -136,7 +136,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 			final String printed = rightSide.printed(depth);
 			if (!printed.startsWith("\n"))
 				output.append(" ");
-			output.append(printed.replaceFirst(" *", ""));
+			output.append(printed);
 		}
 		if (needsBrackets)
 			output.append(")"); //$NON-NLS-1$
