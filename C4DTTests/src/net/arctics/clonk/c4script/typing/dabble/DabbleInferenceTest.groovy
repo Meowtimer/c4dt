@@ -11,6 +11,7 @@ import net.arctics.clonk.index.Definition
 import net.arctics.clonk.index.MetaDefinition
 import net.arctics.clonk.parser.Markers
 import net.arctics.clonk.c4script.ScriptParserTest
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.ThisType;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.TaskExecution;
@@ -195,7 +196,8 @@ func Test()
 		setup.inference.run()
 
 		def (scr, clonk) = setup.scripts
-		Assert.assertEquals(clonk, scr.findLocalFunction("Test", false).findDeclaration("a").type())
+		def at = scr.findLocalFunction("Test", false).findLocalDeclaration("a", Variable.class).type()
+		Assert.assertEquals(clonk, at)
 		Assert.assertEquals(clonk, scr.findLocalFunction("Test", false).findDeclaration("b").type())
 	}
 

@@ -298,4 +298,13 @@ public class Markers implements Iterable<Marker> {
 			}
 		};
 	}
+
+	public int size() {
+		synchronized (this) {
+			int count = 0;
+			for (@SuppressWarnings("unused") final Marker m : this)
+				count++;
+			return count;
+		}
+	}
 }

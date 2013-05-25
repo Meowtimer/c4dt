@@ -80,6 +80,11 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		this.staticallyTyped = true;
 	}
 
+	public Variable(string name, ASTNode initialization) {
+		this(name);
+		initializationExpression = initialization;
+	}
+
 	public Variable(String name, IType type) {
 		this(name);
 		forceType(type);
