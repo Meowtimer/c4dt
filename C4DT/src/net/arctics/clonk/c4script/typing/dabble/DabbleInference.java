@@ -1084,10 +1084,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 			for (final Script s : conglomerate)
 				if (s != script)
 					for (final Function f : s.functions())
-						if (script.seesFunction(f))
+						if (script.seesFunction(f)) {
+							f.findInherited();
 							result.put(f, new Visit(f));
-			for (final Function f : script.functions())
+						}
+			for (final Function f : script.functions()) {
+				f.findInherited();
 				result.put(f, new Visit(f));
+			}
 			return result;
 		}
 
@@ -2384,9 +2388,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (visitor.input().strictLevel <= 0)
 							visitor.markers().error(visitor, Problem.InheritedDisabledInStrict0, node, node, Markers.NO_THROW);
 
-						node.setDeclaration(node.parentOfType(Function.class).inheritedFunction());
+						final Function function = node.parentOfType(Function.class);
+						final Function inh = function.inheritedFunction();
+						node.setDeclaration(inh);
 						if (node.declaration() == null && !node.failsafe())
-							visitor.markers().error(visitor, Problem.NoInheritedFunction, node, node, Markers.NO_THROW, node.parentOfType(Function.class).name());
+							visitor.markers().error(visitor, Problem.NoInheritedFunction, node, node, Markers.NO_THROW, function.name());
 					}
 				}
 				@Override

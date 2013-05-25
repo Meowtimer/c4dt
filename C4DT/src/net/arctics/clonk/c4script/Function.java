@@ -471,8 +471,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return The inherited function
 	 */
 	public Function inheritedFunction() {
-		if (cachedInherited == null)
-			findInherited();
 		return cachedInherited == NO_FUNCTION ? null : cachedInherited;
 	}
 
