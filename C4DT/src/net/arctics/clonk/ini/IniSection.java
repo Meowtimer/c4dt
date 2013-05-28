@@ -3,6 +3,7 @@ package net.arctics.clonk.ini;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,6 +21,7 @@ import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasKeyAndValue;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
+import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.runtime.IPath;
 
@@ -29,8 +31,8 @@ public class IniSection
 {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private Map<String, IniItem> itemMap;
-	private List<IniItem> itemList;
+	private final Map<String, IniItem> map = new HashMap<>();
+	private final List<IniItem> list = new LinkedList<>();
 	private IniSectionDefinition definition;
 	private int indentation;
 	private int sectionEnd;
@@ -39,19 +41,19 @@ public class IniSection
 	public void setSectionEnd(int sectionEnd) { this.sectionEnd = sectionEnd; }
 	public IniSectionDefinition definition() { return definition; }
 	public void setDefinition(IniSectionDefinition sectionData) { this.definition = sectionData; }
-	public Map<String, IniItem> subItemMap() { return itemMap; }
-	public IniItem subItemByKey(String key) { return itemMap.get(key); }
-	public List<IniItem> subItemList() { return itemList; }
+	public Map<String, IniItem> map() { return map; }
+	public IniItem itemByKey(String key) { return map.get(key); }
+	public List<IniItem> items() { return list; }
 	@Override
 	public String key() { return name(); }
 	@Override
 	public String stringValue() { return ""; } //$NON-NLS-1$
 	@Override
-	public Object[] children() { return subItemList().toArray(new Object[subItemList().size()]); }
+	public Object[] children() { return items().toArray(new Object[items().size()]); }
 	@Override
-	public boolean hasChildren() { return !itemMap.isEmpty(); }
+	public boolean hasChildren() { return !map.isEmpty(); }
 	@Override
-	public Collection<? extends IniItem> childCollection() { return itemList; }
+	public Collection<? extends IniItem> childCollection() { return list; }
 	@Override
 	public String nodeName() { return name(); }
 	@Override
@@ -70,47 +72,43 @@ public class IniSection
 	@Override
 	public Object[] subDeclarationsForOutline() { return hasChildren() ? this.children() : null; }
 	@Override
-	public Iterator<IniItem> iterator() { return new ReadOnlyIterator<IniItem>(this.itemMap.values().iterator()); }
+	public Iterator<IniItem> iterator() { return new ReadOnlyIterator<IniItem>(this.map.values().iterator()); }
 
-	protected IniSection(SourceLocation location, String name) {
+	public IniSection(String name) { this.name = name; }
+
+	public IniSection(SourceLocation location, String name) {
+		this(name);
 		setLocation(location);
-		this.name = name;
-	}
-
-	public void setSubItems(Map<String, IniItem> map, List<IniItem> list) {
-		this.itemMap = map;
-		this.itemList = list;
 	}
 
 	@Override
 	public void addChild(ITreeNode node) {
 		if (node instanceof IniItem)
-			addItem((IniItem)node);
+			addDeclaration((Declaration)node);
 		else
 			throw new IllegalArgumentException("node");
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends IniItem> T addItem(T item) {
-		if (!itemMap.containsKey(item.key())) {
-			itemMap.put(item.key(), item);
-			itemList.add(item);
-			((Declaration)item).setParent(this);
-			try {
-				return item instanceof IniEntry
-					? (T)topLevelParentDeclarationOfType(IniUnit.class).validateEntry((IniEntry)item, this, false)
-					: item;
-			} catch (final IniParserException e) {
-				return null;
-			}
+	@Override
+	public <T extends Declaration> T addDeclaration(T item) {
+		final IniItem ini = (IniItem) item;
+		map.put(ini.key(), ini);
+		list.add(ini);
+		item.setParent(this);
+		try {
+			if (item instanceof IniEntry)
+				return (T)topLevelParentDeclarationOfType(IniUnit.class).validateEntry((IniEntry)item, this, false);
+			else
+				return item;
+		} catch (final IniParserException e) {
+			return null;
 		}
-		else
-			throw new IllegalArgumentException("item");
 	}
 
 	public void removeItem(IniItem item) {
-		itemMap.remove(item.key());
-		itemList.remove(item);
+		map.remove(item.key());
+		list.remove(item);
 	}
 
 	@Override
@@ -120,19 +118,21 @@ public class IniSection
 	}
 
 	public void putEntry(IniEntry entry) {
-		itemMap.put(entry.name(), entry);
-		itemList.add(entry);
+		map.put(entry.name(), entry);
+		list.add(entry);
 		entry.setParent(this);
 	}
 
 	@Override
 	public void doPrint(ASTNodePrinter writer, int indentation) {
+		if (indentation >= 0)
+			writer.append(StringUtil.multiply("\t", indentation+1));
 		writer.append('[');
 		writer.append(name());
 		writer.append(']');
 		writer.append('\n');
 
-		for (final IniItem item : subItemList()) {
+		for (final IniItem item : items()) {
 			if (item.isTransient())
 				continue;
 			item.print(writer, indentation + 1);
@@ -141,7 +141,7 @@ public class IniSection
 	}
 
 	public boolean hasPersistentItems() {
-		for (final IniItem item : subItemList())
+		for (final IniItem item : items())
 			if (!item.isTransient())
 				return true;
 		return false;
@@ -183,7 +183,7 @@ public class IniSection
 	}
 
 	public void commit(Object object, boolean takeIntoAccountCategory) {
-		for (final IniItem item : subItemMap().values())
+		for (final IniItem item : map().values())
 			if (item instanceof IniSection)
 				((IniSection)item).commit(object, takeIntoAccountCategory);
 			else if (item instanceof IniEntry) {

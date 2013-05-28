@@ -1,107 +1,82 @@
 package net.arctics.clonk.index;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.c4script.IHasName;
-import net.arctics.clonk.ini.CustomIniUnit;
-import net.arctics.clonk.ini.IEntryFactory;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.ini.IniEntry;
-import net.arctics.clonk.ini.IniItem;
-import net.arctics.clonk.ini.IniParserException;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
-import net.arctics.clonk.ini.IniData.IniConfiguration;
-import net.arctics.clonk.ini.IniData.IniEntryDefinition;
-import net.arctics.clonk.ini.IniData.IniSectionDefinition;
-import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.IHasUserDescription;
+import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.util.IStorageLocation;
 
 public class IniDescriptionsLoader {
-	private class DescriptionsIniConfiguration extends IniConfiguration {
-		public DescriptionsIniConfiguration() {
-			super();
-			sections.put("Descriptions", new IniSectionDefinition() { //$NON-NLS-1$
-				private final IniEntryDefinition entry = new IniEntryDefinition("", String.class); //$NON-NLS-1$
-
-				@Override
-				public boolean hasEntry(String entryName) {
-					return engine.findDeclaration(entryName) != null;
-				}
-
-				@Override
-				public IniEntryDefinition entryForKey(String key) {
-					return entry;
-				}
-			});
-			factory = new IEntryFactory() {
-				@Override
-				public Object create(Class<?> type, String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
-					return value;
-				}
-			};
-		}
-	}
 
 	private final Engine engine;
-	private transient Map<String, Map<String, String>> descriptions = new HashMap<String, Map<String, String>>();
 
-	public IniDescriptionsLoader(Engine engine) {
-		this.engine = engine;
-	}
+	public IniDescriptionsLoader(Engine engine) { this.engine = engine; }
 
-	public <T extends IHasUserDescription & IHasName> String descriptionFor(T declaration) {
-		Map<String, String> descs;
-		try {
-			descs = loadDescriptions(ClonkPreferences.languagePref());
-			return descs != null ? descs.get(declaration.name()) : null;
-		} catch (IOException e) {
-			return null;
-		}
-	}
-
-	public Map<String, String> loadDescriptions(String language) throws IOException {
-		Map<String, String> result = descriptions.get(language);
-		if (result != null)
-			return result;
-		else {
-			String fileName = String.format("descriptions%s.ini", language); //$NON-NLS-1$
-			IStorageLocation[] storageLocations = engine.storageLocations();
-			for (int i = storageLocations.length - 1; i >= 0; i--) {
-				IStorageLocation loc = storageLocations[i];
-				URL descs = loc.locatorForEntry(fileName, false);
-				if (descs != null) {
-					InputStream input = descs.openStream();
+	public void loadDescriptions(String language) {
+		final String fileName = String.format("Descriptions%s.ini", language); //$NON-NLS-1$
+		final IStorageLocation[] storageLocations = engine.storageLocations();
+		for (int i = storageLocations.length - 1; i >= 0; i--) {
+			final IStorageLocation loc = storageLocations[i];
+			final URL descs = loc.locatorForEntry(fileName, false);
+			if (descs != null) {
+				InputStream input;
+				try {
+					input = descs.openStream();
+				} catch (final IOException e1) {
+					e1.printStackTrace();
+					return;
+				}
+				try {
+					final IniUnit unit = new IniUnit(input);
 					try {
-						IniUnit unit = new CustomIniUnit(input, new DescriptionsIniConfiguration());
-						try {
-							unit.parser().parse(false);
-						} catch (ProblemException e) {
-							e.printStackTrace();
-						}
-						IniSection section = unit.sectionWithName("Descriptions", false); //$NON-NLS-1$
-						if (section != null) {
-							result = new HashMap<String, String>();
-							for (Entry<String, IniItem> item : section.subItemMap().entrySet())
-								if (item.getValue() instanceof IniEntry) {
-									IniEntry entry = (IniEntry) item.getValue();
-									result.put(entry.key(), entry.stringValue().replace("|||", "\n")); //$NON-NLS-1$ //$NON-NLS-2$
+						new IniUnitParser(unit).parse(false);
+					} catch (final ProblemException e) {
+						e.printStackTrace();
+					}
+					final IniSection functions = unit.sectionWithName("Functions", false); //$NON-NLS-1$
+					if (functions != null)
+						for (final Function f : engine.functions()) {
+							final IniSection sec = as(functions.itemByKey(f.name()), IniSection.class);
+							if (sec != null) {
+								final IniEntry de = as(sec.itemByKey("Description"), IniEntry.class);
+								if (de != null)
+									f.setUserDescription(de.value().toString());
+								for (final Variable p : f.parameters()) {
+									final IniSection ps = as(sec.itemByKey(p.name()), IniSection.class);
+									if (ps != null) {
+										final IniEntry dp = as(ps.itemByKey("Description"), IniEntry.class);
+										if (dp != null)
+											p.setUserDescription(dp.value().toString());
+									}
 								}
-							descriptions.put(language, result);
-							return result;
+							}
 						}
-					} finally {
+					final IniSection variables = unit.sectionWithName("Variables", false); //$NON-NLS-1$
+					if (variables != null)
+						for (final Variable v : engine.variables()) {
+							final IniSection sec = as(variables.itemByKey(v.name()), IniSection.class);
+							if (sec != null) {
+								final IniEntry de = as(sec.itemByKey("Description"), IniEntry.class);
+								if (de != null)
+									v.setUserDescription(de.value().toString());
+							}
+						}
+				} finally {
+					try {
 						input.close();
+					} catch (final IOException e) {
+						e.printStackTrace();
 					}
 				}
 			}
 		}
-		return null;
 	}
 }

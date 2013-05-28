@@ -345,7 +345,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			ControlFlow controlFlow;
 			Markers markers;
 			TypeEnvironment typeEnvironment;
-			Pass pass;
+			Pass pass = Pass.INACTIVE;
 			IASTVisitor<ProblemReporter> observer;
 			Thread thread;
 			Visit visit;

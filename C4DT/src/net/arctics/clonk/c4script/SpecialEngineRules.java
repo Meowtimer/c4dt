@@ -1050,4 +1050,6 @@ public abstract class SpecialEngineRules {
 
 	public void refreshIndex(Index index) {}
 
+	public void contribute(Engine engine) {}
+
 }

@@ -89,16 +89,17 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return the structure or null if something went wrong or file is null as well. In other situations an exception will be thrown.
 	 * @throws CoreException
 	 */
-	public static Structure pinned(IResource file, boolean force, boolean duringBuild) {
+	@SuppressWarnings("unchecked")
+	public static <T extends Structure> T pinned(IResource file, boolean force, boolean duringBuild) {
 		if (file == null)
 			return null;
-		Structure result;
+		T result;
 		try {
-			result = (Structure) file.getSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID);
+			result = (T) file.getSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID);
 			if (result != null)
 				result.setFile((IFile)file);
 			else if (force) {
-				result = createStructureForFile(file, duringBuild);
+				result = (T) createStructureForFile(file, duringBuild);
 				if (result != null)
 					result.pinTo(file);
 			}
@@ -110,11 +111,6 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 
 	public void setFile(IFile file) {
 		// i'll do that
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <T extends Structure> T pinned(IResource file, boolean force, boolean duringBuild, Class<T> cls) {
-		return (T)pinned(file, force, duringBuild);
 	}
 
 	/**

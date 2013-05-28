@@ -25,6 +25,7 @@ import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniData.IniDataBase;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
+import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.util.Utilities;
@@ -104,7 +105,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 					proposalsForIniDataEntries(pl, section.parentSection().definition().entries().values());
 				else if (section.parentDeclaration() instanceof IniUnit)
 					proposalsForIniDataEntries(pl, ((IniUnit)section.parentDeclaration()).configuration().sections().values());
-				final int indentation = editor().unit().parser().indentationAt(offset);
+				final int indentation = new IniUnitParser(editor().unit()).indentationAt(offset);
 				if (indentation == section.indentation()+1)
 					proposalsForIniDataEntries(pl, section.definition().entries().values());
 			}

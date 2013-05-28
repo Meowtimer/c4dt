@@ -842,7 +842,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		@SuppressWarnings("serial")
 		final Function f = new Function(functionName, scope) {
 			@Override
-			protected Typing typing() { return context.nature().settings().typing; }
+			public Typing typing() { return context.nature().settings().typing; }
 			@Override
 			public Engine engine() { return context.engine(); }
 		};

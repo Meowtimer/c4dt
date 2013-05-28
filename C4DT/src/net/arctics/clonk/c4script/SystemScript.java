@@ -29,10 +29,10 @@ import org.eclipse.core.runtime.Path;
 public class SystemScript extends Script implements Serializable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	private transient IFile scriptFile;
 	private String scriptFilePath;
-	
+
 	public SystemScript(Index index, IFile scriptFile) throws CoreException {
 		super(index);
 		this.name = scriptFile.getName();
@@ -43,7 +43,7 @@ public class SystemScript extends Script implements Serializable {
 	public IFile source() {
 		return scriptFile;
 	}
-	
+
 	@Override
 	public void setScriptFile(IFile f) {
 		if (Utilities.eq(scriptFile, f))
@@ -51,28 +51,27 @@ public class SystemScript extends Script implements Serializable {
 		if (scriptFile != null)
 			super.unPinFrom(scriptFile);
 		scriptFile = f;
-		if (f != null) { 
+		if (f != null) {
 			super.pinTo(scriptFile);
-			ClonkProjectNature nature = ClonkProjectNature.get(scriptFile);
+			final ClonkProjectNature nature = ClonkProjectNature.get(scriptFile);
 			index = nature != null ? nature.index() : null;
 		}
 		scriptFilePath = f != null ? f.getProjectRelativePath().toPortableString() : ""; //$NON-NLS-1$
 	}
-	
+
 	public String scriptFilePath() {
 		return scriptFilePath;
 	}
-	
+
 	public static SystemScript pinned(IResource resource, boolean duringBuild) {
-		Structure s = Structure.pinned(resource, true, duringBuild);
-		return as(s, SystemScript.class);
+		return as(Structure.pinned(resource, true, duringBuild), SystemScript.class);
 	}
-	
+
 	@Override
 	public IResource resource() {
 		return source();
 	}
-	
+
 	@Override
 	public void pinTo(IResource resource) {
 		assert(resource instanceof IFile);
@@ -80,8 +79,8 @@ public class SystemScript extends Script implements Serializable {
 	}
 
 	public boolean refreshFileReference(IProject project) throws CoreException {
-		Path projectPath = new Path(scriptFilePath());
-		IResource res = project.findMember(projectPath);
+		final Path projectPath = new Path(scriptFilePath());
+		final IResource res = project.findMember(projectPath);
 		if (res instanceof IFile) {
 			setScriptFile((IFile) res);
 			return true;
@@ -89,32 +88,32 @@ public class SystemScript extends Script implements Serializable {
 		else
 			return false;
 	}
-	
+
 	public static SystemScript scriptCorrespondingTo(IFile file) {
-		ProjectIndex index = ProjectIndex.fromResource(file);
-		Script script = index != null ? index.scriptAt(file) : null;
+		final ProjectIndex index = ProjectIndex.fromResource(file);
+		final Script script = index != null ? index.scriptAt(file) : null;
 		return script instanceof SystemScript ? (SystemScript)script : null;
 	}
-	
+
 	@Override
 	public Object additionalEntityIdentificationToken() {
 		return scriptFilePath;
 	}
-	
+
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
 			@Override
 			public Structure create(IResource resource, boolean duringBuild) {
 				if (!resource.getName().endsWith(".c"))
 					return null;
-				ProjectIndex index = ProjectIndex.fromResource(resource);
+				final ProjectIndex index = ProjectIndex.fromResource(resource);
 				if (index != null)
-					for (Script script : index.indexedScripts()) {
-						SystemScript sysScript = as(script, SystemScript.class);
+					for (final Script script : index.indexedScripts()) {
+						final SystemScript sysScript = as(script, SystemScript.class);
 						if (sysScript != null && sysScript.scriptFile() != null && sysScript.scriptFile().equals(resource)) {
 							try {
 								index.loadEntity(sysScript);
-							} catch (Exception e) {
+							} catch (final Exception e) {
 								e.printStackTrace();
 							}
 							return sysScript;
@@ -124,17 +123,17 @@ public class SystemScript extends Script implements Serializable {
 			}
 		});
 	}
-	
+
 	@Override
 	public String typeName(boolean special) {
 		if (!special)
 			return PrimitiveType.OBJECT.typeName(false);
-		List<Definition> targets = new ArrayList<>(3);
-		for (Directive d : directives())
+		final List<Definition> targets = new ArrayList<>(3);
+		for (final Directive d : directives())
 			if (d.type() == DirectiveType.APPENDTO) {
-				ID id = d.contentAsID();
+				final ID id = d.contentAsID();
 				if (id != null) {
-					Definition def = index().definitionNearestTo(scriptFile(), id);
+					final Definition def = index().definitionNearestTo(scriptFile(), id);
 					if (def != null)
 						targets.add(def);
 				}

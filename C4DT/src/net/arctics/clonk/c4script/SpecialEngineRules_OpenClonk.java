@@ -40,6 +40,7 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
@@ -457,13 +458,16 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	private static ComputedScenarioConfigurationEntry entry(ScenarioUnit unit, String section, String entry) {
 		final IniSection s = unit.sectionWithName(section, true);
-		IniItem i = s.subItemByKey(entry);
+		IniItem i = s.itemByKey(entry);
 		if (i != null && !(i instanceof ComputedScenarioConfigurationEntry)) {
 			s.removeItem(i);
 			i = null;
 		}
-		if (i == null)
-			s.addItem(i = new ComputedScenarioConfigurationEntry(entry, new IDArray()));
+		if (i == null) {
+			final ComputedScenarioConfigurationEntry csce = new ComputedScenarioConfigurationEntry(entry, new IDArray());
+			i = csce;
+			s.addDeclaration(csce);
+		}
 		return as(i, ComputedScenarioConfigurationEntry.class);
 	}
 
@@ -646,6 +650,37 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	public void refreshIndex(Index index) {
 		super.refreshIndex(index);
 		readVariablesFromPlayerControlsFile(index);
+	}
+
+	@Override
+	public void contribute(Engine engine) {
+		final String[] algos = new String[] {
+			"MAPALGO_Layer",
+			"MAPALGO_RndChecker",
+			"MAPALGO_And",
+			"MAPALGO_Or",
+			"MAPALGO_Xor",
+			"MAPALGO_Not",
+			"MAPALGO_Scale",
+			"MAPALGO_Offset",
+			"MAPALGO_Rect",
+			"MAPALGO_Ellipsis",
+			"MAPALGO_Polygon",
+			"MAPALGO_Turbulence",
+			"MAPALGO_Border",
+			"MAPALGO_Filter"
+		};
+		for (final String a : algos) {
+			final Variable v = new Variable(a, PrimitiveType.INT);
+			v.setScope(Scope.CONST);
+			engine.addDeclaration(v);
+		}
+		Variable v = new Variable("MapLayer", PrimitiveType.PROPLIST);
+		v.setScope(Scope.CONST);
+		engine.addDeclaration(v);
+		v = new Variable("Map", PrimitiveType.PROPLIST);
+		v.setScope(Scope.CONST);
+		engine.addDeclaration(v);
 	}
 
 }

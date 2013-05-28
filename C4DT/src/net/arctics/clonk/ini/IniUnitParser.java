@@ -1,14 +1,10 @@
 package net.arctics.clonk.ini;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTPositionProvider;
+import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4group.C4GroupItem;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
@@ -23,15 +19,14 @@ import org.eclipse.core.runtime.CoreException;
 public class IniUnitParser extends CStyleScanner implements IASTPositionProvider {
 
 	private final IniUnit unit;
-	private IFile file;
+	private final IFile file;
 	private final Markers markers = new Markers();
 
-	public IniUnitParser(IniUnit iniUnit, Object source) {
-		super(source);
+	public IniUnitParser(IniUnit unit) {
+		super(unit.input);
 		figureOutIndentation();
-		unit = iniUnit;
-		if (source instanceof IFile)
-			file = (IFile) source;
+		this.unit = unit;
+		file = unit.file();
 	}
 
 	@Override
@@ -42,14 +37,14 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 	}
 
 	protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) throws ProblemException {
-		int targetIndentation = parentSection != null ? parentSection.indentation()+1 : 0;
-		int rollback = tell();
+		final int targetIndentation = parentSection != null ? parentSection.indentation()+1 : 0;
+		final int rollback = tell();
 		while (skipComment());
 		// parse head
-		int indentation = currentIndentation();
-		int start = tell();
+		final int indentation = currentIndentation();
+		final int start = tell();
 		if (read() == '[' && indentation == targetIndentation) {
-			String name = readStringUntil(']', '\n', '\r');
+			final String name = readStringUntil(']', '\n', '\r');
 			int end;
 			if (read() != ']') {
 				if (modifyMarkers)
@@ -62,21 +57,17 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 				end = tell();
 				eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
-			IniSection section = unit.addSection(parentSection, start, name, end);
+			final IniSection section = new IniSection(new SourceLocation(start, end), name);
+			section.setParent(parentSection != null ? parentSection : unit);
 			section.setIndentation(indentation);
 			// parse entries
-			IniItem item= null;
-			Map<String, IniItem> itemMap = new HashMap<String, IniItem>();
-			List<IniItem> itemList = new LinkedList<IniItem>();
+			IniItem item = null;
 			section.setDefinition(unit.sectionDataFor(section, parentSection));
-			while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null) {
-				itemMap.put(item.key(),item);
-				itemList.add(item);
-			}
+			while ((item = parseSectionOrEntry(section, modifyMarkers, section)) != null)
+				section.addDeclaration((Declaration)item);
 			// include single line ending following the entries so that editor region collapse management works properly
 			skipSingleLineEnding();
 			section.setSectionEnd(tell()+1);
-			section.setSubItems(itemMap, itemList);
 			return section;
 		}
 		else {
@@ -89,7 +80,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 		eatWhitespace();
 		int _r;
 		for (_r = read(); _r == 0; _r = read());
-		char r = (char) _r;
+		final char r = (char) _r;
 		if (r == ';' || r == '#') {
 			readStringUntil('\n');
 			eatWhitespace();
@@ -120,20 +111,19 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 	}
 
 	public final synchronized void parse(boolean modifyMarkers) throws ProblemException {
-		parse(modifyMarkers, true);
+		reset();
+		parseBuffer(modifyMarkers);
 	}
 
-	public synchronized void parse(boolean modifyMarkers, boolean resetScannerWithFileContents) throws ProblemException {
+	public synchronized void parseBuffer(boolean modifyMarkers) throws ProblemException {
 		unit.startParsing();
 		try {
-			if (resetScannerWithFileContents)
-				reset();
 			if (modifyMarkers && unit.file() != null)
 				try {
 					unit.file().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
 					// deactivate creating markers if it's contained in a linked group
 					modifyMarkers = C4GroupItem.groupItemBackingResource(unit.file()) == null;
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					e.printStackTrace();
 				}
 			unit.clear();
@@ -149,11 +139,11 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 	}
 
 	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ProblemException {
-		int targetIndentation = parentSection != null ? parentSection.indentation() : 0;
-		int rollback = tell();
+		final int targetIndentation = parentSection != null ? parentSection.indentation() : 0;
+		final int rollback = tell();
 		while (skipComment());
 		eatWhitespace();
-		int indentation = currentIndentation();
+		final int indentation = currentIndentation();
 		if (indentation != targetIndentation || read() == '[') {
 			seek(rollback);
 			return null;
@@ -163,8 +153,8 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 			seek(rollback);
 			return null;
 		}
-		int keyStart = tell();
-		String key = readIdent();
+		final int keyStart = tell();
+		final String key = readIdent();
 		eatWhitespace();
 		if (read() != '=')
 			if (modifyMarkers)
@@ -172,17 +162,17 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 		eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 		String value = readStringUntil(BufferedScanner.NEWLINE_CHARS);
 		int valEnd = tell();
-		int commentStart = value != null ? value.indexOf('#') : -1;
+		final int commentStart = value != null ? value.indexOf('#') : -1;
 		if (commentStart != -1) {
 			valEnd -= value.length()-commentStart;
 			value = value.substring(0, commentStart);
 		}
 		//eat(BufferedScanner.NEWLINE_CHARS);
-		IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
+		final IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
 		entry.setParent(section);
 		try {
 			return unit.validateEntry(entry, section, modifyMarkers);
-		} catch (IniParserException e) {
+		} catch (final IniParserException e) {
 			if (modifyMarkers)
 				markers.marker(this, Problem.GenericError, unit, e.offset(), e.endOffset(), Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, e.severity(), (Object)e.getMessage());
 			return entry;
@@ -190,10 +180,10 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 	}
 
 	protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ProblemException {
-		IniEntry entry = parseEntry(section, modifyMarkers, parentSection);
+		final IniEntry entry = parseEntry(section, modifyMarkers, parentSection);
 		if (entry != null)
 			return entry;
-		IniSection sec = parseSection(modifyMarkers, parentSection);
+		final IniSection sec = parseSection(modifyMarkers, parentSection);
 		if (sec != null)
 			return sec;
 
@@ -208,7 +198,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 	}
 
 	public static String defaultSection(Class<?> cls) {
-		IniDefaultSection defSec = cls.getAnnotation(IniDefaultSection.class);
+		final IniDefaultSection defSec = cls.getAnnotation(IniDefaultSection.class);
 		return defSec != null ? defSec.name() : IniDefaultSection.DEFAULT;
 	}
 

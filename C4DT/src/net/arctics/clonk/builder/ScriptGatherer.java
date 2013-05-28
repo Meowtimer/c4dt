@@ -10,6 +10,7 @@ import java.util.Set;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4script.MapScript;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.index.Definition;
@@ -87,11 +88,9 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
 				script = Script.get(file, false);
 				if (script == null) {
-					// create if new file
-					// script in a system group
-					if (isSystemScript(delta.getResource())) //$NON-NLS-1$ //$NON-NLS-2$
-						script = new SystemScript(builder.index(), file);
-					// definition script
+					final SystemScript sy = makeSystemScript(delta.getResource());
+					if (sy != null)
+						script = sy;
 					else
 						script = createDefinition(delta.getResource().getParent());
 				} else {
@@ -151,12 +150,9 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		}
 		else if (resource instanceof IFile) {
 			final IFile file = (IFile) resource;
-			// only create standalone-scripts for *.c files residing in System groups
-			if (isSystemScript(resource)) {
-				Script script = SystemScript.pinned(file, true);
-				if (script == null)
-					script = new SystemScript(builder.index(), file);
-				builder.queueScript(script);
+			final SystemScript sy = makeSystemScript(resource);
+			if (sy != null) {
+				builder.queueScript(sy);
 				return true;
 			}
 			else if (processAuxiliaryFiles(file, Script.get(file, false)))
@@ -193,8 +189,27 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			builder.index().removeScript(s);
 		obsoleted.clear();
 	}
-	public boolean isSystemScript(IResource resource) {
-		return resource instanceof IFile && resource.getName().toLowerCase().endsWith(".c") && isSystemGroup(resource.getParent()); //$NON-NLS-1$
+	private SystemScript makeSystemScript(IResource resource) throws CoreException {
+		final SystemScript pinned = SystemScript.pinned(resource, true);
+		if (pinned != null)
+			return pinned;
+		if (resource instanceof IFile)
+			if (
+				resource.getName().toLowerCase().endsWith(".c") && //$NON-NLS-1$
+				isSystemGroup(resource.getParent())
+			)
+				return new SystemScript(builder.index(), (IFile) resource);
+			else if (
+				resource.getName().toLowerCase().equals("map.c") && //$NON-NLS-1$
+				Scenario.get(resource.getParent()) != null
+			)
+				return new MapScript(builder.index(), (IFile) resource);
+		return null;
+	}
+	public boolean isMapScript(IResource resource) {
+		return
+			resource instanceof IFile &&
+			resource.getName().equals("Map.c");
 	}
 	private boolean isSystemGroup(IContainer container) {
 		return container.getName().equals(builder.index().engine().groupName("System", GroupType.ResourceGroup)); //$NON-NLS-1$

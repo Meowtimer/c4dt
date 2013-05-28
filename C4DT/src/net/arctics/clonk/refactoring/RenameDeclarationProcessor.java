@@ -109,7 +109,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 							final DefCoreUnit unit = (DefCoreUnit) Structure.pinned(def.defCoreFile(), true, false);
 							if (unit != null)
 								try {
-									final IniEntry entry = (IniEntry) unit.sectionWithName("DefCore", false).subItemByKey("id");
+									final IniEntry entry = (IniEntry) unit.sectionWithName("DefCore", false).itemByKey("id");
 									final TextFileChange defCoreChange = new TextFileChange(String.format("Change id in DefCore.txt of %s", decl.toString()), def.defCoreFile());
 									defCoreChange.setEdit(new ReplaceEdit(entry.end()-entry.stringValue().length(), entry.stringValue().length(), newName));
 									composite.add(defCoreChange);

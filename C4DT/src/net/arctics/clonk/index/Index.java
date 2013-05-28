@@ -33,6 +33,7 @@ import net.arctics.clonk.ast.ILatestDeclarationVersionProvider;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProplistDeclaration;
@@ -1069,5 +1070,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			nodes.addAll(defs);
 		return nodes.toArray(new ASTNode[nodes.size()]);
 	}
+
+	@Override
+	public Typing typing() { return Typing.PARAMETERS_OPTIONALLY_TYPED; }
 
 }

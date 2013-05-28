@@ -206,15 +206,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		if (script != null) {
 			engine = script.engine();
 			specialEngineRules = engine != null ? script.engine().specialRules() : null;
-			typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
+			typing = script.typing();
 			migrationTyping = null;
 			if (script.index() instanceof ProjectIndex) {
 				final ProjectIndex projIndex = (ProjectIndex) script.index();
 				final ClonkProjectNature nature = projIndex.nature();
-				if (nature != null) {
-					typing = nature.settings().typing;
+				if (nature != null)
 					migrationTyping = nature.settings().migrationTyping;
-				}
 			}
 			script.setTypeAnnotations(null);
 		}
@@ -963,15 +961,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		final int token = read();
 		boolean parseBody = true;
 		if (token != '{')
-			if (script == engine) {
-				if (token != ';')
-					tokenExpectedError(";"); //$NON-NLS-1$
-				else
-					parseBody = false;
-			} else if (!header.isOldStyle)
+			if (typing == Typing.STATIC && token == ';')
+				parseBody = false;
+			else if (!header.isOldStyle)
 				tokenExpectedError("{"); //$NON-NLS-1$
 			else
-				this.unread();
+				unread();
 
 		// body
 		if (parseBody)

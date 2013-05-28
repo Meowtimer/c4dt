@@ -22,6 +22,7 @@ import net.arctics.clonk.ini.IDArray;
 import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
+import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.ini.IntegerArray;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.mapcreator.ClassicMapCreator;
@@ -572,11 +573,13 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		}
 		private void setValue(int index, int value) {
 			final IniSection s = scenarioConfiguration.sectionWithName(section, true);
-			IniItem i = s.subItemByKey(entry);
+			IniItem i = s.itemByKey(entry);
 			if (i == null) {
 				final int[] values = new int[4];
 				values[index] = value;
-				s.addItem(i = new ComplexIniEntry(-1, -1, entry, new IntegerArray(values)));
+				final ComplexIniEntry ci = new ComplexIniEntry(-1, -1, entry, new IntegerArray(values));
+				i = ci;
+				s.addDeclaration(ci);
 			} else {
 				final IntegerArray ints = (IntegerArray)((ComplexIniEntry)i).value();
 				if (ints.values().length <= index)
@@ -631,15 +634,15 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	public DefinitionListEditor listEditorFor(Composite parent, String sectionName, String entryName, String friendlyName) {
 		ComplexIniEntry entry;
 		try {
-			entry = as(scenarioConfiguration.sectionWithName(sectionName, false).subItemByKey(entryName), ComplexIniEntry.class);
+			entry = as(scenarioConfiguration.sectionWithName(sectionName, false).itemByKey(entryName), ComplexIniEntry.class);
 			if (entry == null)
 				throw new NullPointerException();
 		} catch (final NullPointerException itemCreation) {
 			try {
 				final IniSection section = scenarioConfiguration.sectionWithName(sectionName, true);
-				IniItem item = section.subItemByKey(entryName);
+				IniItem item = section.itemByKey(entryName);
 				if (item == null)
-					item = section.addItem(new ComplexIniEntry(-1, -1, entryName, new IDArray()));
+					item = section.addDeclaration(new ComplexIniEntry(-1, -1, entryName, new IDArray()));
 				entry = (ComplexIniEntry)item;
 			} catch (final Exception fail) {
 				return null;
@@ -915,7 +918,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	@Override
 	public boolean performCancel() {
 		try {
-			scenarioConfiguration.parser().parse(false, true);
+			new IniUnitParser(scenarioConfiguration).parse(false);
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}

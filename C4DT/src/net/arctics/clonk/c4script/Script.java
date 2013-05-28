@@ -685,7 +685,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * Add declaration to this script. Proplists will be named automatically when added without prior name.
 	 * @param declaration Declaration to add. Can be a {@link Variable}, a {@link Function}, a {@link Directive} or a {@link ProplistDeclaration}
 	 */
-	public void addDeclaration(Declaration declaration) {
+	@Override
+	public <T extends Declaration> T addDeclaration(T declaration) {
 		requireLoaded();
 		declaration.setParent(this);
 		if (declaration instanceof Function)
@@ -724,6 +725,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			throw new IllegalArgumentException("declaration");
 		if (dictionary != null)
 			synchronized (dictionary) { dictionary.add(declaration.name()); }
+		return declaration;
 	}
 
 	public void removeDeclaration(Declaration declaration) {

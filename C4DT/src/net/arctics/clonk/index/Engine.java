@@ -23,6 +23,7 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
@@ -42,6 +43,7 @@ import net.arctics.clonk.ini.CustomIniUnit;
 import net.arctics.clonk.ini.IniData;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
 import net.arctics.clonk.ini.IniSection;
+import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IHasUserDescription;
@@ -80,10 +82,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private IStorageLocation[] storageLocations;
 	private IniData iniConfigurations;
 	private SpecialEngineRules specialRules;
-	private Index index;
 	private Scenario templateScenario;
 	private final transient XMLDocImporter xmlDocImporter = new XMLDocImporter();
-	private IniDescriptionsLoader iniDescriptionsLoader;
 
 	/**
 	 * Return the {@link SpecialEngineRules} object associated with this engine. It is an instance of specialEngineRules_&lt;name&gt;
@@ -113,7 +113,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			loadDeclarations();
 	}
 
-	private void loadDeclarations() {
+	public void loadDeclarations() {
 		if (settings.readDocumentationFromRepository)
 			reinitializeDocImporter();
 		else
@@ -392,12 +392,6 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				return true;
 			}
 		}
-		// fallback to description inis
-		if (iniDescriptionsLoader == null)
-			iniDescriptionsLoader = new IniDescriptionsLoader(this);
-		final String iniDescription = iniDescriptionsLoader.descriptionFor(declaration);
-		if (iniDescription != null)
-			declaration.setUserDescription(iniDescription);
 		return false;
 	}
 
@@ -418,7 +412,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				try {
 					final CustomIniUnit unit = new CustomIniUnit(stream, new DeclarationsConfiguration());
 					try {
-						unit.parser().parse(false);
+						new IniUnitParser(unit).parse(false);
 					} catch (final ProblemException e) {
 						e.printStackTrace();
 					}
@@ -440,12 +434,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private void parseEngineScript() {
 		final String lang = ClonkPreferences.languagePref();
-		for (final IStorageLocation loc : storageLocations)
-			for (final String s : new String[] {String.format("%s%s.c", name(), lang), String.format("%s.c", name())}) {
-				final URL url = loc.locatorForEntry(s, false); //$NON-NLS-1$
-				if (url != null)
-					parseEngineScriptAtURL(url);
+		for (final IStorageLocation loc : storageLocations) {
+			final URL url = loc.locatorForEntry(String.format("%s.c", name()), false); //$NON-NLS-1$
+			if (url != null) {
+				parseEngineScriptAtURL(url);
+				new IniDescriptionsLoader(this).loadDescriptions(lang);
+				break;
 			}
+		}
 	}
 
 	private void parseEngineScriptAtURL(final URL url) {
@@ -462,6 +458,40 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			e1.printStackTrace();
 		}
 	}
+
+	/*private void writeDescriptions(File file) {
+		final IniUnit unit = new IniUnit("");
+		IniSection descriptions = unit.addDeclaration(new IniSection("Functions"));
+		for (final Function f : this.functions()) {
+			final IniSection fs = descriptions.addDeclaration(new IniSection(f.name()));
+			final String fd = f.userDescription();
+			if (fd != null)
+				fs.addDeclaration(new IniEntry(0, 0, "Description", fd.trim()));
+			for (final Variable p : f.parameters()) {
+				final String pd = p.userDescription();
+				if (pd == null)
+					continue;
+				final IniSection ps = fs.addDeclaration(new IniSection(p.name()));
+				if (ps != null)
+					ps.addDeclaration(new IniEntry(0, 0, "Description", pd.trim()));
+				else
+					System.out.println("you should feel bad");
+			}
+		}
+		descriptions = unit.addDeclaration(new IniSection("Variables"));
+		for (final Variable v : this.variables()) {
+			final String vd = v.userDescription();
+			if (vd == null)
+				continue;
+			final IniSection vs = descriptions.addDeclaration(new IniSection(v.name()));
+			vs.addDeclaration(new IniEntry(0, 0, "Description", vd.trim()));
+		}
+		try (FileWriter writer = new FileWriter(file)) {
+			unit.save(new AppendableBackedExprWriter(writer), true);
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
+	}*/
 
 	private void createSpecialRules() {
 		try {
@@ -520,6 +550,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private void load(final IStorageLocation... providers) {
 		this.storageLocations = providers;
+		load();
+	}
+
+	public void load() {
+		clearDeclarations();
 		try {
 			loadSettings();
 		} catch (final IOException e) {
@@ -534,11 +569,13 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		index = new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
-			public Engine engine() {
-				return Engine.this;
-			}
+			public Engine engine() { return Engine.this; }
+			@Override
+			public Typing typing() { return Typing.STATIC; }
 		};
 		templateScenario = new TemplateScenario(index, "ScenarioOfTheMind", null);
+		if (specialRules != null)
+			specialRules.contribute(this);
 	}
 
 	private final Map<String, ProjectConversionConfiguration> projectConversionConfigurations = new HashMap<String, ProjectConversionConfiguration>();
@@ -790,5 +827,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			return true;
 		}
 	}
+
+	@Override
+	public Typing typing() { return Typing.STATIC; }
 
 }

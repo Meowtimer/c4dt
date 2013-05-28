@@ -8,6 +8,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.util.ObjectFinderVisitor;
@@ -27,10 +28,10 @@ public class ProjectIndex extends Index {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public static final String INDEXFILE_SUFFIX = ".index"; //$NON-NLS-1$
-	
+
 	private transient IProject project;
 	private transient ClonkProjectNature nature;
-	
+
 	@Override
 	public Engine engine() { return nature.settings().engine(); }
 	/**
@@ -39,7 +40,7 @@ public class ProjectIndex extends Index {
 	 */
 	@Override
 	public ClonkProjectNature nature() { return nature; }
-	
+
 	/**
 	 * Initialize a new ProjectIndex for the given project.
 	 * @param project The project to initialize the index for
@@ -48,7 +49,7 @@ public class ProjectIndex extends Index {
 		super(folder);
 		setProject(project);
 	}
-	
+
 	/**
 	 * Overriding {@link Declaration#name()} ensures that the project's name and the name of the index will be in sync.
 	 */
@@ -57,7 +58,7 @@ public class ProjectIndex extends Index {
 		setName(project.getName());
 		return super.name();
 	}
-	
+
 	/**
 	 * Set the project the index belongs to.
 	 * @param proj The project
@@ -66,7 +67,7 @@ public class ProjectIndex extends Index {
 		project = proj;
 		nature = ClonkProjectNature.get(project);
 	}
-	
+
 	@Override
 	public void postLoad() throws CoreException {
 		super.postLoad();
@@ -82,53 +83,53 @@ public class ProjectIndex extends Index {
 					return !item.refreshDefinitionFolderReference(project);
 				}
 			});
-			for (Scenario scenario : indexedScenarios())
+			for (final Scenario scenario : indexedScenarios())
 				if (!scenario.refreshDefinitionFolderReference(project))
 					stuffToBeRemoved.add(scenario);
-			for (Script script : indexedScripts())
+			for (final Script script : indexedScripts())
 				if (script instanceof SystemScript) {
-					SystemScript standalone = (SystemScript) script;
+					final SystemScript standalone = (SystemScript) script;
 					if (!standalone.refreshFileReference(project))
 						stuffToBeRemoved.add(standalone);
 				}
 			// purge objects that seem to be non-existent
-			for (Script s : stuffToBeRemoved)
+			for (final Script s : stuffToBeRemoved)
 				this.removeScript(s);
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return project != null ? "Index for " + project.toString() : "Orphan Project Index"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
-	
+
 	/**
-	 * Find a script belonging to the project resource denoted by the given path. 
+	 * Find a script belonging to the project resource denoted by the given path.
 	 */
 	@Override
 	public Script findScriptByPath(String path) {
-		IResource res = nature().getProject().findMember(new Path(path));
+		final IResource res = nature().getProject().findMember(new Path(path));
 		if (res != null) {
 			Script result;
 			try {
 				result = Utilities.scriptForResource(res);
 				if (result != null)
 					return result;
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 				return null;
 			}
 		}
 		return super.findScriptByPath(path);
 	}
-	
+
 	/**
 	 * Return the project index for the given project.
 	 * @param project The project to return the ProjectIndex of
 	 * @return The ProjectIndex
 	 */
 	public static ProjectIndex get(IProject project) {
-		ClonkProjectNature nature = ClonkProjectNature.get(project);
+		final ClonkProjectNature nature = ClonkProjectNature.get(project);
 		return nature != null ? nature.index() : null;
 	}
 
@@ -139,13 +140,13 @@ public class ProjectIndex extends Index {
 	}
 
 	public <T extends Structure> T findPinnedStructure(final Class<T> cls, final String name, IResource pivot, final boolean create, final String fileName) {
-		ObjectFinderVisitor<T> finder = new ObjectFinderVisitor<T>() {
+		final ObjectFinderVisitor<T> finder = new ObjectFinderVisitor<T>() {
 			@SuppressWarnings("unchecked")
 			@Override
 			public boolean visit(IResource resource) throws CoreException {
 				if (!resource.getName().equals(fileName))
 					return true;
-				Structure s = Structure.pinned(resource, create, false);
+				final Structure s = Structure.pinned(resource, create, false);
 				if (s != null && cls.isAssignableFrom(s.getClass()) && s.name().equals(name)) {
 					result = (T) s;
 					return false;
@@ -153,13 +154,13 @@ public class ProjectIndex extends Index {
 				return true;
 			}
 		};
-		List<T> r = new LinkedList<T>();
-		for (Index i : relevantIndexes())
+		final List<T> r = new LinkedList<T>();
+		for (final Index i : relevantIndexes())
 			if (i instanceof ProjectIndex) {
 				finder.reset();
 				try {
 					((ProjectIndex)i).nature().getProject().accept(finder);
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					e.printStackTrace();
 					continue;
 				}
@@ -171,11 +172,14 @@ public class ProjectIndex extends Index {
 
 	public static ProjectIndex fromResource(IResource res) {
 		if (res != null) {
-			ClonkProjectNature nature = ClonkProjectNature.get(res);
+			final ClonkProjectNature nature = ClonkProjectNature.get(res);
 			if (nature != null)
 				return nature.index();
 		}
 		return null;
 	}
+
+	@Override
+	public Typing typing() { return nature().settings().typing; }
 
 }

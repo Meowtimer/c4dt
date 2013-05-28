@@ -20,7 +20,6 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
-import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.stringtbl.StringTbl;
@@ -34,6 +33,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.text.IRegion;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * Base class for all declarations (object definitions, actmaps, functions, variables etc)
@@ -213,8 +214,8 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * Adds a sub-declaration
 	 * @param declaration
 	 */
-	public void addSubDeclaration(Declaration declaration) {
-		System.out.println(String.format("Attempt to add sub declaration %s to %s", declaration, this));
+	public <T extends Declaration> T addDeclaration(T declaration) {
+		throw new NotImplementedException();
 	}
 
 	/**
@@ -226,7 +227,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 			name = name.intern();
 		postLoad(parent);
 	}
-	
+
 	@Override
 	public ASTNode[] subElements() {
 		final List<? extends Declaration> sd = this.subDeclarations(this.index(), DeclMask.ALL);
@@ -371,12 +372,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	@Override
 	public boolean equals(Object other) { return this == other; /* identity */ }
 
-	protected Typing typing() {
-		Typing typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
-		if (index() instanceof ProjectIndex)
-			typing = ((ProjectIndex)index()).nature().settings().typing;
-		return typing;
-	}
+	public Typing typing() { return index() != null ? index().typing() : Typing.PARAMETERS_OPTIONALLY_TYPED; }
 
 	@Override
 	public String patternMatchingText() { return name(); }

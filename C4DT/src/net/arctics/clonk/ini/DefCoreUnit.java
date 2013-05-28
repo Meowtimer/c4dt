@@ -34,9 +34,9 @@ public class DefCoreUnit extends IniUnit {
 	public void commitTo(Script script, ClonkBuilder builder) {
 		super.commitTo(script, builder);
 		if (script instanceof Definition)
-			((Definition)script).setDefCoreFile(iniFile);
+			((Definition)script).setDefCoreFile(file());
 	}
-	
+
 	@Override
 	public String defaultName() {
 		final ID id = definitionID();

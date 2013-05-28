@@ -105,7 +105,10 @@ public class Scenario extends Definition {
 
 	public ScenarioUnit scenarioConfiguration() {
 		final IFile scenarioFile = as(definitionFolder().findMember(ScenarioUnit.FILENAME), IFile.class);
-		return scenarioFile != null ? Structure.pinned(scenarioFile, true, false, ScenarioUnit.class) : null;
+		if (scenarioFile != null)
+			return Structure.pinned(scenarioFile, true, false);
+		else
+			return null;
 	}
 
 	@Override

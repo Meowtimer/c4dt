@@ -162,7 +162,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 					setActiveEngineByName(ClonkPreferences.value(ClonkPreferences.ACTIVE_ENGINE));
 				else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID))
 					for (final Engine e : loadedEngines())
-						e.reinitializeDocImporter();
+						e.loadDeclarations();
 			}
 		});
 
@@ -233,6 +233,13 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				return new ReadOnlyIterator<Engine>(loadedEngines.values().iterator());
 			}
 		};
+	}
+
+	public void reloadEngines() {
+		final String[] ens = loadedEngines.keySet().toArray(new String[loadedEngines.keySet().size()]);
+		loadedEngines.clear();
+		for (final String e : ens)
+			loadEngine(e);
 	}
 
 	public Engine loadEngine(final String engineName) {
@@ -568,7 +575,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public boolean wasUpdated() {
 		return !getBundle().getVersion().equals(versionFromLastRun);
 	}
-	
+
 	@Override
 	public IPreferenceStore getPreferenceStore() {
 		try {
