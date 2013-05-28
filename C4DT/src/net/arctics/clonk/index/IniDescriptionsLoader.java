@@ -26,18 +26,12 @@ public class IniDescriptionsLoader {
 		for (int i = storageLocations.length - 1; i >= 0; i--) {
 			final IStorageLocation loc = storageLocations[i];
 			final URL descs = loc.locatorForEntry(fileName, false);
-			if (descs != null) {
-				InputStream input;
-				try {
-					input = descs.openStream();
-				} catch (final IOException e1) {
-					e1.printStackTrace();
-					return;
-				}
-				try {
+			if (descs != null)
+				try (InputStream input = descs.openStream()) {
 					final IniUnit unit = new IniUnit(input);
 					try {
-						new IniUnitParser(unit).parse(false);
+						final IniUnitParser parser = new IniUnitParser(unit);
+						parser.parse(false);
 					} catch (final ProblemException e) {
 						e.printStackTrace();
 					}
@@ -69,14 +63,9 @@ public class IniDescriptionsLoader {
 									v.setUserDescription(de.value().toString());
 							}
 						}
-				} finally {
-					try {
-						input.close();
-					} catch (final IOException e) {
-						e.printStackTrace();
-					}
+				} catch (final IOException e1) {
+					e1.printStackTrace();
 				}
-			}
 		}
 	}
 }
