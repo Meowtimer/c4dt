@@ -8,7 +8,7 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 
 
 /**
- * 
+ *
  * @author madeen
  * an operator
  */
@@ -50,49 +50,51 @@ public enum Operator {
 	AssignOr(PrimitiveType.BOOL, PrimitiveType.BOOL, PrimitiveType.BOOL, "|=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignAnd(PrimitiveType.BOOL, PrimitiveType.BOOL, PrimitiveType.BOOL, "&=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignXOr(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "^=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
-	Transform(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, "=>", 2, null);
-	
+	Transform(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, "=>", 2, null),
+	Identical(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.BOOL, "!==", 9),
+	NotIdentical(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.BOOL, "===", 9);
+
 	public static final int RETURNS_REF = 1;
 	public static final int RIGHTASSOCIATIVE = 2;
 	public static final int ASSOCIATIVE_OP = 4;
-	
+
 	final PrimitiveType firstArgType, secondArgType, resultType;
 	final String operatorName, oldStyleFunctionEquivalent;
 	final int priority;
 	final int flags;
-	
+
 	public static final Map<String, Operator> stringToOperatorMap;
-	
+
 	static {
 		final HashMap<String, Operator> workInProgress = new HashMap<String, Operator>();
 		for (final Operator op : values())
 			workInProgress.put(op.operatorName(), op);
 		stringToOperatorMap = Collections.unmodifiableMap(workInProgress);
 	}
-	
+
 	public static Operator get(String opName) { return stringToOperatorMap.get(opName); }
-	
+
 	private Operator(PrimitiveType firstArgType, PrimitiveType secondArgType,
 			PrimitiveType resultType, String operatorName, int priority,
 			String oldStyleFunctionEquivalent, int flags) {
-		
+
 		if (name().startsWith("Assign")) //$NON-NLS-1$
 			flags |= RIGHTASSOCIATIVE;
-		
+
 		this.firstArgType = firstArgType;
 		this.secondArgType = secondArgType;
 		this.resultType = resultType;
 		this.operatorName = operatorName;
 		this.oldStyleFunctionEquivalent = oldStyleFunctionEquivalent;
-		this.priority = priority;	
+		this.priority = priority;
 		this.flags = flags;
 	}
-	
+
 	private Operator(PrimitiveType firstArgType, PrimitiveType secondArgType,
 			PrimitiveType resultType, String operatorName, int priority, String oldStyleFunctionEquivalent) {
 		this(firstArgType, secondArgType, resultType, operatorName, priority, oldStyleFunctionEquivalent, 0);
 	}
-	
+
 	private Operator(PrimitiveType firstArgType, PrimitiveType secondArgType,
 			PrimitiveType resultType, String operatorName, int priority) {
 		this(firstArgType, secondArgType, resultType, operatorName, priority, null, 0);
@@ -152,5 +154,10 @@ public enum Operator {
 		for (final Operator o : values())
 			result[o.ordinal()] = o.operatorName();
 		return result;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s (%s)", super.toString(), operatorName());
 	}
 }

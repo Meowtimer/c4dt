@@ -1169,39 +1169,28 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return the operator referenced in the code at offset
 	 */
 	private Operator parseOperator() {
-		final int offset = this.offset;
-		final char[] chars = new char[] { (char)read(), (char)read()  };
-		String s = new String(chars);
-
-		// never to be read as an operator
-		if (s.equals("->")) { //$NON-NLS-1$
-			this.seek(offset);
+		Operator best = null;
+		if (offset + 2 < size && buffer[offset] == '-' && buffer[offset+1] == '>')
 			return null;
-		}
-
-		Operator result = Operator.get(s);
-		if (result != null) {
-			// new_variable should not be parsed as ne w_variable -.-
-			if (result == Operator.ne || result == Operator.eq) {
-				final int followingChar = read();
-				if (BufferedScanner.isWordPart(followingChar)) {
-					this.seek(offset);
-					return null;
-				} else
-					unread();
+		OpLoop: for (final Operator op : Operator.values()) {
+			final String n = op.operatorName();
+			if (offset+n.length() <= size) {
+				for (int i = 0; i < n.length(); i++)
+					if (n.charAt(i) != buffer[offset+i])
+						continue OpLoop;
+				if (best == null || best.operatorName().length() < n.length())
+					best = op;
 			}
-			return result;
 		}
-
-		s = s.substring(0, 1);
-		result = Operator.get(s);
-		if (result != null) {
-			unread();
-			return result;
-		}
-
-		this.seek(offset);
-		return null;
+		if (best != null) {
+			offset += best.operatorName().length();
+			if ((best == Operator.ne || best == Operator.eq) && BufferedScanner.isWordPart(peek())) {
+				offset -= best.operatorName().length();
+				return null;
+			}
+			return best;
+		} else
+			return null;
 	}
 
 	private void warning(Problem code, int errorStart, int errorEnd, int flags, Object... args) {
