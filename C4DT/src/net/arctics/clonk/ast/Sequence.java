@@ -27,7 +27,7 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		for (final ASTNode e : elements)
-			e.print(output, depth+1);
+			e.print(output, depth);
 	}
 	public Sequence subSequenceUpTo(ASTNode elm) {
 		final List<ASTNode> list = new ArrayList<ASTNode>(elements.length);
