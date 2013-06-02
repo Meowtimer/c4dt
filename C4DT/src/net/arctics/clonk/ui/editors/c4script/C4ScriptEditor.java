@@ -209,10 +209,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	public void dispose() {
-		if (editingState != null) {
-			editingState.removeEditor(this);
-			editingState = null;
-		}
 		colorManager.dispose();
 		super.dispose();
 	}

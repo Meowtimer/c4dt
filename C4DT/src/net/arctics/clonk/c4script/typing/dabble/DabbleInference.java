@@ -351,7 +351,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			Visit visit;
 
 			@Override
-			public void run() { visitAllPlanned(this); }
+			public void run() { visitAllPlanned(this); apply(); }
 
 			public Visitor(Visitor originator) {
 				this.originator = originator;

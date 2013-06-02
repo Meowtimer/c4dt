@@ -52,7 +52,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 	}
 	public static IniUnitEditingState addTo(IDocument document, IniUnit unit, IniTextEditor client)  {
 		try {
-			return addTo(list, IniUnitEditingState.class, document, unit, client);
+			return request(list, IniUnitEditingState.class, document, unit, client);
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;

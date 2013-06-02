@@ -45,6 +45,7 @@ import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IWorkbenchPart;
 
 /**
  * C4Script-specific specialization of {@link StructureEditingState} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
@@ -80,7 +81,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	public static ScriptEditingState addTo(IDocument document, Script script, C4ScriptEditor client)  {
 		try {
-			return addTo(list, ScriptEditingState.class, document, script, client);
+			return request(list, ScriptEditingState.class, document, script, client);
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
@@ -408,6 +409,15 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			typingContext.visit(function);
 		}
 		return fparser;
+	}
+
+	@Override
+	public void partActivated(IWorkbenchPart part) {
+		if (editors.contains(part)) {
+			try { reparse(false); }
+			catch (final ProblemException e) {}
+			super.partActivated(part);
+		}
 	}
 
 }

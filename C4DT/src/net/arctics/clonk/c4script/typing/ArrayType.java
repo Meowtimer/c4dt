@@ -38,7 +38,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	@Override
 	public IType simpleType() { return PrimitiveType.ARRAY; }
 	@Override
-	public String toString() { return typeName(false); }
+	public String toString() { return typeName(true); }
 	@Override
 	public PrimitiveType primitiveType() { return PrimitiveType.ARRAY; }
 

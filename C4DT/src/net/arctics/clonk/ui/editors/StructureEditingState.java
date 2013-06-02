@@ -14,6 +14,8 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.ui.IPartListener;
+import org.eclipse.ui.IWorkbenchPart;
 
 /**
  * Editing state on a specific {@link Structure}. Shared among all editors editing the file the {@link Structure} was read from.
@@ -22,7 +24,8 @@ import org.eclipse.jface.text.IDocumentListener;
  * @param <EditorType> The type of {@link ClonkTextEditor} the state is shared among.
  * @param <StructureType> Type of {@link Structure}.
  */
-public abstract class StructureEditingState<EditorType extends ClonkTextEditor, StructureType extends Structure> implements IDocumentListener {
+public abstract class StructureEditingState<EditorType extends ClonkTextEditor, StructureType extends Structure>
+	implements IDocumentListener, IPartListener {
 	protected List<EditorType> editors = new LinkedList<EditorType>();
 	protected StructureType structure;
 	protected IDocument document;
@@ -31,7 +34,9 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 	/**
 	 * Called after the text change listener was added to a {@link IDocument} -> {@link StructureEditingState} map.
 	 */
-	protected void initialize() {}
+	protected void initialize() {
+		document.addDocumentListener(this);
+	}
 
 	/**
 	 * Add a text change listener of some supplied listener class to a {@link IDocument} -> {@link StructureEditingState} map.
@@ -43,36 +48,39 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 	 * @param type The listener class
 	 * @param document The document
 	 * @param structure The {@link Structure} corresponding to the document
-	 * @param client One editor editing the document.
+	 * @param editor One editor editing the document.
 	 * @return The listener that has been either created and added to the map or was already found in the map.
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
 	@SuppressWarnings("unchecked")
-	public static <E extends ClonkTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T addTo(
+	public static <E extends ClonkTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T request(
 		List<T> list,
 		Class<T> type,
 		IDocument document,
 		S structure,
-		E client
+		E editor
 	) throws InstantiationException, IllegalAccessException {
 		final StructureEditingState<? super E, ? super S> result = stateFromList(list, structure);
 		T r;
 		if (result == null) {
 			r = type.newInstance();
-			r.list = list;
-			r.structure = structure;
-			r.document = document;
+			r.set(list, structure, document);
 			r.initialize();
-			document.addDocumentListener(r);
 			list.add(r);
 		} else
 			r = (T)result;
-		r.editors.add(client);
+		r.addEditor(editor);
 		return r;
 	}
 
-	public static <E extends ClonkTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(List<T> list, S structure) {
+	void set(List<? extends StructureEditingState<EditorType, StructureType>> list, StructureType structure, IDocument document) {
+		this.list = list;
+		this.structure = structure;
+		this.document = document;
+	}
+
+	protected static <E extends ClonkTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(List<T> list, S structure) {
 		T result = null;
 		for (final T s : list)
 			if (Utilities.eq(s.structure(), structure)) {
@@ -92,19 +100,38 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 	 */
 	public void cleanupAfterRemoval() {}
 
+	protected void addEditor(EditorType editor) {
+		editors.add(editor);
+		editor.getSite().getPage().addPartListener(this);
+	}
+
 	/**
 	 * Remove an editor
-	 * @param client
+	 * @param editor The editor
 	 */
-	public void removeEditor(EditorType client) {
+	public void removeEditor(EditorType editor) {
 		synchronized (editors) {
-			if (editors.remove(client) && editors.isEmpty()) {
-				cancelReparsingTimer();
-				list.remove(this);
-				document.removeDocumentListener(this);
-				cleanupAfterRemoval();
+			if (editors.remove(editor)) {
+				maybeRemovePartListener(editor);
+				if (editors.isEmpty()) {
+					cancelReparsingTimer();
+					list.remove(this);
+					document.removeDocumentListener(this);
+					cleanupAfterRemoval();
+				}
 			}
 		}
+	}
+
+	private void maybeRemovePartListener(EditorType removedEditor) {
+		boolean removePartListener = true;
+		for (final EditorType ed : editors)
+			if (ed.getSite().getPage() == removedEditor.getSite().getPage()) {
+				removePartListener = false;
+				break;
+			}
+		if (removePartListener)
+			removedEditor.getSite().getPage().removePartListener(this);
 	}
 
 	@Override
@@ -196,4 +223,19 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 		document = editors.get(0).getDocumentProvider().getDocument(editors.get(0).getEditorInput());
 		document.addDocumentListener(this);
 	}
+
+	@Override
+	public void partActivated(IWorkbenchPart part) {}
+	@Override
+	public void partBroughtToTop(IWorkbenchPart part) {}
+	@SuppressWarnings("unchecked")
+	@Override
+	public void partClosed(IWorkbenchPart part) {
+		try { removeEditor((EditorType) part); }
+		catch (final ClassCastException cce) {}
+	}
+	@Override
+	public void partDeactivated(IWorkbenchPart part) {}
+	@Override
+	public void partOpened(IWorkbenchPart part) {}
 }
