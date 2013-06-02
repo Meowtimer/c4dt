@@ -1595,15 +1595,21 @@ public class DabbleInference extends ProblemReportingStrategy {
 							else if (t instanceof Declaration && t instanceof IProplistDeclaration) {
 								final IProplistDeclaration proplDecl = (IProplistDeclaration) t;
 								final Declaration d = (Declaration) t;
-								if (d.parentOfType(IndexEntity.class) == visitor.script()) {
+								if (d.parentOfType(IndexEntity.class) == visitor.script())
 									addComponentToProplist(node, type, origin, visitor, proplDecl);
-									typeAsProplist = false;
-								} else {
-									if (DEBUG)
-										visitor.log("Won't add '%s' to '%s'", node.name(), d.qualifiedName()); //$NON-NLS-1$
-									typeAsProplist = false;
-								}
+								else if (DEBUG)
+									visitor.log("Won't add '%s' to '%s'", node.name(), d.qualifiedName()); //$NON-NLS-1$
+								typeAsProplist = false;
 							}
+							else if (t instanceof CallTargetType)
+								/*
+								 * steps->|cursor|
+								 *
+								 * asd = 123;
+								 *
+								 * Prevent typing steps as proplist {asd}
+								 */
+								typeAsProplist = false;
 						if (typeAsProplist)
 							typeAsProplist(node, type, origin, visitor);
 					}
