@@ -143,11 +143,12 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator _) {
+	public EntityRegion entityAt(int offset, IEntityLocator l) {
 		// parse comment as expression and see what goes
-		final ExpressionLocator<Comment> locator = new ExpressionLocator<Comment>(offset-2-this.sectionOffset()); // make up for '//' or /*'
 		try {
 			final Script script = parentOfType(Script.class);
+			if (script == null)
+				return null;
 			final ScriptParser commentParser = new ScriptParser(comment, script, script.scriptFile()) {
 				@Override
 				protected void initialize() {
@@ -155,21 +156,19 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 					markers().enabled(false);
 				}
 				@Override
-				public int sectionOffset() {
-					return 0;
-				}
+				public int sectionOffset() { return 0; }
 			};
+			final ExpressionLocator<Comment> locator = new ExpressionLocator<Comment>(offset-2-this.sectionOffset()); // make up for '//' or /*'
 			commentParser.parseStandaloneStatement(comment, parentOfType(Function.class)).traverse(locator, this);
+			if (locator.expressionAtRegion() != null) {
+				final EntityRegion reg = locator.expressionAtRegion().entityAt(offset, locator);
+				if (reg != null)
+					return reg.incrementRegionBy(start()+2);
+				else
+					return null;
+			}
 		} catch (final ProblemException e) {}
-		if (locator.expressionAtRegion() != null) {
-			final EntityRegion reg = locator.expressionAtRegion().entityAt(offset, locator);
-			if (reg != null)
-				return reg.incrementRegionBy(start()+2);
-			else
-				return null;
-		}
-		else
-			return super.entityAt(offset, locator);
+		return super.entityAt(offset, l);
 	}
 
 	@Override

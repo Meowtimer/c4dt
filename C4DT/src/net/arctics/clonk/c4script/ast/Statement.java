@@ -1,5 +1,8 @@
 package net.arctics.clonk.c4script.ast;
 
+import static net.arctics.clonk.util.ArrayUtil.concat;
+import static net.arctics.clonk.util.ArrayUtil.filter;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -25,7 +28,7 @@ public class Statement extends ASTNode implements Cloneable {
 		}
 		void applyAttachment(Attachment.Position position, ASTNodePrinter builder, int depth);
 	}
-	
+
 	public static class EmptyLinesAttachment implements Attachment {
 
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -54,25 +57,25 @@ public class Statement extends ASTNode implements Cloneable {
 	}
 
 	private List<Attachment> attachments;
-	
+
 	public void addAttachment(Attachment attachment) {
 		if (attachments == null)
 			attachments = new LinkedList<Attachment>();
 		attachments.add(attachment);
 	}
-	
+
 	public void addAttachments(Collection<? extends Attachment> attachmentsToAdd) {
 		if (attachments == null)
 			attachments = new LinkedList<Attachment>();
 		attachments.addAll(attachmentsToAdd);
 	}
-	
+
 	public List<Attachment> attachments() { return attachments; }
-	
+
 	@SuppressWarnings("unchecked")
 	public <T extends Attachment> T attachmentOfType(Class<T> cls) {
 		if (attachments != null)
-			for (Attachment a : attachments)
+			for (final Attachment a : attachments)
 				if (cls.isAssignableFrom(a.getClass()))
 					return (T) a;
 		return null;
@@ -83,7 +86,7 @@ public class Statement extends ASTNode implements Cloneable {
 	}
 
 	public void setInlineComment(Comment inlineComment) {
-		Comment old = inlineComment();
+		final Comment old = inlineComment();
 		if (old != null)
 			attachments.remove(old);
 		addAttachment(inlineComment);
@@ -97,24 +100,31 @@ public class Statement extends ASTNode implements Cloneable {
 	@Override
 	public void printPrefix(ASTNodePrinter builder, int depth) {
 		if (attachments != null)
-			for (Attachment a : attachments)
-				a.applyAttachment(Attachment.Position.Pre, builder, depth);	
+			for (final Attachment a : attachments)
+				a.applyAttachment(Attachment.Position.Pre, builder, depth);
 	}
-	
+
 	@Override
 	public void printSuffix(ASTNodePrinter builder, int depth) {
 		if (attachments != null)
-			for (Attachment a : attachments)
+			for (final Attachment a : attachments)
 				a.applyAttachment(Attachment.Position.Post, builder, depth);
 	}
-	
+
 	public static final Statement NULL_STATEMENT = new Statement() {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
 		@Override
 		public void doPrint(ASTNodePrinter output, int depth) {
 			// blub
-		};
+		}
 	};
+
+	@Override
+	protected ASTNode[] traversalSubElements() {
+		if (attachments != null)
+			return concat(super.traversalSubElements(), filter(attachments.toArray(), ASTNode.class));
+		else
+			return super.traversalSubElements();
+	}
 
 }
