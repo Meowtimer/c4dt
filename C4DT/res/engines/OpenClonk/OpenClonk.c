@@ -781,13 +781,15 @@ global func bool CustomGuiSetTag(string tag, int menuID, int childID, object tar
 global func bool CustomGuiClose(int menuID, int childID, object target);
 global func bool CustomGuiUpdate(proplist update, int menuID, int childID, object target);
 
-func bool Draw(string mattex, proplist mask_algo, array rect);
-func bool Blit(proplist mask_algo, array rect);
-func proplist CreateLayer(string mattex_fill, int width, int height);
-func proplist Duplicate(mask_spec, array rect);
-func int GetPixel(int x, int y);
-func bool SetPixel(int x, int y, to_value);
-func int GetPixelCount(mask_spec, array rect);
-func bool Resize(int new_wdt, int new_hgt);
-func bool FindPosition(proplist out_pos, mask_spec);
-func array CreateMatTexMask(mask_spec);
+global func bool Draw(string mattex, proplist mask_algo, array rect);
+global func bool Blit(proplist mask_algo, array rect);
+global func proplist CreateLayer(string mattex_fill, int width, int height);
+global func proplist Duplicate(mask_spec, array rect);
+global func int GetPixel(int x, int y);
+global func bool SetPixel(int x, int y, to_value);
+global func int GetPixelCount(mask_spec, array rect);
+global func bool Resize(int new_wdt, int new_hgt);
+global func bool FindPosition(proplist out_pos, mask_spec);
+global func array CreateMatTexMask(mask_spec);
+
+static const object Global;

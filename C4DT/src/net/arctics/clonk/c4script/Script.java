@@ -676,8 +676,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			if (scenario.propList() != null)
 				return scenario.propList();
 		}
-		else if (info.name.equals(Index.GLOBAL_PROPLIST_NAME) && index().global() != null)
-			return index().global();
 		return null;
 	}
 

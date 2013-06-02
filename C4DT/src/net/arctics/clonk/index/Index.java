@@ -30,13 +30,11 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.ILatestDeclarationVersionProvider;
-import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.c4script.Variable;
@@ -44,7 +42,6 @@ import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
-import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.index.serialization.IndexEntityInputStream;
 import net.arctics.clonk.index.serialization.IndexEntityOutputStream;
 import net.arctics.clonk.index.serialization.replacements.EngineRef;
@@ -82,7 +79,6 @@ import org.eclipse.core.runtime.CoreException;
 public class Index extends Declaration implements Serializable, ILatestDeclarationVersionProvider {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public static final String GLOBAL_PROPLIST_NAME = "Global";
 
 	public transient Object saveSynchronizer = new Object();
 	public transient Object loadSynchronizer = new Object();
@@ -102,19 +98,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	private final List<Scenario> indexedScenarios = new LinkedList<Scenario>();
 	private final List<Declaration> globalsContainers = new LinkedList<Declaration>();
 	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
-	private Variable globalProplist;
-
-	public synchronized Variable global() {
-		if (globalProplist == null && engine().settings().supportsGlobalProplists) {
-			final ProplistDeclaration type = new ProplistDeclaration(GLOBAL_PROPLIST_NAME);
-			type.setLocation(SourceLocation.ZERO);
-			type.setParent(this);
-			globalProplist = new Variable(GLOBAL_PROPLIST_NAME, (IType)type);
-			globalProplist.setParent(this);
-			globalProplist.setScope(Scope.STATIC);
-		}
-		return globalProplist;
-	}
 
 	protected File folder;
 	protected boolean built;
@@ -301,7 +284,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			appendages = new HashMap<ID, List<Script>>();
 		globalFunctions.clear();
 		staticVariables.clear();
-		final Variable g = global(); if (g != null) staticVariables.add(global());
 		declarationMap.clear();
 
 		final Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
@@ -654,7 +636,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		clearEntityFiles();
 		entities.clear();
 		entityIdCounter = 0;
-		globalProplist = null;
 		refresh(false);
 		built(false);
 	}
