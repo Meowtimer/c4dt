@@ -559,7 +559,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param oldStyle Whether to print in old 'label-style'
 	 */
 	public void printHeader(ASTNodePrinter output, boolean oldStyle) {
-		if (engine().settings().supportsFunctionVisibility) {
+		if (engine().settings().supportsFunctionVisibility || visibility() == FunctionScope.GLOBAL) {
 			output.append(visibility().toString());
 			output.append(" "); //$NON-NLS-1$
 		}
