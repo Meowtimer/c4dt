@@ -2699,6 +2699,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					} else
 						loopVariable = null;
 
+					visitor.judgment(arrayExpr, PrimitiveType.ARRAY, TypingJudgementMode.UNIFY);
+
 					visitor.visit(elementExpr, true);
 					visitor.visit(arrayExpr, true);
 
