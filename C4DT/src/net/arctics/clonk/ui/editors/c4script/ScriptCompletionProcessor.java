@@ -265,6 +265,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private boolean checkProposalConditions(ProposalsSite pl) {
 		try {
 			boolean targetCall = false;
+			boolean whitespace = false;
 			Loop: for (int arrowOffset = pl.wordOffset - 1; arrowOffset >= 1; arrowOffset--) {
 				final char c = pl.document.getChar(arrowOffset);
 				switch (c) {
@@ -276,7 +277,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					//$FALL-THROUGH$
 				case '>':
 					if (pl.document.getChar(arrowOffset-1) != '-')
-						return false;
+						return whitespace || (pl.prefix != null && pl.prefix.length() > 0);
 					targetCall = true;
 					break Loop;
 				case ':':
@@ -287,8 +288,10 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					targetCall = true;
 					break Loop;
 				default:
-					if (Character.isWhitespace(c))
+					if (Character.isWhitespace(c)) {
+						whitespace = true;
 						continue Loop;
+					}
 					else
 						break Loop;
 				}
