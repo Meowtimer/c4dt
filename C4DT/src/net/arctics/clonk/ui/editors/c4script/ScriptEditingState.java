@@ -412,11 +412,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	@Override
-	public void partActivated(IWorkbenchPart part) {
+	public void partBroughtToTop(IWorkbenchPart part) {
 		if (editors.contains(part)) {
 			try { reparse(false); }
 			catch (final ProblemException e) {}
-			super.partActivated(part);
+			super.partBroughtToTop(part);
 		}
 	}
 
