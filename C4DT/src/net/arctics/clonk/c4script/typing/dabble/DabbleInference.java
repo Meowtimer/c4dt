@@ -2303,7 +2303,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final IType unified = unifyNoChoice(parmTy, givenTy);
 						if (unified == null)
 							visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
-						else
+						else if (givenTy == PrimitiveType.UNKNOWN)
 							visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
 					}
 					if (noticeParameterCountMismatch)
