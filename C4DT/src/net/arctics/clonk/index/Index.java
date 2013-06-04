@@ -297,10 +297,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			appendages = newAppendages;
 
 		final int[] counts = new int[3];
-		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
+		allScripts(new Sink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
-				item.indexRefresh();
 				if (item.loaded)
 					counts[2]++;
 				if (item instanceof Definition)

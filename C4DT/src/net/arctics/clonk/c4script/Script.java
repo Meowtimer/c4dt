@@ -1187,12 +1187,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * 	<li>{@link #dictionary()} is populated with names of declarations contained in this script.</li>
 	 *  <li>An internal cache for finding declarations is generated so that {@link #findDeclaration(String, FindDeclarationInfo)} does faster lookup.</li>
 	 *  <li>{@link #varReferences()} and {@link #callMap()} are populated with references to respective AST nodes ({@link AccessVar} and {@link CallDeclaration}).</li>
+	 *  <li>{@link Effect} objects are created by applying some camel-case finding strategy on functions named Fx.* ({@link #effects()})
 	 * </ol>
 	 */
 	public void deriveInformation() {
+		findScenario();
+		detectEffects();
 		final List<Script> conglo = this.conglomerate();
 		Collections.reverse(conglo);
-
 		populateDictionary(conglo);
 		generateFindDeclarationCache(conglo);
 		generateNodeMaps();
@@ -1254,13 +1256,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			return this.toString();
 		else
 			return resource().getProjectRelativePath().toOSString();
-	}
-
-	public void indexRefresh() {
-		if (loaded) {
-			findScenario();
-			detectEffects();
-		}
 	}
 
 	private void findScenario() {
