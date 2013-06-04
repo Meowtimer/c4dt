@@ -523,7 +523,7 @@ global func bool InsertMaterial(int material_index, int x, int y, int xdir, int 
 global func bool Inside(int value, int lower_bound, int upper_bound);
 global func bool IsNetwork();
 global func bool Jump();
-global func bool Kill(bool forced);
+global func bool Kill(object obj, bool forced);
 global func int LandscapeHeight();
 global func int LandscapeWidth();
 global func bool LaunchEarthquake(int x, int y);
