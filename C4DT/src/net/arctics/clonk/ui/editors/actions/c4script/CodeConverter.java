@@ -115,7 +115,8 @@ public abstract class CodeConverter {
 		oldLength = Math.min(oldLength, document.getLength()-oldStart);
 		final String oldString = document.get(oldStart, oldLength);
 		final StringBuilder builder = new StringBuilder();
-		builder.append(" ");
+		if (!(d instanceof Function))
+			builder.append(' ');
 		final ASTNodePrinter newStringWriter = new AppendableBackedExprWriter(builder);
 		final Function function = as(d, Function.class);
 		if (function != null)
