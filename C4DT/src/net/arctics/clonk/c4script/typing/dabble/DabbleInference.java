@@ -199,7 +199,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return input.new Visitor(originator);
 			// add new input when run locally but only if this is the first hop from an existing visitor
 			// and if the function to be visited previously required parameter typing from calls
-			else if (shared.local && originator != null && originator.originator == null && function.typeFromCallsHint()) {
+			else if (shared.local && originator.originatorChainLength() < 3) {
 				if (DEBUG)
 					originator.log("Make new visitor for '%s'", function.qualifiedName(script)); //$NON-NLS-1$
 				return (Visitor)localReporter(script, 0, originator);
@@ -535,9 +535,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
-					final Script other = f.parentOfType(Script.class);
-					final Visit fVisit = delegateFunctionVisit(f, other, true);
+					final Script other = f.script();
+					final Script ds = call.predecessorInSequence() == null && conglomerate.contains(other) ? script : other;
+					final Visit fVisit = delegateFunctionVisit(f, ds, false);
 					final Visitor visitor = fVisit != null ? fVisit.visitor : null;
+
 					visitors[ci] = visitor;
 
 					final Function ref = as(call.declaration(), Function.class);
@@ -1059,6 +1061,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
 			@Override
 			public Object cookie() { return null; }
+
+			public int originatorChainLength() {
+				int num = 0;
+				for (Visitor v = originator; v != null; v = v.originator)
+					num++;
+				return num;
+			}
 		}
 
 		final Script script;
