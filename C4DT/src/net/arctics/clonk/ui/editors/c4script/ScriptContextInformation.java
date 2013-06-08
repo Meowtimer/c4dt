@@ -1,8 +1,12 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
+
+import java.util.List;
+
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
@@ -16,17 +20,17 @@ import org.eclipse.swt.graphics.Image;
 
 public class ScriptContextInformation implements IContextInformation, IContextInformationExtension {
 
-	private String contextDisplayString;
-	private Image image;
+	private final String contextDisplayString;
+	private final Image image;
 	private String informationDisplayString;
 	private final int parmIndex;
-	private int parmsStart, parmsEnd;
+	private final int parmsStart, parmsEnd;
 	private SourceLocation[] parameterDisplayStringRanges;
-	private Function function;
+	private final Function function;
+	private final Script context;
 
 	public Function function() { return function; }
 	public boolean valid(int offset) { return parmIndex != -1 && offset >= parmsStart(); }
-	public ScriptContextInformation() { this.parmIndex = -1; }
 	@Override
     public String getContextDisplayString() { return contextDisplayString; }
 	@Override
@@ -52,15 +56,20 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ScriptContextInformation) {
-			ScriptContextInformation other = (ScriptContextInformation) obj;
+			final ScriptContextInformation other = (ScriptContextInformation) obj;
 			return
 				Utilities.eq(getInformationDisplayString(), other.getInformationDisplayString());
 		}
 		return false;
 	}
 
-	public ScriptContextInformation(String contextDisplayString, Image image, Function function, int parmIndex, int parmsStart, int parmsEnd) {
+	public ScriptContextInformation(
+		Script context,
+		String contextDisplayString, Image image, Function function,
+		int parmIndex, int parmsStart, int parmsEnd
+	) {
 	    super();
+	    this.context = context;
 	    this.contextDisplayString = contextDisplayString;
 	    this.image = image;
 	    this.parmIndex = parmIndex;
@@ -76,18 +85,22 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 
 	private void makeDisplayString(Function function) {
 		final boolean longParameterInfo = ClonkPreferences.toggle(ClonkPreferences.LONG_PARAMETER_INFO, false);
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
+		final Function.Typing typing = context.typings().get(function);
 		builder.append(function.name());
 		builder.append(":");
 		if (function.numParameters() == 0) {
-			int start = builder.length();
+			final int start = builder.length();
 			builder.append(" No parameters");
 			parameterDisplayStringRanges = new SourceLocation[] { new SourceLocation(start, builder.length()) };
 		} else {
 			parameterDisplayStringRanges = new SourceLocation[function.numParameters()];
 			int estimate = 0;
-			for (Variable p : function.parameters()) {
-				estimate += p.type().typeName(true).length() + p.name().length();
+			final List<Variable> parameters = function.parameters();
+			for (int i = 0; i < parameters.size(); i++) {
+				final Variable p = parameters.get(i);
+				final IType ty = typing != null && typing.parameterTypes.length > i ? typing.parameterTypes[i] : p.type();
+				estimate += ty.typeName(true).length() + p.name().length();
 				if (longParameterInfo && p.userDescription() != null)
 					estimate += p.userDescription().length();
 			}
@@ -102,9 +115,9 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 			for (int i = 0; i < function.numParameters(); i++) {
 				if (i > 0)
 					builder.append(PARM);
-				int parmStart = builder.length();
-				Variable par = function.parameter(i);
-				IType type = par.type();
+				final int parmStart = builder.length();
+				final Variable par = function.parameter(i);
+				final IType type = typing != null && typing.parameterTypes.length > i ? typing.parameterTypes[i] : par.type();
 				if (type != PrimitiveType.UNKNOWN && type != null) {
 					builder.append(type.typeName(true));
 					builder.append(' ');
@@ -113,7 +126,7 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 				if (longParameterInfo && par.userDescription() != null && !par.userDescription().equals("")) {
 					builder.append(" (");
 					String desc = par.userDescription().trim();
-					int sentenceEnd = desc.indexOf('.');
+					final int sentenceEnd = desc.indexOf('.');
 					if (sentenceEnd != -1)
 						desc = desc.substring(0, sentenceEnd);
 					builder.append(desc);

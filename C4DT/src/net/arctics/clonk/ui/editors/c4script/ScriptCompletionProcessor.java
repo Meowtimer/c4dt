@@ -816,7 +816,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					if (function instanceof IDocumentedDeclaration)
 						((IDocumentedDeclaration)function).fetchDocumentation();
 					info = new ScriptContextInformation(
-						function.name() + "()", UI.CLONK_ENGINE_ICON, //$NON-NLS-1$
+						editor().script(), function.name() + "()", UI.CLONK_ENGINE_ICON, //$NON-NLS-1$
 						function, funcCallInfo.parmIndex,
 						funcCallInfo.parmsStart, funcCallInfo.parmsEnd
 					);
