@@ -97,6 +97,12 @@ public class TypeUnification {
 
 		if (a instanceof TypeChoice) {
 			final TypeChoice tca = (TypeChoice)a;
+			/*final IType assumed = tca.assumed();
+			if (assumed != null) {
+				final IType b_ = unifyNoChoice(assumed, b);
+				if (b_ != null)
+					return TypeChoice.make(PrimitiveType.ANY, b_);
+			}*/
 			final IType l = tca.left();
 			final IType r = tca.right();
 			final IType l_ = unifyNoChoice(l, b);
@@ -139,9 +145,7 @@ public class TypeUnification {
 		if (a instanceof WrappedType) {
 			final IType u = unifyNoChoice(WrappedType.unwrap(a), b);
 			if (u != null)
-				if (a instanceof NillableType)
-					return NillableType.make(u);
-				else if (a instanceof ReferenceType)
+				if (a instanceof ReferenceType)
 					return ReferenceType.make(u);
 		}
 
@@ -157,9 +161,10 @@ public class TypeUnification {
 		}
 
 		if (a instanceof CallTargetType)
-			if (b instanceof Definition || b instanceof MetaDefinition || b instanceof ProplistDeclaration ||
-				b == PrimitiveType.OBJECT || b == PrimitiveType.ID || b == PrimitiveType.PROPLIST)
-				return b;
+			return unify(PrimitiveType.OBJECT, b);
+//			if (b instanceof Definition || b instanceof MetaDefinition || b instanceof ProplistDeclaration ||
+//				b == PrimitiveType.OBJECT || b == PrimitiveType.ID || b == PrimitiveType.PROPLIST)
+//				return b;
 
 		return null;
 	}
