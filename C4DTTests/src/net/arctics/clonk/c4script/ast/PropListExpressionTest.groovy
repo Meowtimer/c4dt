@@ -5,9 +5,9 @@ import net.arctics.clonk.c4script.ProplistDeclaration
 import net.arctics.clonk.c4script.Variable
 import org.junit.Test;
 
-public class ASTProplistExpressionPrintingTest {
+public class PropListExpressionTest {
 	@Test
-	public void testLongPropListParameter() {
+	public void testLongPropListParameterPrinting() {
 		PropListExpression expr = new PropListExpression(new ProplistDeclaration([
 			new Variable("longIdentifierIsLong", new IntegerLiteral(Integer.MAX_VALUE)),
 			new Variable("anotherOneIsEvenLonger", new StringLiteral("asdasdasdasdasdasdasdasdasd"))
@@ -17,6 +17,8 @@ public class ASTProplistExpressionPrintingTest {
 """SomeFunction
 (
 	{
+		longIdentifierIsLong: 2147483647,
+		anotherOneIsEvenLonger: "asdasdasdasdasdasdasdasdasd"
 	}
 )""", call.printed());
 	}
