@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script.typing;
 
+import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.Utilities.foldl;
 
 import java.util.ArrayList;
@@ -15,6 +16,13 @@ import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities.Folder;
 
+/**
+ * Represents a typing where either of two types are possible.
+ * An expression typed thusly is assumed valid wherever either of the types is expected.
+ * This is not a sum type.
+ * @author madeen
+ *
+ */
 public class TypeChoice implements IType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -32,12 +40,23 @@ public class TypeChoice implements IType {
 		new TypeChoice(PrimitiveType.STRING, PrimitiveType.INT)
 	};
 
+	/**
+	 * Factory function to make type choices. The result might not actually be a {@link TypeChoice}.
+	 * Reasons for such outcome include:
+	 * <ul>
+	 * 	<li>left or right null in which case the non-null type is returned verbatim.</li>
+	 *  <li>left and right equal</li>
+	 * </ul>
+	 * @param left Left side of type choice
+	 * @param right Right side of type choice
+	 * @return A type representing a choice between the specified types or one of them for conditions listed above.
+	 */
 	public static IType make(IType left, IType right) {
 		if (left == null)
 			return right;
 		else if (right == null)
 			return left;
-		else if (left.equals(right))
+		else if (eq(left, right))
 			return left;
 		for (final TypeChoice hc : HARD_CHOICES)
 			if (
@@ -47,6 +66,7 @@ public class TypeChoice implements IType {
 				return hc;
 		return new TypeChoice(left, right).removeDuplicates();
 	}
+
 	protected IType removeDuplicates() {
 		return remove(this, new IPredicate<IType>() {
 			private final List<IType> flattened = flatten();
@@ -64,6 +84,11 @@ public class TypeChoice implements IType {
 		});
 	}
 
+	/**
+	 * Produce a type choice by left-folding the passed collection using {@link #make(IType, IType)}.
+	 * @param types Collection of types to fold into a type choice
+	 * @return
+	 */
 	public static IType make(Collection<? extends IType> types) {
 		if (types.size() == 0)
 			return null;
@@ -84,9 +109,7 @@ public class TypeChoice implements IType {
 	}
 
 	@Override
-	public Iterator<IType> iterator() {
-		return flatten().iterator();
-	}
+	public Iterator<IType> iterator() { return flatten().iterator(); }
 
 	@Override
 	public String typeName(boolean special) {
@@ -185,6 +208,11 @@ public class TypeChoice implements IType {
 				(other.right.equals(left) && other.right.equals(left));
 		} else
 			return false;
+	}
+
+	public IType assumed() {
+		return
+			left == PrimitiveType.ANY ? right : right == PrimitiveType.ANY ? left : null;
 	}
 
 }
