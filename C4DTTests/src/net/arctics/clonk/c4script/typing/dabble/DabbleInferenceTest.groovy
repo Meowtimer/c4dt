@@ -173,10 +173,10 @@ func Usage() {
 		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
-		Assert.assertEquals(clonk, base.typings().functionReturnTypes['MakeObject'])
-		Assert.assertEquals(new MetaDefinition(clonk), base.typings().functionReturnTypes['Type'])
-		Assert.assertEquals(wipf, derived.typings().functionReturnTypes['MakeObject'])
-		Assert.assertEquals(new MetaDefinition(wipf), derived.typings().functionReturnTypes['Type'])
+		Assert.assertEquals(clonk, base.typings().functionTypings['MakeObject'].returnType)
+		Assert.assertEquals(new MetaDefinition(clonk), base.typings().functionTypings['Type'].returnType)
+		Assert.assertEquals(wipf, derived.typings().functionTypings['MakeObject'].returnType)
+		Assert.assertEquals(new MetaDefinition(wipf), derived.typings().functionTypings['Type'].returnType)
 	}
 
 	@Test
@@ -244,7 +244,7 @@ func Test()
 			Definition a = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('A') }
 			Definition b = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('B') }
 			Definition clonk = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('Clonk') }
-			Assert.assertEquals(clonk, b.findLocalFunction('CallSomeMethod', false).parameter(0).type())
+			Assert.assertEquals(TypeChoice.make(clonk, PrimitiveType.ANY), b.findLocalFunction('CallSomeMethod', false).parameter(0).type())
 		}
 	}
 
@@ -292,7 +292,7 @@ func Test()
 
 		def (base, derived) = setup.scripts
 
-		def t = derived.typings().functionReturnTypes['TakeObject']
+		def t = derived.typings().functionTypings['TakeObject'].returnType
 		Assert.assertEquals(derived, t)
 	}
 
@@ -336,11 +336,11 @@ func Test()
 		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
-		Assert.assertEquals(clonk, base.typings().functionReturnTypes['MakeObject'])
-		Assert.assertEquals(new MetaDefinition(clonk), base.typings().functionReturnTypes['Type'])
-		Assert.assertEquals(wipf, derived.typings().functionReturnTypes['MakeObject'])
-		Assert.assertEquals(new MetaDefinition(wipf), derived.typings().functionReturnTypes['Type'])
-		Assert.assertEquals(wipf, user.typings().functionReturnTypes['Usage'])
+		Assert.assertEquals(clonk, base.typings().functionTypings['MakeObject'].returnType)
+		Assert.assertEquals(new MetaDefinition(clonk), base.typings().functionTypings['Type'].returnType)
+		Assert.assertEquals(wipf, derived.typings().functionTypings['MakeObject'].returnType)
+		Assert.assertEquals(new MetaDefinition(wipf), derived.typings().functionTypings['Type'].returnType)
+		Assert.assertEquals(wipf, user.typings().functionTypings['Usage'].returnType)
 	}
 
 	@Test
@@ -452,4 +452,36 @@ func Test()
 		Assert.assertEquals(StringUtil.blockString("", "", "\n", failedAssertions), 0, failedAssertions.size())
 	}
 
+	@Test
+	public void testCollectionInheritance() {
+		def definitions = [
+			new DefinitionInfo(name:'Base', source:
+				"""// Base
+local items;
+func Type() { return nil; }
+func AddItem(item) { items[GetLength(items)] = item; }
+func AddNewItem() { AddItem(CreateObject(Type())); }
+				}"""
+			),
+			new DefinitionInfo(name:'Derived', source:
+				"""
+#include Base
+func Type() { return Clonk; }
+				}"""
+			),
+			new DefinitionInfo(name:'Clonk', source:''),
+			new DefinitionInfo(name: 'Wipf', source:'')
+		] as DefinitionInfo[]
+
+		def setup = new Setup(definitions)
+		setup.parsers.each { it.run() }
+		setup.index.refresh()
+		setup.scripts.each { it.deriveInformation() }
+		setup.inference.run()
+
+		Assert.assertEquals(
+			new ArrayType(TypeChoice.make(PrimitiveType.ANY, setup.scripts[2])),
+			setup.scripts[1].typings().variableTypes['items']
+		);
+	}
 }

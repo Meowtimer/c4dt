@@ -7,13 +7,14 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.c4script.typing.TypeVariable;
 
 public final class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public TypeEnvironment up;
 	public TypeEnvironment() { super(5); }
 	public TypeEnvironment(TypeEnvironment up) { this(); this.up = up; }
-	public TypeEnvironment inject(TypeEnvironment other, boolean ignoreLocals) {
+	public TypeEnvironment inject(TypeEnvironment other) {
 		for (final Map.Entry<Declaration, TypeVariable> otherInfo : other.entrySet()) {
 			final TypeVariable myVar = this.get(otherInfo.getKey());
 			if (myVar != null)

@@ -61,7 +61,7 @@ public class TypeUnification {
 			case UNKNOWN:
 				return b;
 			case ANY:
-				return TypeChoice.make(a, b);
+				return eq(b, PrimitiveType.UNKNOWN) ? a : TypeChoice.make(a, b);
 			case REFERENCE:
 				return b;
 			default:

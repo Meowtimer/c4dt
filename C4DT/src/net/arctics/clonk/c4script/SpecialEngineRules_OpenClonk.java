@@ -38,6 +38,7 @@ import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeUnification;
+import net.arctics.clonk.c4script.typing.TypeVariable;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -91,11 +92,13 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	})
 	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
 		@Override
-		public boolean assignDefaultParmTypes(Function function) {
+		public boolean assignDefaultParmTypes(Function function, TypeVariable[] parameterTypeVariables) {
 			final EffectFunction fun = as(function, EffectFunction.class);
 			if (fun != null && fun.effect() != null) {
 				fun.effect();
-				fun.assignParameterTypes(Effect.parameterTypesForCallback(fun.callbackName(), fun.script(), fun.effect()));
+				final IType[] types = Effect.parameterTypesForCallback(fun.callbackName(), fun.script(), fun.effect());
+				for (int i = 0; i < Math.min(parameterTypeVariables.length, types.length); i++)
+					parameterTypeVariables[i].set(types[i]);
 				return true;
 			}
 			return false;
@@ -579,7 +582,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				if (!endsWithEmptyLine)
 					builder.append('\n');
 				builder.append('\n');
-				builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC, script.index()));
+				builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC, script));
 				if (endsWithEmptyLine)
 					builder.append('\n');
 				document.set(builder.toString());

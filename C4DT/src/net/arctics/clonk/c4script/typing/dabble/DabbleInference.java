@@ -102,6 +102,7 @@ import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeUnification;
+import net.arctics.clonk.c4script.typing.TypeVariable;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visit;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visitor;
@@ -535,49 +536,47 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.parentOfType(Script.class);
-					final Visit fVisit = delegateFunctionVisit(f, other, false);
+					final Visit fVisit = delegateFunctionVisit(f, other, true);
 					final Visitor visitor = fVisit != null ? fVisit.visitor : null;
 					visitors[ci] = visitor;
 
-					Function ref = as(call.declaration(), Function.class);
+					final Function ref = as(call.declaration(), Function.class);
 					// not related - short circuit skip
-					if (ref != null && ref.baseFunction() != null && ref.baseFunction().latestVersion() != baseFunction)
+					if (ref == null || ref.latestVersion() != function)
 						continue;
-					if (ref != null) {
-						ref = ref.baseFunction();
-						if (ref != null)
-							ref = (Function)ref.latestVersion();
-						if (ref == baseFunction) {
-							final int parNum = Math.min(parameterTypes.length, call.params().length);
-							for (int pa = 0; pa < parNum; pa++)
-								if (!function.parameter(pa).staticallyTyped()) {
-									final ASTNode concretePar = call.params()[pa];
-									if (concretePar != null) {
-										script().addUsedScript(other);
-										types[pa][ci] = parType(f, other, fVisit, visitor, concretePar);
-									}
-								}
-						}
+					if (call.predecessorInSequence() != null) {
+						final IType predTy = nodeType(f, other, fVisit, visitor, call.predecessorInSequence());
+						if (predTy != script)
+							continue;
 					}
+					final int parNum = Math.min(parameterTypes.length, call.params().length);
+					for (int pa = 0; pa < parNum; pa++)
+						if (!function.parameter(pa).staticallyTyped()) {
+							final ASTNode concretePar = call.params()[pa];
+							if (concretePar != null) {
+								script().addUsedScript(other);
+								types[pa][ci] = nodeType(f, other, fVisit, visitor, concretePar);
+							}
+						}
 				}
 				if (DEBUG)
 					log("Call types: %s", Arrays.deepToString(types));
 			}
 
-			private IType parType(
+			private IType nodeType(
 				final Function containing,
 				final Script other,
 				final Visit containingVisit,
 				final Visitor visitor,
-				final ASTNode concretePar
+				final ASTNode node
 			) {
-				IType ty = containingVisit != null ? containingVisit.inferredTypes[concretePar.localIdentifier()] : null;
+				IType ty = containingVisit != null ? containingVisit.inferredTypes[node.localIdentifier()] : null;
 				if (ty == null && visitor != null)
-					ty = visitor.typeOf(concretePar);
+					ty = visitor.typeOf(node);
 				if (ty == null) {
 					final IType[] astTypes = other.typings().functionASTTypes.get(containing.name());
 					if (astTypes != null)
-						ty = astTypes[concretePar.localIdentifier()];
+						ty = astTypes[node.localIdentifier()];
 				}
 				return ty;
 			}
@@ -663,34 +662,38 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (!ownedFunction)
 					startRoaming();
 				try {
-					final TypeEnvironment env = newTypeEnvironment();
+					TypeEnvironment env = newTypeEnvironment();
 					{
 						env.add(visit);
 						createFunctionLocalsTypeVariables(function);
-						final TypeVariable[] callTypes = createParameterTypeVariables(function, parameters);
-						if (ownedFunction && shouldTypeFromCalls(function)) {
-							pass = Pass.PRELIMINARY;
-							preliminaryVisit(function, statements);
-							typeParametersFromCalls(function, baseFunction, callTypes);
-							env.clear();
-							env.add(visit);
+						final TypeVariable[] parTypes = createParameterTypeVariables(function, parameters);
+						for (final TypeVariable pt : parTypes)
+							env.add(pt);
+						env = newTypeEnvironment();
+						{
+							if (!setParameterTypesBasedOnRules(function, parTypes) && shouldTypeFromCalls(function)) {
+								pass = Pass.PRELIMINARY;
+								preliminaryVisit(function, statements);
+								typeParametersFromCalls(function, baseFunction, parTypes);
+								env.clear();
+							}
+							pass = Pass.MAIN;
+							final Marker mainVisitMarkers = markers().last();
+							actualVisit(ownedFunction, statements, parTypes);
+							while (delayedVisits()) {
+								if (DEBUG)
+									log("Additional visit for '%s'", function.qualifiedName());
+								// discard markers that were added during regular main visit
+								markers().discardFrom(mainVisitMarkers);
+								additionalVisit(ownedFunction, statements, env, parTypes);
+							}
+							DabbleInference.this.markers().take(markers);
 						}
-						pass = Pass.MAIN;
-						final Marker mainVisitMarkers = markers().last();
-						actualVisit(ownedFunction, statements, callTypes);
-						while (delayedVisits()) {
-							if (DEBUG)
-								log("Additional visit for '%s'", function.qualifiedName());
-							// discard markers that were added during regular main visit
-							markers().discardFrom(mainVisitMarkers);
-							additionalVisit(ownedFunction, statements, env, callTypes);
-						}
-						DabbleInference.this.markers().take(markers);
-						//typeUntypedCallTargets(function);
+						env = endTypeEnvironment(env, true);
 					}
 					if (ownedFunction)
 						env.apply(false);
-					endTypeEnvironment(env, true, true);
+					endTypeEnvironment(env, true);
 					warnAboutUnusedLocals(function, statements);
 				}
 				catch (final ProblemException e) {}
@@ -893,14 +896,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return typeEnvironment = l;
 			}
 
-			public void endTypeEnvironment(TypeEnvironment env, boolean injectToUpper, boolean ignoreLocals) {
+			public TypeEnvironment endTypeEnvironment(TypeEnvironment env, boolean injectToUpper) {
 				if (injectToUpper)
 					if (env.up != null)
-						env.up.inject(env, ignoreLocals);
+						env.up.inject(env);
 					else synchronized (input().typeEnvironment) {
-						input().typeEnvironment.inject(env, ignoreLocals);
+						input().typeEnvironment.inject(env);
 					}
 				typeEnvironment = env.up;
+				return typeEnvironment;
 			}
 
 			private boolean createWarningAtDeclarationOfVariable(
@@ -1058,6 +1062,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		final Script script;
+		final List<Script> conglomerate;
 		final Index index;
 		final Typing typing;
 		final CachedEngineDeclarations cachedEngineDeclarations;
@@ -1078,7 +1083,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		private HashMap<Function, Visit> makePlan() {
 			final HashMap<Function, Visit> result = new LinkedHashMap<>();
-			final List<Script> conglomerate = script.conglomerate();
 			for (final Script s : conglomerate)
 				if (s != script)
 					for (final Function f : s.functions())
@@ -1093,10 +1097,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return result;
 		}
 
-		boolean assignDefaultParmTypesToFunction(Function function) {
+		boolean setParameterTypesBasedOnRules(Function function, TypeVariable[] parameterTypeVariables) {
 			if (rules != null)
 				for (final SpecialFuncRule funcRule : rules.defaultParmTypeAssignerRules())
-					if (funcRule.assignDefaultParmTypes(function))
+					if (funcRule.assignDefaultParmTypes(function, parameterTypeVariables))
 						return true;
 			return false;
 		}
@@ -1104,7 +1108,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean shouldTypeFromCalls(final Function function) {
 			final boolean typeFromCalls =
 				typing == Typing.PARAMETERS_OPTIONALLY_TYPED &&
-				!assignDefaultParmTypesToFunction(function) &&
 				script instanceof Definition &&
 				function.numParameters() > 0 &&
 				(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
@@ -1122,6 +1125,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public Input(Script script, int sourceFragmentOffset, Shared shared) {
 			this.shared = shared;
 			this.script = script;
+			this.conglomerate = script.conglomerate();
 			this.index = script.index();
 			this.typing = script.index() != null && script.index().nature() != null
 				? script.index().nature().settings().typing
@@ -1143,7 +1147,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		public void apply() {
 			final Map<String, IType> variableTypes = new HashMap<>();
-			final Map<String, IType> functionReturnTypes = new HashMap<>();
+			final Map<String, Function.Typing> functionReturnTypes = new HashMap<>();
 			final Map<String, IType[]> functionASTTypes = new HashMap<>();
 			fillTypingMaps(variableTypes, functionReturnTypes);
 			fillASTTypingMap(functionASTTypes);
@@ -1155,21 +1159,24 @@ public class DabbleInference extends ProblemReportingStrategy {
 				functionASTTypes.put(v.getKey().name(), v.getValue().inferredTypes);
 		}
 
-		private void fillTypingMaps(final Map<String, IType> variableTypes, final Map<String, IType> functionReturnTypes) {
-			for (final TypeVariable tyVar : typeEnvironment.values()) {
-				final Declaration d = tyVar.declaration();
-				if (d.containedIn(script))
-					tyVar.apply(false);
-				if (d instanceof Variable)
-					switch (((Variable)d).scope()) {
-					case LOCAL:
-						variableTypes.put(d.name(), tyVar.get());
-						break;
-					default:
-						break;
-					}
-				else if (d instanceof Function)
-					functionReturnTypes.put(d.name(), tyVar.get());
+		private void fillTypingMaps(final Map<String, IType> variableTypes, final Map<String, Function.Typing> functionTypings) {
+			for (final Script s : script.conglomerate())
+				for (final Variable v : s.variables()) {
+					final TypeVariable tyVar = typeEnvironment.get(v);
+					if (tyVar != null)
+						variableTypes.put(v.name(), tyVar.get());
+				}
+			for (final Entry<Function, Visit> entry : plan.entrySet()) {
+				final TypeVariable retTy = typeEnvironment.get(entry.getKey());
+				final IType[] parameterTypes = new IType[entry.getKey().numParameters()];
+				final List<Variable> parms = entry.getKey().parameters();
+				for (int i = 0; i < parms.size(); i++) {
+					final Variable p = parms.get(i);
+					final TypeVariable parTy = typeEnvironment.get(p);
+					parameterTypes[i] = parTy != null ? parTy.get() : PrimitiveType.UNKNOWN;
+				}
+				functionTypings.put(entry.getKey().name(),
+					new Function.Typing(parameterTypes, retTy != null ? retTy.get() : PrimitiveType.UNKNOWN));
 			}
 		}
 
@@ -1179,7 +1186,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			synchronized (plan) { plan_ = plan.keySet().toArray(new Function[plan.size()]); }
 			for (final Function f : plan_)
 				visitor.visit(f, null);
-			visitor.endTypeEnvironment(env2, true, false);
+			visitor.endTypeEnvironment(env2, true);
 		}
 
 		@Override
@@ -1527,7 +1534,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public void visit(T node, Visitor visitor) throws ProblemException {
 				super.visit(node, visitor);
 				final ASTNode pred = node.predecessorInSequence();
-				final Declaration declaration = node.declaration();
+				final Declaration declaration = internalObtainDeclaration(node, visitor);
 				if (declaration == null && pred == null)
 					visitor.markers().error(visitor, Problem.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.name());
 				// local variable used in global function
@@ -1653,22 +1660,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final TypeVariable r = super.findTypeVariable(node, visitor);
 				if (r != null)
 					return r;
-				final Declaration d = node.declaration();
+				final Declaration d = internalObtainDeclaration(node, visitor);
 				visitFunctionsContainingAssignmentToVariable(node, visitor, d);
 				return super.findTypeVariable(node, visitor);
 			}
 
 			private void visitFunctionsContainingAssignmentToVariable(T node, Visitor visitor, final Declaration d) {
-				if (
-					d != null && d.parent() == visitor.script() &&
-					!(node.parent() instanceof BinaryOp && ((BinaryOp)node.parent()).operator().isAssignment())
-				) {
-					final List<AccessVar> references = visitor.script().varReferences().get(node.name());
+				if (!(d instanceof Variable && !(d instanceof ProxyVar)))
+					return;
+				for (ASTNode p = node.parent(); p != null; p = p.parent())
+					if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment())
+						return;
+
+				for (final Script s : visitor.input().conglomerate) {
+					final List<AccessVar> references = s.varReferences().get(node.name());
 					if (references != null)
 						for (final AccessVar ref : references)
 							for (ASTNode p = ref.parent(); p != null; p = p.parent())
 								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
-									visitor.delegateFunctionVisit(ref.parentOfType(Function.class), visitor.script(), true);
+									final Function fun = ref.parentOfType(Function.class);
+									visitor.delegateFunctionVisit(fun, visitor.script(), true);
 									break;
 								}
 				}
@@ -1676,10 +1687,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			@Override
 			public TypeVariable createTypeVariable(T node, Visitor visitor) {
-				if (node.declaration() instanceof ProxyVar)
+				final Declaration dec = internalObtainDeclaration(node, visitor);
+				if (dec instanceof ProxyVar)
 					return null;
-				else if (node.declaration() instanceof Variable)
-					return new VariableTypeVariable(node);
+				else if (dec instanceof Variable)
+					return new VariableTypeVariable((Variable) dec);
 				else
 					return null;
 			}
@@ -1716,10 +1728,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 				visitor.controlFlow = ControlFlow.Continue;
 				TypeEnvironment env = visitor.newTypeEnvironment();
 				visitor.visit(node.condition(), true);
-				visitor.endTypeEnvironment(env, true, false);
+				visitor.endTypeEnvironment(env, true);
 				env = visitor.newTypeEnvironment();
 				visitor.visit(node.body(), true);
-				visitor.endTypeEnvironment(env, true, false);
+				visitor.endTypeEnvironment(env, true);
 				loopConditionWarnings(node, visitor);
 				visitor.controlFlow = t;
 			}
@@ -1767,7 +1779,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<ArrayExpression>(ArrayExpression.class) {
 				@Override
 				public IType type(ArrayExpression node, final Visitor visitor) {
-					IType elmType = PrimitiveType.UNKNOWN;
+					IType elmType = PrimitiveType.ANY;
 					for (final ASTNode e : node.subElements())
 						if (e != null)
 							elmType = unify(elmType, visitor.ty(e));
@@ -2716,7 +2728,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 						visitor.visit(node.body(), true);
 					}
-					visitor.endTypeEnvironment(env, true, false);
+					visitor.endTypeEnvironment(env, true);
 					visitor.controlFlow = t;
 				}
 			},
@@ -2756,18 +2768,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// visit condition with new type environment so judgments arising from condition will not be unified inside
 					// the true case
 					visitor.visit(node.body(), true);
-					visitor.endTypeEnvironment(ifEnvironment, false, false);
+					visitor.endTypeEnvironment(ifEnvironment, false);
 					visitor.controlFlow = old;
 					if (node.elseExpression() != null) {
 						final TypeEnvironment elseEnvironment = visitor.newTypeEnvironment();
 						visitor.visit(node.elseExpression(), true);
-						visitor.endTypeEnvironment(elseEnvironment, false, false);
-						ifEnvironment.inject(elseEnvironment, false);
+						visitor.endTypeEnvironment(elseEnvironment, false);
+						ifEnvironment.inject(elseEnvironment);
 					}
 					if (ifEnvironment.up != null)
-						//						for (final TypeVariable tv : ifEnvironment.values())
-//							tv.set(unify(tv.get(), PrimitiveType.ANY));
-						ifEnvironment.up.inject(ifEnvironment, false);
+						ifEnvironment.up.inject(ifEnvironment);
 					visitor.controlFlow = old;
 
 					if (!containsConst(condition)) {

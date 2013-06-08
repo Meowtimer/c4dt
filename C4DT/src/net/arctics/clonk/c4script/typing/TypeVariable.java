@@ -1,9 +1,7 @@
-package net.arctics.clonk.c4script.typing.dabble;
+package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.Utilities.defaulting;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4script.typing.IType;
-import net.arctics.clonk.c4script.typing.PrimitiveType;
 
 public abstract class TypeVariable implements Cloneable {
 	protected IType type = PrimitiveType.UNKNOWN;

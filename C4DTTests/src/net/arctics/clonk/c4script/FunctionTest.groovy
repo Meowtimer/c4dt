@@ -3,8 +3,8 @@ package net.arctics.clonk.c4script;
 import static org.junit.Assert.*;
 
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.PrintParametersOptions;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.Function.ParameterStringOption;
 import net.arctics.clonk.c4script.typing.ArrayType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 
@@ -22,7 +22,7 @@ public class FunctionTest {
 		];
 		pars.each { it -> it.forceType(it.type(), true) };
 		Function f = new Function("Test", PrimitiveType.INT, pars);
-		def engineString = f.parameterString(EnumSet.of(ParameterStringOption.EngineCompatible))
+		def engineString = f.parameterString(new PrintParametersOptions(f.script(), false, true, false));
 		Assert.assertEquals("string a, int b, c, array d", engineString)
 		def ideString = f.parameterString(EnumSet.noneOf(ParameterStringOption.class))
 		Assert.assertEquals("string a, int b, any c, array[int] d", ideString)

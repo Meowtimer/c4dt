@@ -92,7 +92,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @author madeen
 	 *
 	 */
-	public static class Typings implements Serializable {
+	public static final class Typings implements Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		/**
 		 * Map mapping field variable name to type.
@@ -101,17 +101,23 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		/**
 		 * Map mapping function name to return type.
 		 */
-		public final Map<String, IType> functionReturnTypes;
+		public final Map<String, Function.Typing> functionTypings;
 		public final Map<String, IType[]> functionASTTypes;
 		public Typings(
 			Map<String, IType> variableTypes,
-			Map<String, IType> functionReturnTypes,
+			Map<String, Function.Typing> functionTypings,
 			Map<String, IType[]> functionASTTypes
 		) {
 			super();
 			this.variableTypes = variableTypes;
-			this.functionReturnTypes = functionReturnTypes;
+			this.functionTypings = functionTypings;
 			this.functionASTTypes = functionASTTypes;
+		}
+		public Function.Typing get(Function function) {
+			return functionTypings != null ? functionTypings.get(function.name()) : null;
+		}
+		public IType get(Variable variable) {
+			return variableTypes != null ? variableTypes.get(variable.name()) : null;
 		}
 	}
 	private transient Typings typings;
@@ -134,7 +140,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	private static final Typings NO_TYPINGS = new Typings(
 		Collections.<String, IType>emptyMap(),
-		Collections.<String, IType>emptyMap(),
+		Collections.<String, Function.Typing>emptyMap(),
 		Collections.<String, IType[]>emptyMap()
 	);
 

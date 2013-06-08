@@ -4,13 +4,11 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.lang.ref.WeakReference;
-import java.util.EnumSet;
-
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.PrintParametersOptions;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.Function.ParameterStringOption;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Definition;
@@ -58,7 +56,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	@Override
 	public boolean hasChildren(Object dec) {
 		if (dec instanceof Declaration) {
-			Object[] subDeclarations = ((Declaration)dec).subDeclarationsForOutline();
+			final Object[] subDeclarations = ((Declaration)dec).subDeclarationsForOutline();
 			return subDeclarations != null && subDeclarations.length > 0;
 		}
 		else
@@ -93,7 +91,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 
 	@Override
 	public StyledString getStyledText(Object element) {
-		boolean foreign =
+		final boolean foreign =
 			element instanceof Declaration &&
 			root != null && root.get() instanceof Declaration &&
 			!((Declaration)element).containedIn(root.get());
@@ -105,27 +103,28 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 
 	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root, ProblemReporter context) {
 		try {
-			StyledString result = new StyledString();
+			final StyledString result = new StyledString();
 			if (foreign && element instanceof Declaration) {
-				Declaration topDec = ((Declaration)element).topLevelStructure();
+				final Declaration topDec = ((Declaration)element).topLevelStructure();
 				if (topDec != null) {
 					result.append(topDec instanceof Definition ? ((Definition)topDec).id().stringValue() : topDec.name(), StyledString.QUALIFIER_STYLER);
 					result.append("::");
 				}
 			}
 			if (element instanceof Function) {
-				Function func = ((Function)element);
-				result.append(func.parameterString(EnumSet.of(ParameterStringOption.FunctionName)));
-				IType retType = func.returnType(context != null ? context.script() : null);
+				final Function func = ((Function)element);
+				result.append(func.parameterString(new PrintParametersOptions(
+					context != null ? context.script() : func.script(), true, false, false)));
+				final IType retType = func.returnType(context != null ? context.script() : null);
 				if (retType != null && retType != PrimitiveType.UNKNOWN) {
 					result.append(" : "); //$NON-NLS-1$
 					result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
 				}
 			}
 			else if (element instanceof Variable) {
-				Variable var = (Variable)element;
+				final Variable var = (Variable)element;
 				result.append(var.name());
-				IType type = var.type(context != null ? context.script() : null);
+				final IType type = var.type(context != null ? context.script() : null);
 				if (type != null && type != PrimitiveType.UNKNOWN) {
 					result.append(" : ");
 					result.append(type.typeName(true));
@@ -134,7 +133,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			else if (element != null)
 				result.append(element.toString());
 			return result;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			System.out.println(String.format("Computing styled text for '%s' failed", element.toString()));
 			e.printStackTrace();
 			return new StyledString("<failed>");

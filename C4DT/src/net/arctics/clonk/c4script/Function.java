@@ -30,7 +30,7 @@ import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.builder.ProjectSettings.Typing;
+import net.arctics.clonk.builder.ProjectSettings;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.FunctionBody;
@@ -55,6 +55,17 @@ import org.eclipse.jface.text.IRegion;
  *
  */
 public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, IHasCode, IASTSection {
+
+	public static class Typing implements Serializable {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		public Typing(IType[] parameterTypes, IType returnType) {
+			super();
+			this.parameterTypes = parameterTypes;
+			this.returnType = returnType;
+		}
+		public final IType[] parameterTypes;
+		public final IType returnType;
+	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private FunctionScope visibility;
@@ -177,12 +188,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public IType returnType(Script script) {
-		IType retType = null;
-		if (script != null && script.typings().functionReturnTypes != null)
-			retType = script.typings().functionReturnTypes.get(this.name());
-		if (retType == null)
-			retType = returnType();
-		return retType;
+		final Typing typing = script != null && script.typings() != null ? script.typings().get(this) : null;
+		return typing != null ? typing.returnType : returnType();
 	}
 
 	/**
@@ -283,13 +290,24 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Options for {@link Function#parameterString(EnumSet)}
 	 * @author madeen
 	 */
-	public enum ParameterStringOption {
+	public static class PrintParametersOptions {
+		/** Context used to obtain parameter type information from */
+		final Script context;
 		/** Include function name in printed string */
-		FunctionName,
+		final boolean functionName;
 		/** Print string that the engine will be able to parse (no special typing constructs or 'any') */
-		EngineCompatible,
+		final boolean engineCompatible;
 		/** Include comments of parameters */
-		ParameterComments
+		final boolean parameterComments;
+		public PrintParametersOptions(Script context, boolean functionName, boolean engineCompatible, boolean parameterComments) {
+			super();
+			if (context == null)
+				throw new IllegalArgumentException();
+			this.context = context;
+			this.functionName = functionName;
+			this.engineCompatible = engineCompatible;
+			this.parameterComments = parameterComments;
+		}
 	}
 
 	/**
@@ -297,40 +315,43 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param options Options
 	 * @return The printed string.
 	 */
-	public String parameterString(EnumSet<ParameterStringOption> options) {
+	public String parameterString(PrintParametersOptions options) {
 		final StringBuilder string = new StringBuilder();
-		if (options.contains(ParameterStringOption.FunctionName)) {
+		if (options.functionName) {
 			string.append(name());
 			string.append("("); //$NON-NLS-1$
 		}
-		printParameterString(new AppendableBackedExprWriter(string), options);
-		if (options.contains(ParameterStringOption.FunctionName))
+		printParametersString(new AppendableBackedExprWriter(string), options);
+		if (options.functionName)
 			string.append(")"); //$NON-NLS-1$
 		return string.toString();
 	}
 
 	@Override
 	public String displayString(IIndexEntity context) {
-		return parameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible));
+		return parameterString(new PrintParametersOptions(defaulting(as(context, Script.class), script()), true, true, false));
 	}
 
-	private void printParameterString(ASTNodePrinter output, final EnumSet<ParameterStringOption> options) {
+	private void printParametersString(ASTNodePrinter output, final PrintParametersOptions options) {
 		if (numParameters() > 0)
 			StringUtil.writeBlock(output, "", "", ", ", map(parameters(), new IConverter<Variable, String>() {
-				final boolean engineCompatible = options.contains(ParameterStringOption.EngineCompatible);
+				final Function.Typing typing = options.context.typings().get(Function.this);
+				int i = -1;
 				@Override
 				public String convert(Variable par) {
-					final IType type = engineCompatible ?
-						(par.staticallyTyped() ? par.type().simpleType() : PrimitiveType.ANY) : par.type();
-					if (engineCompatible && !par.isActualParm())
+					++i;
+					final IType type = options.engineCompatible ?
+						(par.staticallyTyped() ? par.type().simpleType() : PrimitiveType.ANY)
+						: typing != null && typing.parameterTypes.length > i ? typing.parameterTypes[i] : par.type();
+					if (options.engineCompatible && !par.isActualParm())
 						return null;
-					final String comment = par.userDescription() != null && options.contains(ParameterStringOption.ParameterComments) ? ("/* " + par.userDescription() + "*/ ") : "";
+					final String comment = par.userDescription() != null && options.parameterComments ? ("/* " + par.userDescription() + "*/ ") : "";
 					boolean includeType;
-					if (engineCompatible && (type == PrimitiveType.ANY || type == PrimitiveType.UNKNOWN))
+					if (options.engineCompatible && (type == PrimitiveType.ANY || type == PrimitiveType.UNKNOWN))
 						includeType = false;
 					else
 						includeType = true;
-					return comment + (includeType ? (type.typeName(!engineCompatible) + " ") : "") + par.name();
+					return comment + (includeType ? (type.typeName(!options.engineCompatible) + " ") : "") + par.name();
 				}
 			}));
 	}
@@ -399,7 +420,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			: script().name();
 		for (final String line : new String[] {
 			MessageFormat.format("<i>{0}</i><br/>", scriptPath), //$NON-NLS-1$ //$NON-NLS-2$
-			MessageFormat.format("<b>{0}</b><br/>", parameterString(EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible))), //$NON-NLS-1$ //$NON-NLS-2$
+			MessageFormat.format("<b>{0}</b><br/>", parameterString(new PrintParametersOptions(as(context, Script.class), true, true, false))), //$NON-NLS-1$ //$NON-NLS-2$
 			"<br/>", //$NON-NLS-1$
 			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
 			"<br/>", //$NON-NLS-1$
@@ -565,7 +586,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		if (!oldStyle) {
 			output.append(Keywords.Func);
-			final Typing typing = typing();
+			final ProjectSettings.Typing typing = typing();
 			switch (typing) {
 			case DYNAMIC:
 				break;
@@ -583,7 +604,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		output.append(name());
 		if (!oldStyle) {
 			output.append("("); //$NON-NLS-1$
-			printParameterString(output, EnumSet.of(ParameterStringOption.FunctionName, ParameterStringOption.EngineCompatible));
+			printParametersString(output, new PrintParametersOptions(script(), true, true, false));
 			output.append(")"); //$NON-NLS-1$
 		}
 		else
@@ -788,22 +809,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return null;
 	}
 
-	/**
-	 * Assign parameter types to existing parameters. If more types than parameters are given, no new parameters will be created.
-	 * @param types The types to assign to the parameters
-	 */
-	public void assignParameterTypes(IType... types) {
-		if (types == null)
-			return;
-		synchronized (parameters) {
-			for (int i = 0; i < types.length; i++) {
-				if (i >= parameters.size())
-					break;
-				parameters.get(i).forceType(types[i], true);
-			}
-		}
-	}
-
 	@Override
 	public int absoluteExpressionsOffset() {
 		return bodyLocation().getOffset();
@@ -837,14 +842,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public ASTNode code() { return body(); }
 
-	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, final Index context, Variable... parameters) {
+	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, final Script context, Variable... parameters) {
 		final StringBuilder builder = new StringBuilder();
 		@SuppressWarnings("serial")
 		final Function f = new Function(functionName, scope) {
 			@Override
-			public Typing typing() { return context.nature().settings().typing; }
+			public ProjectSettings.Typing typing() { return context.index().nature().settings().typing; }
 			@Override
 			public Engine engine() { return context.engine(); }
+			@Override
+			public Script script() { return context; }
 		};
 		f.assignType(PrimitiveType.ANY, true);
 		for (final Variable p : parameters)

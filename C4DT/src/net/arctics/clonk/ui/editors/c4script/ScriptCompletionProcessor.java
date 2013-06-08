@@ -586,7 +586,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				cb = String.format(nameFormat, cb);
 				replacementString = funcSupplied
 					? cb
-					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, editor().script().index(), parameters); //$NON-NLS-1$
+					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, editor().script(), parameters); //$NON-NLS-1$
 				cursorPosition = replacementString.length()-2;
 				super.apply(viewer, trigger, stateMask, offset);
 			}

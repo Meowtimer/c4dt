@@ -12,7 +12,6 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -28,7 +27,7 @@ import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.Function.ParameterStringOption;
+import net.arctics.clonk.c4script.Function.PrintParametersOptions;
 import net.arctics.clonk.c4script.IHasName;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Script;
@@ -635,11 +634,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				writer.append(desc);
 			}
 			final String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, //$NON-NLS-1$
-				f.parameterString(EnumSet.of(
-					ParameterStringOption.FunctionName,
-					ParameterStringOption.EngineCompatible,
-					ParameterStringOption.ParameterComments
-				)));
+				f.parameterString(new PrintParametersOptions(this, true, true, true)));
 			writer.append(text);
 		}
 	}

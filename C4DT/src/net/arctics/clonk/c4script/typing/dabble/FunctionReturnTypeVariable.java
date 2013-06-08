@@ -2,6 +2,7 @@ package net.arctics.clonk.c4script.typing.dabble;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.typing.TypeVariable;
 
 public class FunctionReturnTypeVariable extends TypeVariable {
 	protected final Function baseFunction, function;

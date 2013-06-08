@@ -4,6 +4,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.c4script.typing.TypeVariable;
 
 public class VariableTypeVariable extends TypeVariable {
 	private final Variable variable;

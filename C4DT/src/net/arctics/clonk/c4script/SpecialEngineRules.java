@@ -39,6 +39,7 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeChoice;
 import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypeUtil;
+import net.arctics.clonk.c4script.typing.TypeVariable;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -293,7 +294,7 @@ public abstract class SpecialEngineRules {
 		 * @return Returns false if this rule doesn't handle assigning default parameters of the passed function call. No types will be assigned and regular type inference takes place.
 		 */
 		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
-		public boolean assignDefaultParmTypes(Function function) {
+		public boolean assignDefaultParmTypes(Function function, TypeVariable[] parameterTypeVariables) {
 			return false;
 		}
 		/**
