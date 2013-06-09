@@ -56,8 +56,6 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 				return null;
 			}
 			@Override
-			public void run() {}
-			@Override
 			public Markers markers() { return markers; }
 			@Override
 			public void setGlobalMarkers(Markers markers) { /* ignore */ }

@@ -10,6 +10,7 @@ import java.util.List;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.ThisType;
+import net.arctics.clonk.c4script.typing.dabble.Maybe;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.util.IPredicate;
@@ -61,7 +62,7 @@ public class TypeUnification {
 			case UNKNOWN:
 				return b;
 			case ANY:
-				return eq(b, PrimitiveType.UNKNOWN) ? a : TypeChoice.make(a, b);
+				return Maybe.make(b);
 			case REFERENCE:
 				return b;
 			default:
@@ -79,6 +80,9 @@ public class TypeUnification {
 					return new ThisType(u);
 			}
 		}
+
+		if (a instanceof Maybe && b instanceof Maybe)
+			return new Maybe(TypeUnification.unify(((Maybe)a).maybe(), ((Maybe)b).maybe()));
 
 		if (a instanceof TypeChoice && b instanceof TypeChoice) {
 			final TypeChoice tca = (TypeChoice)a;

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.typing.dabble.Maybe;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities.Folder;
@@ -64,6 +65,10 @@ public class TypeChoice implements IType {
 				(hc.left == right && hc.right == left)
 			)
 				return hc;
+		if (left == PrimitiveType.ANY)
+			return Maybe.make(right);
+		else if (right == PrimitiveType.ANY)
+			return Maybe.make(left);
 		return new TypeChoice(left, right).removeDuplicates();
 	}
 

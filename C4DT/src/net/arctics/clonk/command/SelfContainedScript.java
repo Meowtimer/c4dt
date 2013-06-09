@@ -9,6 +9,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.SelfcontainedStorage;
 
 import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 public class SelfContainedScript extends Script {
 
@@ -23,7 +24,7 @@ public class SelfContainedScript extends Script {
 		try {
 			parser.parse();
 			deriveInformation();
-			new DabbleInference().localReporter(parser.script(), parser.fragmentOffset(), null).run();
+			new DabbleInference().initialize(null, new NullProgressMonitor(), new Script[] {this}).run();
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}

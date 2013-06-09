@@ -461,6 +461,7 @@ local items;
 func Type() { return nil; }
 func AddItem(item) { items[GetLength(items)] = item; }
 func AddNewItem() { AddItem(CreateObject(Type())); }
+func ToArray() { return items; }
 				}"""
 			),
 			new DefinitionInfo(name:'Derived', source:
@@ -483,5 +484,6 @@ func Type() { return Clonk; }
 			new ArrayType(TypeChoice.make(PrimitiveType.ANY, setup.scripts[2])),
 			setup.scripts[1].typings().variableTypes['items']
 		);
+		Assert.assertEquals(new ArrayType(TypeChoice.make(PrimitiveType.ANY, setup.scripts[2])), setup.scripts[1].typings().functionTypings['ToArray'].returnType);
 	}
 }

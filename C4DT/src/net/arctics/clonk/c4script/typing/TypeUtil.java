@@ -51,8 +51,6 @@ public class TypeUtil {
 			@Override
 			public void setGlobalMarkers(Markers markers) { /* ignore */ }
 			@Override
-			public void run() {}
-			@Override
 			public Object visit(Function function) { return null; }
 			@Override
 			public boolean judgment(ASTNode node, IType type, TypingJudgementMode mode) { return false; }

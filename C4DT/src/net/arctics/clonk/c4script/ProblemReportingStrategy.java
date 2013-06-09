@@ -18,17 +18,17 @@ import org.eclipse.core.runtime.IProgressMonitor;
  *
  */
 public abstract class ProblemReportingStrategy implements Runnable {
-	
+
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ElementType.TYPE})
 	public @interface Capabilities {
 		static final int TYPING = 1, ISSUES = 2;
 		int capabilities() default ISSUES|TYPING;
 	}
-	
+
 	protected Markers markers = new Markers();
 	protected IProgressMonitor progressMonitor;
-	
+
 	/**
 	 * {@link Markers} problems are reported against.
 	 * @return The markers
@@ -40,7 +40,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	 */
 	@Override
 	public void run() { throw new UnsupportedOperationException(); }
-	
+
 	/**
 	 * Return a local problem reporter which can be used to perform partial revisits of changed code.
 	 * @param script The script the reporter is responsible for.
@@ -49,12 +49,13 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	 * @return The reporter
 	 */
 	public abstract ProblemReporter localReporter(Script script, int fragmentOffset, ProblemReporter chain);
-	
-	public void initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
+
+	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
 		this.markers = markers;
 		this.progressMonitor = progressMonitor;
+		return this;
 	}
-	
+
 	public final int capabilities() {
 		final Capabilities caps = getClass().getAnnotation(Capabilities.class);
 		return caps != null ? caps.capabilities() : 0;

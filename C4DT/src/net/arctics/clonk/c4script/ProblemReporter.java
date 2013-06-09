@@ -31,7 +31,7 @@ public interface ProblemReporter extends IASTPositionProvider, ITypingContext {
 	 */
 	CachedEngineDeclarations cachedEngineDeclarations();
 	/**
-	 * Return {@link Markers} this reporter adds markers to when it finds problems to report. 
+	 * Return {@link Markers} this reporter adds markers to when it finds problems to report.
 	 * @return The {@link Markers} object
 	 */
 	Markers markers();
@@ -46,11 +46,7 @@ public interface ProblemReporter extends IASTPositionProvider, ITypingContext {
 	 */
 	Script script();
 	/**
-	 * Run on the whole {@link #script()}.
-	 */
-	void run();
-	/**
-	 * Visit a {@link Function} reporting problems found in its code. Other functions might be visited as well, depending on implementation logic. 
+	 * Visit a {@link Function} reporting problems found in its code. Other functions might be visited as well, depending on implementation logic.
 	 * @param function The function which marks the starting point of the visitation journey
 	 * @return Whatever result the implementation likes to return as a result of a visit.
 	 */

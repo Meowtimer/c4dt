@@ -162,11 +162,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	@Override
-	public void initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
-		super.initialize(markers, progressMonitor, scripts);
+	public DabbleInference initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
+		super.initialize(defaulting(markers, NULL_MARKERS), progressMonitor, scripts);
 		shared = new Shared();
 		shared.scripts = scripts;
 		assembleCommittee();
+		return this;
 	}
 
 	@Override
@@ -350,9 +351,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			IASTVisitor<ProblemReporter> observer;
 			Thread thread;
 			Visit visit;
-
-			@Override
-			public void run() { visitAllPlanned(this); apply(); }
 
 			public Visitor(Visitor originator) {
 				this.originator = originator;
@@ -592,7 +590,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (function == null || function.body() == null)
 					return null;
 				// when in local mode, prevent recursion more than two levels deep
-				if (shared.local && originator != null && originator.originator != null)
+				if (shared.local && originatorChainLength() >= 3)
 					return null;
 
 				Visit _visit;
@@ -898,6 +896,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			public TypeEnvironment endTypeEnvironment() {
 				typeEnvironment.up.inject(typeEnvironment);
+				if (DEBUG && typeEnvironment.up == input().typeEnvironment)
+					synchronized (input().typeEnvironment) {
+						log("Global type environment: %s", input().typeEnvironment);
+					}
 				return typeEnvironment = typeEnvironment.up == input().typeEnvironment ? null : typeEnvironment.up;
 			}
 
@@ -1523,7 +1525,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (_t instanceof Script) {
 								final Input nput = shared.getInput((Script) _t);
 								if (nput != null)
-									nput.new Visitor(visitor).run();
+									nput.visitAllPlanned(nput.new Visitor(null));
 								final IType frt = ((Script)_t).typings().variableTypes.get(d.name());
 								t = unify(t, frt);
 							}
@@ -2059,8 +2061,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public void visit(ReturnStatement node, Visitor visitor) throws ProblemException {
-					if (node.parentOfType(Function.class).name().equals("ToArray"))
-						System.out.println("here");
 					supr.visit(node, visitor);
 					final ASTNode returnExpr = node.returnExpr();
 					warnAboutTupleInReturnExpr(visitor, returnExpr, false);
@@ -2901,6 +2901,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 		};
+		committee.clear();
 		for (final Expert<?> expert : classes)
 			committee.put(expert.cls(), expert);
 		for (final Expert<?> expert : classes)

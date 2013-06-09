@@ -41,6 +41,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
@@ -157,9 +158,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		parser.validate();
 		if (!onlyDeclarations) {
 			if (this.typingStrategy() != null) {
-				final ProblemReporter localTyping = this.typingStrategy().localReporter(parser.script(), parser.fragmentOffset(), null);
-				localTyping.setGlobalMarkers(markers);
-				localTyping.run();
+				this.typingStrategy().initialize(markers, new NullProgressMonitor(), new Script[] {parser.script()});
+				this.typingStrategy().run();
+//				final ProblemReporter localTyping = this.typingStrategy().localReporter(parser.script(), parser.fragmentOffset(), null);
+//				localTyping.setGlobalMarkers(markers);
+//				localTyping.run();
 			}
 			markers.deploy();
 		}
