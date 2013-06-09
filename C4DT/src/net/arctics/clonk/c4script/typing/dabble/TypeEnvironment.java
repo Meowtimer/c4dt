@@ -5,12 +5,11 @@ import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.typing.TypeVariable;
 
-public final class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
-	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+@SuppressWarnings("serial")
+public class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 	public TypeEnvironment up;
 	public TypeEnvironment() { super(5); }
 	public TypeEnvironment(TypeEnvironment up) { this(); this.up = up; }
@@ -32,4 +31,16 @@ public final class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 		return this.get(declaration);
 	}
 	public void add(TypeVariable var) { this.put(var.key(), var); }
+	public static TypeEnvironment newSynchronized() {
+		return new TypeEnvironment() {
+			@Override
+			public synchronized TypeEnvironment inject(TypeEnvironment other) {
+				return super.inject(other);
+			}
+			@Override
+			public synchronized TypeVariable find(Declaration declaration) {
+				return super.find(declaration);
+			}
+		};
+	}
 }

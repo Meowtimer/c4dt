@@ -691,11 +691,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 							}
 							DabbleInference.this.markers().take(markers);
 						}
-						env = endTypeEnvironment(env, true);
+						env = endTypeEnvironment();
 					}
 					if (ownedFunction)
 						env.apply(false);
-					endTypeEnvironment(env, true);
+					endTypeEnvironment();
 					warnAboutUnusedLocals(function, statements);
 				}
 				catch (final ProblemException e) {}
@@ -893,20 +893,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			public TypeEnvironment newTypeEnvironment() {
-				final TypeEnvironment l = new TypeEnvironment();
-				l.up = typeEnvironment;
-				return typeEnvironment = l;
+				return this.typeEnvironment = new TypeEnvironment(defaulting(typeEnvironment, input().typeEnvironment));
 			}
 
-			public TypeEnvironment endTypeEnvironment(TypeEnvironment env, boolean injectToUpper) {
-				if (injectToUpper)
-					if (env.up != null)
-						env.up.inject(env);
-					else synchronized (input().typeEnvironment) {
-						input().typeEnvironment.inject(env);
-					}
-				typeEnvironment = env.up;
-				return typeEnvironment;
+			public TypeEnvironment endTypeEnvironment() {
+				typeEnvironment.up.inject(typeEnvironment);
+				return typeEnvironment = typeEnvironment.up == input().typeEnvironment ? null : typeEnvironment.up;
 			}
 
 			private boolean createWarningAtDeclarationOfVariable(
@@ -1084,7 +1076,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final Map<String, Declaration> functionMap = new HashMap<>();
 		final SpecialEngineRules rules;
 		final int fragmentOffset;
-		final TypeEnvironment typeEnvironment = new TypeEnvironment();
+		final TypeEnvironment typeEnvironment = TypeEnvironment.newSynchronized();
 
 		State mainVisitState = State.UNDETERMINED;
 
@@ -1190,12 +1182,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		private void visitAllPlanned(Visitor visitor) {
-			final TypeEnvironment env2 = visitor.newTypeEnvironment();
+			visitor.newTypeEnvironment();
 			final Function[] plan_;
 			synchronized (plan) { plan_ = plan.keySet().toArray(new Function[plan.size()]); }
 			for (final Function f : plan_)
 				visitor.visit(f, null);
-			visitor.endTypeEnvironment(env2, true);
+			visitor.endTypeEnvironment();
 		}
 
 		@Override
@@ -1675,6 +1667,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void visitFunctionsContainingAssignmentToVariable(T node, Visitor visitor, final Declaration d) {
+				if (visitor.pass != Pass.MAIN)
+					return;
 				if (!(d instanceof Variable && !(d instanceof ProxyVar)))
 					return;
 				for (ASTNode p = node.parent(); p != null; p = p.parent())
@@ -1688,6 +1682,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 							for (ASTNode p = ref.parent(); p != null; p = p.parent())
 								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
 									final Function fun = ref.parentOfType(Function.class);
+									if (DEBUG)
+										visitor.log("Visit %s because of assignment to %s", fun.qualifiedName(), d.name());
 									visitor.delegateFunctionVisit(fun, visitor.script(), true);
 									break;
 								}
@@ -1735,12 +1731,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public void visit(ConditionalStatement node, Visitor visitor) throws ProblemException {
 				final ControlFlow t = visitor.controlFlow;
 				visitor.controlFlow = ControlFlow.Continue;
-				TypeEnvironment env = visitor.newTypeEnvironment();
+				visitor.newTypeEnvironment();
 				visitor.visit(node.condition(), true);
-				visitor.endTypeEnvironment(env, true);
-				env = visitor.newTypeEnvironment();
+				visitor.endTypeEnvironment();
+				visitor.newTypeEnvironment();
 				visitor.visit(node.body(), true);
-				visitor.endTypeEnvironment(env, true);
+				visitor.endTypeEnvironment();
 				loopConditionWarnings(node, visitor);
 				visitor.controlFlow = t;
 			}
@@ -2063,6 +2059,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public void visit(ReturnStatement node, Visitor visitor) throws ProblemException {
+					if (node.parentOfType(Function.class).name().equals("ToArray"))
+						System.out.println("here");
 					supr.visit(node, visitor);
 					final ASTNode returnExpr = node.returnExpr();
 					warnAboutTupleInReturnExpr(visitor, returnExpr, false);
@@ -2729,7 +2727,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (!TypeUnification.compatible(type, PrimitiveType.ARRAY))
 						visitor.incompatibleTypesMarker(node, arrayExpr, type, PrimitiveType.ARRAY);
 					final IType elmType = ArrayType.elementTypeSet(type);
-					final TypeEnvironment env = visitor.newTypeEnvironment();
+					visitor.newTypeEnvironment();
 					{
 						if (loopVariable != null) {
 							loopVariable.setUsed(true);
@@ -2737,7 +2735,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 						visitor.visit(node.body(), true);
 					}
-					visitor.endTypeEnvironment(env, true);
+					visitor.endTypeEnvironment();
 					visitor.controlFlow = t;
 				}
 			},
@@ -2773,20 +2771,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 					visitor.visit(condition, true);
 					// use two separate type environments for if and else statement, merging
 					// gathered information afterwards
-					final TypeEnvironment ifEnvironment = visitor.newTypeEnvironment();
-					// visit condition with new type environment so judgments arising from condition will not be unified inside
-					// the true case
-					visitor.visit(node.body(), true);
-					visitor.endTypeEnvironment(ifEnvironment, false);
-					visitor.controlFlow = old;
-					if (node.elseExpression() != null) {
-						final TypeEnvironment elseEnvironment = visitor.newTypeEnvironment();
-						visitor.visit(node.elseExpression(), true);
-						visitor.endTypeEnvironment(elseEnvironment, false);
-						ifEnvironment.inject(elseEnvironment);
+					visitor.newTypeEnvironment();
+					{
+						visitor.newTypeEnvironment();
+						{
+							visitor.visit(node.body(), true);
+						}
+						visitor.endTypeEnvironment();
+						visitor.controlFlow = old;
+						if (node.elseExpression() != null) {
+							visitor.newTypeEnvironment();
+							{
+								visitor.visit(node.elseExpression(), true);
+							}
+							visitor.endTypeEnvironment();
+						}
 					}
-					if (ifEnvironment.up != null)
-						ifEnvironment.up.inject(ifEnvironment);
+					visitor.endTypeEnvironment();
 					visitor.controlFlow = old;
 
 					if (!containsConst(condition)) {
