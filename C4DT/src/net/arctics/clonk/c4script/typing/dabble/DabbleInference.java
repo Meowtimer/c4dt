@@ -3,18 +3,18 @@ package net.arctics.clonk.c4script.typing.dabble;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import static net.arctics.clonk.c4script.typing.TypeUnification.unifyNoChoice;
-import static net.arctics.clonk.util.ArrayUtil.map;
-import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +46,6 @@ import net.arctics.clonk.c4script.IProplistDeclaration;
 import net.arctics.clonk.c4script.InitializationFunction;
 import net.arctics.clonk.c4script.InitializationFunction.VarInitializationAccess;
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.c4script.Marker;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
@@ -122,7 +121,6 @@ import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.stringtbl.StringTbl;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.PerClass;
 import net.arctics.clonk.util.Profiled;
 import net.arctics.clonk.util.Sink;
@@ -143,7 +141,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	final Map<Script, Input> input = new HashMap<>();
 	boolean local = false;
-	Script[] scripts;
 
 	// flags
 	private boolean typeThisAsObject;
@@ -163,19 +160,51 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 	}
 
+	public DabbleInference() {
+		super();
+		assembleCommittee();
+	}
+
 	@Override
 	public DabbleInference initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
 		super.initialize(defaulting(markers, NULL_MARKERS), progressMonitor, scripts);
-		this.scripts = scripts;
-		assembleCommittee();
+		gatherInput(scripts);
 		return this;
+	}
+
+	@Override
+	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Function[] functions) {
+		super.initialize(markers, progressMonitor, functions);
+		gatherInputFromRestrictedFunctionSet(functions);
+		return this;
+	}
+
+	private void gatherInputFromRestrictedFunctionSet(Function[] functions) {
+		final List<Function> list = new ArrayList<Function>(Arrays.asList(functions));
+		while (list.size() > 0) {
+			final Function frst = list.get(0);
+			Input i = input.get(frst);
+			if (i == null) {
+				final List<Function> funcs = new LinkedList<>();
+				final Script s = frst.script();
+				for (final Iterator<Function> it = list.iterator(); it.hasNext();) {
+					final Function f = it.next();
+					if (f.script() == s) {
+						it.remove();
+						funcs.add(f);
+					}
+				}
+				i = new Input(s, 0, funcs.toArray(new Function[funcs.size()]));
+				input.put(s, i);
+			}
+		}
 	}
 
 	@Override
 	public void run() { work(); }
 
 	@SuppressWarnings("serial")
-	class Graph extends LinkedList<Graph.Cluster> {
+	class Graph extends LinkedList<Runnable> {
 
 		private final Map<String, List<Visit>> visits = new HashMap<>();
 
@@ -190,6 +219,59 @@ public class DabbleInference extends ProblemReportingStrategy {
 					list.add(v);
 				}
 		}
+
+		IASTVisitor<Visit> requirementsVisitor = new IASTVisitor<Visit>() {
+			@Override
+			public TraversalContinuation visitNode(ASTNode node, Visit v) {
+				if (node instanceof CallDeclaration && resultNeeded(node)) {
+					final CallDeclaration cd = (CallDeclaration) node;
+					final List<Visit> calledVisits = visits.get(cd.name());
+					if (calledVisits != null)
+						v.requirements.addAll(calledVisits);
+				}
+				else if (
+					node instanceof AccessVar && node.predecessorInSequence() == null &&
+					!(isLocal((AccessVar) node, v) || containedInAssignment(node))
+				) {
+					final AccessVar av = (AccessVar) node;
+					for (final Script s : v.input().conglomerate) {
+						final List<AccessVar> references = s.varReferences().get(av.name());
+						if (references != null)
+							for (final AccessVar ref : references)
+								for (ASTNode p = ref.parent(); p != null; p = p.parent())
+									if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
+										final Function fun = ref.parentOfType(Function.class);
+										final Visit other = v.input().plan.get(fun);
+										if (other != null)
+											v.requirements.add(other);
+										break;
+									}
+					}
+				}
+				return TraversalContinuation.Continue;
+			}
+			private boolean containedInAssignment(ASTNode node) {
+				for (ASTNode p = node.parent(); p != null; p = p.parent())
+					if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment())
+						return true;
+				return false;
+			}
+			private boolean isLocal(AccessVar node, Visit v) {
+				return v.function.findLocalDeclaration(node.name(), Variable.class) != null;
+			}
+			boolean resultNeeded(final ASTNode node) {
+				boolean resultNeeded = false;
+				for (ASTNode p = node.parent(), c = node; p != null; c = p, p = p.parent()) {
+					if (p instanceof SimpleStatement)
+						break;
+					if (p instanceof Sequence && ((Sequence)p).lastElement() == c)
+						continue;
+					resultNeeded = true;
+					break;
+				}
+				return resultNeeded;
+			}
+		};
 
 		void determineRequirements() {
 			for (final Input i : input.values())
@@ -208,55 +290,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							}
 					}
 
-					v.function.traverse(new IASTVisitor<Void>() {
-						@Override
-						public TraversalContinuation visitNode(ASTNode node, Void context) {
-							if (node instanceof CallDeclaration && resultNeeded(node)) {
-								final CallDeclaration cd = (CallDeclaration) node;
-								final List<Visit> calledVisits = visits.get(cd.name());
-								if (calledVisits != null)
-									v.requirements.addAll(calledVisits);
-							}
-							else if (node instanceof AccessVar && node.predecessorInSequence() == null && !(isLocal((AccessVar) node) || containedInAssignment(node))) {
-								final AccessVar av = (AccessVar) node;
-								for (final Script s : v.input().conglomerate) {
-									final List<AccessVar> references = s.varReferences().get(av.name());
-									if (references != null)
-										for (final AccessVar ref : references)
-											for (ASTNode p = ref.parent(); p != null; p = p.parent())
-												if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
-													final Function fun = ref.parentOfType(Function.class);
-													final Visit other = v.input().plan.get(fun);
-													if (other != null)
-														v.requirements.add(other);
-													break;
-												}
-								}
-							}
-							return TraversalContinuation.Continue;
-						}
-						private boolean containedInAssignment(ASTNode node) {
-							for (ASTNode p = node.parent(); p != null; p = p.parent())
-								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment())
-									return true;
-							return false;
-						}
-						private boolean isLocal(AccessVar node) {
-							return v.function.findLocalDeclaration(node.name(), Variable.class) != null;
-						}
-						boolean resultNeeded(final ASTNode node) {
-							boolean resultNeeded = false;
-							for (ASTNode p = node.parent(), c = node; p != null; c = p, p = p.parent()) {
-								if (p instanceof SimpleStatement)
-									break;
-								if (p instanceof Sequence && ((Sequence)p).lastElement() == c)
-									continue;
-								resultNeeded = true;
-								break;
-							}
-							return resultNeeded;
-						}
-					}, null);
+					v.function.traverse(requirementsVisitor, v);
 
 					v.requirements.remove(v);
 
@@ -276,30 +310,28 @@ public class DabbleInference extends ProblemReportingStrategy {
 		void prune() {
 			for (final Input i : input.values())
 				for (final Visit v : i.plan.values())
-					for (final Visit r : v.requirements.toArray(new Visit[v.requirements.size()])) {
-						class Trace extends LinkedList<Visit> {
-							void trace(Visit r) {
-								if (contains(r)) {
-									this.getLast().requirements.remove(r);
-									r.dependents.remove(this.getLast());
-									return;
-								} else {
-									for (final Visit p : this)
-										p.requirements.removeAll(r.requirements);
-									for (final Visit r_ : r.requirements)
-										r_.dependents.removeAll(this);
-									this.add(r);
-									for (final Visit r_ : r.requirements.toArray(new Visit[r.requirements.size()]))
-										trace(r_);
-								}
-							}
-							Trace(Visit s) { trace(s); }
+					for (final Iterator<Visit> rit = v.requirements.iterator(); rit.hasNext();) {
+						final Visit r = rit.next();
+						if (cyclicRequirement(r, v, new HashSet<Visit>())) {
+							r.dependents.remove(v);
+							rit.remove();
 						}
-						new Trace(r);
 					}
 		}
 
-		class Cluster extends LinkedList<Visit> implements Runnable {
+		boolean cyclicRequirement(Visit node, Visit other, Set<Visit> catcher) {
+			if (!catcher.add(node))
+				return true;
+			for (final Visit r : node.requirements) {
+				if (other == r)
+					return true;
+				if (cyclicRequirement(r, other, catcher))
+					return true;
+			}
+			return false;
+		}
+
+		class Cluster extends HashSet<Visit> implements Runnable {
 			boolean overlap(Visit a, Visit b) {
 				if (a == b)
 					return true;
@@ -317,83 +349,147 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return true;
 				return false;
 			}
-			Cluster(Visit first) { this.add(first); }
 			void run(Visit v) {
-				v.input().new Visitor(null).visit(v);
+				v.input().new Visitor().visit(v);
 				for (final Visit d : v.dependents)
 					if (d.requirements.remove(v) && d.requirements.size() == 0)
 						run(d);
 			}
 			@Override
 			public void run() {
-				System.out.println(String.format("Cluster: %s", blockString("", "", ", ", map(this, new IConverter<Visit, String>() {
-					@Override
-					public String convert(Visit from) {
-						return from.function.name();
-					}
-				}))));
 				for (final Visit v : this)
 					run(v);
 			}
+			void bottom(Set<Visit> catcher, Visit start) {
+				if (start.dependents.size() == 0)
+					catcher.add(start);
+				else
+					for (final Visit d : start.dependents)
+						bottom(catcher, d);
+			}
+			void top(Collection<Visit> bottom) {
+				for (final Visit v : bottom)
+					if (v.requirements.size() == 0)
+						this.add(v);
+					else
+						top(v.requirements);
+			}
+			void find(Set<Visit> catcher, Visit start) {
+				final Set<Visit> bottom = new HashSet<>();
+				bottom(bottom, start);
+				top(bottom);
+			}
 		}
 
-		void findClusters() {
+		Cluster findCluster(Visit root) {
+			final Cluster c = new Cluster();
+			c.find(new HashSet<Visit>(), root);
+			return c;
+		}
+
+		void populate() {
 			final List<Visit> roots = new LinkedList<>();
 			for (final Input i : input.values())
 				for (final Visit v : i.plan.values())
 					if (v.requirements.size() == 0)
-						roots.add(v);
-			Rooting: while (roots.size() > 0) {
-				final Visit root = roots.remove(0);
-				for (final Cluster c : this)
-					if (c.overlap(root)) {
-						c.add(root);
-						continue Rooting;
-					}
-				this.add(new Cluster(root));
+						if (v.dependents.size() == 0)
+							this.add(v);
+						else
+							roots.add(v);
+			while (roots.size() > 0) {
+				final Visit root = roots.get(0);
+				final Cluster c = findCluster(root);
+				roots.removeAll(c);
+				this.add(c);
 			}
 		}
 
 		Graph() {
 			populateVisitsMap();
+			prepareVisits();
 			determineRequirements();
 			determineDependents();
 			prune();
-			findClusters();
+			populate();
+		}
+
+		void prepareVisits() {
+			for (final List<Visit> l : visits.values())
+				for (final Visit v : l)
+					v.prepare();
 		}
 
 		void run() {
-			TaskExecution.threadPool(new Sink<ExecutorService>() {
-				@Override
-				public void receivedObject(ExecutorService pool) {
-					for (final Graph.Cluster cluster : Graph.this)
-						pool.execute(cluster);
-				}
-			}, 20);
+			if (this.size() < 20)
+				for (final Runnable r : this)
+					r.run();
+			else
+				TaskExecution.threadPool(new Sink<ExecutorService>() {
+					@Override
+					public void receivedObject(ExecutorService pool) {
+						for (final Runnable runnable : Graph.this)
+							pool.execute(runnable);
+					}
+				}, 20);
 		}
 	}
 
+	static class ParameterValidation {
+		CallDeclaration node;
+		Visitor visitor;
+		void regularParameterValidation(DabbleInference inference) {
+			final Expert<? super CallDeclaration> expert = visitor.expert(node);
+			int givenParam = 0;
+			final Function f = node.parentOfType(Function.class);
+			final ASTNode[] params = node.params();
+			for (final Variable parm : f.parameters()) {
+				if (givenParam >= params.length)
+					break;
+				final ASTNode given = params[givenParam++];
+				if (given == null)
+					continue;
+				final TypeVariable parmTyVar = expert.findParameterTypeVariable(parm, visitor);
+				final IType parmTy = parmTyVar != null ? parmTyVar.get() : parm.type();
+				final IType givenTy = visitor.ty(given);
+				final IType unified = unifyNoChoice(parmTy, givenTy);
+				if (unified == null)
+					visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
+				else if (givenTy == PrimitiveType.UNKNOWN)
+					visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
+			}
+			if (inference.noticeParameterCountMismatch)
+				validateParameterCount(inference);
+		}
+		public ParameterValidation(CallDeclaration node, Visitor visitor) {
+			super();
+			this.node = node;
+			this.visitor = visitor;
+		}
+		private void validateParameterCount(DabbleInference inference) {
+			final Function f = node.parentOfType(Function.class);
+			final ASTNode[] params = node.params();
+			if (f.index() == visitor.script().index() && params.length != f.numParameters() && !(f.script() instanceof Engine))
+				try {
+					inference.markers().error(visitor, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
+						f.numParameters(), params.length, f.name());
+				} catch (final ProblemException e) {}
+		}
+	}
+
+	final LinkedList<ParameterValidation> parameterValidations = new LinkedList<>();
+
 	@Profiled
 	final void work() {
-		gatherInput();
-
+		parameterValidations.clear();
 		new Graph().run();
-
-		/*
-		TaskExecution.threadPool(new Sink<ExecutorService>() {
-			@Override
-			public void receivedObject(ExecutorService pool) {
-				for (final Input input : DabbleInference.this.input.values())
-					pool.execute(input);
-			}
-		}, 20);
-		*/
-
+		for (final ParameterValidation pv : parameterValidations)
+			pv.regularParameterValidation(this);
 		for (final Input input : this.input.values())
 			input.apply();
 	}
 
-	private void gatherInput() {
+	private void gatherInput(Script[] scripts) {
+		input.clear();
 		for (final Script p : scripts)
 			if (p != null) {
 				final Input info = new Input(p, 0);
@@ -402,61 +498,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	@Override
-	public ProblemReporter localReporter(Script script, int fragmentOffset, ProblemReporter chain) {
-		assert(chain == null || chain instanceof Visitor);
-		if (chain != null) {
-			final Input p = this.input.get(script);
-			if (p != null)
-				return p.new Visitor((Visitor) chain);
-		} else {
-			local = true;
-			assembleCommittee();
-		}
+	public ProblemReporter localReporter(Script script, int fragmentOffset) {
+		local = true;
+		assembleCommittee();
 		final Input info = new Input(script, fragmentOffset);
 		input.put(script, info);
-		return info.new Visitor((Visitor) chain);
+		return info.new Visitor();
 	}
-
-	public enum State {
-		UNDETERMINED,
-		INPROGRESS,
-		FINISHED
-	}
-
 	/**
 	 * One script and associated information.
 	 * @author madeen
 	 *
 	 */
-	protected final class Input implements Runnable {
-
-		@Override
-		public void run() {
-			if (progressMonitor.isCanceled())
-				return;
-			progressMonitor.subTask(String.format("Reporting problems for '%s'", script().name())); //$NON-NLS-1$
-			innerRun(new Visitor(null));
-			progressMonitor.worked(1);
-		}
-
-		private void innerRun(Visitor visitor) {
-			synchronized (this) {
-				switch (mainVisitState) {
-				case UNDETERMINED:
-					mainVisitState = State.INPROGRESS;
-					break;
-				case FINISHED:
-					return;
-				case INPROGRESS:
-					return; // meh
-				}
-			}
-			visitAllPlanned(visitor);
-			synchronized (this) {
-				mainVisitState = State.FINISHED;
-				notifyAll();
-			}
-		}
+	protected final class Input {
 
 		/**
 		 * Type variable for the return type of a function that was visited.
@@ -464,9 +518,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * Synchronization of multiple visitor threads will be performed by locking on objects of this type.
 		 * @author madeen
 		 */
-		final class Visit extends FunctionReturnTypeVariable {
+		final class Visit extends FunctionReturnTypeVariable implements Runnable {
 
-			State state;
+			@Override
+			public void run() { input().new Visitor().visit(this); }
+
 			Visitor visitor;
 			IType[] inferredTypes;
 			Expert<?>[] experts;
@@ -499,14 +555,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return function.qualifiedName(script);
 			};
 
-			Delayed delayedVisits;
-
-			public void state(State state) { this.state = state; }
-
 			public Visit(Function function) {
 				super(function);
 				hash = function.qualifiedName(script).hashCode();
-				state = State.UNDETERMINED;
 			}
 
 			@SuppressWarnings("unchecked")
@@ -535,27 +586,27 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		final class Visitor implements ProblemReporter, IEvaluationContext {
 
-			final Visitor originator;
 			final Input input() { return Input.this; }
 
 			ControlFlow controlFlow;
 			Markers markers;
 			TypeEnvironment typeEnvironment;
-			IASTVisitor<ProblemReporter> observer;
 			Thread thread;
 			Visit visit;
 
-			public Visitor(Visitor originator) {
-				this.originator = originator;
+			public Visitor() {
 				this.markers = new Markers();
 			}
 
 			@SuppressWarnings("unchecked")
 			private final <T extends ASTNode> Expert<? super T> expert(T node) {
 				final int localID = node.localIdentifier();
-				if (visit != null && localID >= 0)
-					return (Expert<? super T>) visit.experts[localID];
-				else
+				if (visit != null && localID >= 0) {
+					final Expert<?> expert = visit.experts[localID];
+					if (expert == null)
+						System.out.println("what");
+					return (Expert<? super T>) expert;
+				} else
 					return findExpert(node);
 			}
 
@@ -582,8 +633,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final String func = visit != null ? visit.function().qualifiedName() : "<no function>";
 				return String.format("Visitor (%s, %s)", input().toString(), func); //$NON-NLS-1$
 			}
-			@Override
-			public void setObserver(IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
 
 			public final SpecialFuncRule specialRuleFor(CallDeclaration node, int role) {
 				final Engine engine = script().engine();
@@ -756,6 +805,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Visitor visitor,
 				final ASTNode node
 			) {
+				if (containingVisit != null && containingVisit.inferredTypes == null) {
+					System.out.println(toString() + " expected to get result of " + containingVisit.toString() + " but no");
+					return null;
+				}
 				IType ty = containingVisit != null ? containingVisit.inferredTypes[node.localIdentifier()] : null;
 				if (ty == null && visitor != null)
 					ty = visitor.typeOf(node);
@@ -765,49 +818,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 						ty = astTypes[node.localIdentifier()];
 				}
 				return ty;
-			}
-
-			@Override
-			public TypeVariable visit(Function function) {
-				return visit(function, null);
-			}
-
-			public Visit visit(Function function, Visitor originator) {
-				if (thread == null)
-					thread = Thread.currentThread();
-				if (function == null || function.body() == null)
-					return null;
-				// when in local mode, prevent recursion more than two levels deep
-				if (local && originatorChainLength() >= 3)
-					return null;
-
-				Visit _visit;
-				_visit = input().plan.get(function);
-				if (_visit != null)
-					synchronized (_visit) {
-						switch (_visit.state) {
-						case FINISHED:
-							return _visit;
-						case INPROGRESS:
-							if (_visit.visitor.thread != Thread.currentThread())
-								waitForEndOfVisit(function, originator, _visit);
-							return _visit;
-						case UNDETERMINED:
-							startVisit(_visit);
-							break;
-						}
-					}
-				else
-					return null;
-
-				try {
-					innerVisit();
-				} catch (final Exception e) {
-					log("Error visiting '%s'", function.qualifiedName());
-					e.printStackTrace();
-				}
-				endVisit();
-				return _visit;
 			}
 
 			public Visit visit(Visit visit) {
@@ -822,29 +832,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return visit;
 			}
 
-			private void waitForEndOfVisit(Function function, Visitor originator, Visit _visit) {
-				if (DEBUG && originator != null && originator.visit != null)
-					log("'%s' waiting for '%s'", originator.visit.function().qualifiedName(originator.script()), function.qualifiedName(script())); //$NON-NLS-1$
-				int i;
-				for (i = 0; i < 3 && _visit.state != State.FINISHED; i++)
-					try {
-						_visit.wait(40);
-					} catch (final InterruptedException e) {}
-				if (i == 3 && originator != null && originator.visit != null)
-					log("'%s' (%s) gave up waiting for '%s' (%s)", //$NON-NLS-1$
-						originator.visit.function().qualifiedName(originator.script()),
-						originator.thread.toString(),
-						function.qualifiedName(script()),
-						_visit.visitor.thread.toString()
-					);
-			}
-
 			private void startVisit(Visit v) {
 				visit = v;
 				v.visitor = this;
-				v.prepare();
-				v.delayedVisits = null;
-				v.state(State.INPROGRESS);
 			}
 
 			public void innerVisit() {
@@ -876,7 +866,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 								typeParametersFromCalls(function, baseFunction, parTypes);
 								env.clear();
 							}
-							final Marker mainVisitMarkers = markers().last();
 							actualVisit(ownedFunction, statements, parTypes);
 							DabbleInference.this.markers().take(markers);
 						}
@@ -981,14 +970,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				preliminary = false;
 			}
 
-			private void endVisit() {
-				synchronized (visit) {
-					visit.state(State.FINISHED);
-					//visit.visitor = null;
-					visit.notifyAll();
-					visit = null;
-				}
-			}
+			private void endVisit() {}
 
 			public final Visit delegateFunctionVisit(Function function, Script script) {
 				if (function.body() == null)
@@ -1054,7 +1036,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public final <T extends ASTNode> T visit(T expression, boolean recursive) throws ProblemException {
 				if (expression == null)
 					return null;
-				final Expert<? super T> expert = expert(expression);
+				Expert<? super T> expert = expert(expression);
+				if (expert == null) {
+					System.out.println("what gives: " + expression.printed());
+					expert = expert(expression);
+				}
 				final ControlFlow old = controlFlow;
 				if (recursive && !expert.skipReportingProblemsForSubElements())
 					for (final ASTNode e : expression.subElements())
@@ -1189,10 +1175,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			void log(String msg, Object... args) {
 				final StringBuilder b = new StringBuilder(10+msg.length()+args.length*5);
-				for (Visitor v = originator; v != null; v = v.originator)
-					b.append('\t');
-				for (Visitor v = originator; v != null; v = v.originator)
-					b.append('\t');
 				b.append(this.toString());
 				b.append(": ");
 				b.append(String.format(msg, args));
@@ -1233,13 +1215,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
 			@Override
 			public Object cookie() { return null; }
-
-			public int originatorChainLength() {
-				int num = 0;
-				for (Visitor v = originator; v != null; v = v.originator)
-					num++;
-				return num;
-			}
 		}
 
 		final Script script;
@@ -1257,24 +1232,27 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final int fragmentOffset;
 		final TypeEnvironment typeEnvironment = TypeEnvironment.newSynchronized();
 
-		State mainVisitState = State.UNDETERMINED;
-
 		public Script script() { return script; }
 
-		private HashMap<Function, Visit> makePlan() {
+		private HashMap<Function, Visit> makePlan(Function[] restrict) {
 			final HashMap<Function, Visit> result = new LinkedHashMap<>();
-			for (final Script s : conglomerate)
-				if (s != script)
-					for (final Function f : s.functions())
-						if (f.body() != null && script.seesFunction(f)) {
-							f.findInherited();
-							result.put(f, new Visit(f));
-						}
-			for (final Function f : script.functions()) {
-				if (f.body() == null)
-					continue;
-				f.findInherited();
-				result.put(f, new Visit(f));
+			if (restrict != null && restrict.length > 0)
+				for (final Function f : restrict)
+					result.put(f, new Visit(f));
+			else {
+				for (final Script s : conglomerate)
+					if (s != script)
+						for (final Function f : s.functions())
+							if (f.body() != null && script.seesFunction(f)) {
+								f.findInherited();
+								result.put(f, new Visit(f));
+							}
+				for (final Function f : script.functions()) {
+					if (f.body() == null)
+						continue;
+					f.findInherited();
+					result.put(f, new Visit(f));
+				}
 			}
 			return result;
 		}
@@ -1304,7 +1282,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			return true;
 		}
 
-		public Input(Script script, int sourceFragmentOffset) {
+		public Input(Script script, int sourceFragmentOffset, Function... restrict) {
 			this.script = script;
 			this.conglomerate = script.conglomerate();
 			this.index = script.index();
@@ -1323,7 +1301,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					break;
 				}
 			this.hasAppendTo = hasAppendTo;
-			this.plan = Collections.synchronizedMap(makePlan());
+			this.plan = Collections.synchronizedMap(makePlan(restrict));
 		}
 
 		public void apply() {
@@ -1373,15 +1351,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 			functionTypings.put(fun.name(),
 				new Function.Typing(parameterTypes, retTy != null ? retTy.get() : PrimitiveType.UNKNOWN));
-		}
-
-		private void visitAllPlanned(Visitor visitor) {
-			visitor.newTypeEnvironment();
-			final Function[] plan_;
-			synchronized (plan) { plan_ = plan.keySet().toArray(new Function[plan.size()]); }
-			for (final Function f : plan_)
-				visitor.visit(f, null);
-			visitor.endTypeEnvironment();
 		}
 
 		@Override
@@ -1486,11 +1455,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		public TypeVariable findParameterTypeVariable(Variable parameter, Visitor visitor) {
-			final Function function = parameter.parentOfType(Function.class);
-			for (Visitor v = visitor; v != null; v = v.originator)
-				if (v.visit != null && v.visit.function() == function)
-					return findTypeVariable(parameter, v);
-			return null;
+			return findTypeVariable(parameter, visitor);
 		}
 
 		/**
@@ -1670,12 +1635,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (v != null)
 							return v;
 					}
-					Declaration v = visitor.input().variableMap.get(node.name());
-					if (v == null && !visitor.input().variableMap.containsKey(node.name())) {
-						v = findUsingType(visitor, node, null, type);
-						visitor.input().variableMap.put(node.name(), v);
+					synchronized (visitor.input().variableMap) {
+						Declaration v = visitor.input().variableMap.get(node.name());
+						if (v == null && !visitor.input().variableMap.containsKey(node.name())) {
+							v = findUsingType(visitor, node, null, type);
+							visitor.input().variableMap.put(node.name(), v);
+						}
+						return v;
 					}
-					return v;
 				}
 				else
 					return findUsingType(visitor, node, p, type);
@@ -2311,13 +2278,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return null;
 					final ASTNode p = node.predecessorInSequence();
 					Declaration f;
-					if (p == null) {
-						f = visitor.input().functionMap.get(node.name());
-						if (f == null && !visitor.input().functionMap.containsKey(node.name())) {
-							f = findUsingType(visitor, node, declarationName, visitor.script());
-							visitor.input().functionMap.put(declarationName, f);
+					if (p == null)
+						synchronized (visitor.input().functionMap) {
+							f = visitor.input().functionMap.get(node.name());
+							if (f == null && !visitor.input().functionMap.containsKey(node.name())) {
+								f = findUsingType(visitor, node, declarationName, visitor.script());
+								visitor.input().functionMap.put(declarationName, f);
+							}
 						}
-					} else
+					else
 						f = findUsingType(visitor, node, declarationName, visitor.ty(p));
 					return f;
 				}
@@ -2445,8 +2414,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.script().addUsedScript(f.script());
 
 					// not a special case... check regular parameter types
-					if (!applyRuleBasedValidation(node, visitor, params))
-						regularParameterValidation(node, visitor, params, f);
+					if (!applyRuleBasedValidation(node, visitor, params));
+					 	synchronized (parameterValidations) {
+					 		parameterValidations.add(new ParameterValidation(node, visitor));
+					 	}
 				}
 				private void maybeUnknownMarker(CallDeclaration node, Visitor visitor, final String declarationName) throws ProblemException {
 					final IType container = unknownFunctionShouldBeError(node, visitor);
@@ -2455,33 +2426,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().error(visitor, Problem.DeclarationNotFound,
 							node, start, start+declarationName.length(), Markers.NO_THROW, declarationName, container.typeName(true));
 					}
-				}
-				private void regularParameterValidation(CallDeclaration node, Visitor visitor, final ASTNode[] params, final Function f) {
-					int givenParam = 0;
-					for (final Variable parm : f.parameters()) {
-						if (givenParam >= params.length)
-							break;
-						final ASTNode given = params[givenParam++];
-						if (given == null)
-							continue;
-						final TypeVariable parmTyVar = findParameterTypeVariable(parm, visitor);
-						final IType parmTy = parmTyVar != null ? parmTyVar.get() : parm.type();
-						final IType givenTy = visitor.ty(given);
-						final IType unified = unifyNoChoice(parmTy, givenTy);
-						if (unified == null)
-							visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
-						else if (givenTy == PrimitiveType.UNKNOWN)
-							visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
-					}
-					if (noticeParameterCountMismatch)
-						validateParameterCount(node, visitor, params, f);
-				}
-				private void validateParameterCount(CallDeclaration node, Visitor visitor, final ASTNode[] params, final Function f) {
-					if (f.index() == visitor.script().index() && params.length != f.numParameters() && !(f.script() instanceof Engine))
-						try {
-							markers().error(visitor, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
-								f.numParameters(), params.length, f.name());
-						} catch (final ProblemException e) {}
 				}
 				private boolean applyRuleBasedValidation(CallDeclaration node, Visitor visitor, final ASTNode[] params) throws ProblemException {
 					final SpecialFuncRule rule = visitor.specialRuleFor(node, SpecialEngineRules.ARGUMENT_VALIDATOR);
@@ -2542,7 +2486,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (inherited != null)
 						if (inherited.body() != null) {
 							final Visit inhv = visitor.input().new Visit(inherited);
-							final Visitor inhVisitor = visitor.input().new Visitor(visitor);
+							inhv.prepare();
+							final Visitor inhVisitor = visitor.input().new Visitor();
 							inhVisitor.startVisit(inhv);
 							inhVisitor.innerVisit();
 							inhVisitor.endVisit();

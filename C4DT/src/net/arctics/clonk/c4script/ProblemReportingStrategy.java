@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.parser.Markers;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -28,6 +28,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 
 	protected Markers markers = new Markers();
 	protected IProgressMonitor progressMonitor;
+	protected IASTVisitor<ProblemReporter> observer;
 
 	/**
 	 * {@link Markers} problems are reported against.
@@ -41,19 +42,18 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	@Override
 	public void run() { throw new UnsupportedOperationException(); }
 
-	/**
-	 * Return a local problem reporter which can be used to perform partial revisits of changed code.
-	 * @param script The script the reporter is responsible for.
-	 * @param fragmentOffset Fragment to be passed a non-zero value if the {@link ASTNode}s to be revisited were recently parsed from some source fragment.
-	 * @param chain Local reporter previously created from this strategy. If non-null the reporters will be internally linked in some way.
-	 * @return The reporter
-	 */
-	public abstract ProblemReporter localReporter(Script script, int fragmentOffset, ProblemReporter chain);
-
 	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
-		this.markers = markers;
+		return initialize(markers, progressMonitor);
+	}
+
+	private ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor) {
+		this.markers = markers != null ? markers : new Markers(false);
 		this.progressMonitor = progressMonitor;
 		return this;
+	}
+
+	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Function[] functions) {
+		return initialize(markers, progressMonitor);
 	}
 
 	public final int capabilities() {
@@ -61,5 +61,9 @@ public abstract class ProblemReportingStrategy implements Runnable {
 		return caps != null ? caps.capabilities() : 0;
 	}
 
+	public void setObserver(IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
+
 	public void setArgs(String args) {}
+
+	public abstract ProblemReporter localReporter(Script script, int fragmentOffset);
 }

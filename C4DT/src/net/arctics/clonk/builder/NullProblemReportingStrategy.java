@@ -3,9 +3,7 @@ package net.arctics.clonk.builder;
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
-import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
@@ -27,9 +25,8 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 	public void run() {}
 
 	@Override
-	public ProblemReporter localReporter(final Script script, int fragmentOffset, ProblemReporter chain) {
+	public ProblemReporter localReporter(final Script script, int fragmentOffset) {
 		return new ProblemReporter() {
-			IASTVisitor<ProblemReporter> observer;
 			final Markers markers = new Markers();
 			@Override
 			public boolean judgment(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
@@ -50,12 +47,6 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			@Override
 			public Script script() { return script; }
 			@Override
-			public Object visit(Function function) {
-				if (observer != null)
-					function.traverse(observer, this);
-				return null;
-			}
-			@Override
 			public Markers markers() { return markers; }
 			@Override
 			public void setGlobalMarkers(Markers markers) { /* ignore */ }
@@ -67,8 +58,6 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) { return expression; }
 			@Override
 			public boolean isModifiable(ASTNode node) { return true; }
-			@Override
-			public void setObserver(IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
 		};
 	}
 }

@@ -2,7 +2,6 @@ package net.arctics.clonk.c4script;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTPositionProvider;
-import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.typing.ITypingContext;
 import net.arctics.clonk.index.CachedEngineDeclarations;
@@ -45,15 +44,4 @@ public interface ProblemReporter extends IASTPositionProvider, ITypingContext {
 	 * @return
 	 */
 	Script script();
-	/**
-	 * Visit a {@link Function} reporting problems found in its code. Other functions might be visited as well, depending on implementation logic.
-	 * @param function The function which marks the starting point of the visitation journey
-	 * @return Whatever result the implementation likes to return as a result of a visit.
-	 */
-	Object visit(Function function);
-	/**
-	 * Set an {@link IASTVisitor} as the observer of this reporter. It gets notified whenever the context visits a single syntax element.
-	 * @param observer The observer to set
-	 */
-	public void setObserver(IASTVisitor<ProblemReporter> observer);
 }

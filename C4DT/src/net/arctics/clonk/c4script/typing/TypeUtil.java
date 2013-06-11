@@ -3,9 +3,7 @@ package net.arctics.clonk.c4script.typing;
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
-import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
@@ -51,15 +49,11 @@ public class TypeUtil {
 			@Override
 			public void setGlobalMarkers(Markers markers) { /* ignore */ }
 			@Override
-			public Object visit(Function function) { return null; }
-			@Override
 			public boolean judgment(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
 			@Override
 			public void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right) {}
 			@Override
 			public boolean isModifiable(ASTNode node) { return false; }
-			@Override
-			public void setObserver(IASTVisitor<ProblemReporter> observer) {}
 		};
 	}
 	public static Definition definition(IType type) {

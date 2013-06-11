@@ -65,9 +65,9 @@ public class ReferencesSearchQuery extends SearchQuery {
 
 	@Override
 	public String getLabel() {
-		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString()); 
+		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString());
 	}
-	
+
 	private class Visitor implements IResourceVisitor, IASTVisitor<ProblemReporter>, IEntityLocator {
 		private ProblemReporter ctx;
 
@@ -118,12 +118,12 @@ public class ReferencesSearchQuery extends SearchQuery {
 			}
 			return true;
 		}
-		
+
 		public void searchScript(IResource resource, Script script) {
 			final ScriptParser parser = new ScriptParser(script);
-			searchScript(resource, strategy.localReporter(parser.script(), parser.fragmentOffset(), null));
+			searchScript(resource, strategy.localReporter(parser.script(), parser.fragmentOffset()));
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		@Override
 		public <X> X context(Class<X> cls) {
@@ -132,7 +132,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 			else
 				return null;
 		}
-		
+
 		public void searchScript(IResource resource, ProblemReporter context) {
 			ctx = context;
 			final Script script = context.script();
@@ -181,7 +181,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 							public void run() {
 								try {
 									final ScriptParser parser = new ScriptParser(script);
-									final ProblemReporter ctx = strategy.localReporter(parser.script(), parser.fragmentOffset(), null);
+									final ProblemReporter ctx = strategy.localReporter(parser.script(), parser.fragmentOffset());
 									visitor.searchScript((IResource) script.source(), ctx);
 								} catch (final Exception e) {}
 							}
@@ -190,7 +190,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 					else if (scope instanceof Function) {
 						final Function func = (Function)scope;
 						final ScriptParser parser = new ScriptParser(func.script());
-						func.traverse(visitor, strategy.localReporter(parser.script(), parser.fragmentOffset(), null));
+						func.traverse(visitor, strategy.localReporter(parser.script(), parser.fragmentOffset()));
 					}
 			}
 		}, 20);
@@ -241,7 +241,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 			}
 		}
 	}
-	
+
 	@Override
 	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
 		if (editor instanceof ITextEditor) {

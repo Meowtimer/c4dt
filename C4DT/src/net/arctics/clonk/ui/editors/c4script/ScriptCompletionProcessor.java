@@ -443,7 +443,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					final ASTNode parmExpr = innermostCallFunc.findSubElementContaining(pl.contextExpression);
-					funcRule.contributeAdditionalProposals(innermostCallFunc, editor().editingState().typingStrategy().localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, editor().editingState().typingStrategy().localReporter(parser.script(), parser.fragmentOffset()), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl);
 				}
 			}
 		}

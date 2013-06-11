@@ -157,12 +157,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		parser.script().deriveInformation();
 		parser.validate();
 		if (!onlyDeclarations) {
-			if (this.typingStrategy() != null) {
-				this.typingStrategy().initialize(markers, new NullProgressMonitor(), new Script[] {parser.script()});
-				this.typingStrategy().run();
-//				final ProblemReporter localTyping = this.typingStrategy().localReporter(parser.script(), parser.fragmentOffset(), null);
-//				localTyping.setGlobalMarkers(markers);
-//				localTyping.run();
+			final ProblemReportingStrategy typing = this.typingStrategy();
+			if (typing != null) {
+				typing.initialize(markers, new NullProgressMonitor(), new Script[] {parser.script()});
+				typing.run();
 			}
 			markers.deploy();
 		}
@@ -277,10 +275,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		// concrete parameters passed from here
 		structure.deriveInformation();
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
-			final ProblemReporter mainTyping = strategy.localReporter(updater.script(), updater.fragmentOffset(), null);
-			if (markers != null)
-				mainTyping.setGlobalMarkers(markers);
-			mainTyping.visit(function);
+			strategy.initialize(markers, new NullProgressMonitor(), new Function[] {function});
+			strategy.run();
 		}
 		return markers;
 	}
@@ -392,7 +388,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies())
 			if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
 				cachedDeclarationObtainmentContext = new WeakReference<ProblemReporter>(
-					r = strategy.localReporter(structure(), 0, null)
+					r = strategy.localReporter(structure(), 0)
 				);
 				break;
 			}
@@ -407,9 +403,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		final FunctionFragmentParser fparser = new FunctionFragmentParser(document, structure(), function, null);
 		final boolean change = fparser.update();
 		if (change || typingContextVisitInAnyCase) {
-			final ProblemReporter typingContext = typingStrategy.localReporter(fparser.script(), fparser.fragmentOffset(), null);
-			typingContext.setObserver(observer);
-			typingContext.visit(function);
+			typingStrategy.initialize(null, new NullProgressMonitor(), new Function[] {function});
+			typingStrategy.setObserver(observer);
+			typingStrategy.run();
 		}
 		return fparser;
 	}
