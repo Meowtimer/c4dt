@@ -41,6 +41,10 @@ public class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 			public synchronized TypeVariable find(Declaration declaration) {
 				return super.find(declaration);
 			}
+			@Override
+			public synchronized TypeVariable get(Object key) {
+				return super.get(key);
+			}
 		};
 	}
 }
