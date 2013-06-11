@@ -68,9 +68,4 @@ public class FunctionFragmentParser extends ScriptParser {
 		} else
 			return false;
 	}
-	public static FunctionFragmentParser update(IDocument document, Script script, Function function, Markers markers) {
-		final FunctionFragmentParser updater = new FunctionFragmentParser(document, script, function, markers);
-		updater.update();
-		return updater;
-	}
 }

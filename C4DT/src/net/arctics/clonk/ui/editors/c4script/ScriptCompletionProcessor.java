@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.Utilities.scriptForEditor;
 
@@ -31,8 +32,6 @@ import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IHasIncludes;
 import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
@@ -106,23 +105,14 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 
 	private final ContentAssistant assistant;
 	private ProposalCycle proposalCycle = null;
-	private ProblemReportingStrategy typingStrategy;
-
-	private void setTypingStrategyFromScript(Script script) {
-		if (script.index().nature() != null)
-			typingStrategy = script.index().nature().instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
-	}
 
 	public ScriptCompletionProcessor(Script script) {
 		super(null, null);
 		assistant = null;
-		setTypingStrategyFromScript(script);
 	}
 
 	public ScriptCompletionProcessor(C4ScriptEditor editor, ContentAssistant assistant) {
 		super(editor, assistant);
-		if (editor != null)
-			setTypingStrategyFromScript(editor.script());
 		this.assistant = assistant;
 		if (assistant != null)
 			assistant.addCompletionListener(this);
@@ -172,7 +162,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					final Scenario fScen = func.scenario();
 					if (fScen != null && fScen != s2)
 						continue;
-					proposalForFunc(pl, func, true);
+					proposalForFunc(pl, editor().script(), func, true);
 				}
 			if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0)
 				for (final Variable var : index.staticVariables()) {
@@ -182,7 +172,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					final Scenario vScen = var.scenario();
 					if (vScen != null && vScen != s2)
 						continue;
-					proposalForVar(pl, var);
+					proposalForVar(pl, index.engine(), var);
 				}
 		}
 		if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0)
@@ -324,10 +314,10 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		if (pl.script.index().engine() != null) {
 			if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
 				for (final Function func : pl.script.index().engine().functions())
-					proposalForFunc(pl, func, true);
+					proposalForFunc(pl, editor().script(), func, true);
 			if ((pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
 				for (final Variable var : pl.script.index().engine().variables())
-					proposalForVar(pl, var);
+					proposalForVar(pl, pl.script.engine(), var);
 		}
 	}
 
@@ -335,9 +325,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
 			if (pl.contextSequence == null && pl.function != null) {
 				for (final Variable v : pl.function.parameters())
-					proposalForVar(pl, v);
+					proposalForVar(pl, pl.function, v);
 				for (final Variable v : pl.function.locals())
-					proposalForVar(pl, v);
+					proposalForVar(pl, pl.function, v);
 			}
 	}
 
@@ -372,9 +362,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if ((declarationMask & DeclMask.FUNCTIONS) != 0 && d instanceof Function && !((Function)d).isGlobal())
-					proposalForFunc(pl, (Function) d, true);
+					proposalForFunc(pl, as(pl.precedingType, Script.class), (Function) d, true);
 				else if ((declarationMask & DeclMask.VARIABLES) != 0 && d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
-					proposalForVar(pl, (Variable)d);
+					proposalForVar(pl, as(pl.precedingType, Script.class), (Variable)d);
 			}
 		for (final ClonkCompletionProposal ccp : pl.proposals.values())
 			if (!old.contains(ccp))
@@ -406,7 +396,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			for(final String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (pl.prefix != null && !stringMatchesPrefix(keyword, pl.prefix))
 					continue;
-				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, keyword, pl.offset, pl.prefix != null ? pl.prefix.length() : 0, keyword.length(), keywordImg ,
+				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, null, keyword, pl.offset, pl.prefix != null ? pl.prefix.length() : 0, keyword.length(), keywordImg ,
 					keyword, null ,null, ": keyword", editor());
 				prop.setCategory(cats.Keywords);
 				pl.addProposal(prop);
@@ -428,7 +418,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 					for (final PrimitiveType t : PrimitiveType.values())
 						if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ERRONEOUS && pl.index.engine().supportsPrimitiveType(t)) {
-							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
+							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
 								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 							prop.setCategory(cats.Keywords);
 							pl.addProposal(prop);
@@ -453,7 +443,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					final ASTNode parmExpr = innermostCallFunc.findSubElementContaining(pl.contextExpression);
-					funcRule.contributeAdditionalProposals(innermostCallFunc, typingStrategy.localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, editor().editingState().typingStrategy().localReporter(parser.script(), parser.fragmentOffset(), null), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl);
 				}
 			}
 		}
@@ -510,7 +500,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			for (final String loc : availableLocalizationStrings) {
 				if (pl.prefix != null && !stringMatchesPrefix(loc, pl.prefix))
 					continue;
-				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, loc, pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , loc.length(),
+				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, null, loc, pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , loc.length(),
 					keywordImg , loc, null, null, Messages.C4ScriptCompletionProcessor_Engine, editor());
 				prop.setCategory(cats.Keywords);
 				pl.addProposal(prop);
@@ -555,7 +545,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		if (pl.prefix != null)
 			replacementLength = pl.prefix.length();
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
-			null, "", pl.wordOffset, replacementLength,  //$NON-NLS-1$
+			null, null, "", pl.wordOffset, replacementLength,  //$NON-NLS-1$
 			0, img, callback != null ? callback : displayString,
 			null, null, Messages.C4ScriptCompletionProcessor_Callback, editor()
 		) {
@@ -654,7 +644,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (pl.prefix != null) replacementLength = pl.prefix.length();
 			txt = "#"+txt+" "; //$NON-NLS-1$ //$NON-NLS-2$
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(
-				directive, txt, pl.offset, replacementLength, txt.length(),
+				directive, directive, txt, pl.offset, replacementLength, txt.length(),
 				directiveIcon, directive.type().toString(), null, null,
 				Messages.C4ScriptCompletionProcessor_Engine, editor()
 			);
@@ -672,7 +662,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			final Image declaratorImg = UI.imageForPath("icons/declarator.png"); //$NON-NLS-1$
 			int replacementLength = 0;
 			if (pl.prefix != null) replacementLength = pl.prefix.length();
-			final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, declarator,pl.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
+			final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, null, declarator,pl.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Keywords);
 			pl.addProposal(prop);
 		}
@@ -750,12 +740,12 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			if (func != null && func.visibility() != FunctionScope.GLOBAL) {
 				if (target instanceof Script && !((Script)target).seesFunction(func))
 					continue;
-				final ClonkCompletionProposal prop = proposalForFunc(pl, func, true);
+				final ClonkCompletionProposal prop = proposalForFunc(pl, target, func, true);
 				if (prop != null)
 					prop.setCategory(cats.LocalFunction);
 			}
 			else if (var != null)
-				proposalForVar(pl, var);
+				proposalForVar(pl, target, var);
 		}
 	}
 
@@ -815,8 +805,23 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				if (function != null) {
 					if (function instanceof IDocumentedDeclaration)
 						((IDocumentedDeclaration)function).fetchDocumentation();
+					Script context;
+					final ASTNode pred = funcCallInfo.callPredecessor();
+					if (pred != null) {
+						final IType[] map = cursorFunc.script().typings().functionASTTypes.get(cursorFunc.name());
+						/*cursorFunc.body().traverse(new IASTVisitor<Void>() {
+							@Override
+							public TraversalContinuation visitNode(ASTNode node, Void context) {
+								if (node.localIdentifier() > 0)
+									System.out.println(String.format("%03d - %s: %s", node.localIdentifier(), node.printed(), defaulting(map[node.localIdentifier()], PrimitiveType.UNKNOWN).typeName(true)));
+								return TraversalContinuation.Continue;
+							}
+						}, null);*/
+						context = defaulting(as(map[pred.localIdentifier()], Script.class), cursorFunc.script());
+					} else
+						context = editor().script();
 					info = new ScriptContextInformation(
-						editor().script(), function.name() + "()", UI.CLONK_ENGINE_ICON, //$NON-NLS-1$
+						context, function.name() + "()", UI.CLONK_ENGINE_ICON, //$NON-NLS-1$
 						function, funcCallInfo.parmIndex,
 						funcCallInfo.parmsStart, funcCallInfo.parmsEnd
 					);

@@ -145,7 +145,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		if (pl.prefix != null)
 			for (final Variable v : editor().unit().engine().variablesWithPrefix(entryDef.constantsPrefix()))
 				if (v.scope() == Scope.CONST)
-					proposalForVar(pl, v);
+					proposalForVar(pl, editor().unit(), v);
 	}
 
 	private void proposalsForIndex(ProposalsSite pl) {
@@ -199,7 +199,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 				if (script == null)
 					continue;
 				for (final Function f : script.functions())
-					proposalForFunc(pl, f, false);
+					proposalForFunc(pl, script, f, false);
 			}
 	}
 

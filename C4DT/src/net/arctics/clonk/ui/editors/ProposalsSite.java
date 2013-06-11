@@ -54,7 +54,7 @@ public class ProposalsSite extends PrecedingExpression {
 		} else
 			this.prefix = null;
 		this._proposals = proposals;
-		this.proposals = new HashMap<Declaration, ClonkCompletionProposal>();
+		this.proposals = new HashMap<>();
 		this.index = index;
 		this.function = function;
 		this.script = script;

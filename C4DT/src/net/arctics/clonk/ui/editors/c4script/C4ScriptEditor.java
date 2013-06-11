@@ -346,6 +346,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			this.parmsEnd = func.bodyLocation().start()+callFunc2.parmsEnd();
 			this.locator = locator;
 		}
+		public ASTNode callPredecessor() {
+			return callFunc instanceof ASTNode ? ((ASTNode)callFunc).predecessorInSequence() : null;
+		}
 	}
 
 	public FuncCallInfo innermostFunctionCallParmAtOffset(int offset) throws BadLocationException, ProblemException {

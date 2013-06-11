@@ -227,7 +227,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			Replacement replacement, int tabIndentation,
 			ScriptParser parser, Function func
 		) {
-			super(declaration, replacementString, replacementOffset,
+			super(declaration, declaration, replacementString, replacementOffset,
 				replacementLength, cursorPosition, image, displayString,
 				contextInformation, additionalProposalInfo, postInfo,
 				editor);

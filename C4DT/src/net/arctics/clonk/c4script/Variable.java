@@ -119,12 +119,18 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			if (script != null)
 				type = script.typings().variableTypes.get(name());
 			break;
+		case PARAMETER:
+			if (script != null) {
+				final Function f = parentOfType(Function.class);
+				final Function.Typing t = script.typings().functionTypings.get(f.name());
+				if (t != null)
+					type = t.parameterTypes[this.parameterIndex()];
+			}
+			break;
 		default:
 			break;
 		}
-		if (type == null)
-			type = type();
-		return type;
+		return type != null ? type : type();
 	}
 
 	/**

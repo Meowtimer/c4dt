@@ -24,6 +24,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 
 	/** Associated declaration */
 	private final Declaration declaration;
+	private final Declaration context;
 
 	/** The string to be displayed in the completion proposal popup. */
 	private String displayString;
@@ -71,8 +72,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param replacementLength the length of the text to be replaced
 	 * @param cursorPosition the position of the cursor following the insert relative to replacementOffset
 	 */
-	public ClonkCompletionProposal(Declaration declaration, String replacementString, int replacementOffset, int replacementLength, int cursorPosition) {
-		this(declaration, replacementString, replacementOffset, replacementLength, cursorPosition, null, null, null, null, null, null);
+	public ClonkCompletionProposal(Declaration declaration, Declaration context, String replacementString, int replacementOffset, int replacementLength, int cursorPosition) {
+		this(declaration, context, replacementString, replacementOffset, replacementLength, cursorPosition, null, null, null, null, null, null);
 	}
 
 	/**
@@ -90,6 +91,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 */
 	public ClonkCompletionProposal(
 		Declaration declaration,
+		Declaration context,
 		String replacementString,
 		int replacementOffset, int replacementLength, int cursorPosition,
 		Image image,
@@ -99,6 +101,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		ClonkTextEditor editor
 	) {
 		this.declaration = declaration;
+		this.context = context;
 		this.replacementString= replacementString;
 		this.replacementOffset= replacementOffset;
 		this.replacementLength= replacementLength;
@@ -113,6 +116,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 
 	public ClonkCompletionProposal(
 		Declaration declaration,
+		Declaration context,
 		String replacementString,
 		int replacementOffset, int replacementLength,
 		Image image,
@@ -121,7 +125,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		ClonkTextEditor editor
 	) {
 		this(
-			declaration, replacementString, replacementOffset, replacementLength,
+			declaration, context, replacementString, replacementOffset, replacementLength,
 			declaration.name().length(), image, null, contextInformation, additionalProposalInfo, postInfo, editor
 		);
 		displayStringRecomputationNecessary = true;

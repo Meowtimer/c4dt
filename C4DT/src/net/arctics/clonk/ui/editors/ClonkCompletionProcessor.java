@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
 
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.InitializationFunction;
@@ -90,7 +91,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			final String displayString = definitionDisplayString(def);
 			final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
 
-			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def.id().stringValue(), pl.offset, replacementLength, def.id().stringValue().length(),
+			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def, def.id().stringValue(), pl.offset, replacementLength, def.id().stringValue().length(),
 				defIcon, displayString.trim(), null, null, "", editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
 			pl.addProposal(prop);
@@ -117,7 +118,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
 
-	protected ClonkCompletionProposal proposalForFunc(ProposalsSite pl, Function func, boolean brackets) {
+	protected ClonkCompletionProposal proposalForFunc(ProposalsSite pl, Declaration target, Function func, boolean brackets) {
 		if (func instanceof InitializationFunction)
 			return null;
 		if (pl.prefix != null)
@@ -125,9 +126,9 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 				return null;
 		final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
 		final String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
-		final String postInfo = func.returnType(as(editor().structure(), Script.class)).typeName(true);
+		final String postInfo = func.returnType(target.script()).typeName(true);
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
-			func, replacement, pl.offset, replacementLength,
+			func, target, replacement, pl.offset, replacementLength,
 			UI.functionIcon(func), null/*contextInformation*/, null, ": " + postInfo, editor() //$NON-NLS-1$
 		);
 		prop.setCategory(cats.Functions);
@@ -135,7 +136,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		return prop;
 	}
 
-	protected ClonkCompletionProposal proposalForVar(ProposalsSite pl, Variable var) {
+	protected ClonkCompletionProposal proposalForVar(ProposalsSite pl, Declaration target, Variable var) {
 		if (pl.prefix != null && !stringMatchesPrefix(var.name(), pl.prefix))
 			return null;
 		final String displayString = var.name();
@@ -143,7 +144,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		if (pl.prefix != null)
 			replacementLength = pl.prefix.length();
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
-			var,
+			var, target,
 			var.name(), pl.offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
 			null, null, ": " + var.type(as(editor().structure(), Script.class)).typeName(true), //$NON-NLS-1$
 			editor()

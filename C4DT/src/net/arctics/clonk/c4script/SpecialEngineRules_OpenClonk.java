@@ -19,6 +19,7 @@ import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.SourceLocation;
@@ -360,7 +361,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 									for (final Variable comp : proplDecl.components(true)) {
 										if (pl.prefix != null && !comp.name().toLowerCase().contains(pl.prefix))
 											continue;
-										pl.addProposal(new ClonkCompletionProposal(comp, "\""+comp.name()+"\"", pl.offset, pl.prefix != null ? pl.prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
+										pl.addProposal(new ClonkCompletionProposal(comp, as(t, Declaration.class), "\""+comp.name()+"\"", pl.offset, pl.prefix != null ? pl.prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
 											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText(processor.script()), "", completions.editor()));
 									}
 								}

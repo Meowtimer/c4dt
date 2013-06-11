@@ -412,7 +412,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public String infoText(IIndexEntity context) {
+	public String infoText(IIndexEntity _context) {
+		final Script context = defaulting(as(_context, Script.class), script());
 		final String description = obtainUserDescription();
 		final StringBuilder builder = new StringBuilder();
 		final String scriptPath = script().resource() != null
@@ -420,7 +421,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			: script().name();
 		for (final String line : new String[] {
 			MessageFormat.format("<i>{0}</i><br/>", scriptPath), //$NON-NLS-1$ //$NON-NLS-2$
-			MessageFormat.format("<b>{0}</b><br/>", parameterString(new PrintParametersOptions(as(context, Script.class), true, true, false))), //$NON-NLS-1$ //$NON-NLS-2$
+			MessageFormat.format("<b>{0}</b><br/>", parameterString(new PrintParametersOptions(as(context, Script.class), true, false, false))), //$NON-NLS-1$ //$NON-NLS-2$
 			"<br/>", //$NON-NLS-1$
 			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
 			"<br/>", //$NON-NLS-1$
@@ -429,7 +430,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (numParameters() > 0) {
 			builder.append(MessageFormat.format("<br/><b>{0}</b><br/>", Messages.Parameters)); //$NON-NLS-1$ //$NON-NLS-3$
 			for (final Variable p : parameters())
-				builder.append(MessageFormat.format("<b>{0} {1}</b> {2}<br/>", StringUtil.htmlerize(p.type().typeName(true)), p.name(), p.userDescription())); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				builder.append(MessageFormat.format("<b>{0} {1}</b> {2}<br/>", StringUtil.htmlerize(p.type(context).typeName(true)), p.name(), p.userDescription())); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
 		final IType retType = returnType(as(context, Script.class));
