@@ -49,11 +49,13 @@ class Graph extends LinkedList<Runnable> {
 			}
 	}
 
-	boolean requires(Visit testDependent, Visit testRequirement) {
+	boolean requires(Visit testDependent, Visit testRequirement, Set<Visit> catcher) {
+		if (!catcher.add(testDependent))
+			return false;
 		if (testDependent.requirements.contains(testRequirement))
 			return true;
 		else for (final Visit td_ : testDependent.requirements)
-			if (requires(td_, testRequirement))
+			if (requires(td_, testRequirement, catcher))
 				return true;
 		return false;
 	}
@@ -61,7 +63,7 @@ class Graph extends LinkedList<Runnable> {
 	void addRequirement(Visit dependent, Visit requirement) {
 		if (requirement == dependent)
 			return;
-		if (!requires(requirement, dependent)) {
+		if (!requires(requirement, dependent, new HashSet<Visit>())) {
 			dependent.requirements.add(requirement);
 			requirement.dependents.add(dependent);
 		} else if (DEBUG)
@@ -216,14 +218,6 @@ class Graph extends LinkedList<Runnable> {
 		}
 	}
 
-	void verify() {
-		for (final Input i : inference.input.values())
-			for (final Visit v : i.plan.values())
-				for (final Visit r : v.requirements)
-					if (requires(r, v))
-						throw new IllegalStateException(String.format("Circular dependency %s <-> %s", r.toString(), v.toString()));
-	}
-
 	void output() {
 		try (FileWriter writer = new FileWriter(new File("/Users/madeen/Desktop/output.dot"))) {
 			writer.append("digraph G {bgcolor=white\n");
@@ -250,7 +244,7 @@ class Graph extends LinkedList<Runnable> {
 		populateVisitsMap();
 		prepareVisits();
 		determineRequirements();
-		output();
+		//output();
 		//verify();
 		populate();
 	}
@@ -262,12 +256,12 @@ class Graph extends LinkedList<Runnable> {
 	}
 
 	void run() {
-		for (final Runnable r : this)
-			if (r instanceof Cluster) {
-				System.out.println("-----------");
-				((Cluster)r).print();
-				System.out.println("-----------");
-			}
+//		for (final Runnable r : this)
+//			if (r instanceof Cluster) {
+//				System.out.println("-----------");
+//				((Cluster)r).print();
+//				System.out.println("-----------");
+//			}
 		if (this.size() < 20)
 			for (final Runnable r : this)
 				r.run();

@@ -89,7 +89,6 @@ import net.arctics.clonk.c4script.ast.ReturnStatement;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
-import net.arctics.clonk.c4script.ast.ThisType;
 import net.arctics.clonk.c4script.ast.Tuple;
 import net.arctics.clonk.c4script.ast.UnaryOp;
 import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
@@ -138,18 +137,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 	final Map<Script, Input> input = new HashMap<>();
 	boolean local = false;
 
-	// flags
-	private boolean typeThisAsObject;
 	private boolean noticeParameterCountMismatch;
 
 	@Override
 	public void setArgs(String args) {
-		typeThisAsObject = false;
 		for (final String a : args.split("\\|")) //$NON-NLS-1$
 			switch (a) {
-			case "typeThisAsObject": //$NON-NLS-1$
-				typeThisAsObject = true;
-				break;
 			case "noticeParameterCountMismatch": //$NON-NLS-1$
 				noticeParameterCountMismatch = true;
 				break;
@@ -200,14 +193,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 	public void run() { work(); }
 
 	static class ParameterValidation {
+		Function called;
 		CallDeclaration node;
 		Visitor visitor;
 		void regularParameterValidation(DabbleInference inference) {
 			final Expert<? super CallDeclaration> expert = visitor.expert(node);
 			int givenParam = 0;
-			final Function f = node.parentOfType(Function.class);
 			final ASTNode[] params = node.params();
-			for (final Variable parm : f.parameters()) {
+			for (final Variable parm : called.parameters()) {
 				if (givenParam >= params.length)
 					break;
 				final ASTNode given = params[givenParam++];
@@ -219,16 +212,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final IType unified = unifyNoChoice(parmTy, givenTy);
 				if (unified == null)
 					visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
-				else if (givenTy == PrimitiveType.UNKNOWN)
-					visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
+//				else if (givenTy == PrimitiveType.UNKNOWN)
+//					visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
 			}
 			if (inference.noticeParameterCountMismatch)
 				validateParameterCount(inference);
 		}
-		public ParameterValidation(CallDeclaration node, Visitor visitor) {
+		public ParameterValidation(CallDeclaration node, Function called, Visitor visitor) {
 			super();
 			this.node = node;
 			this.visitor = visitor;
+			this.called = called;
 		}
 		private void validateParameterCount(DabbleInference inference) {
 			final Function f = node.parentOfType(Function.class);
@@ -562,7 +556,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 							}
 						}
 				}
-				log("Call types: %s", Arrays.deepToString(types));
+				if (DEBUG)
+					log("Call types: %s", Arrays.deepToString(types));
 			}
 
 			private IType nodeType(
@@ -1058,7 +1053,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.rules = script.engine().specialRules();
 			this.cachedEngineDeclarations = this.script.engine().cachedDeclarations();
 			this.strictLevel = script.strictLevel();
-			this.thisType = typeThisAsObject ? script : new ThisType(script);
+			this.thisType = script;
 			this.fragmentOffset = sourceFragmentOffset;
 			boolean hasAppendTo = false;
 			for (final Directive d : script.directives())
@@ -2186,7 +2181,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// not a special case... check regular parameter types
 					if (!applyRuleBasedValidation(node, visitor, params));
 					 	synchronized (parameterValidations) {
-					 		parameterValidations.add(new ParameterValidation(node, visitor));
+					 		parameterValidations.add(new ParameterValidation(node, f, visitor));
 					 	}
 				}
 				private void maybeUnknownMarker(CallDeclaration node, Visitor visitor, final String declarationName) throws ProblemException {
@@ -2539,7 +2534,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final ASTNode pred = node.predecessorInSequence();
 					final EngineSettings settings = visitor.script().engine().settings();
 					if (pred != null) {
-						final IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : typeThisAsObject ? PrimitiveType.OBJECT : OBJECTISH;
+						final IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : PrimitiveType.OBJECT;
 						final Expert<? super ASTNode> stmReporter = visitor.expert(pred);
 						if (!TypeUnification.compatible(OBJECTISH, visitor.ty(pred)))
 							visitor.markers().warning(visitor, node.dotNotation() ? Problem.NotAProplist : Problem.CallingMethodOnNonObject, node, node, 0,
