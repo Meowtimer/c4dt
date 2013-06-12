@@ -389,7 +389,7 @@ public abstract class Utilities {
 		final StringBuilder builder = new StringBuilder(s.length()*times);
 		for (int i = 0; i < times; i++)
 			builder.append(s);
-		return s.toString();
+		return builder.toString();
 	}
 
 	public static Object token(final String token) {
