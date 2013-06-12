@@ -246,18 +246,29 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	final LinkedList<ParameterValidation> parameterValidations = new LinkedList<>();
+	String projectName;
 
 	@Profiled
 	final void work() {
+		projectName = !input.isEmpty() ? input.values().iterator().next().script().index().nature().getProject().getName() : "<???>";
+		subTask("Computing graph");
 		parameterValidations.clear();
-		new Graph(this).run();
+		final Graph graph = new Graph(this);
+		subTask("Run inference");
+		graph.run();
+		progressMonitor.subTask("Parametr validation");
 		for (final ParameterValidation pv : parameterValidations) {
 			pv.regularParameterValidation(this);
 			markers.take(pv.visitor.markers);
 		}
 		parameterValidations.clear();
+		subTask("Apply");
 		for (final Input input : this.input.values())
 			input.apply();
+	}
+
+	private void subTask(String text) {
+		progressMonitor.subTask(String.format("%s: %s", projectName, text));
 	}
 
 	private void gatherInput(Script[] scripts) {

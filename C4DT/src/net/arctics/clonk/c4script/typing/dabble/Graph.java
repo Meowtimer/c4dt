@@ -168,12 +168,14 @@ class Graph extends LinkedList<Runnable> {
 			for (final Visit v : this)
 				run(v, 0);
 		}
-		void bottom(Set<Visit> catcher, Visit start) {
+		void bottom(Set<Visit> into, Visit start, Set<Visit> catcher) {
+			if (!catcher.add(start))
+				return;
 			if (start.dependents.size() == 0)
-				catcher.add(start);
+				into.add(start);
 			else
 				for (final Visit d : start.dependents)
-					bottom(catcher, d);
+					bottom(into, d, catcher);
 		}
 		void top(Collection<Visit> layer, Set<Visit> catcher) {
 			for (final Visit v : layer)
@@ -184,7 +186,7 @@ class Graph extends LinkedList<Runnable> {
 		}
 		void find(Set<Visit> catcher, Visit start) {
 			final Set<Visit> bottom = new HashSet<>();
-			bottom(bottom, start);
+			bottom(bottom, start, new HashSet<Visit>());
 			top(bottom, new HashSet<Visit>());
 		}
 		@Override
