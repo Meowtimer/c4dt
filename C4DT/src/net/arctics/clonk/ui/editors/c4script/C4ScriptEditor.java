@@ -289,9 +289,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		Display.getCurrent().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				final Function f = functionAtCursor();
-				if (f != null)
-					editingState().reparseFunction(f).deploy();
 				showContentAssistance();
 			}
 		});

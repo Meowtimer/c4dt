@@ -146,7 +146,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		});
 	}
 
-	ScriptParser reparseWithDocumentContents(
+	synchronized ScriptParser reparseWithDocumentContents(
 		boolean onlyDeclarations, Object document,
 		final Script script,
 		Runnable uiRefreshRunnable
@@ -263,16 +263,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}, 1000);
 	}
 
-	public Markers reparseFunction(final Function function) {
+	public synchronized Markers reparseFunction(final Function function) {
 		// ignore this request when errors while typing disabled
 		if (errorsWhileTypingDisabled())
 			return new Markers();
 
 		final Markers markers = new Markers(new MarkerConfines(function));
 		markers.applyProjectSettings(structure.index());
-
-		final FunctionFragmentParser updater = new FunctionFragmentParser(document, structure, function, markers);
-		updater.update();
 
 		// main visit - this will also branch out to called functions so their parameter types will be adjusted taking into account
 		// concrete parameters passed from here
@@ -424,7 +421,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return r;
 	}
 
-	public FunctionFragmentParser updateFunctionFragment(
+	public synchronized FunctionFragmentParser updateFunctionFragment(
 		Function function,
 		IASTVisitor<ProblemReporter> observer,
 		boolean typingContextVisitInAnyCase
