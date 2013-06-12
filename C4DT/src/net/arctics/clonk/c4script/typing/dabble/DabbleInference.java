@@ -1075,12 +1075,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		private void fillTypingMaps(final Map<String, IType> variableTypes, final Map<String, Function.Typing> functionTypings) {
-			for (final Script s : script.conglomerate())
-				for (final Variable v : s.variables()) {
-					final TypeVariable tyVar = typeEnvironment.get(v);
-					if (tyVar != null)
-						variableTypes.put(v.name(), tyVar.get());
-				}
+			if (!partial)
+				for (final Script s : script.conglomerate())
+					for (final Variable v : s.variables()) {
+						final TypeVariable tyVar = typeEnvironment.get(v);
+						if (tyVar != null)
+							variableTypes.put(v.name(), tyVar.get());
+					}
 			for (final Visit entry : plan.values())
 				putFunctionTyping(functionTypings, entry);
 		}
