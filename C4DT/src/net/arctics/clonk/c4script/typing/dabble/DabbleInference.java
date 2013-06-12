@@ -984,8 +984,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final boolean hasAppendTo;
 		final Map<Function, Visit> plan;
 		final IType thisType;
-		final Map<String, Declaration> variableMap = new HashMap<>();
-		final Map<String, Declaration> functionMap = new HashMap<>();
 		final SpecialEngineRules rules;
 		final int fragmentOffset;
 		final TypeEnvironment typeEnvironment = TypeEnvironment.newSynchronized();
@@ -1372,9 +1370,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final ASTNode p = node.predecessorInSequence();
 				if (p == null && node.name().equals(Variable.THIS.name()))
 					return Variable.THIS;
-				IType type = visitor.script();
-				if (p != null)
-					type = visitor.ty(p);
 				if (p == null) {
 					final Function f = node.parentOfType(Function.class);
 					if (f != null) {
@@ -1382,17 +1377,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (v != null)
 							return v;
 					}
-					synchronized (visitor.input().variableMap) {
-						Declaration v = visitor.input().variableMap.get(node.name());
-						if (v == null && !visitor.input().variableMap.containsKey(node.name())) {
-							v = findUsingType(visitor, node, null, type);
-							visitor.input().variableMap.put(node.name(), v);
-						}
-						return v;
-					}
 				}
-				else
-					return findUsingType(visitor, node, p, type);
+				return findUsingType(visitor, node, p, p != null ? visitor.ty(p) : visitor.script());
 			}
 
 			@Override
@@ -2021,18 +2007,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (declarationName.equals(Keywords.Return))
 						return null;
 					final ASTNode p = node.predecessorInSequence();
-					Declaration f;
-					if (p == null)
-						synchronized (visitor.input().functionMap) {
-							f = visitor.input().functionMap.get(node.name());
-							if (f == null && !visitor.input().functionMap.containsKey(node.name())) {
-								f = findUsingType(visitor, node, declarationName, visitor.script());
-								visitor.input().functionMap.put(declarationName, f);
-							}
-						}
-					else
-						f = findUsingType(visitor, node, declarationName, visitor.ty(p));
-					return f;
+					return findUsingType(visitor, node, declarationName, p != null ? visitor.ty(p) : visitor.script());
 				}
 				private IType declarationType(CallDeclaration node, Visitor visitor) {
 					final Declaration d = internalObtainDeclaration(node, visitor);
