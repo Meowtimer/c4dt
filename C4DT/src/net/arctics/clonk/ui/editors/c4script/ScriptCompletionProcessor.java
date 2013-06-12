@@ -808,7 +808,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					Script context;
 					final ASTNode pred = funcCallInfo.callPredecessor();
 					if (pred != null) {
-						final IType[] map = cursorFunc.script().typings().functionASTTypes.get(cursorFunc.name());
+						final Function.Typing map = cursorFunc.script().typings().get(cursorFunc);
 						/*cursorFunc.body().traverse(new IASTVisitor<Void>() {
 							@Override
 							public TraversalContinuation visitNode(ASTNode node, Void context) {
@@ -817,7 +817,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 								return TraversalContinuation.Continue;
 							}
 						}, null);*/
-						context = defaulting(as(map[pred.localIdentifier()], Script.class), cursorFunc.script());
+						context = defaulting(as(map.nodeTypes[pred.localIdentifier()], Script.class), cursorFunc.script());
 					} else
 						context = editor().script();
 					info = new ScriptContextInformation(

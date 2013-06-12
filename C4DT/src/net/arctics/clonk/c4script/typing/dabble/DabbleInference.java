@@ -3,12 +3,13 @@ package net.arctics.clonk.c4script.typing.dabble;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import static net.arctics.clonk.c4script.typing.TypeUnification.unifyNoChoice;
+import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -18,7 +19,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import net.arctics.clonk.Problem;
@@ -118,6 +118,7 @@ import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.stringtbl.StringTbl;
+import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.PerClass;
 import net.arctics.clonk.util.Profiled;
 
@@ -135,7 +136,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 	final Markers NULL_MARKERS = new Markers(false);
 
 	final Map<Script, Input> input = new HashMap<>();
-	boolean local = false;
 
 	private boolean noticeParameterCountMismatch;
 
@@ -162,25 +162,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	@Override
-	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Function[] functions) {
+	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Collection<Pair<Script, Function>> functions) {
 		super.initialize(markers, progressMonitor, functions);
 		gatherInputFromRestrictedFunctionSet(functions);
 		return this;
 	}
 
-	private void gatherInputFromRestrictedFunctionSet(Function[] functions) {
-		final List<Function> list = new ArrayList<Function>(Arrays.asList(functions));
-		while (list.size() > 0) {
-			final Function frst = list.get(0);
-			Input i = input.get(frst);
+	private void gatherInputFromRestrictedFunctionSet(Collection<Pair<Script, Function>> functions_) {
+		final ArrayList<Pair<Script, Function>> functions = new ArrayList<>(functions_);
+		input.clear();
+		while (functions.size() > 0) {
+			final Pair<Script, Function> frst = functions.get(0);
+			Input i = input.get(frst.first());
 			if (i == null) {
 				final List<Function> funcs = new LinkedList<>();
-				final Script s = frst.script();
-				for (final Iterator<Function> it = list.iterator(); it.hasNext();) {
-					final Function f = it.next();
-					if (f.script() == s) {
+				final Script s = frst.first().script();
+				for (final Iterator<Pair<Script, Function>> it = functions.iterator(); it.hasNext();) {
+					final Pair<Script, Function> f = it.next();
+					if (f.first() == s) {
 						it.remove();
-						funcs.add(f);
+						funcs.add(f.second());
 					}
 				}
 				i = new Input(s, 0, funcs.toArray(new Function[funcs.size()]));
@@ -243,8 +244,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 	final void work() {
 		parameterValidations.clear();
 		new Graph(this).run();
-		for (final ParameterValidation pv : parameterValidations)
+		for (final ParameterValidation pv : parameterValidations) {
 			pv.regularParameterValidation(this);
+			markers.take(pv.visitor.markers);
+		}
 		parameterValidations.clear();
 		for (final Input input : this.input.values())
 			input.apply();
@@ -261,7 +264,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Override
 	public ProblemReporter localReporter(Script script, int fragmentOffset) {
-		local = true;
 		assembleCommittee();
 		final Input info = new Input(script, fragmentOffset);
 		input.put(script, info);
@@ -556,7 +558,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							}
 						}
 				}
-				if (DEBUG)
+				//if (DEBUG)
 					log("Call types: %s", Arrays.deepToString(types));
 			}
 
@@ -575,9 +577,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (ty == null && visitor != null)
 					ty = visitor.typeOf(node);
 				if (ty == null) {
-					final IType[] astTypes = other.typings().functionASTTypes.get(containing.name());
-					if (astTypes != null)
-						ty = astTypes[node.localIdentifier()];
+					final Function.Typing typing = other.typings().get(containing);
+					if (typing != null)
+						ty = typing.nodeTypes[node.localIdentifier()];
 				}
 				return ty;
 			}
@@ -636,10 +638,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					endTypeEnvironment();
 					if (ownedFunction)
 						env.apply(false);
-					if (local) {
-						script.typings().functionASTTypes.put(function.name(), visit.inferredTypes);
-						putFunctionTyping(script.typings().functionTypings, function);
-					}
 					warnAboutUnusedLocals(function, statements);
 				}
 				catch (final ProblemException e) {}
@@ -1053,7 +1051,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.rules = script.engine().specialRules();
 			this.cachedEngineDeclarations = this.script.engine().cachedDeclarations();
 			this.strictLevel = script.strictLevel();
-			this.thisType = script;
+			this.thisType = script instanceof Definition ? script : unify(filteredIterable(script.includes(0), Definition.class));
 			this.fragmentOffset = sourceFragmentOffset;
 			boolean hasAppendTo = false;
 			for (final Directive d : script.directives())
@@ -1069,29 +1067,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public void apply() {
 			final Map<String, IType> variableTypes = new HashMap<>();
 			final Map<String, Function.Typing> functionTypings = new HashMap<>();
-			final Map<String, IType[]> functionASTTypes = new HashMap<>();
 			fillTypingMaps(variableTypes, functionTypings);
-			fillASTTypingMap(functionASTTypes);
-			if (!partial)
-				script.setTypings(new Script.Typings(variableTypes, functionTypings, functionASTTypes));
+			if (partial)
+				script.typings().update(variableTypes, functionTypings);
 			else
-				script.typings().update(variableTypes, functionTypings, functionASTTypes);
-		}
-
-		private void fillASTTypingMap(final Map<String, IType[]> functionASTTypes) {
-			for (final Entry<Function, Visit> v : plan.entrySet())
-				//				if (v.getKey().function().name().equals("Task") && v.getKey().script().name().equals("Task2"))
-//					v.getKey().traverse(new IASTVisitor<Void>() {
-//						@Override
-//						public TraversalContinuation visitNode(ASTNode node, Void context) {
-//							if (node.localIdentifier() < 1)
-//								return TraversalContinuation.Continue;
-//							System.out.println(String.format("\t%s: %s", node.printed(),
-//								defaulting(v.getValue().inferredTypes[node.localIdentifier()], PrimitiveType.UNKNOWN).typeName(true)));
-//							return TraversalContinuation.Continue;
-//						}
-//					}, null);
-				functionASTTypes.put(v.getKey().name(), v.getValue().inferredTypes);
+				script.setTypings(new Script.Typings(variableTypes, functionTypings));
 		}
 
 		private void fillTypingMaps(final Map<String, IType> variableTypes, final Map<String, Function.Typing> functionTypings) {
@@ -1101,11 +1081,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (tyVar != null)
 						variableTypes.put(v.name(), tyVar.get());
 				}
-			for (final Entry<Function, Visit> entry : plan.entrySet())
-				putFunctionTyping(functionTypings, entry.getKey());
+			for (final Visit entry : plan.values())
+				putFunctionTyping(functionTypings, entry);
 		}
 
-		private void putFunctionTyping(final Map<String, Function.Typing> functionTypings, Function fun) {
+		private void putFunctionTyping(final Map<String, Function.Typing> functionTypings, Visit visit) {
+			final Function fun = visit.function;
 			final TypeVariable retTy = typeEnvironment.get(fun);
 			final IType[] parameterTypes = new IType[fun.numParameters()];
 			final List<Variable> parms = fun.parameters();
@@ -1115,7 +1096,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				parameterTypes[i] = parTy != null ? parTy.get() : PrimitiveType.UNKNOWN;
 			}
 			functionTypings.put(fun.name(),
-				new Function.Typing(parameterTypes, retTy != null ? retTy.get() : PrimitiveType.UNKNOWN));
+				new Function.Typing(parameterTypes, retTy != null ? retTy.get() : PrimitiveType.UNKNOWN, visit.inferredTypes));
 		}
 
 		@Override
@@ -1447,14 +1428,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (predTy != null)
 						for (final IType _t : predTy)
 							if (_t instanceof Script) {
-//								final Input nput = getInput((Script) _t);
-//								if (nput != null)
-//									nput.visitAllPlanned(nput.new Visitor(null));
-								final IType frt = ((Script)_t).typings().variableTypes.get(d.name());
+								final IType frt = ((Variable)d).type((Script)_t);
 								t = unify(t, frt);
 							}
 				}
-				return t != PrimitiveType.UNKNOWN ? t : ((Variable)d).type();
+				return t != PrimitiveType.UNKNOWN ? t : ((Variable)d).type(visitor.script());
 			}
 
 			@Override
@@ -2082,7 +2060,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final Variable v = (Variable)d;
 						switch (v.scope()) {
 						case LOCAL:
-							final IType t = local && node.predecessorInSequence() == null
+							final IType t = node.predecessorInSequence() == null
 								? visitor.script().typings().variableTypes.get(v.name())
 								: null;
 							return t != null ? t : v.type();
@@ -2179,10 +2157,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.script().addUsedScript(f.script());
 
 					// not a special case... check regular parameter types
-					if (!applyRuleBasedValidation(node, visitor, params));
-					 	synchronized (parameterValidations) {
-					 		parameterValidations.add(new ParameterValidation(node, f, visitor));
-					 	}
+					if (!applyRuleBasedValidation(node, visitor, params))
+						if (visitor.visit.function.script() == visitor.script())
+							synchronized (parameterValidations) {
+								parameterValidations.add(new ParameterValidation(node, f, visitor));
+							}
 				}
 				private void maybeUnknownMarker(CallDeclaration node, Visitor visitor, final String declarationName) throws ProblemException {
 					final IType container = unknownFunctionShouldBeError(node, visitor);

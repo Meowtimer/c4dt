@@ -129,8 +129,6 @@ class Graph extends LinkedList<Runnable> {
 			for (final Visit v : i.plan.values()) {
 
 				if (i.shouldTypeFromCalls(v.function)) {
-					if (v.function.name().equals("Task"))
-						System.out.println("here");
 					final List<CallDeclaration> calls = i.index.callsTo(v.function.name());
 					if (calls != null)
 						for (final CallDeclaration call : calls) {
@@ -256,12 +254,12 @@ class Graph extends LinkedList<Runnable> {
 	}
 
 	void run() {
-//		for (final Runnable r : this)
-//			if (r instanceof Cluster) {
-//				System.out.println("-----------");
-//				((Cluster)r).print();
-//				System.out.println("-----------");
-//			}
+		for (final Runnable r : this)
+			if (r instanceof Cluster) {
+				System.out.println("-----------");
+				((Cluster)r).print();
+				System.out.println("-----------");
+			}
 		if (this.size() < 20)
 			for (final Runnable r : this)
 				r.run();

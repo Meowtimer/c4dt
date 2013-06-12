@@ -1,5 +1,7 @@
 package net.arctics.clonk.util;
 
+import static net.arctics.clonk.util.Utilities.eq;
+
 import java.io.Serializable;
 
 import net.arctics.clonk.Core;
@@ -30,15 +32,15 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 	}
 	@Override
 	public String toString() {
-		Object first = this.first != null ? this.first : "<null>";
-		Object second = this.second != null ? this.second : "<null>";
+		final Object first = this.first != null ? this.first : "<null>";
+		final Object second = this.second != null ? this.second : "<null>";
 		return "("+first.toString()+", "+second.toString()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof Pair<?, ?>) {
-			Pair<?, ?> otherPair = (Pair<?, ?>) other;
-			return Utilities.eq(first, otherPair.first) && Utilities.eq(second, otherPair.second);
+			final Pair<?, ?> otherPair = (Pair<?, ?>) other;
+			return eq(first, otherPair.first) && eq(second, otherPair.second);
 		} else
 			return false;
 	}
@@ -50,5 +52,9 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 	@Override
 	public Pair<First, Second> clone() throws CloneNotSupportedException {
 		return (Pair<First, Second>) super.clone();
+	}
+
+	public static <F, S> Pair<F, S> pair(F first, S second) {
+		return new Pair<F, S>(first, second);
 	}
 }

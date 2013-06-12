@@ -1,13 +1,13 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
-
 import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -31,10 +31,13 @@ import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
+import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.StructureEditingState;
+import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -275,8 +278,34 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		// concrete parameters passed from here
 		structure.deriveInformation();
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
-			strategy.initialize(markers, new NullProgressMonitor(), new Function[] {function});
+			strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure, function)));
 			strategy.run();
+		}
+		final Function.Typing typing = structure.typings().get(function);
+		if (typing != null) {
+			final Set<Pair<Script, Function>> callees = new HashSet<Pair<Script, Function>>();
+			function.traverse(new IASTVisitor<Void>() {
+				@Override
+				public TraversalContinuation visitNode(ASTNode node, Void context) {
+					if (node instanceof CallDeclaration) {
+						final CallDeclaration cd = (CallDeclaration) node;
+						final Function f = as(cd.declaration(), Function.class);
+						if (f != null && f.body() != null) {
+							final IType pred = cd.predecessorInSequence() != null ? typing.nodeTypes[cd.predecessorInSequence().localIdentifier()] : structure;
+							if (pred != null)
+								for (final IType t : pred)
+									if (t instanceof Script)
+										callees.add(Pair.pair((Script)t, f));
+						}
+					}
+					return TraversalContinuation.Continue;
+				}
+			}, null);
+			if (callees.size() > 0)
+				for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
+					strategy.initialize(markers, new NullProgressMonitor(), callees);
+					strategy.run();
+				}
 		}
 		return markers;
 	}
@@ -402,8 +431,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	) {
 		final FunctionFragmentParser fparser = new FunctionFragmentParser(document, structure(), function, null);
 		final boolean change = fparser.update();
-		if (change || typingContextVisitInAnyCase) {
-			typingStrategy.initialize(null, new NullProgressMonitor(), new Function[] {function});
+		if (change || (observer != null && typingContextVisitInAnyCase)) {
+			typingStrategy.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure, function)));
 			typingStrategy.setObserver(observer);
 			typingStrategy.run();
 		}

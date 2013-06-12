@@ -58,13 +58,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	public static class Typing implements Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public Typing(IType[] parameterTypes, IType returnType) {
+		public Typing(IType[] parameterTypes, IType returnType, IType[] nodeTypes) {
 			super();
 			this.parameterTypes = parameterTypes;
 			this.returnType = returnType;
+			this.nodeTypes = nodeTypes;
 		}
 		public final IType[] parameterTypes;
 		public final IType returnType;
+		public final IType[] nodeTypes;
 	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;

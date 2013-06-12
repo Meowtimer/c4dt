@@ -212,7 +212,7 @@ public class TypeUnification {
 		final IType u = unifyNoChoice(a, b);
 		return u != null ? u : TypeChoice.make(a, b);
 	}
-	public static IType unify(Iterable<IType> ingredients) {
+	public static IType unify(Iterable<? extends IType> ingredients) {
 		IType unified = null;
 		for (final IType t : ingredients)
 			unified = unify(unified, t);

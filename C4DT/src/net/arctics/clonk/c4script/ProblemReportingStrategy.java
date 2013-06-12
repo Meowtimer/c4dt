@@ -4,9 +4,10 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
+import java.util.Collection;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.util.Pair;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -52,7 +53,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 		return this;
 	}
 
-	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Function[] functions) {
+	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Collection<Pair<Script, Function>> functions) {
 		return initialize(markers, progressMonitor);
 	}
 

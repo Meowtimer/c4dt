@@ -103,16 +103,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		 * Map mapping function name to return type.
 		 */
 		public final Map<String, Function.Typing> functionTypings;
-		public final Map<String, IType[]> functionASTTypes;
 		public Typings(
 			Map<String, IType> variableTypes,
-			Map<String, Function.Typing> functionTypings,
-			Map<String, IType[]> functionASTTypes
+			Map<String, Function.Typing> functionTypings
 		) {
 			super();
 			this.variableTypes = variableTypes;
 			this.functionTypings = functionTypings;
-			this.functionASTTypes = functionASTTypes;
 		}
 		public Function.Typing get(Function function) {
 			return functionTypings != null ? functionTypings.get(function.name()) : null;
@@ -120,13 +117,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		public IType get(Variable variable) {
 			return variableTypes != null ? variableTypes.get(variable.name()) : null;
 		}
-		public void update(Map<String, IType> variableTypes, Map<String, Function.Typing> functionTypings, Map<String, IType[]> functionASTTypes) {
+		public void update(Map<String, IType> variableTypes, Map<String, Function.Typing> functionTypings) {
 			for (final Entry<String, IType> x : variableTypes.entrySet())
 				this.variableTypes.put(x.getKey(), x.getValue());
 			for (final Entry<String, Function.Typing> x : functionTypings.entrySet())
 				this.functionTypings.put(x.getKey(), x.getValue());
-			for (final Entry<String, IType[]> x  : functionASTTypes.entrySet())
-				this.functionASTTypes.put(x.getKey(), x.getValue());
 		}
 	}
 	private transient Typings typings;
@@ -149,8 +144,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	private static final Typings NO_TYPINGS = new Typings(
 		Collections.<String, IType>emptyMap(),
-		Collections.<String, Function.Typing>emptyMap(),
-		Collections.<String, IType[]>emptyMap()
+		Collections.<String, Function.Typing>emptyMap()
 	);
 
 	public Typings typings() { return defaulting(typings, NO_TYPINGS); }
