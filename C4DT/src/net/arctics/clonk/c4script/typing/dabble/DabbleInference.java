@@ -2034,7 +2034,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (v != null)
 							t = v.get();
 					}
-					return t != PrimitiveType.UNKNOWN ? t : fn.returnType();
+					return t != PrimitiveType.UNKNOWN ? t : fn.returnType(visitor.script());
 				}
 				private IType unknownFunctionShouldBeError(CallDeclaration node, Visitor visitor) {
 					ASTNode pred = node.predecessorInSequence();
