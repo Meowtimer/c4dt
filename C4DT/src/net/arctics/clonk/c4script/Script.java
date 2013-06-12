@@ -1146,7 +1146,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public final boolean seesFunction(Function function) {
 		if (cachedFunctionMap != null) {
 			final Function mine = cachedFunctionMap.get(function.name());
-			return mine == null || mine == function;
+			return mine == null || mine.latestVersion() == function;
 		} else
 			return true;
 	}
