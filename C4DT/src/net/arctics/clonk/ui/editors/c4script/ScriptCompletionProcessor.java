@@ -362,7 +362,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if ((declarationMask & DeclMask.FUNCTIONS) != 0 && d instanceof Function && !((Function)d).isGlobal())
-					proposalForFunc(pl, as(pl.precedingType, Script.class), (Function) d, true);
+					proposalForFunc(pl, defaulting(as(pl.precedingType, Script.class), pl.function.engine()), (Function) d, true);
 				else if ((declarationMask & DeclMask.VARIABLES) != 0 && d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
 					proposalForVar(pl, as(pl.precedingType, Script.class), (Variable)d);
 			}
