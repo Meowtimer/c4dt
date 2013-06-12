@@ -418,7 +418,8 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	@Override
 	public String typeName(boolean special) {
-		return special ? name() : id != null ? id.stringValue() : PrimitiveType.OBJECT.typeName(false);
+		final String specialName = this.engine().name().equals("OpenClonk") ? (id != null ? id.stringValue() : null) : name();
+		return special && specialName != null ? specialName : PrimitiveType.OBJECT.typeName(false);
 	}
 
 	/**
@@ -435,7 +436,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		final CategoriesValue cat = category();
 		return cat != null && cat.constants() != null && cat.constants().contains(category);
 	}
-	
+
 	@Override
 	public String qualifiedName() { return id().stringValue(); }
 
