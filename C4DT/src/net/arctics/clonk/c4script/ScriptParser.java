@@ -39,6 +39,7 @@ import net.arctics.clonk.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.CallExpr;
 import net.arctics.clonk.c4script.ast.CallInherited;
+import net.arctics.clonk.c4script.ast.CastExpression;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.ContinueStatement;
 import net.arctics.clonk.c4script.ast.DoWhileStatement;
@@ -1349,6 +1350,17 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							noNewProplist = true;
 							continue Loop;
 						}
+					}
+					else if (typing == Typing.STATIC && word.equals(Keywords.Cast)) {
+						eatWhitespace();
+						expect('[');
+						eatWhitespace();
+						final IType targetType = parseTypeAnnotation(true, true);
+						eatWhitespace();
+						expect(']');
+						eatWhitespace();
+						final ASTNode expr = parseExpression();
+						elm = new CastExpression(targetType, expr);
 					}
 					else {
 						final int beforeWhitespace = this.offset;

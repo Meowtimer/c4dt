@@ -20,6 +20,7 @@ public class BuiltInDefinitions {
 		Keywords.Nil,
 		Keywords.False,
 		Keywords.True,
+		Keywords.Cast,
 		Variable.THIS.name()
 	);
 

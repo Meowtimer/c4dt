@@ -65,6 +65,7 @@ import net.arctics.clonk.c4script.ast.BreakStatement;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.CallExpr;
 import net.arctics.clonk.c4script.ast.CallInherited;
+import net.arctics.clonk.c4script.ast.CastExpression;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.ConditionalStatement;
 import net.arctics.clonk.c4script.ast.ContinueStatement;
@@ -2693,6 +2694,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void visit(Unfinished node, Visitor visitor) throws ProblemException {
 					visitor.markers().error(visitor, Problem.NotFinished, node, node, Markers.NO_THROW, node);
+				}
+			},
+
+			new Expert<CastExpression>(CastExpression.class) {
+				@Override
+				public IType type(CastExpression node, Visitor visitor) {
+					return node.targetType();
 				}
 			}
 
