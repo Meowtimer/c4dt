@@ -137,6 +137,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	final Map<Script, Input> input = new HashMap<>();
 
+	Visit visitFor(Function function, Script script) {
+		if (function.body() == null)
+			return null;
+		final Input input = DabbleInference.this.input.get(script);
+		return input != null ? input.plan.get(function) : null;
+	}
+
 	private boolean noticeParameterCountMismatch;
 
 	@Override
@@ -351,6 +358,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final class Visitor implements ProblemReporter, IEvaluationContext {
 
 			final Input input() { return Input.this; }
+			final DabbleInference inference() { return DabbleInference.this; }
 
 			ControlFlow controlFlow;
 			Markers markers;
@@ -530,7 +538,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.script();
 					final Script ds = call.predecessorInSequence() == null && conglomerate.contains(other) ? script : other;
-					final Visit fVisit = delegateFunctionVisit(f, ds);
+					final Visit fVisit = visitFor(f, ds);
 					final Visitor visitor = fVisit != null ? fVisit.visitor : null;
 
 					visitors[ci] = visitor;
@@ -731,42 +739,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void endVisit() {}
-
-			public final Visit delegateFunctionVisit(Function function, Script script) {
-				if (function.body() == null)
-					return null;
-
-				final Input input = DabbleInference.this.input.get(script);
-				return input != null ? input.plan.get(function) : null;
-/*
-				for (Visitor v = originator; v != null; v = v.originator)
-					if (v.visit != null && v.script() == script && v.visit.function() == function)
-						return v.visit;
-
-				switch (pass) {
-				case MAIN:
-					// main visit - add to delayed list to be visited after main visit has finished
-					if (visit.function.typeFromCallsHint()) {
-						delayVisit(function, script);
-						return null;
-					}
-					//$FALL-THROUGH$
-				case DELAYEDVISITS: case CALLTYPES: case ENCORE:
-					// performing delayed visits or gathering call types - always immediately try to visit
-					if (DEBUG)
-						log("Delegate function visit for '%s' from '%s'", //$NON-NLS-1$
-							function.qualifiedName(script),
-							visit != null ? visit.function.qualifiedName(script()) : "<null>"
-						);
-					final Visitor other = requestVisitor(script, function, this);
-					if (other != null)
-						return other.visit(function, this);
-					else
-						return null;
-				default:
-					return null;
-				} */
-			}
 
 			public void concreteArgumentMismatch(ASTNode argument, Variable parameter, Function callee, IType expected, IType got) {
 				try {
@@ -2054,11 +2026,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 							for (final IType _t : predTy)
 								if (_t instanceof Script) {
 									final Script _s = (Script)_t;
-									final TypeVariable rtv = visitor.delegateFunctionVisit(_s.override(fn), _s);
+									final TypeVariable rtv = visitFor(_s.override(fn), _s);
 									t = unify(t, rtv != null ? rtv.get() : fn.returnType(_s));
 								}
 					} else {
-						final Visit v = visitor.delegateFunctionVisit(fn, visitor.script());
+						final Visit v = visitFor(fn, visitor.script());
 						if (v != null)
 							t = v.get();
 					}
