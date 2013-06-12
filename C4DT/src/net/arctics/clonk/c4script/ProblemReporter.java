@@ -44,4 +44,5 @@ public interface ProblemReporter extends IASTPositionProvider, ITypingContext {
 	 * @return
 	 */
 	Script script();
+	Function function();
 }

@@ -7,6 +7,7 @@ import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.TraversalContinuation;
+import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.MemberOperator;
@@ -20,16 +21,20 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 	public ASTNode contextExpression;
 	public Sequence contextSequence;
 	public IType precedingType;
+	public final Function function;
 	public void pos(int pos) { this.exprRegion = new Region(pos, 0); exprAtRegion = null; }
-	public PrecedingExpression() { super(-1); }
+	public PrecedingExpression(Function function) { super(-1); this.function = function; }
 	public PrecedingExpression(ASTNode contextExpression, Sequence contextSequence, IType precedingType) {
 		super(-1);
 		this.contextExpression = contextExpression;
 		this.contextSequence = contextSequence;
 		this.precedingType = precedingType;
+		this.function = null;
 	}
 	@Override
 	public TraversalContinuation visitNode(ASTNode expression, ProblemReporter context) {
+		if (context.function() != this.function)
+			return TraversalContinuation.Cancel;
 		final TraversalContinuation c = super.visitNode(expression, context);
 		if (exprAtRegion != null) {
 			contextExpression = exprAtRegion;

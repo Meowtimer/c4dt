@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
@@ -54,6 +55,8 @@ public class TypeUtil {
 			public void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right) {}
 			@Override
 			public boolean isModifiable(ASTNode node) { return false; }
+			@Override
+			public Function function() { return null; }
 		};
 	}
 	public static Definition definition(IType type) {

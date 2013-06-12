@@ -184,7 +184,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			displayStringRecomputationNecessary = false;
 			if (declaration instanceof IDocumentedDeclaration)
 				((IDocumentedDeclaration)declaration).fetchDocumentation();
-			displayString = declaration.displayString(declaration);
+			displayString = declaration.displayString(context);
 			final Function func = as(declaration, Function.class);
 			if (func != null)
 				// adjust cursor position to jump over brackets if zero parameters, but only when not just inserting the plain function name

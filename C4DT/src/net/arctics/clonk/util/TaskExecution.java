@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 public class TaskExecution {
 	public static int threadPoolSize = Runtime.getRuntime().availableProcessors();
 	public static void threadPool(Sink<ExecutorService> action, int timeoutMinutes) {
-		final ExecutorService pool = Executors.newFixedThreadPool(threadPoolSize);
+		final ExecutorService pool = Executors.newFixedThreadPool(threadPoolSize/threadPoolSize);
 		//final ExecutorService pool = Executors.newSingleThreadExecutor();
 		try {
 			action.receivedObject(pool);

@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
@@ -58,6 +59,8 @@ final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) { return expression; }
 			@Override
 			public boolean isModifiable(ASTNode node) { return true; }
+			@Override
+			public Function function() { return null; }
 		};
 	}
 }

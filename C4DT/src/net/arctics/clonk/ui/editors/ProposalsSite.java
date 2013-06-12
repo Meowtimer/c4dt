@@ -25,7 +25,6 @@ public class ProposalsSite extends PrecedingExpression {
 	public final String untamperedPrefix, prefix;
 	public final Map<Declaration, ClonkCompletionProposal> proposals;
 	public final Index index;
-	public final Function function;
 	public final Script script;
 	public void addProposal(ICompletionProposal proposal) {
 		final ClonkCompletionProposal ccp = as(proposal, ClonkCompletionProposal.class);
@@ -41,6 +40,7 @@ public class ProposalsSite extends PrecedingExpression {
 		String untamperedPrefix, List<ICompletionProposal> proposals,
 		Index index, Function function, Script script
 	) {
+		super(function);
 		this.offset = offset;
 		this.wordOffset = wordOffset;
 		this.document = document;
@@ -56,7 +56,6 @@ public class ProposalsSite extends PrecedingExpression {
 		this._proposals = proposals;
 		this.proposals = new HashMap<>();
 		this.index = index;
-		this.function = function;
 		this.script = script;
 	}
 	public ProposalsSite setPreceding(PrecedingExpression preceding) {

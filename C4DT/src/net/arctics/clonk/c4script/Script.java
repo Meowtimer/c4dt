@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
@@ -118,6 +119,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 		public IType get(Variable variable) {
 			return variableTypes != null ? variableTypes.get(variable.name()) : null;
+		}
+		public void update(Map<String, IType> variableTypes, Map<String, Function.Typing> functionTypings, Map<String, IType[]> functionASTTypes) {
+			for (final Entry<String, IType> x : variableTypes.entrySet())
+				this.variableTypes.put(x.getKey(), x.getValue());
+			for (final Entry<String, Function.Typing> x : functionTypings.entrySet())
+				this.functionTypings.put(x.getKey(), x.getValue());
+			for (final Entry<String, IType[]> x  : functionASTTypes.entrySet())
+				this.functionASTTypes.put(x.getKey(), x.getValue());
 		}
 	}
 	private transient Typings typings;
