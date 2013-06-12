@@ -558,7 +558,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							}
 						}
 				}
-				//if (DEBUG)
+				if (DEBUG)
 					log("Call types: %s", Arrays.deepToString(types));
 			}
 
