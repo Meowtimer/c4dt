@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
+import static net.arctics.clonk.util.Utilities.eq;
+
 import java.lang.ref.WeakReference;
 
 import org.eclipse.core.runtime.IAdaptable;
@@ -24,16 +26,22 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 		}
 		@Override
 		public String toString() {
-			Object o = get();
+			final Object o = get();
 			return o != null ? o.toString() : "<Lost>";
 		}
 		@Override
 		public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
-			Object obj = get();
+			final Object obj = get();
 			if (adapter.isInstance(obj))
 				return obj;
 			else
 				return null;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof WeakItem)
+				obj = ((WeakItem)obj).get();
+			return eq(obj, this.get());
 		}
 	}
 
@@ -63,7 +71,7 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 	private static Object[] wrap(Object[] raw) {
 		if (raw == null)
 			return null;
-		Object[] r = new WeakItem[raw.length];
+		final Object[] r = new WeakItem[raw.length];
 		for (int i = 0; i < raw.length; i++)
 			r[i] = new WeakItem(raw[i]);
 		return r;
@@ -108,13 +116,13 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 
 	@Override
 	public Object[] getElements(Object inputElement) {
-		Object[] raw = wrapped.getElements(unwrap(inputElement));
+		final Object[] raw = wrapped.getElements(unwrap(inputElement));
 		return wrap(raw);
 	}
 
 	@Override
 	public Object[] getChildren(Object parentElement) {
-		Object[] raw = wrapped.getChildren(unwrap(parentElement));
+		final Object[] raw = wrapped.getChildren(unwrap(parentElement));
 		return wrap(raw);
 	}
 

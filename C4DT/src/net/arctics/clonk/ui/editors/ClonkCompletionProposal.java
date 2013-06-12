@@ -212,7 +212,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	}
 
 	private Declaration context() {
-		return editor != null ? editor.structure() : declaration;
+		return context != null ? context : editor != null ? editor.structure() : declaration;
 	}
 
 	@Override

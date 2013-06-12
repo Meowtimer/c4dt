@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
+import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	private Composite composite;
 	private ClonkTextEditor editor;
 	private Text filterBox;
-	
+
 	@Override
 	public Control getControl() { return composite; }
 	public ClonkTextEditor editor() { return editor; }
@@ -70,13 +71,13 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 					if (defs != null)
 						entities = ArrayUtil.list(defs);
 					else
-						entities = ArrayUtil.list(entity); 
+						entities = ArrayUtil.list(entity);
 				} else
 					entities = ArrayUtil.list(entity);
 				new ClonkHyperlink(null, entities).open();
 			}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.views.contentoutline.ContentOutlinePage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
@@ -150,7 +151,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			return 10000;
 		}
 	};
-	
+
 	private void setTreeViewerInput(Declaration obj) {
 		final TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
@@ -186,12 +187,18 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 
 	public void refresh() {
 		final Declaration newInput = editor().structure();
+		final Declaration section = as(editor().section(), Declaration.class);
 		if (getTreeViewer().getInput() != newInput)
 			setTreeViewerInput(newInput);
 		else
 			getTreeViewer().refresh();
+		if (section != null) {
+			final Object[] subs = section.subDeclarationsForOutline();
+			if (subs.length > 0)
+				getTreeViewer().reveal(subs[0]);
+		}
 	}
-	
+
 	public void select(Declaration field) {
 		final TreeViewer viewer = getTreeViewer();
 		viewer.removeSelectionChangedListener(this);
@@ -201,7 +208,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 			viewer.addSelectionChangedListener(this);
 		}
 	}
-	
+
 	public void setInput(Object input) {
 		getTreeViewer().setInput(input);
 	}
@@ -209,5 +216,5 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	public void clear() {
 		getTreeViewer().setInput(null);
 	}
-	
+
 }

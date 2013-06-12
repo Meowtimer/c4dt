@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.DeclarationLocation;
 import net.arctics.clonk.ast.Structure;
@@ -249,6 +250,10 @@ public class ClonkTextEditor extends TextEditor {
 	public Declaration structure() {
 		final StructureEditingState<?, ?> listener = editingState();
 		return listener != null ? listener.structure() : null;
+	}
+
+	public ASTNode section() {
+		return null;
 	}
 
 	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$

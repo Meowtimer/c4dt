@@ -175,7 +175,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			editingState.cancelReparsingTimer();
 			final Function cursorFunc = functionAtCursor();
 			if (cursorFunc != null)
-				editingState.reparseFunction(cursorFunc).deploy();
+				editingState.reportProblems(cursorFunc).deploy();
 		}
 		final ScriptContentAssistant a = as(contentAssistant(), ScriptContentAssistant.class);
 		if (a != null)
@@ -310,6 +310,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	public Function functionAtCursor() { return functionAt(cursorPos()); }
+	@Override
+	public ASTNode section() { return functionAtCursor(); }
 
 	public Script script() {
 		final ScriptEditingState listener = editingState();

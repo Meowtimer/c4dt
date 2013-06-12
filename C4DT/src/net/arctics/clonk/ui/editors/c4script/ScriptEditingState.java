@@ -61,7 +61,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	private static final List<ScriptEditingState> list = new ArrayList<>();
 
 	private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
-	private TimerTask reparseTask, functionReparseTask;
+	private TimerTask reparseTask, reportFunctionProblemsTask;
 	private List<ProblemReportingStrategy> problemReportingStrategies;
 	private ProblemReportingStrategy typingStrategy;
 
@@ -102,7 +102,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		if (f != null && !f.isOldStyle())
 			// editing inside new-style function: adjust locations of declarations without complete reparse
 			// only recheck the function and display problems after delay
-			scheduleReparsingOfFunction(f);
+			scheduleProblemReport(f);
 		else
 			// only schedule reparsing when editing outside of existing function
 			scheduleReparsing(false);
@@ -135,15 +135,19 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private ScriptParser reparse(boolean onlyDeclarations) throws ProblemException {
 		cancelReparsingTimer();
-		return reparseWithDocumentContents(onlyDeclarations, document, structure(), new Runnable() {
+		return reparseWithDocumentContents(onlyDeclarations, document, structure(), refreshEditorsRunnable());
+	}
+
+	private Runnable refreshEditorsRunnable() {
+		return new Runnable() {
 			@Override
 			public void run() {
 				for (final C4ScriptEditor ed : editors) {
 					ed.refreshOutline();
-					ed.handleCursorPositionChanged();
+					try { ed.handleCursorPositionChanged(); } catch (final Exception e) {}
 				}
 			}
-		});
+		};
 	}
 
 	synchronized ScriptParser reparseWithDocumentContents(
@@ -242,19 +246,20 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 	}
 
-	private void scheduleReparsingOfFunction(final Function fn) {
+	private void scheduleProblemReport(final Function fn) {
 		if (errorsWhileTypingDisabled())
 			return;
-		functionReparseTask = cancelTimerTask(functionReparseTask);
-		reparseTimer.schedule(functionReparseTask = new TimerTask() {
+		reportFunctionProblemsTask = cancelTimerTask(reportFunctionProblemsTask);
+		reparseTimer.schedule(reportFunctionProblemsTask = new TimerTask() {
 			@Override
 			public void run() {
 				try {
 					if (structure.source() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.source()) == null) {
 						removeMarkers(fn, structure);
 						final Function f = (Function) fn.latestVersion();
-						final Markers markers = reparseFunction(f);
+						final Markers markers = reportProblems(f);
 						markers.deploy();
+						Display.getDefault().asyncExec(refreshEditorsRunnable());
 					}
 				} catch (final Exception e) {
 					e.printStackTrace();
@@ -263,7 +268,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}, 1000);
 	}
 
-	public synchronized Markers reparseFunction(final Function function) {
+	public synchronized Markers reportProblems(final Function function) {
 		// ignore this request when errors while typing disabled
 		if (errorsWhileTypingDisabled())
 			return new Markers();
@@ -314,7 +319,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	@Override
 	public void cancelReparsingTimer() {
 		reparseTask = cancelTimerTask(reparseTask);
-		functionReparseTask = cancelTimerTask(functionReparseTask);
+		reportFunctionProblemsTask = cancelTimerTask(reportFunctionProblemsTask);
 		super.cancelReparsingTimer();
 	}
 
