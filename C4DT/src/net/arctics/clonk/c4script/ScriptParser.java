@@ -92,9 +92,7 @@ import net.arctics.clonk.parser.Markers;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -263,7 +261,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @throws ProblemException
 	 */
 	public void parse() throws ProblemException {
-		clear(true, true);
+		clear();
 		parseDeclarations();
 		validate();
 	}
@@ -312,15 +310,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					readUnexpectedBlock();
 				eatWhitespace();
 			}
-			for (final Variable v : script.variables())
-				if (v.initializationExpression() != null && v.initializationExpression().parent() == null)
-					v.initializationExpression().setParent(v);
 		}
 		catch (final ProblemException e) { return; }
-		finally {
-			if (markers != null)
-				markers.deploy();
-		}
 	}
 	private void readUnexpectedBlock() throws ProblemException {
 		eatWhitespace();
@@ -367,8 +358,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		for (final Directive directive : script.directives())
 			directive.validate(this);
 		distillAdditionalInformation();
-		if (markers != null)
-			markers.deploy();
 	}
 
 	/**
@@ -2518,17 +2507,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	/**
 	 * Delete declarations inside the script container assigned to the parser and remove markers.
 	 */
-	public void clear(boolean problemMarkers, boolean taskMarkers) {
-		try {
-			if (scriptFile != null) {
-				if (problemMarkers)
-					scriptFile.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-				if (taskMarkers)
-					scriptFile.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
-			}
-		} catch (final CoreException e1) {
-			e1.printStackTrace();
-		}
+	public void clear() {
+		Markers.clearMarkers(scriptFile);
 		script.clearDeclarations();
 	}
 

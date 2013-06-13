@@ -134,7 +134,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			} catch (final CoreException e) {
 				return false;
 			}
-			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR) || ty.equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING))
+			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR))
 				return fixableParserErrorCodes.contains(Markers.problem(ma.getMarker()));
 		}
 		return false;

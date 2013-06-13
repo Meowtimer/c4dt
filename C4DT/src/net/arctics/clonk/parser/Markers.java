@@ -3,8 +3,11 @@ package net.arctics.clonk.parser;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
@@ -23,6 +26,7 @@ import net.arctics.clonk.parser.IMarkerListener.Decision;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -44,13 +48,12 @@ public class Markers implements Iterable<Marker> {
 	private final Set<Problem> disabledErrors = new HashSet<Problem>();
 	private IMarkerListener listener;
 	private Marker first, last;
+	private List<IMarker> captured;
 
-	public Marker clear() {
-		synchronized (this) {
-			final Marker r = first;
-			first = last = null;
-			return r;
-		}
+	public synchronized Marker clear() {
+		final Marker r = first;
+		first = last = null;
+		return r;
 	}
 
 	public void setListener(IMarkerListener markerListener) { this.listener = markerListener; }
@@ -70,52 +73,77 @@ public class Markers implements Iterable<Marker> {
 		last = start.prev;
 	}
 
-	public void deploy() {
+	public synchronized void deploy() {
 		if (Core.instance().runsHeadless())
 			return;
 		for (Marker deploy = clear(); deploy != null; deploy = deploy.next)
 			deploy(deploy);
+		if (captured != null)
+			try {
+				for (final IMarker m : captured)
+					m.delete();
+			} catch (final CoreException e) {
+				e.printStackTrace();
+			} finally {
+				captured = null;
+			}
 	}
 
-	public IMarker deploy(Marker marker) {
+	private IMarker findCaptured(int start, int end) {
+		if (captured == null)
+			return null;
+		for (final Iterator<IMarker> it = captured.iterator(); it.hasNext();) {
+			final IMarker c = it.next();
+			if (c.getAttribute(IMarker.CHAR_START, -1) == start && c.getAttribute(IMarker.CHAR_END, -1) == end) {
+				it.remove();
+				return c;
+			}
+		}
+		return null;
+	}
+
+	private IMarker deploy(Marker marker) {
 		final IFile file = marker.scriptFile;
 		final Declaration declarationAssociatedWithFile = marker.container;
 		if (file == null)
 			return null;
 		try {
-			final IMarker deployed = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
-			String[] attributes = new String[] {IMarker.SEVERITY, IMarker.TRANSIENT, IMarker.MESSAGE, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.LOCATION, MARKER_PROBLEM};
-			Object[] attributeValues = new Object[] {marker.severity, false, marker.code.makeErrorString(marker.args), marker.start, marker.end,
+			String[] attributes = new String[] {IMarker.SEVERITY, IMarker.TRANSIENT, IMarker.MESSAGE, IMarker.LOCATION, MARKER_PROBLEM};
+			Object[] attributeValues = new Object[] {marker.severity, false, marker.code.makeErrorString(marker.args),
 				declarationAssociatedWithFile != null ? declarationAssociatedWithFile.toString() : null, marker.code.ordinal()};
+			IMarker m = findCaptured(marker.start, marker.end);
+			if (m == null) {
+				m = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
+				attributes = concat(attributes, IMarker.CHAR_START, IMarker.CHAR_END);
+				attributeValues = concat(attributeValues, marker.start, marker.end);
+			}
 			if (marker.code == Problem.IncompatibleTypes) {
 				attributes = concat(MARKER_EXPECTEDTYPE, attributes);
 				attributeValues = concat(marker.args[0], attributeValues);
 			}
-			deployed.setAttributes(
+			m.setAttributes(
 				attributes,
 				attributeValues
 			);
-			return deployed;
+			return m;
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	public boolean add(Marker e) {
-		synchronized (this) {
-			if (last == null) {
-				first = last = e;
-				e.prev = e.next = null;
-			}
-			else {
-				e.prev = last;
-				e.next = null;
-				last.next = e;
-				last = e;
-			}
-			return true;
+	public synchronized boolean add(Marker e) {
+		if (last == null) {
+			first = last = e;
+			e.prev = e.next = null;
 		}
+		else {
+			e.prev = last;
+			e.next = null;
+			last.next = e;
+			last = e;
+		}
+		return true;
 	}
 
 	public void take(Markers others) {
@@ -299,12 +327,30 @@ public class Markers implements Iterable<Marker> {
 		};
 	}
 
-	public int size() {
-		synchronized (this) {
-			int count = 0;
-			for (@SuppressWarnings("unused") final Marker m : this)
-				count++;
-			return count;
+	public synchronized int size() {
+		int count = 0;
+		for (@SuppressWarnings("unused") final Marker m : this)
+			count++;
+		return count;
+	}
+
+	public static void clearMarkers(IResource resource) {
+		if (resource == null)
+			return;
+		try {
+			resource.deleteMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE);
+			resource.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
+		} catch (final CoreException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	public void captureExistingMarkers(IResource resource) {
+		try {
+			captured = new ArrayList<>(Arrays.asList(resource.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
+			resource.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
+		} catch (final CoreException e1) {
+			e1.printStackTrace();
 		}
 	}
 }

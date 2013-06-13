@@ -37,8 +37,7 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 		try {
 			return
 				ScriptQuickAssistProcessor.singleton() != null &&
-				(marker.getType().equals(Core.MARKER_C4SCRIPT_ERROR) ||
-				 marker.getType().equals(Core.MARKER_C4SCRIPT_ERROR_WHILE_TYPING));
+				marker.getType().equals(Core.MARKER_C4SCRIPT_ERROR);
 		} catch (final CoreException e) {
 			return false;
 		}

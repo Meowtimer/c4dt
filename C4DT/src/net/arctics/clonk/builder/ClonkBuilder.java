@@ -169,11 +169,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			gatherScripts(proj, delta);
 			clearScripts(index);
 			parseDeclarations(index);
+			markers.deploy();
 
 			final Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			final ScriptParser[] parsers = parserMap.values().toArray(new ScriptParser[parserMap.values().size()]);
 
 			reportProblems(parsers, scripts);
+			markers.deploy();
 
 			for (final ScriptParser parser : parsers)
 				if (parser != null && parser.script() != null)
@@ -273,7 +275,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		while (parserMapSize != parserMap.size());
 		refreshUI(newEnqueued);
 		indexRefresh(index);
-		markers.deploy();
 	}
 
 	private void parseDeclarationsUsingSingleThread(final Map<Script, ScriptParser> newEnqueued) {

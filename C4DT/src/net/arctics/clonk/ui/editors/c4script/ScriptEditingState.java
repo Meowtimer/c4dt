@@ -159,7 +159,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		markers.applyProjectSettings(script.index());
 		final ScriptParser parser = parserForDocument(document, script);
 		parser.setMarkers(markers);
-		parser.clear(!onlyDeclarations, !onlyDeclarations);
+		markers.captureExistingMarkers(script.scriptFile());
+		parser.script().clearDeclarations();
 		parser.parseDeclarations();
 		parser.script().deriveInformation();
 		parser.validate();
@@ -169,9 +170,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				typing.initialize(markers, new NullProgressMonitor(), new Script[] {parser.script()});
 				typing.run();
 			}
-			markers.deploy();
 		}
-		// make sure it's executed on the ui thread
+		markers.deploy();
 		if (uiRefreshRunnable != null)
 			Display.getDefault().asyncExec(uiRefreshRunnable);
 		return parser;
@@ -443,11 +443,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	@Override
 	public void partBroughtToTop(IWorkbenchPart part) {
-		if (editors.contains(part)) {
+		if (editors.contains(part))
 			try { reparse(false); }
 			catch (final ProblemException e) {}
-			super.partBroughtToTop(part);
-		}
+		super.partBroughtToTop(part);
 	}
 
 }
