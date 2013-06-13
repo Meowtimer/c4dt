@@ -256,12 +256,13 @@ class Graph extends LinkedList<Runnable> {
 	}
 
 	void run() {
-//		for (final Runnable r : this)
-//			if (r instanceof Cluster) {
-//				System.out.println("-----------");
-//				((Cluster)r).print();
-//				System.out.println("-----------");
-//			}
+		if (DEBUG)
+			for (final Runnable r : this)
+				if (r instanceof Cluster) {
+					System.out.println("-----------");
+					((Cluster)r).print();
+					System.out.println("-----------");
+				}
 		if (this.size() < 20)
 			for (final Runnable r : this)
 				r.run();
