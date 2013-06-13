@@ -1677,21 +1677,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final ASTNode arg = node.argument();
 					if (arg == null)
 						visitor.markers().warning(visitor, Problem.MissingExpression, node, node, 0);
-					else if (type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY) {
-						final IType argType = visitor.ty(arg);
+					else {
+						final IType _argType = visitor.ty(arg);
 						final ASTNode pred = node.predecessorInSequence();
-						if (eq(argType, PrimitiveType.STRING)) {
-							if (unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
-								visitor.markers().warning(visitor, Problem.NotAProplist, node, pred, 0);
-							else
-								visitor.judgment(pred, PrimitiveType.PROPLIST, TypingJudgementMode.UNIFY);
-						}
-						else if (eq(argType, PrimitiveType.INT)) {
-							if (unifyNoChoice(PrimitiveType.ARRAY, type) == null)
-								visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, pred, 0);
-						}
-						else if (unifyNoChoice(PrimitiveType.ARRAY, type) != null)
-							visitor.judgment(arg, PrimitiveType.INT, TypingJudgementMode.UNIFY);
+						for (final IType argType : _argType)
+							if (eq(argType, PrimitiveType.STRING)) {
+								if (unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
+									visitor.markers().warning(visitor, Problem.NotAProplist, node, pred, 0);
+								else
+									visitor.judgment(pred, PrimitiveType.PROPLIST, TypingJudgementMode.UNIFY);
+							} else {
+								final IType u = unifyNoChoice(PrimitiveType.ARRAY, type);
+								if (eq(argType, PrimitiveType.INT)) {
+									if (u == null)
+										visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, pred, 0);
+									else
+										visitor.judgment(pred, u, TypingJudgementMode.UNIFY);
+								}
+								else if (u != null)
+									visitor.judgment(arg, PrimitiveType.INT, TypingJudgementMode.UNIFY);
+							}
 					}
 				}
 				@Override
