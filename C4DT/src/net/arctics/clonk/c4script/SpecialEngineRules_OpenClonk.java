@@ -309,8 +309,9 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		};
 	};
 
-	public SpecialEngineRules_OpenClonk() {
-		super();
+	public SpecialEngineRules_OpenClonk(Engine engine) {
+		super(engine);
+		PLACE_CALL = ASTNodeMatcher.prepareForMatching("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)", engine);
 		// override SetAction link rule to also take into account local 'ActMap' vars
 		setActionLinkRule = new SetActionLinkRule() {
 			@Override
@@ -399,15 +400,14 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";
 
-	private static final ASTNode PLACE_CALL = ASTNodeMatcher.prepareForMatching
-		("$id$->$placeCall:/Place/$($num:NumberLiteral$, $params:...$)", Core.instance().loadEngine("OpenClonk"));
+	private final ASTNode PLACE_CALL;
 
-	public static class ComputedScenarioConfigurationEntry extends ComplexIniEntry {
+	public class ComputedScenarioConfigurationEntry extends ComplexIniEntry {
 		public ComputedScenarioConfigurationEntry(String key, IDArray values) {
 			super(-1, -1, key, values);
 		}
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public static class Item extends KeyValuePair<ID, Integer> {
+		public class Item extends KeyValuePair<ID, Integer> {
 			private transient CallDeclaration placeCall;
 			@Override
 			public Item clone() throws CloneNotSupportedException {
@@ -460,7 +460,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		}
 	}
 
-	private static ComputedScenarioConfigurationEntry entry(ScenarioUnit unit, String section, String entry) {
+	private ComputedScenarioConfigurationEntry entry(ScenarioUnit unit, String section, String entry) {
 		final IniSection s = unit.sectionWithName(section, true);
 		IniItem i = s.itemByKey(entry);
 		if (i != null && !(i instanceof ComputedScenarioConfigurationEntry)) {
@@ -504,7 +504,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			}
 			public boolean addComputedEntry() {
 				if (matched) {
-					entry.value().add(new ComputedScenarioConfigurationEntry.Item(definition().id(), num.literal().intValue(), placeCall));
+					entry.value().add(entry.new Item(definition().id(), num.literal().intValue(), placeCall));
 					return true;
 				} else
 					return false;

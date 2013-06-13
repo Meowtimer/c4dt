@@ -48,7 +48,8 @@ public class IniDescriptionsLoader {
 									if (ps != null) {
 										final IniEntry dp = as(ps.itemByKey("Description"), IniEntry.class);
 										if (dp != null)
-											p.setUserDescription(dp.value().toString());
+											if (dp.value() != null)
+												p.setUserDescription(dp.value().toString());
 									}
 								}
 							}

@@ -91,6 +91,13 @@ import org.eclipse.jface.text.Region;
  */
 public abstract class SpecialEngineRules {
 
+	protected Engine engine;
+
+	public SpecialEngineRules(Engine engine) {
+		super();
+		this.engine = engine;
+	}
+
 	/**
 	 * Role for SpecialFuncRule: Validate arguments of a function in a special way.
 	 */

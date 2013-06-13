@@ -498,7 +498,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			final
 			Class<? extends SpecialEngineRules> rulesClass = (Class<? extends SpecialEngineRules>) Engine.class.getClassLoader().loadClass(
 				String.format("%s.SpecialEngineRules_%s", SpecialEngineRules.class.getPackage().getName(), name())); //$NON-NLS-1$
-			specialRules = rulesClass.newInstance();
+			specialRules = rulesClass.getConstructor(Engine.class).newInstance(this);
 			specialRules.initialize();
 		} catch (final ClassNotFoundException e) {
 			// ignore
