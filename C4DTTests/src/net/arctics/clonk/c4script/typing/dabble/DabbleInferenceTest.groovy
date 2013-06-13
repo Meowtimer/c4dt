@@ -30,6 +30,9 @@ public class DabbleInferenceTest extends TestBase {
 		final Markers inferenceMarkers = new Markers();
 		Setup(final... scripts) {
 			super(scripts)
+			parsers.each { it.run() }
+			index.refresh()
+			this.scripts.each { it.deriveInformation() }
 			inference.initialize(inferenceMarkers, new NullProgressMonitor(), this.scripts)
 		}
 	}
@@ -41,9 +44,6 @@ public class DabbleInferenceTest extends TestBase {
 	var obj = CreateObject(GetID());
 	Log(obj->Unknown());
 }""")
-		setup.parser.parse()
-		setup.index.refresh()
-		setup.script.deriveInformation()
 		setup.inference.run()
 		Assert.assertTrue(setup.inferenceMarkers.size() == 0)
 	}
@@ -62,7 +62,6 @@ public class DabbleInferenceTest extends TestBase {
 			}
 			"""
 		)
-		setup.parser.run()
 		setup.inference.run()
 		def ty = setup.script.findLocalFunction("IfElse", false).locals()[0].type()
 		Assert.assertTrue(ty instanceof TypeChoice)
@@ -72,6 +71,7 @@ public class DabbleInferenceTest extends TestBase {
 		Assert.assertTrue(types.contains(PrimitiveType.STRING))
 	}
 
+	/*
 	@Test
 	public void testCallTypesChained() {
 		def baseSource =
@@ -111,9 +111,6 @@ public class DabbleInferenceTest extends TestBase {
 				)
 				(derived, base) = setup.scripts
 			}
-			setup.parsers.each { it.run() }
-			setup.index.refresh()
-			setup.scripts.each { it.deriveInformation() }
 			setup.inference.run()
 			Assert.assertEquals(PrimitiveType.STRING.unified(), base.findLocalFunction("Func3", false).parameters()[0].type())
 			Assert.assertEquals(PrimitiveType.STRING.unified(), derived.findLocalFunction("Func2", false).parameters()[0].type())
@@ -142,7 +139,7 @@ public class DabbleInferenceTest extends TestBase {
 		}
 		if (successful < runs)
 			Assert.fail("$successful of $runs passes successful")
-	}
+	}*/
 
 	@Test
 	public void testReturnTypeOfInheritedFunctionRevisited() {
@@ -168,9 +165,6 @@ func Usage() {
 
 		def setup = new Setup(definitions)
 		def (base, derived, clonk, wipf) = setup.scripts
-		setup.parsers.each { it.run() }
-		setup.index.refresh()
-		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
 		Assert.assertEquals(clonk, base.typings().functionTypings['MakeObject'].returnType)
@@ -190,9 +184,6 @@ func Test()
 	var b = CreateObject(t);
 }
 """, new DefinitionInfo(source:'', name:'Clonk'))
-		setup.parsers.each { it.run() }
-		setup.index.refresh()
-		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
 		def (scr, clonk) = setup.scripts
@@ -236,9 +227,6 @@ func Test()
 			System.out.println(String.format('Testing permutation %s', permArray.collect({it -> it.name}).join(', ')))
 			def setup = new Setup(permArray)
 
-			setup.parsers.each { it.run() }
-			setup.index.refresh()
-			setup.scripts.each { it.deriveInformation() }
 			setup.inference.run()
 
 			Definition a = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('A') }
@@ -285,9 +273,6 @@ func Test()
 			new DefinitionInfo(name: "Derived", source: derivedSource)
 		)
 
-		setup.parsers.each { it.run() }
-		setup.index.refresh()
-		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
 		def (base, derived) = setup.scripts
@@ -331,9 +316,6 @@ func Test()
 
 		def setup = new Setup(definitions)
 		def (base, derived, clonk, wipf, user) = setup.scripts
-		setup.parsers.each { it.run() }
-		setup.index.refresh()
-		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
 		Assert.assertEquals(clonk, base.typings().functionTypings['MakeObject'].returnType)
@@ -414,9 +396,6 @@ func Test()
 			] as DefinitionInfo[]
 			def setup = new Setup(definitions)
 			def (waypoint, abyss, rescuesBuilder) = setup.scripts
-			setup.parsers.each { it.run() }
-			setup.index.refresh()
-			setup.scripts.each { it.deriveInformation() }
 
 			def functionNames = rescuesBuilder.functions().collect { it.name() }.toList()
 			def makeAbyssMarkersIndex = functionNames.indexOf("MakeAbyssMarkers")
@@ -430,8 +409,8 @@ func Test()
 			setup.inference.run()
 
 			try {
-				Assert.assertEquals(abyss, rescuesBuilder.findFunction("PrepareAbyssOne").parameter(0).type())
-				Assert.assertEquals(abyss, rescuesBuilder.findFunction("PrepareAbyssTwo").parameter(0).type())
+				Assert.assertEquals(Maybe.make(abyss), rescuesBuilder.findFunction("PrepareAbyssOne").parameter(0).type())
+				Assert.assertEquals(Maybe.make(abyss), rescuesBuilder.findFunction("PrepareAbyssTwo").parameter(0).type())
 				Assert.assertEquals(new ArrayType(abyss), rescuesBuilder.findFunction("MakeAbyssMarkers").returnType())
 			} catch (AssertionError e) {
 				if (prepareAbyssIndex > makeAbyssMarkersIndex)
@@ -475,9 +454,6 @@ func Type() { return Clonk; }
 		] as DefinitionInfo[]
 
 		def setup = new Setup(definitions)
-		setup.parsers.each { it.run() }
-		setup.index.refresh()
-		setup.scripts.each { it.deriveInformation() }
 		setup.inference.run()
 
 		Assert.assertEquals(
