@@ -260,7 +260,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		progressMonitor.subTask("Parametr validation");
 		for (final ParameterValidation pv : parameterValidations) {
 			pv.regularParameterValidation(this);
-			markers.take(pv.visitor.markers);
+			markers.take(pv.visitor);
 		}
 		parameterValidations.clear();
 		subTask("Apply");
@@ -376,20 +376,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 		}
 
-		final class Visitor implements ProblemReporter, IEvaluationContext {
+		final class Visitor extends Markers implements ProblemReporter, IEvaluationContext {
 
 			final Input input() { return Input.this; }
 			final DabbleInference inference() { return DabbleInference.this; }
 
 			ControlFlow controlFlow;
-			Markers markers;
 			TypeEnvironment typeEnvironment;
 			Thread thread;
 			Visit visit;
-
-			public Visitor() {
-				this.markers = new Markers();
-			}
+			int roaming;
 
 			@SuppressWarnings("unchecked")
 			private final <T extends ASTNode> Expert<? super T> expert(T node) {
@@ -660,7 +656,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								env.clear();
 							}
 							actualVisit(ownedFunction, statements, parTypes);
-							DabbleInference.this.markers().take(markers);
+							DabbleInference.this.markers().take(this);
 						}
 						env = endTypeEnvironment();
 					}
@@ -860,34 +856,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 			}
 
-			private final class RoamingMarkers extends Markers {
-				public final Markers oldMarkers;
-				public final Script origin;
-				public int depth;
-				private RoamingMarkers(Markers oldMarkers, Script origin) {
-					this.oldMarkers = oldMarkers;
-					this.origin = origin;
-					this.depth = 1;
-				}
-				@Override
-				public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
-					if (node == null || node.parentOfType(Script.class) != origin || (preliminary && node.containedIn(visit.function)))
-						return;
-					else
-						oldMarkers.marker(positionProvider, code, node, markerStart, markerEnd, flags, severity, args);
-				}
-			}
-
 			private final void startRoaming() {
-				if (markers instanceof RoamingMarkers)
-					((RoamingMarkers)markers).depth++;
-				else
-					markers = new RoamingMarkers(markers, script());
+				roaming++;
 			}
 
 			private final void endRoaming() {
-				if (--((RoamingMarkers)markers).depth == 0)
-					markers = ((RoamingMarkers)markers).oldMarkers;
+				--roaming;
+			}
+
+			@Override
+			public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
+				if (node == null || node.parentOfType(Script.class) != script || (preliminary && node.containedIn(visit.function)))
+					return;
+				else
+					super.marker(positionProvider, code, node, markerStart, markerEnd, flags, severity, args);
 			}
 
 			@Override
@@ -951,7 +933,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public boolean isModifiable(ASTNode node) { return expert(node).isModifiable(node, this); }
 			@Override
-			public Markers markers() { return preliminary ? NULL_MARKERS : markers; }
+			public Markers markers() { return preliminary ? NULL_MARKERS : this; }
 			@Override
 			public void setGlobalMarkers(Markers markers) { DabbleInference.this.markers = markers; }
 			@Override
