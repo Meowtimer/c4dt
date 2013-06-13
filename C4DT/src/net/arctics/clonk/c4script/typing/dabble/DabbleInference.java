@@ -251,7 +251,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Profiled
 	final void work() {
-		projectName = !input.isEmpty() ? input.values().iterator().next().script().index().nature().getProject().getName() : "<???>";
+		projectName = findProjectName();
 		subTask("Computing graph");
 		parameterValidations.clear();
 		final Graph graph = new Graph(this);
@@ -266,6 +266,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 		subTask("Apply");
 		for (final Input input : this.input.values())
 			input.apply();
+	}
+
+	private String findProjectName() {
+		if (!input.isEmpty()) {
+			final Input inp = input.values().iterator().next();
+			if (inp.script() != null && inp.script().index() != null && inp.script().index().nature() != null)
+				return inp.script().index().nature().getProject().getName();
+		}
+		return "<???>";
 	}
 
 	private void subTask(String text) {
