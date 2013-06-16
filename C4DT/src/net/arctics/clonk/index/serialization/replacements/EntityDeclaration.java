@@ -29,6 +29,14 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		this.declarationClass = declaration.getClass();
 	}
 	@Override
+	public String toString() {
+		return String.format("%s::%s: %s",
+			containingEntity != null ? containingEntity.toString() : "<Unknown>",
+			declarationPath,
+			declarationClass != null ? declarationClass.getSimpleName() : "<Unknown>"
+		);
+	}
+	@Override
 	public Declaration resolve(Index index, IndexEntity deserializee) {
 		Declaration result;
 		this.deserializee = deserializee;
@@ -47,7 +55,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 				));
 		return result;
 	}
-	
+
 	Declaration makeDeferred() {
 		if (IType.class.isAssignableFrom(declarationClass))
 			return new DeferredType();
@@ -58,7 +66,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		else
 			return null;
 	}
-	
+
 	Object resolveDeferred() {
 		final Declaration d = containingEntity.findDeclarationByPath(declarationPath, declarationClass);
 		if (d == null && DEBUG)
@@ -70,17 +78,23 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 			));
 		return d;
 	}
-	
+
+	String deferredDescription() { return String.format("Deferred: %s", toString()); }
+
 	@SuppressWarnings("serial")
 	class DeferredVariable extends Variable implements IDeferredDeclaration {
 		@Override
 		public Object resolve() { return resolveDeferred(); }
+		@Override
+		public String toString() { return deferredDescription(); }
 	}
-	
+
 	@SuppressWarnings("serial")
 	class DeferredFunction extends Function implements IDeferredDeclaration {
 		@Override
 		public Object resolve() { return resolveDeferred(); }
+		@Override
+		public String toString() { return deferredDescription(); }
 	}
 
 	@SuppressWarnings("serial")
@@ -93,5 +107,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		public String typeName(boolean special) { return PrimitiveType.ANY.typeName(special); }
 		@Override
 		public IType simpleType() { return PrimitiveType.ANY; }
+		@Override
+		public String toString() { return deferredDescription(); }
 	}
 }
