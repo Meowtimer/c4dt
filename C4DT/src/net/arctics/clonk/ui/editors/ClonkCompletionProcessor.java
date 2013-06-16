@@ -8,6 +8,8 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.InitializationFunction;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.UI;
@@ -126,10 +128,11 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 				return null;
 		final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
 		final String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
-		final String postInfo = func.returnType(target.script()).typeName(true);
+		final IType returnType = func.returnType(target.script());
+		final String postInfo = returnType == PrimitiveType.UNKNOWN ? "" : ": " + returnType.typeName(true);
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			func, target, replacement, pl.offset, replacementLength,
-			UI.functionIcon(func), null/*contextInformation*/, null, ": " + postInfo, editor() //$NON-NLS-1$
+			UI.functionIcon(func), null/*contextInformation*/, null, postInfo, editor() //$NON-NLS-1$
 		);
 		prop.setCategory(cats.Functions);
 		pl.addProposal(prop);
