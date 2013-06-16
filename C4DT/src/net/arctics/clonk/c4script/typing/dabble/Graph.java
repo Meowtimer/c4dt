@@ -2,6 +2,7 @@ package net.arctics.clonk.c4script.typing.dabble;
 
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.StringUtil.blockString;
+import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.multiply;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -70,7 +72,7 @@ class Graph extends LinkedList<Runnable> {
 			System.out.println(String.format("Not adding requirement %s to %s", requirement.toString(), dependent.toString()));
 	}
 
-	IASTVisitor<Visit> requirementsVisitor = new IASTVisitor<Visit>() {
+	IASTVisitor<Visit> resultUsedRequirementsDetector = new IASTVisitor<Visit>() {
 		@Override
 		public TraversalContinuation visitNode(ASTNode node, Visit v) {
 			if (node instanceof CallDeclaration && resultNeeded(node)) {
@@ -80,35 +82,7 @@ class Graph extends LinkedList<Runnable> {
 					for (final Visit cv : calledVisits)
 						addRequirement(v, cv);
 			}
-			else if (
-				node instanceof AccessVar && node.predecessorInSequence() == null &&
-				!(isLocal((AccessVar) node, v) || containedInAssignment(node))
-			) {
-				final AccessVar av = (AccessVar) node;
-				for (final Script s : v.input().conglomerate) {
-					final List<AccessVar> references = s.varReferences().get(av.name());
-					if (references != null)
-						for (final AccessVar ref : references)
-							for (ASTNode p = ref.parent(); p != null; p = p.parent())
-								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
-									final Function fun = ref.parentOfType(Function.class);
-									final Visit other = v.input().plan.get(fun);
-									if (other != null)
-										addRequirement(v, other);
-									break;
-								}
-				}
-			}
 			return TraversalContinuation.Continue;
-		}
-		private boolean containedInAssignment(ASTNode node) {
-			for (ASTNode p = node.parent(); p != null; p = p.parent())
-				if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment())
-					return true;
-			return false;
-		}
-		private boolean isLocal(AccessVar node, Visit v) {
-			return v.function.findLocalDeclaration(node.name(), Variable.class) != null;
 		}
 		boolean resultNeeded(final ASTNode node) {
 			boolean resultNeeded = false;
@@ -124,10 +98,55 @@ class Graph extends LinkedList<Runnable> {
 		}
 	};
 
+	final IASTVisitor<Visit> variableInitializationsRequirementsVisitor = new IASTVisitor<Visit>() {
+		@Override
+		public TraversalContinuation visitNode(ASTNode node, Visit v) {
+			if (
+				node instanceof AccessVar && node.predecessorInSequence() == null &&
+				!(isLocal((AccessVar) node, v) || containedInAssignment(node))
+			) {
+				final AccessVar av = (AccessVar) node;
+				for (final Script s : v.input().conglomerate) {
+					final List<AccessVar> references = s.varReferences().get(av.name());
+					if (references != null)
+						for (final AccessVar ref : references)
+							for (ASTNode p = ref.parent(); p != null; p = p.parent())
+								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
+									final Function fun = ref.parentOfType(Function.class);
+									final Visit other = v.input().plan.get(fun);
+									if (other != null)
+										addRequirement(v, other);
+									/*	final List<CallDeclaration> calls = s.callMap().get(fun.name());
+										if (calls != null)
+											for (final CallDeclaration cd : calls) {
+												final Visit assignerCaller = inference.visitFor(cd.parentOfType(Function.class), s);
+												if (assignerCaller != null)
+													addRequirement(v, assignerCaller);
+											} */
+									break;
+								}
+				}
+			}
+			return TraversalContinuation.Continue;
+		}
+		private boolean containedInAssignment(ASTNode node) {
+			for (ASTNode p = node.parent(); p != null; p = p.parent())
+				if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment())
+					return true;
+			return false;
+		}
+		private boolean isLocal(AccessVar node, Visit v) {
+			return v.function.findLocalDeclaration(node.name(), Variable.class) != null;
+		}
+	};
+
 	void determineRequirements() {
 		for (final Input i : inference.input.values())
-			for (final Visit v : i.plan.values()) {
+			for (final Visit v : i.plan.values())
+				v.function.traverse(resultUsedRequirementsDetector, v);
 
+		for (final Input i : inference.input.values())
+			for (final Visit v : i.plan.values())
 				if (i.shouldTypeFromCalls(v.function)) {
 					final List<CallDeclaration> calls = i.index.callsTo(v.function.name());
 					if (calls != null)
@@ -141,11 +160,9 @@ class Graph extends LinkedList<Runnable> {
 						}
 				}
 
-				v.function.traverse(requirementsVisitor, v);
-
-				v.requirements.remove(v);
-
-			}
+		for (final Input i : inference.input.values())
+			for (final Visit v : i.plan.values())
+				v.function.traverse(variableInitializationsRequirementsVisitor, v);
 	}
 
 	class Cluster extends HashSet<Visit> implements Runnable {
@@ -193,6 +210,16 @@ class Graph extends LinkedList<Runnable> {
 		public String toString() {
 			return blockString("", "", ", ", this);
 		}
+		private void collect(Collection<Visit> col, Set<Visit> set) {
+			for (final Visit v : col)
+				if (set.add(v))
+					collect(v.dependents, set);
+		}
+		public Set<Visit> flatten() {
+			final Set<Visit> set = new HashSet<Visit>();
+			collect(this, set);
+			return set;
+		}
 	}
 
 	Cluster findCluster(Visit root) {
@@ -218,24 +245,38 @@ class Graph extends LinkedList<Runnable> {
 		}
 	}
 
+	static String randomColor() {
+		final Random random = new Random();
+		final char[] hex = "0123456789ABCDEF".toCharArray();
+		final char[] chars = new char[6];
+		for (int i = 0; i < 6; i++)
+			chars[i] = hex[random.nextInt(hex.length)];
+		return new String(chars);
+	};
+
 	void output() {
-		try (FileWriter writer = new FileWriter(new File("/Users/madeen/Desktop/output.dot"))) {
-			writer.append("digraph G {bgcolor=white\n");
-			for (final Input i : inference.input.values())
-				for (final Visit v : i.plan.values())
+		int x = 0;
+		for (final Runnable r : this) {
+			final Cluster c = as(r, Cluster.class);
+			if (c == null)
+				continue;
+			try (FileWriter writer = new FileWriter(new File(String.format("/Users/madeen/Desktop/output%d.dot", ++x)))) {
+				writer.append("digraph G {bgcolor=white\n");
+				final Set<Visit> f = c.flatten();
+				for (final Visit v : f)
 					if (!v.requirements.isEmpty() || !v.dependents.isEmpty())
 						writer.append(String.format("\tnode [ style=filled,shape=\"box\",fillcolor=\"antiquewhite:aquamarine\" ] \"%s\";\n", v.toString()));
 
-			for (final Input i : inference.input.values())
-				for (final Visit v : i.plan.values())
-					for (final Visit d : v.dependents)
-						writer.append(String.format("\t\"%s\" -> \"%s\";\n", v, d));
-//					for (final Visit r : v.requirements)
-//						writer.append(String.format("\t\"%s\" -> \"%s\";", r, v));
+				for (final Visit v : f)
+					for (final Visit d : v.dependents) {
+						final String col = randomColor();
+						writer.append(String.format("\t\"%s\" -> \"%s\" [color=\"#%s\"];\n", v, d, col));
+					}
 
-			writer.append("}");
-		} catch (final IOException e) {
-			e.printStackTrace();
+				writer.append("}");
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -244,9 +285,9 @@ class Graph extends LinkedList<Runnable> {
 		populateVisitsMap();
 		prepareVisits();
 		determineRequirements();
-		//output();
 		//verify();
 		populate();
+		//output();
 	}
 
 	void prepareVisits() {
