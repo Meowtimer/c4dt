@@ -41,6 +41,16 @@ public class ProposalsSite extends PrecedingExpression {
 		}
 		proposals.add(ccp);
 	}
+	public void removeProposalForDeclaration(Declaration declaration) {
+		final Map<String, ClonkCompletionProposal> props = declarationProposals.get(declaration.getClass());
+		if (props != null) {
+			final ClonkCompletionProposal proposal = props.get(declaration.name());
+			if (proposal != null && proposal.declaration() == declaration) {
+				props.remove(declaration.name());
+				proposals.remove(proposal);
+			}
+		}
+	}
 	public ProposalsSite(
 		int offset, int wordOffset, IDocument document,
 		String untamperedPrefix, List<ICompletionProposal> proposals,

@@ -296,8 +296,6 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	private void innerProposalsInFunction(ProposalsSite pl, ScriptParser parser) {
-		//if (computeStringProposals(pl) || varInitializationProposals(pl))
-		//	return;
 		setCategoryOrdering(pl);
 		functionLocalProposals(pl);
 		definitionProposals(pl);
@@ -305,6 +303,15 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		structureProposals(pl);
 		ruleBasedProposals(pl, parser);
 		keywordProposals(pl);
+		removeProposalForVariableBeingDeclared(pl);
+	}
+
+	private void removeProposalForVariableBeingDeclared(ProposalsSite pl) {
+		if (pl.contextExpression != null) {
+			final VarInitialization init = pl.contextExpression.parentOfType(VarInitialization.class);
+			if (init != null && init.variable != null)
+				pl.removeProposalForDeclaration(init.variable);
+		}
 	}
 
 	private boolean skipProposalsInFunction(ASTNode contextExpression) {
