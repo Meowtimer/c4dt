@@ -18,22 +18,28 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 public class ProposalsSite extends PrecedingExpression {
-	private final List<ICompletionProposal> _proposals;
+	public final List<ICompletionProposal> proposals;
 	public final int offset;
 	public final int wordOffset;
 	public final IDocument document;
 	public final String untamperedPrefix, prefix;
-	public final Map<Declaration, ClonkCompletionProposal> proposals;
+	public final Map<Class<? extends Declaration>, Map<String, ClonkCompletionProposal>> declarationProposals;
 	public final Index index;
 	public final Script script;
 	public void addProposal(ICompletionProposal proposal) {
 		final ClonkCompletionProposal ccp = as(proposal, ClonkCompletionProposal.class);
-		if (ccp != null && ccp.declaration() != null)
-			if (proposals.containsKey(ccp.declaration()))
+		if (ccp != null && ccp.declaration() != null) {
+			Map<String, ClonkCompletionProposal> decs = declarationProposals.get(ccp.declaration().getClass());
+			final ClonkCompletionProposal existing = decs != null ? decs.get(ccp.declaration().name()) : null;
+			if (existing != null)
 				return;
-			else
-				proposals.put(ccp.declaration(), ccp);
-		_proposals.add(ccp);
+			if (decs == null) {
+				decs = new HashMap<String, ClonkCompletionProposal>();
+				declarationProposals.put(ccp.declaration().getClass(), decs);
+			}
+			decs.put(ccp.declaration().name(), ccp);
+		}
+		proposals.add(ccp);
 	}
 	public ProposalsSite(
 		int offset, int wordOffset, IDocument document,
@@ -53,8 +59,8 @@ public class ProposalsSite extends PrecedingExpression {
 			this.prefix = tamper;
 		} else
 			this.prefix = null;
-		this._proposals = proposals;
-		this.proposals = new HashMap<>();
+		this.proposals = proposals;
+		this.declarationProposals = new HashMap<>();
 		this.index = index;
 		this.script = script;
 	}
@@ -65,17 +71,17 @@ public class ProposalsSite extends PrecedingExpression {
 		return this;
 	}
 	public ICompletionProposal[] finish(ProposalCycle cycle) {
-		if (_proposals.size() > 0) {
+		if (proposals.size() > 0) {
 			if (cycle != ProposalCycle.ALL)
 				outcycle(cycle);
-			return _proposals.toArray(new ICompletionProposal[_proposals.size()]);
+			return proposals.toArray(new ICompletionProposal[proposals.size()]);
 		}
 		else
 			return null;
 	}
 	private void outcycle(ProposalCycle cycle) {
-		final Collection<ClonkCompletionProposal> outcycled = new ArrayList<ClonkCompletionProposal>(_proposals.size());
-		for (final ICompletionProposal cp : _proposals) {
+		final Collection<ClonkCompletionProposal> outcycled = new ArrayList<ClonkCompletionProposal>(proposals.size());
+		for (final ICompletionProposal cp : proposals) {
 			final ClonkCompletionProposal ccp = as(cp, ClonkCompletionProposal.class);
 			if (ccp != null)
 				switch (cycle) {
@@ -87,6 +93,6 @@ public class ProposalsSite extends PrecedingExpression {
 					break;
 				}
 		}
-		_proposals.removeAll(outcycled);
+		proposals.removeAll(outcycled);
 	}
 }

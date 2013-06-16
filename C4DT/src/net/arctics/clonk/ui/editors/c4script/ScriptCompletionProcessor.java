@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -355,7 +356,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	public void proposeAllTheThings(ProposalsSite pl) {
-		final List<ClonkCompletionProposal> old = new ArrayList<>(pl.proposals.values());
+		final List<ClonkCompletionProposal> old = Arrays.asList(filter(pl.proposals, ClonkCompletionProposal.class));
 		final List<Index> relevantIndexes = pl.index.relevantIndexes();
 		final int declarationMask = pl.declarationsMask();
 		for (final Index x : relevantIndexes)
@@ -366,9 +367,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				else if ((declarationMask & DeclMask.VARIABLES) != 0 && d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
 					proposalForVar(pl, as(pl.precedingType, Script.class), (Variable)d);
 			}
-		for (final ClonkCompletionProposal ccp : pl.proposals.values())
-			if (!old.contains(ccp))
+		for (final ICompletionProposal p : pl.proposals) {
+			final ClonkCompletionProposal ccp = as(p, ClonkCompletionProposal.class);
+			if (ccp != null && !old.contains(ccp))
 				ccp.setImage(UI.halfTransparent(ccp.getImage()));
+		}
 	}
 
 	private Set<Declaration> determineProposalTypes(ProposalsSite pl) {
