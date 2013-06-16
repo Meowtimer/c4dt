@@ -383,7 +383,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			ControlFlow controlFlow;
 			TypeEnvironment typeEnvironment;
-			Thread thread;
 			Visit visit;
 			int roaming;
 
@@ -856,13 +855,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 			}
 
-			private final void startRoaming() {
-				roaming++;
-			}
+			private final void startRoaming() { roaming++; }
 
-			private final void endRoaming() {
-				--roaming;
-			}
+			private final void endRoaming() { --roaming; }
 
 			@Override
 			public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
