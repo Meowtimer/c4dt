@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script;
 
+import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.eq;
 
@@ -426,7 +427,9 @@ public abstract class SpecialEngineRules {
 				IType r = PrimitiveType.OBJECT;
 				for (final IType ty : t)
 					if (ty instanceof MetaDefinition)
-						r = TypeUnification.unify(r, ((MetaDefinition)ty).definition());
+						r = unify(r, ((MetaDefinition)ty).definition());
+					else if (ty instanceof Definition)
+						r = unify(r, ty);
 				return r;
 			}
 			return null;
