@@ -180,11 +180,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * Returns the script object as an object if it is one or null if it is not.
 	 * @return The script object as  C4Object
 	 */
-	public Definition definition() {
-		if (script instanceof Definition)
-			return (Definition) script;
-		return null;
-	}
+	public Definition definition() { return as(script, Definition.class); }
 
 	/**
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).

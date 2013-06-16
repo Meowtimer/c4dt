@@ -216,7 +216,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		);
 		try {
 			stream.writeObject(state);
-		} catch (final Exception e) {
+		} catch (final IllegalStateException e) {
 			System.out.println(String.format("Problems saving %s", name()));
 			e.printStackTrace();
 		}
@@ -410,7 +410,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	/**
 	 * Return {@link #includes(Index, boolean)}({@link #index()}, {@code recursive});
-	 * @param recursive Whether the returned collection also contains includes of the includes.
+	 * @param options Whether the returned collection also contains includes of the includes.
 	 * @return The includes
 	 */
 	public Collection<Script> includes(int options) {
@@ -424,12 +424,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private transient int _lastIncludesOrigin;
 	private transient int _lastIncludesOptions;
 
-	/**
-	 * Does the same as gatherIncludes except that the user does not have to create their own list
-	 * @param index The index to be passed to gatherIncludes
-	 * @param recursive Whether the returned collection also contains includes of the includes.
-	 * @return The includes
-	 */
 	@Override
 	public Collection<Script> includes(Index index, Object origin, int options) {
 		synchronized (this) {
@@ -850,43 +844,40 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return false;
 	}
 
-	public Variable findLocalVariable(String name, boolean includeIncludes) {
-		return findLocalVariable(name, includeIncludes ? new HashSet<Script>() : null);
+	public Variable findLocalVariable(String name, boolean searchIncludes) {
+		return findLocalVariable(name, searchIncludes ? new HashSet<Script>() : null);
 	}
 
 	public Function findLocalFunction(String name, boolean includeIncludes) {
 		return findLocalFunction(name, includeIncludes ? new HashSet<Script>() : null);
 	}
 
-	public Function findLocalFunction(String name, HashSet<Script> alreadySearched) {
+	private Function findLocalFunction(String name, HashSet<Script> catcher) {
 		requireLoaded();
-		if (alreadySearched != null && !alreadySearched.add(this))
+		if (catcher != null && !catcher.add(this))
 			return null;
 		for (final Function func: functions())
 			if (func.name().equals(name))
 				return func;
-		if (alreadySearched != null)
+		if (catcher != null)
 			for (final Script script : filteredIterable(includes(0), Script.class)) {
-				final Function func = script.findLocalFunction(name, alreadySearched);
+				final Function func = script.findLocalFunction(name, catcher);
 				if (func != null)
 					return func;
 			}
 		return null;
 	}
 
-	public Variable findLocalVariable(String name, HashSet<Script> alreadySearched) {
+	private Variable findLocalVariable(String name, HashSet<Script> catcher) {
 		requireLoaded();
-		if (alreadySearched != null) {
-			if (alreadySearched.contains(this))
-				return null;
-			alreadySearched.add(this);
-		}
+		if (catcher != null && !catcher.add(this))
+			return null;
 		for (final Variable var : variables())
 			if (var.name().equals(name))
 				return var;
-		if (alreadySearched != null)
-			for (final Script script : filteredIterable(includes(0), Script.class)) {
-				final Variable var = script.findLocalVariable(name, alreadySearched);
+		if (catcher != null)
+			for (final Script script : filteredIterable(includes(GatherIncludesOptions.NoAppendages), Script.class)) {
+				final Variable var = script.findLocalVariable(name, catcher);
 				if (var != null)
 					return var;
 			}
@@ -1322,7 +1313,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			result = function != null ? function.findVariable(varName) : null;
 			break;
 		case CONST: case STATIC: case LOCAL:
-			result = script().findLocalVariable(varName, true);
+			result = findLocalVariable(varName, true);
 			break;
 		default:
 			result = null;
@@ -1342,8 +1333,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			function.locals().add(result);
 			break;
 		case CONST: case STATIC: case LOCAL:
-			result.setParent(script());
-			script().addDeclaration(result);
+			result.setParent(this);
+			addDeclaration(result);
 		}
 		result.setLocation(start, end);
 		result.setUserDescription(description != null ? description.text().trim() : null);

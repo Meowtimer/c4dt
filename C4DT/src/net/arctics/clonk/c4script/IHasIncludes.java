@@ -45,8 +45,8 @@ public interface IHasIncludes<T extends IHasIncludes<?>> extends IType {
 		 * Get includes by gathering them using {@link IHasIncludes<T>#gatherIncludes(Set, Index, boolean)}.
 		 * @param instance The instance to call {@link IHasIncludes<T>#gatherIncludes(Set, Index, boolean)} on
 		 * @param data.index The index to pass to {@link IHasIncludes<T>#gatherIncludes(Set, Index, boolean)}
-		 * @param recursive The recursive parameter to pass to {@link IHasIncludes<T>#gatherIncludes(Set, Index, boolean)}
-		 * @return Direct or recursive includes, depending on the recursive parameter. This collection does not include the instance itself.
+		 * @param options Options mask. See {@link GatherIncludesOptions}
+		 * @return Requested includes.
 		 */
 		public static <T extends IHasIncludes<?>> Collection<T> includes(Index contextIndex, IHasIncludes<T> instance, Object origin, int options) {
 			final Set<T> result = new HashSet<T>(10);
