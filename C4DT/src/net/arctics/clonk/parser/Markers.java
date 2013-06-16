@@ -346,6 +346,8 @@ public class Markers implements Iterable<Marker> {
 	}
 
 	public void captureExistingMarkers(IResource resource) {
+		if (resource == null)
+			return;
 		try {
 			captured = new ArrayList<>(Arrays.asList(resource.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
 			resource.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
