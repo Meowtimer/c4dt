@@ -93,12 +93,12 @@ public class LandscapeScriptEditor extends ClonkTextEditor {
 	}
 	
 	@Override
-	public ClonkContentOutlinePage getOutlinePage() {
+	public ClonkContentOutlinePage outlinePage() {
 		if (outlinePage == null) {
 			outlinePage = new ClonkContentOutlinePage();
 			outlinePage.setEditor(this);
 		}
-		return super.getOutlinePage();
+		return super.outlinePage();
 	}
 	
 	@Override

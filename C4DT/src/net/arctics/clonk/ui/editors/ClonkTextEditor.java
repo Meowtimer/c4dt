@@ -109,7 +109,7 @@ public class ClonkTextEditor extends TextEditor {
 	 * Return the outline page of this text editor.
 	 * @return
 	 */
-	public ClonkContentOutlinePage getOutlinePage() {
+	public ClonkContentOutlinePage outlinePage() {
 		if (outlinePage == null) {
 			outlinePage = new ClonkContentOutlinePage();
 			outlinePage.setEditor(this);
@@ -123,9 +123,9 @@ public class ClonkTextEditor extends TextEditor {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(Class adapter) {
-		if (IContentOutlinePage.class.equals(adapter))
-			return getOutlinePage();
-		if (IShowInSource.class.equals(adapter) || IShowInTargetList.class.equals(adapter)) {
+		if (adapter.equals(IContentOutlinePage.class))
+			return outlinePage();
+		if (adapter.equals(IShowInSource.class) || adapter.equals(IShowInTargetList.class)) {
 			if (showInAdapter == null)
 				showInAdapter = new ShowInAdapter(this);
 			return showInAdapter;
