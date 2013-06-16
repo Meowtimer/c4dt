@@ -14,6 +14,7 @@ import net.arctics.clonk.c4script.MapScript;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ini.DefCoreUnit;
@@ -96,6 +97,15 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				} else {
 					if (file.getName().endsWith(".c"))
 						script.setScriptFile(file); // ensure files match up
+					else {
+						final Structure s = Structure.pinned(file, true, true);
+						if (script instanceof Definition && s instanceof DefCoreUnit) {
+							final ID id = ((DefCoreUnit)s).definitionID();
+							final Definition def = (Definition)script;
+							if (id != null)
+								def.setId(id);
+						}
+					}
 					obsoleted.remove(script);
 				}
 				if (script != null && file.equals(script.scriptFile()))
