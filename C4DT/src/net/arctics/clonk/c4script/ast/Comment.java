@@ -1,8 +1,12 @@
 package net.arctics.clonk.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.eclipse.core.resources.IMarker;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
@@ -10,14 +14,17 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
+import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
+import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.StringUtil;
 
 /**
@@ -27,6 +34,37 @@ import net.arctics.clonk.util.StringUtil;
  *
  */
 public class Comment extends Statement implements Statement.Attachment, IPlaceholderPatternMatchTarget {
+
+	public static final IASTVisitor<Markers> TODO_EXTRACTOR = new IASTVisitor<Markers>() {
+		@Override
+		public TraversalContinuation visitNode(ASTNode node_, Markers markers) {
+			final Comment node = as(node_, Comment.class);
+			if (node == null)
+				return TraversalContinuation.Continue;
+			final String s = node.text();
+			int markerPriority;
+			int searchStart = 0;
+			do {
+				markerPriority = IMarker.PRIORITY_LOW;
+				int todoIndex = s.indexOf("TODO", searchStart); //$NON-NLS-1$
+				if (todoIndex != -1)
+					markerPriority = IMarker.PRIORITY_NORMAL;
+				else {
+					todoIndex = s.indexOf("FIXME", searchStart); //$NON-NLS-1$
+					if (todoIndex != -1)
+						markerPriority = IMarker.PRIORITY_HIGH;
+				}
+				if (todoIndex != -1) {
+					int lineEnd = s.indexOf('\n', todoIndex);
+					if (lineEnd == -1)
+						lineEnd = s.length();
+					searchStart = lineEnd;
+					markers.todo(node.parentOfType(Script.class).scriptFile(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
+				}
+			} while (markerPriority > IMarker.PRIORITY_LOW);
+			return TraversalContinuation.Continue;
+		}
+	};
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private String comment;

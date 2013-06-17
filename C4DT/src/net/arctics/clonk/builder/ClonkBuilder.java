@@ -17,6 +17,7 @@ import net.arctics.clonk.c4group.C4GroupStreamOpener;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
@@ -171,6 +172,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parseDeclarations(index);
 			markers.deploy();
 
+			findTODOs();
+			markers.deploy();
+
 			final Script[] scripts = parserMap.keySet().toArray(new Script[parserMap.keySet().size()]);
 			final ScriptParser[] parsers = parserMap.values().toArray(new ScriptParser[parserMap.values().size()]);
 
@@ -190,6 +194,12 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.CLOSE));
 		}
 	}
+
+	private void findTODOs() {
+		for (final Script s : scripts())
+			s.traverse(Comment.TODO_EXTRACTOR, markers);
+	}
+
 	private void gatherScripts(final IProject proj, IResourceDelta delta) throws CoreException {
 		parserMap.clear();
 		monitor.subTask(buildTask(Messages.ClonkBuilder_GatheringScripts));

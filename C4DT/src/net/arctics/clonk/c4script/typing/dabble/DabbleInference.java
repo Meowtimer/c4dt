@@ -66,7 +66,6 @@ import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.CallExpr;
 import net.arctics.clonk.c4script.ast.CallInherited;
 import net.arctics.clonk.c4script.ast.CastExpression;
-import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.ConditionalStatement;
 import net.arctics.clonk.c4script.ast.ContinueStatement;
 import net.arctics.clonk.c4script.ast.FloatLiteral;
@@ -2644,35 +2643,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 									new Region(node.start()+off, part.length()), 0, entryName);
 						}
 						off += part.length()+1;
-					}
-				}
-			},
-
-			new Expert<Comment>(Comment.class) {
-				@Override
-				public void visit(Comment node, Visitor visitor) throws ProblemException {
-					if (node.parentOfType(Script.class) == visitor.script()) {
-						final String s = node.text();
-						int markerPriority;
-						int searchStart = 0;
-						do {
-							markerPriority = IMarker.PRIORITY_LOW;
-							int todoIndex = s.indexOf("TODO", searchStart); //$NON-NLS-1$
-							if (todoIndex != -1)
-								markerPriority = IMarker.PRIORITY_NORMAL;
-							else {
-								todoIndex = s.indexOf("FIXME", searchStart); //$NON-NLS-1$
-								if (todoIndex != -1)
-									markerPriority = IMarker.PRIORITY_HIGH;
-							}
-							if (todoIndex != -1) {
-								int lineEnd = s.indexOf('\n', todoIndex);
-								if (lineEnd == -1)
-									lineEnd = s.length();
-								searchStart = lineEnd;
-								visitor.markers().todo(visitor.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
-							}
-						} while (markerPriority > IMarker.PRIORITY_LOW);
 					}
 				}
 			},
