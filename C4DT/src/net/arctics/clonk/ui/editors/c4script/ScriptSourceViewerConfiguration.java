@@ -1,10 +1,12 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
 import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IAutoEditStrategy;
@@ -63,7 +65,7 @@ public class ScriptSourceViewerConfiguration extends ClonkSourceViewerConfigurat
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		final PresentationReconciler reconciler = new PresentationReconciler();
 		final ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT"); //$NON-NLS-1$
-		final ScriptCodeScanner scanner = SCANNERS.get(this.editor().script().engine());
+		final ScriptCodeScanner scanner = SCANNERS.get(ClonkProjectNature.get(Utilities.fileEditedBy(editor())).index().engine());
 
 		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, CStylePartitionScanner.CODEBODY);

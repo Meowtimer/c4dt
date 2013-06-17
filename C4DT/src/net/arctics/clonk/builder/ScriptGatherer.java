@@ -55,8 +55,9 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 
 	private Definition createDefinition(IContainer folder) {
 		final IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
-		final IFile scenario = defCore != null ? null : as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
-		if (defCore == null && scenario == null)
+		final IFile scenario = as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
+		final IFile script = as(findMemberCaseInsensitively(folder, "Script.c"), IFile.class); //$NON-NLS-1$
+		if (defCore == null && scenario == null && script == null)
 			return null;
 		try {
 			Definition def = Definition.definitionCorrespondingToFolder(folder);
@@ -68,8 +69,13 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 					def.setId(defCoreWrapper.definitionID());
 					def.setName(defCoreWrapper.name());
 				}
-			} else if (scenario != null)
-				def = new Scenario(builder.index(), folder.getName(), folder);
+			} else if (scenario != null) {
+				if (def == null)
+					def = new Scenario(builder.index(), folder.getName(), folder);
+			}
+			else if (script != null && builder.index().engine().groupTypeForFileName(folder.getName()) == GroupType.DefinitionGroup)
+				if (def == null)
+					def = new Definition(builder.index(), ID.get(folder.getName()), folder.getName(), folder);
 			return def;
 		} catch (final Exception e) {
 			e.printStackTrace();
