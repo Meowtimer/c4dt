@@ -87,6 +87,8 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		public Object resolve() { return resolveDeferred(); }
 		@Override
 		public String toString() { return deferredDescription(); }
+		@Override
+		public Object saveReplacement(Index context) { return EntityDeclaration.this; }
 	}
 
 	@SuppressWarnings("serial")
@@ -95,6 +97,8 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		public Object resolve() { return resolveDeferred(); }
 		@Override
 		public String toString() { return deferredDescription(); }
+		@Override
+		public Object saveReplacement(Index context) { return EntityDeclaration.this; }
 	}
 
 	@SuppressWarnings("serial")
@@ -109,5 +113,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		public IType simpleType() { return PrimitiveType.ANY; }
 		@Override
 		public String toString() { return deferredDescription(); }
+		@Override
+		public Object saveReplacement(Index context) { return EntityDeclaration.this; }
 	}
 }

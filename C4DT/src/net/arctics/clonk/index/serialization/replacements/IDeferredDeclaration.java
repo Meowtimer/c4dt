@@ -1,3 +1,5 @@
 package net.arctics.clonk.index.serialization.replacements;
 
-public interface IDeferredDeclaration { Object resolve(); }
+import net.arctics.clonk.index.IReplacedWhenSaved;
+
+public interface IDeferredDeclaration extends IReplacedWhenSaved { Object resolve(); }

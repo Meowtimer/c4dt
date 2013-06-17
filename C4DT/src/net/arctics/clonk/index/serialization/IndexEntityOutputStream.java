@@ -27,7 +27,7 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 		try {
 			if (obj instanceof IDeferredDeclaration) {
 				final IDeferredDeclaration deferred = (IDeferredDeclaration)obj;
-				obj = deferred.resolve();
+				obj = deferred.saveReplacement(index);
 				if (obj == null || obj instanceof IDeferredDeclaration)
 					throw new IllegalStateException(String.format("Deferred declaration while serializing: %s", deferred.toString()));
 			}
