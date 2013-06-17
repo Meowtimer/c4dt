@@ -39,7 +39,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 
 	@Override
 	public boolean isEnabled() {
-		IStructuredSelection sel = (IStructuredSelection) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
+		final IStructuredSelection sel = (IStructuredSelection) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
 		return Utilities.allInstanceOf(sel.toArray(), IResource.class);
 	}
 
@@ -51,26 +51,26 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 		if (selection instanceof IStructuredSelection) {
 			if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null))
 				return null;
-			IStructuredSelection sel = (IStructuredSelection) selection;
-			Iterator<?> it = sel.iterator();
+			final IStructuredSelection sel = (IStructuredSelection) selection;
+			final Iterator<?> it = sel.iterator();
 			final List<IContainer> selectedContainers = new LinkedList<IContainer>();
 			while (it.hasNext()) {
-				Object obj = it.next();
+				final Object obj = it.next();
 				if (obj instanceof IProject)
 					try {
-						IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
+						final IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
 						for(int i = 0; i < selectedResources.length;i++)
 							if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith(".")) //$NON-NLS-1$
 								selectedContainers.add((IContainer) selectedResources[i]);
 					}
-					catch (CoreException ex) {
+					catch (final CoreException ex) {
 						ex.printStackTrace();
 					}
 				else if (obj instanceof IFolder)
 					selectedContainers.add((IContainer) obj);
 			}
 			if (selectedContainers.size() > 0) {
-				ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+				final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 				try {
 					progressDialog.run(false, true, new IRunnableWithProgress() {
 						@Override
@@ -78,7 +78,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 							// first count how much to do
 							{
 								counter = 0;
-								IResourceVisitor countingVisitor = new IResourceVisitor() {
+								final IResourceVisitor countingVisitor = new IResourceVisitor() {
 									@Override
 									public boolean visit(IResource resource) throws CoreException {
 										if (resource instanceof IFile && Script.get(resource, true) != null)
@@ -86,16 +86,16 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 										return true;
 									}
 								};
-								for (IContainer container : selectedContainers)
+								for (final IContainer container : selectedContainers)
 									try {
 										container.accept(countingVisitor);
-									} catch (CoreException e) {
+									} catch (final CoreException e) {
 										e.printStackTrace();
 									}
 							}
 							runWithoutAutoBuild(new Runnable() { @Override public void run() {
 								monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
-								for (IContainer container : selectedContainers)
+								for (final IContainer container : selectedContainers)
 									try {
 										container.accept(new IResourceVisitor() {
 											@Override
@@ -106,10 +106,10 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 													final IFile file = (IFile) resource;
 													final Script script = Script.get(file, true);
 													if (script != null) {
-														final ScriptParser parser = new ScriptParser(file, script);
+														final ScriptParser parser = new ScriptParser(file, script, null);
 														try {
 															parser.parse();
-														} catch (ProblemException e1) {
+														} catch (final ProblemException e1) {
 															e1.printStackTrace();
 														}
 														Core.instance().performActionsOnFileDocument(file, new IDocumentAction<Void>() {
@@ -130,16 +130,16 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 											}
 										});
 										// TODO: do something with failedSaves
-									} catch (CoreException e) {
+									} catch (final CoreException e) {
 										e.printStackTrace();
 									}
 								monitor.done();
 							}});
 						}
 					});
-				} catch (InvocationTargetException e) {
+				} catch (final InvocationTargetException e) {
 					e.printStackTrace();
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 					e.printStackTrace();
 				}
 			}

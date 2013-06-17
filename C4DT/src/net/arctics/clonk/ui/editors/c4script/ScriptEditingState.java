@@ -2,10 +2,10 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
 import java.lang.ref.WeakReference;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Timer;
@@ -14,7 +14,6 @@ import java.util.TimerTask;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
@@ -32,6 +31,7 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
@@ -117,25 +117,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			adjustDec(v, offset, add);
 	}
 
-	private static ScriptParser parserForDocument(Object document, final Script script) {
-		ScriptParser parser = null;
-		if (document instanceof IDocument)
-			parser = new ScriptParser(((IDocument)document).get(), script, script.scriptFile());
-		else if (document instanceof IFile)
-			parser = Core.instance().performActionsOnFileDocument((IFile) document, new IDocumentAction<ScriptParser>() {
-				@Override
-				public ScriptParser run(IDocument document) {
-					return new ScriptParser(document.get(), script, script.scriptFile());
-				}
-			}, false);
-		if (parser == null)
-			throw new InvalidParameterException("document");
-		return parser;
-	}
-
 	private ScriptParser reparse(boolean onlyDeclarations) throws ProblemException {
 		cancelReparsingTimer();
-		return reparseWithDocumentContents(onlyDeclarations, document, structure(), refreshEditorsRunnable());
+		return reparseWithDocumentContents(onlyDeclarations, document, refreshEditorsRunnable());
 	}
 
 	private Runnable refreshEditorsRunnable() {
@@ -151,30 +135,38 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	synchronized ScriptParser reparseWithDocumentContents(
-		boolean onlyDeclarations, Object document,
-		final Script script,
+		boolean onlyDeclarations, Object scriptSource,
 		Runnable uiRefreshRunnable
 	) throws ProblemException {
-		final Markers markers = new Markers();
-		markers.applyProjectSettings(script.index());
-		final ScriptParser parser = parserForDocument(document, script);
-		parser.setMarkers(markers);
-		markers.captureExistingMarkers(script.scriptFile());
-		parser.script().clearDeclarations();
-		parser.parseDeclarations();
-		parser.script().deriveInformation();
-		parser.validate();
-		if (!onlyDeclarations) {
-			final ProblemReportingStrategy typing = this.typingStrategy();
-			if (typing != null) {
-				typing.initialize(markers, new NullProgressMonitor(), new Script[] {parser.script()});
-				typing.run();
-			}
-		}
+		final Markers markers = new StructureMarkers(false);
+		final ScriptParser parser = new ScriptParser(scriptSource, structure, null) {{
+			setMarkers(markers);
+			script().clearDeclarations();
+			parseDeclarations();
+			script().deriveInformation();
+			validate();
+		}};
+		structure.traverse(Comment.TODO_EXTRACTOR, markers);
+		if (!onlyDeclarations)
+			reportProblems(markers);
 		markers.deploy();
 		if (uiRefreshRunnable != null)
 			Display.getDefault().asyncExec(uiRefreshRunnable);
 		return parser;
+	}
+
+	private void reportProblems() {
+		final Markers markers = new StructureMarkers(true);
+		reportProblems(markers);
+		markers.deploy();
+	}
+
+	private void reportProblems(final Markers markers) {
+		final ProblemReportingStrategy typing = this.typingStrategy();
+		if (typing != null) {
+			typing.initialize(markers, new NullProgressMonitor(), new Script[] {structure});
+			typing.run();
+		}
 	}
 
 	public void scheduleReparsing(final boolean onlyDeclarations) {
@@ -188,7 +180,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					return;
 				try {
 					try {
-						reparseWithDocumentContents(onlyDeclarations, document, structure, new Runnable() {
+						reparseWithDocumentContents(onlyDeclarations, document, new Runnable() {
 							@Override
 							public void run() {
 								for (final C4ScriptEditor ed : editors) {
@@ -225,6 +217,28 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
+	}
+
+	private final class StructureMarkers extends Markers {
+		StructureMarkers(boolean functionBodies){
+			applyProjectSettings(structure.index());
+			if (functionBodies)
+				captureMarkersInFunctionBodies();
+			else
+				captureExistingMarkers(structure.scriptFile());
+		}
+		private void captureMarkersInFunctionBodies() {
+			try {
+				captured = new ArrayList<>(Arrays.asList(structure.scriptFile().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
+				for (final Iterator<IMarker> it = captured.iterator(); it.hasNext();) {
+					final IMarker c = it.next();
+					if (structure.funcAt(c.getAttribute(IMarker.CHAR_START, -1)) == null)
+						it.remove();
+				}
+			} catch (final CoreException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@SuppressWarnings("serial")
@@ -332,7 +346,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				final IFile file = (IFile)structure.source();
 				// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
 				if (file.exists())
-					reparseWithDocumentContents(false, file, structure, null);
+					reparseWithDocumentContents(false, file, null);
 			}
 		} catch (final ProblemException e) {
 			e.printStackTrace();
@@ -444,8 +458,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	@Override
 	public void partBroughtToTop(IWorkbenchPart part) {
 		if (editors.contains(part))
-			try { reparse(false); }
-			catch (final ProblemException e) {}
+			reportProblems();
 		super.partBroughtToTop(part);
 	}
 

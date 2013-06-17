@@ -14,6 +14,7 @@ import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IStorage;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.rules.ICharacterScanner;
@@ -119,6 +120,8 @@ public class BufferedScanner implements ICharacterScanner {
 			return (String)source;
 		else if (source instanceof File)
 			return StreamUtil.stringFromFile((File) source);
+		else if (source instanceof IDocument)
+			return ((IDocument)source).get();
 		else
 			throw new IllegalArgumentException(String.format("source: %s", source));
 	}

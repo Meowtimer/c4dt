@@ -1,9 +1,9 @@
 package net.arctics.clonk.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedList;
@@ -92,7 +92,6 @@ import net.arctics.clonk.parser.Markers;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -186,7 +185,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
 	public ScriptParser(Script script) {
-		this(script.source(), script);
+		this(script.source(), script, null);
 		initialize();
 	}
 
@@ -219,35 +218,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param scriptFile
 	 * @param obj
 	 */
-	public ScriptParser(IStorage scriptFile, Script script) {
-		super(scriptFile);
-		this.scriptFile = as(scriptFile, IFile.class);
-		this.script = script;
-		initialize();
-	}
-
-	/**
-	 * Creates a C4Script parser object for external files.
-	 * Results are stored in <code>object</code>
-	 * @param stream
-	 * @param size
-	 * @param object
-	 */
-	public ScriptParser(InputStream stream, Script script) {
-		super(stream);
-		this.scriptFile = null;
-		this.script = script;
-		initialize();
-	}
-
-	/**
-	 * Creates a C4Script parser that parses an arbitrary string.
-	 * @param withString
-	 * @param script
-	 */
-	public ScriptParser(String withString, Script script, IFile scriptFile) {
-		super(withString);
-		this.scriptFile = scriptFile;
+	public ScriptParser(Object source, Script script, IFile scriptFile) {
+		super(source);
+		this.scriptFile = defaulting(scriptFile, as(source, IFile.class));
 		this.script = script;
 		initialize();
 	}

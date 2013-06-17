@@ -48,7 +48,7 @@ public class Markers implements Iterable<Marker> {
 	private final Set<Problem> disabledErrors = new HashSet<Problem>();
 	private IMarkerListener listener;
 	private Marker first, last;
-	private List<IMarker> captured;
+	protected List<IMarker> captured;
 
 	public synchronized Marker clear() {
 		final Marker r = first;

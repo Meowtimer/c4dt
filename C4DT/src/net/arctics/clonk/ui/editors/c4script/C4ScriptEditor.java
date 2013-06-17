@@ -324,7 +324,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		final IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		if (editingState != null)
 			editingState.cancelReparsingTimer();
-		return editingState.reparseWithDocumentContents(onlyDeclarations, document, script(), new Runnable() {
+		return editingState.reparseWithDocumentContents(onlyDeclarations, document, new Runnable() {
 			@Override
 			public void run() {
 				refreshOutline();
