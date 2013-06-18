@@ -65,6 +65,7 @@ import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.CallExpr;
 import net.arctics.clonk.c4script.ast.CallInherited;
 import net.arctics.clonk.c4script.ast.CastExpression;
+import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.ConditionalStatement;
 import net.arctics.clonk.c4script.ast.ContinueStatement;
 import net.arctics.clonk.c4script.ast.FloatLiteral;
@@ -2354,9 +2355,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new Expert<Statement>(Statement.class) {
 				@Override
-				public IType type(Statement node, Visitor visitor) {
-					return PrimitiveType.UNKNOWN;
-				}
+				public IType type(Statement node, Visitor visitor) { return PrimitiveType.UNKNOWN; }
 				/**
 				 * Emit a warning if this expression is erroneously used at a place where only expressions with side effects are allowed.
 				 * @param input The info
@@ -2374,6 +2373,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (visitor.controlFlow != ControlFlow.Continue)
 						visitor.markers().warning(visitor, Problem.NeverReached, node, node, 0);
 				}
+			},
+
+			new Expert<Comment>(Comment.class) {
+				@Override
+				public void visit(Comment node, Visitor visitor) throws ProblemException {}
 			},
 
 			new Expert<VarDeclarationStatement>(VarDeclarationStatement.class) {
