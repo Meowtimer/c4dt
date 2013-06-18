@@ -11,6 +11,7 @@ import java.util.Map;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.ui.editors.c4script.ProposalCycle;
 
@@ -28,7 +29,7 @@ public class ProposalsSite extends PrecedingExpression {
 	public final Script script;
 	public void addProposal(ICompletionProposal proposal) {
 		final ClonkCompletionProposal ccp = as(proposal, ClonkCompletionProposal.class);
-		if (ccp != null && ccp.declaration() != null) {
+		if (ccp != null && (ccp.declaration() instanceof Variable || ccp.declaration() instanceof Function)) {
 			Map<String, ClonkCompletionProposal> decs = declarationProposals.get(ccp.declaration().getClass());
 			final ClonkCompletionProposal existing = decs != null ? decs.get(ccp.declaration().name()) : null;
 			if (existing != null)

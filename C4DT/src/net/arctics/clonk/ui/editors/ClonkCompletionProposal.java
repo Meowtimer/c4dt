@@ -1,7 +1,6 @@
 package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
-
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.index.Definition;
@@ -73,7 +72,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param cursorPosition the position of the cursor following the insert relative to replacementOffset
 	 */
 	public ClonkCompletionProposal(Declaration declaration, Declaration context, String replacementString, int replacementOffset, int replacementLength, int cursorPosition) {
-		this(declaration, context, replacementString, replacementOffset, replacementLength, cursorPosition, null, null, null, null, null, null);
+		this(declaration, context, replacementString, replacementOffset, replacementLength, cursorPosition, null, declaration.toString(), null, null, null, null);
 	}
 
 	/**
@@ -221,7 +220,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		if (displayString == null)
 			return new StyledString("<Error>", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 		final StyledString result = new StyledString(displayString);
-		result.append(postInfo, StyledString.QUALIFIER_STYLER);
+		if (postInfo != null)
+			result.append(postInfo, StyledString.QUALIFIER_STYLER);
 		return result;
 	}
 
@@ -293,6 +293,9 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			return displayString;
 		return replacementString;
 	}
+
+	@Override
+	public String toString() { return declaration != null ? String.format("Proposal for %s", declaration.toString()) : "Invalid proposal"; }
 
 	public boolean requiresDocumentReparse() { return false; }
 

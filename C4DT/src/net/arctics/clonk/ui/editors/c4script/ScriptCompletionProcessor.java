@@ -49,6 +49,7 @@ import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
 import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.FunctionType;
+import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeUnification;
@@ -298,10 +299,11 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 
 	private void innerProposalsInFunction(ProposalsSite pl, ScriptParser parser) {
 		setCategoryOrdering(pl);
+
 		functionLocalProposals(pl);
+		structureProposals(pl);
 		definitionProposals(pl);
 		engineProposals(pl);
-		structureProposals(pl);
 		ruleBasedProposals(pl, parser);
 		keywordProposals(pl);
 		removeProposalForVariableBeingDeclared(pl);
@@ -319,7 +321,14 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		return contextExpression instanceof Comment;
 	}
 
+	private static final Text WHITESPACE = new Text("");
+
 	private void engineProposals(ProposalsSite pl) {
+		if (noStructureType(pl))
+			return;
+		if (!pl.proposals.isEmpty() && (pl.prefix == null || pl.prefix.length() == 0))
+			for (int i = 0; i < 3; i++)
+				proposalForText(pl, WHITESPACE).setCategory(cats.LocalGlobalDelimiter);
 		if (pl.script.index().engine() != null) {
 			if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
 				for (final Function func : pl.script.index().engine().functions())
@@ -345,6 +354,17 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			for (final Index i : pl.index.relevantIndexes())
 				proposalsForIndex(pl, i);
 	}
+
+	@SuppressWarnings("serial")
+	static final Declaration NO_STRUCTURE_TYPE = new Text("<No structure>") {
+		final Declaration hint = new Text("<Nothing>");
+		@Override
+		public int hashCode() { return name.hashCode(); }
+		@Override
+		public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
+			return Arrays.asList(hint);
+		}
+	};
 
 	private void structureProposals(ProposalsSite pl) {
 		final Set<Declaration> proposalTypes = determineProposalTypes(pl);
@@ -382,10 +402,29 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		}
 	}
 
+	private boolean noStructureType(ProposalsSite pl) {
+		boolean noStructure = true;
+		for (final IType t : pl.precedingType()) {
+			IType ty = t;
+			if (ty instanceof IRefinedPrimitiveType)
+				ty = ((IRefinedPrimitiveType)ty).simpleType();
+			noStructure &=
+				eq(ty, PrimitiveType.ARRAY) ||
+				eq(ty, PrimitiveType.BOOL) ||
+				eq(ty, PrimitiveType.INT) ||
+				eq(ty, PrimitiveType.STRING) ||
+				eq(ty, PrimitiveType.NUM) ||
+				eq(ty, PrimitiveType.FLOAT);
+		}
+		return noStructure;
+	}
+
 	private Set<Declaration> determineProposalTypes(ProposalsSite pl) {
 		final Set<Declaration> contextStructures = new HashSet<Declaration>();
-		if (pl.contextSequence != null)
-			for (final IType t : pl.precedingType()) {
+		if (pl.contextSequence != null) {
+			if (noStructureType(pl))
+				contextStructures.add(NO_STRUCTURE_TYPE);
+			else for (final IType t : pl.precedingType()) {
 				Declaration structure;
 				if (t instanceof Declaration)
 					structure = (Declaration) t;
@@ -396,6 +435,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				if (structure != null)
 					contextStructures.add(structure);
 			}
+		}
 		else
 			contextStructures.add(pl.script);
 		return contextStructures;
@@ -749,6 +789,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				continue;
 			final Function func = as(dec, Function.class);
 			final Variable var = as(dec, Variable.class);
+			final Text text = as(dec, Text.class);
 			if (func != null && func.visibility() != FunctionScope.GLOBAL) {
 				if (target instanceof Script && !((Script)target).seesFunction(func))
 					continue;
@@ -758,7 +799,15 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			}
 			else if (var != null)
 				proposalForVar(pl, target, var);
+			else if (text != null)
+				proposalForText(pl, text);
 		}
+	}
+
+	private ClonkCompletionProposal proposalForText(ProposalsSite pl, Text text) {
+		final ClonkCompletionProposal prop = new ClonkCompletionProposal(text, pl.script, "", pl.offset, 0, 0);
+		pl.addProposal(prop);
+		return prop;
 	}
 
 	protected Function funcAt(IDocument document, int offset) {

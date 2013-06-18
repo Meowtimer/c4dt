@@ -36,6 +36,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			StaticVariables,
 			Keywords,
 			LocalFunction,
+			LocalGlobalDelimiter,
 			Functions,
 			Fields,
 			Definitions,
@@ -47,6 +48,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			int i = 0;
 			FunctionLocalVariables = ++i;
 			LocalFunction = ++i;
+			LocalGlobalDelimiter = ++i;
 			Functions = ++i;
 			Definitions = ++i;
 			Fields = ++i;
@@ -179,11 +181,22 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 	@Override
 	public String getErrorMessage() { return null; }
 
+	@SuppressWarnings("serial")
+	protected static class Text extends Declaration {
+		public Text(String value) { setName(value); }
+		@Override
+		public int hashCode() { return name.hashCode(); }
+	}
+
 	@Override
 	public int compare(ICompletionProposal a, ICompletionProposal b) {
 		final ClonkCompletionProposal ca = as(a, ClonkCompletionProposal.class);
 		final ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
 		if (ca != null && cb != null) {
+			if ((ca.declaration() instanceof Text || cb.declaration() instanceof Text) && ca.category() != cb.category()) {
+				final int diff = Math.abs(cb.category()-ca.category()) * 10000;
+				return cb.category() > ca.category() ? -diff : +diff;
+			}
 			int bonus = 0;
 			final String pfx = pl != null ? pl.untamperedPrefix : "";
 			if (pfx != null) {
@@ -191,7 +204,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					boolean startsWith, match, local;
 					Match(ClonkCompletionProposal proposal) {
 						for (final String s : proposal.identifiers())
-							if (s.toLowerCase().startsWith(pfx)) {
+							if (s.length() > 0 && s.toLowerCase().startsWith(pfx)) {
 								startsWith = true;
 								if (s.length() == pfx.length()) {
 									match = true;
@@ -212,7 +225,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			}
 			int result;
 			if (cb.category() != ca.category()) {
-				final int diff = Math.abs(cb.category()-ca.category()) * 1000;
+				final int diff = Math.abs(cb.category()-ca.category()) * 10000;
 				result = cb.category() > ca.category() ? -diff : +diff;
 			} else {
 				final String idA = ca.primaryComparisonIdentifier();
