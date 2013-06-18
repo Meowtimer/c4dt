@@ -609,10 +609,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					ty = visitor.typeOf(node);
 				if (ty == null) {
 					final Function.Typing typing = other.typings().get(containing);
-					if (typing != null) {
-						typing.printNodeTypes(containing);
+					if (typing != null)
 						ty = typing.nodeTypes[node.localIdentifier()];
-					}
 				}
 				return ty;
 			}
