@@ -23,7 +23,20 @@ public enum Typing {
 	/** Allow type annotations for parameters, as the engine does. */
 	PARAMETERS_OPTIONALLY_TYPED,
 	/** Statically typed */
-	STATIC;
+	STATIC {
+		@Override
+		public IType unifyNoChoice(IType a, IType b) {
+			if (eq(a, b))
+				return a;
+			if (a instanceof Definition && b instanceof Definition) {
+				final Definition da = (Definition) a;
+				final Definition db = (Definition) b;
+				if (!db.includes(0).contains(da))
+					return null;
+			}
+			return super.unifyNoChoice(a, b);
+		}
+	};
 
 	public boolean allowsNonParameterAnnotations() {
 		switch (this) {
@@ -190,7 +203,7 @@ public enum Typing {
 
 		return null;
 	}
-	private static IType unifyDefinitions(final Definition da, final Definition db) {
+	protected IType unifyDefinitions(final Definition da, final Definition db) {
 		if (db.doesInclude(db.index(), da))
 			return da;
 		else if (da.doesInclude(da.index(), db))
