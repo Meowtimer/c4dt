@@ -1610,7 +1610,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<ArrayExpression>(ArrayExpression.class) {
 				@Override
 				public IType type(ArrayExpression node, final Visitor visitor) {
-					IType elmType = PrimitiveType.ANY;
+					IType elmType = PrimitiveType.UNKNOWN;
 					for (final ASTNode e : node.subElements())
 						if (e != null)
 							elmType = unify(elmType, visitor.ty(e));
