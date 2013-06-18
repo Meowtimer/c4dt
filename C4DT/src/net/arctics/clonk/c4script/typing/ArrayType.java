@@ -1,13 +1,9 @@
 package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
-import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.util.Utilities;
 
@@ -59,21 +55,6 @@ public class ArrayType implements IRefinedPrimitiveType {
 			return Utilities.eq(this.elementType, otherArrType.elementType);
 		} else
 			return false;
-	}
-
-	public static IType elementTypeSet(IType arrayTypes) {
-		List<IType> elementTypes = null;
-		for (final IType t : arrayTypes) {
-			final ArrayType at = as(t, ArrayType.class);
-			if (at != null) {
-				if (elementTypes == null)
-					elementTypes = new ArrayList<IType>();
-				elementTypes.add(at.elementType());
-			}
-		}
-		return elementTypes != null
-			? TypeUnification.unify(elementTypes)
-			: null;
 	}
 
 }

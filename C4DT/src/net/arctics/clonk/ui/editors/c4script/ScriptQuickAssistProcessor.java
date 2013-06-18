@@ -56,7 +56,6 @@ import net.arctics.clonk.c4script.ast.Unfinished;
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -562,7 +561,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					// propose adding projects to the referenced projects which contain a definition with a matching name
 					if (accessDec.parent() instanceof CallDeclaration) {
 						final Variable parm = ((CallDeclaration)accessDec.parent()).parmDefinitionForParmExpression(accessDec);
-						if (parm != null && TypeUnification.compatible(parm.type(), PrimitiveType.ID)) {
+						if (parm != null && script.typing().compatible(parm.type(), PrimitiveType.ID)) {
 							final IProject p = marker.getResource().getProject();
 							IProject[] referencedProjects;
 							try {

@@ -24,7 +24,6 @@ import net.arctics.clonk.ast.Placeholder;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ScriptParser;
@@ -52,7 +51,7 @@ import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.c4script.typing.TypeUnification;
+import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.index.IIndexEntity;
@@ -516,7 +515,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		else
 			parm = null;
 		if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN)
-			if (TypeUnification.unifyNoChoice(parm.type(), PrimitiveType.ID) != null) {
+			if (pl.index.typing().unifyNoChoice(parm.type(), PrimitiveType.ID) != null) {
 				if (DEBUG)
 					System.out.println("Elevate definitions");
 				cats.Definitions = -1;
@@ -891,7 +890,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 							final Variable cpar = commono.numParameters() > i
 								? commono.parameter(i)
 									: commono.addParameter(new Variable(fpar.name(), fpar.type()));
-								cpar.forceType(TypeUnification.unify(cpar.type(), fpar.type()));
+								cpar.forceType(editor().script().typing().unify(cpar.type(), fpar.type()));
 								if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name())) //$NON-NLS-1$
 									cpar.setName(cpar.name()+"/"+fpar.name()); //$NON-NLS-1$
 						}

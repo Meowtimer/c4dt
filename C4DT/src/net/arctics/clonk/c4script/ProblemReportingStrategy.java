@@ -5,7 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Collection;
+
 import net.arctics.clonk.ast.IASTVisitor;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.Pair;
 
@@ -30,12 +32,15 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	protected Markers markers = new Markers();
 	protected IProgressMonitor progressMonitor;
 	protected IASTVisitor<ProblemReporter> observer;
+	protected Index index;
 
 	/**
 	 * {@link Markers} problems are reported against.
 	 * @return The markers
 	 */
 	public Markers markers() { return markers; }
+
+	public Index index() { return index; }
 
 	/**
 	 * Run on the input provided to {@link #initialize(Markers, IProgressMonitor, Script[])}
@@ -63,8 +68,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	}
 
 	public void setObserver(IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
-
-	public void setArgs(String args) {}
+	public ProblemReportingStrategy configure(Index index, String args) { this.index = index; return this; }
 
 	public abstract ProblemReporter localReporter(Script script, int fragmentOffset);
 }

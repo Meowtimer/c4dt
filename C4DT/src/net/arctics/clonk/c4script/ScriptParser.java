@@ -23,7 +23,6 @@ import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
@@ -80,7 +79,7 @@ import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.ReferenceType;
 import net.arctics.clonk.c4script.typing.TypeAnnotation;
-import net.arctics.clonk.c4script.typing.TypeUnification;
+import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ID;
@@ -826,7 +825,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						eatWhitespace();
 					final IType option = parseTypeAnnotation(false, true);
 					if (option != null)
-						t = TypeUnification.unify(t, option);
+						t = typing.unify(t, option);
 					else
 						break;
 					eatWhitespace();

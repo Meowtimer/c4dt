@@ -1,6 +1,5 @@
 package net.arctics.clonk.c4script;
 
-import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.eq;
 
@@ -38,7 +37,6 @@ import net.arctics.clonk.c4script.typing.ArrayType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeChoice;
-import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.c4script.typing.TypeVariable;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
@@ -428,9 +426,9 @@ public abstract class SpecialEngineRules {
 				IType r = PrimitiveType.OBJECT;
 				for (final IType ty : t)
 					if (ty instanceof MetaDefinition)
-						r = unify(r, ((MetaDefinition)ty).definition());
+						r = processor.script().typing().unify(r, ((MetaDefinition)ty).definition());
 					else if (ty instanceof Definition)
-						r = unify(r, ty);
+						r = processor.script().typing().unify(r, ty);
 				return r;
 			}
 			return null;
@@ -499,7 +497,7 @@ public abstract class SpecialEngineRules {
 					for (final IType t : ty) {
 						final MetaDefinition mdef = as(t, MetaDefinition.class);
 						if (mdef != null)
-							unified = TypeUnification.unify(unified, mdef.definition());
+							unified = processor.script().typing().unify(unified, mdef.definition());
 					}
 			}
 			return unified;
@@ -513,7 +511,7 @@ public abstract class SpecialEngineRules {
 					if (t != null) for (final IType ty : t)
 						types.add(ty);
 				}
-			return TypeUnification.unify(types);
+			return processor.script().typing().unify(types);
 		}
 		private IType andSubConditions(ProblemReporter processor, CallDeclaration node) {
 			final List<IType> types = new LinkedList<IType>();
@@ -527,7 +525,7 @@ public abstract class SpecialEngineRules {
 						types.add(t);
 
 				}
-			return TypeUnification.unify(types);
+			return processor.script().typing().unify(types);
 		}
 		private IType typeByFunction(ProblemReporter processor, final Object ev) {
 			final List<Declaration> functions = functionsNamed(processor, (String)ev);
@@ -552,7 +550,7 @@ public abstract class SpecialEngineRules {
 							if (def != null)
 								types.add(def);
 						}
-			final IType ty = TypeUnification.unify(types);
+			final IType ty = processor.script().typing().unify(types);
 			return ty;
 		};
 	};
@@ -655,7 +653,7 @@ public abstract class SpecialEngineRules {
 							continue;
 						final IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.type();
 						final IType givenType = processor.typeOf(given);
-						if (TypeUnification.unifyNoChoice(parmType, givenType) == null)
+						if (processor.script().typing().unifyNoChoice(parmType, givenType) == null)
 							processor.incompatibleTypesMarker(node, given, parmType, processor.typeOf(given));
 						else
 							processor.judgment(given, parmType, TypingJudgementMode.UNIFY);

@@ -38,7 +38,6 @@ import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypeVariable;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.Definition;
@@ -267,7 +266,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					processor.markers().error(processor, Problem.MissingFormatArg, node, arguments[0], Markers.NO_THROW,
 							formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 			}
-			else if (!TypeUnification.compatible(expectedType, processor.typeOf(arguments[parmIndex+1]))) {
+			else if (!processor.script().typing().compatible(expectedType, processor.typeOf(arguments[parmIndex+1]))) {
 				if (evTracer.tracedFile == null)
 					return true;
 				processor.markers().warning(processor, Problem.IncompatibleFormatArgType, node, arguments[parmIndex+1],

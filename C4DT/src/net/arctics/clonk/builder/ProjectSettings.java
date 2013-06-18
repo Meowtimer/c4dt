@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.ini.IniField;
@@ -23,25 +24,6 @@ import net.arctics.clonk.util.StringUtil;
 import org.eclipse.core.resources.IProject;
 
 public class ProjectSettings extends SettingsBase {
-
-	/** Typing mode */
-	public enum Typing {
-		/** Static typing completely disabled. No parameter annotations allowed. */
-		DYNAMIC,
-		/** Allow type annotations for parameters, as the engine does. */
-		PARAMETERS_OPTIONALLY_TYPED,
-		/** Statically typed */
-		STATIC;
-
-		public boolean allowsNonParameterAnnotations() {
-			switch (this) {
-			case STATIC:
-				return true;
-			default:
-				return false;
-			}
-		}
-	}
 
 	/** Name of engine to use for this project */
 	@IniField

@@ -1,8 +1,6 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
 import static net.arctics.clonk.Flags.DEBUG;
-import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
-import static net.arctics.clonk.c4script.typing.TypeUnification.unifyNoChoice;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -35,7 +33,6 @@ import net.arctics.clonk.ast.Placeholder;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
@@ -105,8 +102,8 @@ import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.c4script.typing.TypeUnification;
 import net.arctics.clonk.c4script.typing.TypeVariable;
+import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visit;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visitor;
@@ -139,6 +136,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	final Markers NULL_MARKERS = new Markers(false);
 
 	final Map<Script, Input> input = new HashMap<>();
+	Typing typing;
 
 	Visit visitFor(Function function, Script script) {
 		if (function.body() == null)
@@ -150,13 +148,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 	private boolean noticeParameterCountMismatch;
 
 	@Override
-	public void setArgs(String args) {
+	public DabbleInference configure(Index index, String args) {
+		super.configure(index, args);
+		typing = index.typing();
 		for (final String a : args.split("\\|")) //$NON-NLS-1$
 			switch (a) {
 			case "noticeParameterCountMismatch": //$NON-NLS-1$
 				noticeParameterCountMismatch = true;
 				break;
 			}
+		return this;
 	}
 
 	public DabbleInference() {
@@ -202,7 +203,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Override
 	public void run() {
-		projectName = findProjectName().intern();
+		findProjectName();
 		synchronized (projectName) { work(); }
 	}
 
@@ -219,7 +220,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					continue;
 				final IType parmTy = called.parameterType(p, pred);
 				final IType givenTy = visit.inferredTypes[given.localIdentifier()];
-				final IType unified = unifyNoChoice(parmTy, givenTy);
+				final IType unified = inference.typing.unifyNoChoice(parmTy, givenTy);
 				if (unified == null)
 					visit.visitor.incompatibleTypesMarker(node, given, parmTy, visit.inferredTypes[given.localIdentifier()]);
 //				else if (givenTy == PrimitiveType.UNKNOWN)
@@ -272,14 +273,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		parameterValidations.clear();
 	}
 
-	private String findProjectName() {
+	private void findProjectName() {
 		String name = Messages.DabbleInference_UnknownProject;
-		if (!input.isEmpty()) {
-			final Input inp = input.values().iterator().next();
-			if (inp.script() != null && inp.script().index() != null && inp.script().index().nature() != null)
-				name = inp.script().index().nature().getProject().getName();
-		}
-		return name;
+		if (index != null && index.nature() != null)
+				name = index.nature().getProject().getName();
+		projectName = name.intern();
 	}
 
 	private void subTask(String text) {
@@ -438,7 +436,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void typeParametersFromCalls(Function function, Function baseFunction, TypeVariable[] parameterTypes) {
-				final List<CallDeclaration> calls = input().index.callsTo(function.name());
+				final List<CallDeclaration> calls = index.callsTo(function.name());
 				if (calls != null) {
 
 					final IType[][] types = new IType[parameterTypes.length][calls.size()];
@@ -469,7 +467,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					result = PrimitiveType.ANY;
 
 				if (lenient)
-					result = unify(result, PrimitiveType.ANY);
+					result = typing.unify(result, PrimitiveType.ANY);
 				parTyVar.set(result);
 			}
 
@@ -492,12 +490,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors,
 				final boolean lenient, final PrimitiveType seed
 			) {
-				IType result = unify(parTyVar.get(), seed);
+				IType result = typing.unify(parTyVar.get(), seed);
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final IType concreteTy = callTypes[ci];
 					if (concreteTy == null)
 						continue;
-					final IType unified = unifyNoChoice(result, concreteTy);
+					final IType unified = typing.unifyNoChoice(result, concreteTy);
 					if (unified == null) {
 						final Visitor visitor = callVisitors[ci];
 						final ASTNode concretePar = calls.get(ci).params()[par.parameterIndex()];
@@ -512,15 +510,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			private PrimitiveType findBestTypingSeed(TypeVariable parTyVar, List<CallDeclaration> calls, IType[] types) {
 				IType result;
-				// if there are concrete parameter types not unifying seed the unification chain with some primitive type
+				// if there are concrete parameter types not typing.unifying seed the unification chain with some primitive type
 				// and look which seed results in least disagreement. Then place warning markers at the concrete parameters
-				// not unifying with that consensus.
-				// Only seeds are considered which unify with parameter usage in the function body in the first place.
+				// not typing.unifying with that consensus.
+				// Only seeds are considered which typing.unify with parameter usage in the function body in the first place.
 				int leastDiscord = Integer.MAX_VALUE;
 				PrimitiveType bestSeed = null;
 				Seeding: {
 					for (final PrimitiveType seed : callTypingSeeds) {
-						result = unifyNoChoice(parTyVar.get(), seed);
+						result = typing.unifyNoChoice(parTyVar.get(), seed);
 						if (result == null)
 							continue; // disagreement with usage inside body - ignore
 						int discord = 0;
@@ -528,7 +526,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							final IType concreteTy = types[ci];
 							if (concreteTy == null)
 								continue;
-							final IType unified = unifyNoChoice(result, concreteTy);
+							final IType unified = typing.unifyNoChoice(result, concreteTy);
 							if (unified == null)
 								discord++;
 							else
@@ -686,7 +684,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 //							if (predTy instanceof CallTargetType) {
 //								IType unified = null;
 //								for (final Function f : script.index().declarationsWithName(cd.name(), Function.class))
-//									unified = unify(unified, f.script());
+//									unified = typing.unify(unified, f.script());
 //								if (unified instanceof Script && ((Script)unified).findFunction(cd.name()) != null)
 //									judgement(pred, unified, TypingJudgementMode.UNIFY);
 //							}
@@ -773,7 +771,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (right == null)
 						right = PrimitiveType.ANY;
 					this.markers().marker(this, Problem.IncompatibleTypes, node, region.getOffset(), region.getOffset()+region.getLength(), Markers.NO_THROW,
-						input().typing == Typing.STATIC ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING,
+						typing == Typing.STATIC ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING,
 						left.typeName(true), right.typeName(true)
 					);
 				} catch (final ProblemException e) {}
@@ -798,7 +796,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			public TypeEnvironment newTypeEnvironment() {
-				return this.environment = new TypeEnvironment(defaulting(environment, input().typeEnvironment));
+				return this.environment = new TypeEnvironment(typing, defaulting(environment, input().typeEnvironment));
 			}
 
 			public TypeEnvironment endTypeEnvironment() {
@@ -937,8 +935,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		final Script script;
 		final List<Script> conglomerate;
-		final Index index;
-		final Typing typing;
 		final CachedEngineDeclarations cachedEngineDeclarations;
 		final int strictLevel;
 		final boolean hasAppendTo;
@@ -946,7 +942,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final IType thisType;
 		final SpecialEngineRules rules;
 		final int fragmentOffset;
-		final TypeEnvironment typeEnvironment = TypeEnvironment.newSynchronized();
+		final TypeEnvironment typeEnvironment = TypeEnvironment.newSynchronized(typing);
 		final boolean partial;
 
 		public Script script() { return script; }
@@ -1002,14 +998,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public Input(Script script, int sourceFragmentOffset, Function... restrict) {
 			this.script = script;
 			this.conglomerate = script.conglomerate();
-			this.index = script.index();
-			this.typing = script.index() != null && script.index().nature() != null
-				? script.index().nature().settings().typing
-				: Typing.PARAMETERS_OPTIONALLY_TYPED;
 			this.rules = script.engine().specialRules();
 			this.cachedEngineDeclarations = this.script.engine().cachedDeclarations();
 			this.strictLevel = script.strictLevel();
-			this.thisType = script instanceof Definition ? script : unify(filteredIterable(script.includes(0), Definition.class));
+			this.thisType = script instanceof Definition ? script : typing.unify(filteredIterable(script.includes(0), Definition.class));
 			this.fragmentOffset = sourceFragmentOffset;
 			boolean hasAppendTo = false;
 			for (final Directive d : script.directives())
@@ -1138,7 +1130,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final IType myType = visitor.ty(node);
 			if (type == null)
 				return myType;
-			return unifyNoChoice(type, myType);
+			return typing.unifyNoChoice(type, myType);
 		}
 
 		public TypeVariable findTypeVariable(T node, Visitor visitor) {
@@ -1172,7 +1164,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * @return the type information or null if none has been stored
 		 */
 		public final TypeVariable requestTypeVariable(T node, Visitor visitor) {
-			switch (visitor.input().typing) {
+			switch (typing) {
 			case STATIC: case DYNAMIC:
 				return null;
 			default:
@@ -1217,7 +1209,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					tyvar.set(type);
 					break;
 				case UNIFY:
-					tyvar.set(unify(tyvar.get(), type));
+					tyvar.set(typing.unify(tyvar.get(), type));
 					break;
 				}
 				return true;
@@ -1226,11 +1218,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		public final void assignment(T leftSide, ASTNode rightSide, Visitor visitor) {
-			switch (visitor.input().typing) {
+			switch (typing) {
 			case STATIC:
 				final IType leftTy = visitor.ty(leftSide, this);
 				final IType rightTy = visitor.ty(rightSide);
-				if (!TypeUnification.compatible(leftTy, rightTy))
+				if (!typing.compatible(leftTy, rightTy))
 					visitor.incompatibleTypesMarker(rightSide, rightSide, leftTy, rightTy);
 				break;
 			case PARAMETERS_OPTIONALLY_TYPED:
@@ -1379,7 +1371,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						for (final IType _t : predTy)
 							if (_t instanceof Script) {
 								final IType frt = ((Variable)d).type((Script)_t);
-								t = unify(t, frt);
+								t = typing.unify(t, frt);
 							}
 				}
 				return t != PrimitiveType.UNKNOWN ? t : ((Variable)d).type(visitor.script());
@@ -1607,7 +1599,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					IType elmType = PrimitiveType.UNKNOWN;
 					for (final ASTNode e : node.subElements())
 						if (e != null)
-							elmType = unify(elmType, visitor.ty(e));
+							elmType = typing.unify(elmType, visitor.ty(e));
 					return new ArrayType(elmType);
 				}
 				@Override
@@ -1661,12 +1653,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final ASTNode pred = node.predecessorInSequence();
 						for (final IType argType : _argType)
 							if (eq(argType, PrimitiveType.STRING)) {
-								if (unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
+								if (typing.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
 									visitor.markers().warning(visitor, Problem.NotAProplist, node, pred, 0);
 								else
 									visitor.judgment(pred, PrimitiveType.PROPLIST, TypingJudgementMode.UNIFY);
 							} else {
-								final IType u = unifyNoChoice(PrimitiveType.ARRAY, type);
+								final IType u = typing.unifyNoChoice(PrimitiveType.ARRAY, type);
 								if (eq(argType, PrimitiveType.INT)) {
 									if (u == null)
 										visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, pred, 0);
@@ -1685,8 +1677,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
 				private void warnIfNotArray(ASTNode node, Visitor visitor, IType type) {
 					if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
-						unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
-						unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
+						typing.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
+						typing.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
 						visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, node, 0);
 				}
 				@Override
@@ -1719,7 +1711,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (leftSideType == rightSideType)
 							return leftSideType;
 						else
-							return unify(leftSideType, rightSideType);
+							return typing.unify(leftSideType, rightSideType);
 					case Assign:
 						return visitor.ty(node.rightSide());
 					default:
@@ -1791,7 +1783,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (type != null) {
 							visitor.judgment(
 								((CallDeclaration)left).params()[0],
-								unify(PrimitiveType.ANY, type),
+								typing.unify(PrimitiveType.ANY, type),
 								TypingJudgementMode.OVERWRITE
 							);
 							return true;
@@ -1892,7 +1884,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (currentFunction == null)
 						visitor.markers().error(visitor, Problem.NotAllowedHere, node, node, Markers.NO_THROW, Keywords.Return);
 					else if (returnExpr != null)
-						if (visitor.input().typing == Typing.STATIC && currentFunction.staticallyTyped()) {
+						if (typing == Typing.STATIC && currentFunction.staticallyTyped()) {
 							if (visitor.expert(returnExpr).unifyDeclaredAndGiven(returnExpr, currentFunction.returnType(), visitor) == null)
 								visitor.incompatibleTypesMarker(node,
 									returnExpr, currentFunction.returnType(), visitor.ty(returnExpr));
@@ -2023,7 +2015,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								if (_t instanceof Script) {
 									final Script _s = (Script)_t;
 									final TypeVariable rtv = visitFor(_s.override(fn), _s);
-									t = unify(t, rtv != null ? rtv.get() : fn.returnType(_s));
+									t = typing.unify(t, rtv != null ? rtv.get() : fn.returnType(_s));
 								}
 					} else {
 						final Visit v = visitFor(fn, visitor.script());
@@ -2127,7 +2119,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final IType type = declarationType(node, visitor);
 					// no warning when in #strict mode
 					if (visitor.input().strictLevel >= 2)
-						if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !TypeUnification.compatible(PrimitiveType.FUNCTION, type))
+						if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !typing.compatible(PrimitiveType.FUNCTION, type))
 							visitor.markers().warning(visitor, Problem.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
 				}
 				private void returnsAsFunctionWarning(CallDeclaration node, Visitor visitor) throws ProblemException {
@@ -2157,8 +2149,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Declaration declaration = node.declaration();
 					final IType t = declaration instanceof Function ? ((Function)declaration).returnType() : PrimitiveType.UNKNOWN;
 					return
-						TypeUnification.compatible(t, PrimitiveType.REFERENCE) ||
-						TypeUnification.compatible(t, PrimitiveType.UNKNOWN);
+						typing.compatible(t, PrimitiveType.REFERENCE) ||
+						typing.compatible(t, PrimitiveType.UNKNOWN);
 				}
 			},
 
@@ -2343,7 +2335,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
 					else {
 						final IType type = visitor.expert(node.predecessorInSequence()).type(node.predecessorInSequence(), visitor);
-						if (!TypeUnification.compatible(PrimitiveType.FUNCTION, type))
+						if (!typing.compatible(PrimitiveType.FUNCTION, type))
 							visitor.markers().error(visitor, Problem.CallingExpression, node, node, Markers.NO_THROW);
 					}
 				}
@@ -2386,7 +2378,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								final IType initializationType = visitor.ty(initialization.expression);
 								if (
 									initialization.variable.staticallyTyped() &&
-									!TypeUnification.compatible(
+									!typing.compatible(
 										initialization.variable.type(),
 										initializationType
 									)
@@ -2458,7 +2450,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (pred != null) {
 						final IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : PrimitiveType.OBJECT;
 						final Expert<? super ASTNode> stmReporter = visitor.expert(pred);
-						if (!TypeUnification.compatible(OBJECTISH, visitor.ty(pred)))
+						if (!typing.compatible(OBJECTISH, visitor.ty(pred)))
 							visitor.markers().warning(visitor, node.dotNotation() ? Problem.NotAProplist : Problem.CallingMethodOnNonObject, node, node, 0,
 								visitor.ty(pred, stmReporter).typeName(false));
 						else {
@@ -2475,6 +2467,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<IterateArrayStatement>(IterateArrayStatement.class) {
+				IType elementTypeSet(IType arrayTypes) {
+					List<IType> elementTypes = null;
+					for (final IType t : arrayTypes) {
+						final ArrayType at = as(t, ArrayType.class);
+						if (at != null) {
+							if (elementTypes == null)
+								elementTypes = new ArrayList<IType>();
+							elementTypes.add(at.elementType());
+						}
+					}
+					return elementTypes != null
+						? typing.unify(elementTypes)
+						: null;
+				}
 				@Override
 				public boolean skipReportingProblemsForSubElements() { return true; }
 				@Override
@@ -2504,9 +2510,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					visitor.visit(arrayExpr, true);
 
 					final IType type = visitor.ty(arrayExpr);
-					if (!TypeUnification.compatible(type, PrimitiveType.ARRAY))
+					if (!typing.compatible(type, PrimitiveType.ARRAY))
 						visitor.incompatibleTypesMarker(node, arrayExpr, type, PrimitiveType.ARRAY);
-					final IType elmType = ArrayType.elementTypeSet(type);
+					final IType elmType = elementTypeSet(type);
 					visitor.newTypeEnvironment();
 					{
 						if (loopVariable != null) {

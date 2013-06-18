@@ -319,7 +319,7 @@ public class ClonkProjectNature implements IProjectNature {
 				continue;
 			try {
 				final ProblemReportingStrategy instance = c.cls.newInstance();
-				instance.setArgs(c.args);
+				instance.configure(index(), c.args);
 				instances.add(instance);
 			} catch (InstantiationException | IllegalAccessException e) {
 				e.printStackTrace();

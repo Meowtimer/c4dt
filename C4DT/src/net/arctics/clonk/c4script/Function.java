@@ -1,6 +1,5 @@
 package net.arctics.clonk.c4script;
 
-import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
@@ -31,7 +30,6 @@ import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.builder.ProjectSettings;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.FunctionBody;
@@ -217,7 +215,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				if (typing != null) {
 					fallback = false;
 					if (typing != null && typing.parameterTypes.length > parameterIndex)
-						t = unify(t, typing.parameterTypes[parameterIndex]);
+						t = this.typing().unify(t, typing.parameterTypes[parameterIndex]);
 				}
 			}
 		return fallback && parameterIndex < numParameters() ? parameter(parameterIndex).type() : t;
@@ -618,8 +616,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		if (!oldStyle) {
 			output.append(Keywords.Func);
-			final ProjectSettings.Typing typing = typing();
-			switch (typing) {
+			switch (typing()) {
 			case DYNAMIC:
 				break;
 			case PARAMETERS_OPTIONALLY_TYPED:
@@ -879,7 +876,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		@SuppressWarnings("serial")
 		final Function f = new Function(functionName, scope) {
 			@Override
-			public ProjectSettings.Typing typing() { return context.index().nature().settings().typing; }
+			public net.arctics.clonk.c4script.typing.Typing typing() { return context.index().nature().settings().typing; }
 			@Override
 			public Engine engine() { return context.engine(); }
 			@Override

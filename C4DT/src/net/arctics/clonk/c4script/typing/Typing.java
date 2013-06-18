@@ -16,14 +16,32 @@ import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
 
-public class TypeUnification {
+public enum Typing {
+
+	/** Static typing completely disabled. No parameter annotations allowed. */
+	DYNAMIC,
+	/** Allow type annotations for parameters, as the engine does. */
+	PARAMETERS_OPTIONALLY_TYPED,
+	/** Statically typed */
+	STATIC;
+
+	public boolean allowsNonParameterAnnotations() {
+		switch (this) {
+		case STATIC:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	private static final IPredicate<Script> IS_DEFINITION = new IPredicate<Script>() {
 		@Override
 		public boolean test(Script item) {
 			return item instanceof Definition;
 		}
 	};
-	private static IType unifyLeft(IType a, IType b) {
+
+	private IType unifyLeft(IType a, IType b) {
 		if (a == null)
 			return b;
 		if (b == null)
@@ -82,7 +100,7 @@ public class TypeUnification {
 		}
 
 		if (a instanceof Maybe && b instanceof Maybe)
-			return new Maybe(TypeUnification.unify(((Maybe)a).maybe(), ((Maybe)b).maybe()));
+			return new Maybe(unify(((Maybe)a).maybe(), ((Maybe)b).maybe()));
 
 		if (a instanceof TypeChoice && b instanceof TypeChoice) {
 			final TypeChoice tca = (TypeChoice)a;
@@ -132,7 +150,7 @@ public class TypeUnification {
 		if (a instanceof ArrayType && b instanceof ArrayType) {
 			final ArrayType ata = (ArrayType)a;
 			final ArrayType atb = (ArrayType)b;
-			return new ArrayType(TypeUnification.unify(ata.elementType(), atb.elementType()));
+			return new ArrayType(unify(ata.elementType(), atb.elementType()));
 		}
 
 		if (a instanceof ProplistDeclaration && b instanceof ProplistDeclaration) {
@@ -199,7 +217,7 @@ public class TypeUnification {
 			return common.size() > 0 ? TypeChoice.make(common) : PrimitiveType.OBJECT.unified();
 		}
 	}
-	public static IType unifyNoChoice(IType a, IType b) {
+	public IType unifyNoChoice(IType a, IType b) {
 		IType u = unifyLeft(a, b);
 		if (u != null)
 			return u;
@@ -208,15 +226,15 @@ public class TypeUnification {
 			return u;
 		return null;
 	}
-	public static IType unify(IType a, IType b) {
+	public IType unify(IType a, IType b) {
 		final IType u = unifyNoChoice(a, b);
 		return u != null ? u : TypeChoice.make(a, b);
 	}
-	public static IType unify(Iterable<? extends IType> ingredients) {
+	public IType unify(Iterable<? extends IType> ingredients) {
 		IType unified = null;
 		for (final IType t : ingredients)
 			unified = unify(unified, t);
 		return defaulting(unified, PrimitiveType.UNKNOWN);
 	}
-	public static boolean compatible(IType a, IType b) { return TypeUnification.unifyNoChoice(a, b) != null; }
+	public boolean compatible(IType a, IType b) { return unifyNoChoice(a, b) != null; }
 }

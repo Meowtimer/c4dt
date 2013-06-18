@@ -24,7 +24,10 @@ public class SelfContainedScript extends Script {
 		try {
 			parser.parse();
 			deriveInformation();
-			new DabbleInference().initialize(null, new NullProgressMonitor(), new Script[] {this}).run();
+			new DabbleInference()
+				.configure(index, "")
+				.initialize(null, new NullProgressMonitor(), new Script[] {this})
+				.run();
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}

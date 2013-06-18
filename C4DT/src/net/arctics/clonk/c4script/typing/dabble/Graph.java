@@ -148,7 +148,7 @@ class Graph extends LinkedList<Runnable> {
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.plan.values())
 				if (i.shouldTypeFromCalls(v.function)) {
-					final List<CallDeclaration> calls = i.index.callsTo(v.function.name());
+					final List<CallDeclaration> calls = inference.index().callsTo(v.function.name());
 					if (calls != null)
 						for (final CallDeclaration call : calls) {
 							final Function caller = call.parentOfType(Function.class);
