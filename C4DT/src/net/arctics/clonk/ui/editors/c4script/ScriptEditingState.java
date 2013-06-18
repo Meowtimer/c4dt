@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,9 +119,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			adjustDec(v, offset, add);
 	}
 
-	private ScriptParser reparse(boolean onlyDeclarations) throws ProblemException {
+	private ScriptParser reparse() throws ProblemException {
 		cancelReparsingTimer();
-		return reparseWithDocumentContents(onlyDeclarations, document, refreshEditorsRunnable());
+		return reparseWithDocumentContents(document, refreshEditorsRunnable());
 	}
 
 	private Runnable refreshEditorsRunnable() {
@@ -136,8 +137,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	synchronized ScriptParser reparseWithDocumentContents(
-		boolean onlyDeclarations, Object scriptSource,
-		Runnable uiRefreshRunnable
+		Object scriptSource, Runnable uiRefreshRunnable
 	) throws ProblemException {
 		final Markers markers = new StructureMarkers(false);
 		final ScriptParser parser = new ScriptParser(scriptSource, structure, null) {{
@@ -148,8 +148,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			validate();
 		}};
 		structure.traverse(Comment.TODO_EXTRACTOR, markers);
-		if (!onlyDeclarations)
-			reportProblems(markers);
+		reportProblems(markers);
 		markers.deploy();
 		if (uiRefreshRunnable != null)
 			Display.getDefault().asyncExec(uiRefreshRunnable);
@@ -180,7 +179,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					return;
 				try {
 					try {
-						reparseWithDocumentContents(onlyDeclarations, document, new Runnable() {
+						reparseWithDocumentContents(document, new Runnable() {
 							@Override
 							public void run() {
 								for (final C4ScriptEditor ed : editors) {
@@ -346,7 +345,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				final IFile file = (IFile)structure.source();
 				// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
 				if (file.exists())
-					reparseWithDocumentContents(false, file, null);
+					reparseWithDocumentContents(file, null);
 			}
 		} catch (final ProblemException e) {
 			e.printStackTrace();
@@ -396,7 +395,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		cachedScript = new WeakReference<Script>(result);
 		if (needsReparsing)
 			try {
-				reparse(false);
+				reparse();
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}

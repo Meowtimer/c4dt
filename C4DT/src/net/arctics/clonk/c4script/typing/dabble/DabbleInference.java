@@ -7,6 +7,7 @@ import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -207,41 +209,37 @@ public class DabbleInference extends ProblemReportingStrategy {
 	static class ParameterValidation {
 		Function called;
 		CallDeclaration node;
-		Visitor visitor;
+		Visit visit;
 		void regularParameterValidation(DabbleInference inference) {
-			final Expert<? super CallDeclaration> expert = visitor.expert(node);
-			int givenParam = 0;
 			final ASTNode[] params = node.params();
-			for (final Variable parm : called.parameters()) {
-				if (givenParam >= params.length)
-					break;
-				final ASTNode given = params[givenParam++];
+			final IType pred = node.predecessorInSequence() != null ? visit.inferredTypes[node.predecessorInSequence().localIdentifier()] : visit.input().script();
+			for (int p = 0; p < params.length; p++) {
+				final ASTNode given = params[p];
 				if (given == null)
 					continue;
-				final TypeVariable parmTyVar = expert.findParameterTypeVariable(parm, visitor);
-				final IType parmTy = parmTyVar != null ? parmTyVar.get() : parm.type();
-				final IType givenTy = visitor.ty(given);
+				final IType parmTy = called.parameterType(p, pred);
+				final IType givenTy = visit.inferredTypes[given.localIdentifier()];
 				final IType unified = unifyNoChoice(parmTy, givenTy);
 				if (unified == null)
-					visitor.incompatibleTypesMarker(node, given, parmTy, visitor.ty(given));
+					visit.visitor.incompatibleTypesMarker(node, given, parmTy, visit.inferredTypes[given.localIdentifier()]);
 //				else if (givenTy == PrimitiveType.UNKNOWN)
 //					visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
 			}
 			if (inference.noticeParameterCountMismatch)
 				validateParameterCount(inference);
 		}
-		public ParameterValidation(CallDeclaration node, Function called, Visitor visitor) {
+		public ParameterValidation(CallDeclaration node, Function called, Visit visit) {
 			super();
 			this.node = node;
-			this.visitor = visitor;
+			this.visit = visit;
 			this.called = called;
 		}
 		private void validateParameterCount(DabbleInference inference) {
 			final Function f = node.parentOfType(Function.class);
 			final ASTNode[] params = node.params();
-			if (f.index() == visitor.script().index() && params.length != f.numParameters() && !(f.script() instanceof Engine))
+			if (f.index() == visit.input().script().index() && params.length != f.numParameters() && !(f.script() instanceof Engine))
 				try {
-					inference.markers().error(visitor, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
+					inference.markers().error(visit.visitor, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
 						f.numParameters(), params.length, f.name());
 				} catch (final ProblemException e) {}
 		}
@@ -249,7 +247,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public String toString() { return node.printed(); }
 	}
 
-	final LinkedList<ParameterValidation> parameterValidations = new LinkedList<>();
+	final List<ParameterValidation> parameterValidations = Collections.synchronizedList(new LinkedList<ParameterValidation>());
 	String projectName;
 
 	@Profiled
@@ -269,7 +267,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	private void validateParameters() {
 		for (final ParameterValidation pv : parameterValidations) {
 			pv.regularParameterValidation(this);
-			markers.take(pv.visitor);
+			markers.take(pv.visit.visitor);
 		}
 		parameterValidations.clear();
 	}
@@ -611,8 +609,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					ty = visitor.typeOf(node);
 				if (ty == null) {
 					final Function.Typing typing = other.typings().get(containing);
-					if (typing != null)
+					if (typing != null) {
+						typing.printNodeTypes(containing);
 						ty = typing.nodeTypes[node.localIdentifier()];
+					}
 				}
 				return ty;
 			}
@@ -784,11 +784,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public final <T extends ASTNode> T visit(T expression, boolean recursive) throws ProblemException {
 				if (expression == null)
 					return null;
-				Expert<? super T> expert = expert(expression);
-				if (expert == null) {
-					System.out.println("what gives: " + expression.printed()); //$NON-NLS-1$
-					expert = expert(expression);
-				}
+				final Expert<? super T> expert = expert(expression);
 				final ControlFlow old = controlFlow;
 				if (recursive && !expert.skipReportingProblemsForSubElements())
 					for (final ASTNode e : expression.subElements())
@@ -2076,7 +2072,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void visit(CallDeclaration node, Visitor visitor) throws ProblemException {
 
-					// call ty() for parameter nodes to store inferredType which is queried by initialParameterTypesFromCalls
+					// call ty() for parameter nodes to store ensure types are stored in inferredType
 					for (final ASTNode e : node.params())
 						if (e != null) {
 							visitor.visit(e, true);
@@ -2107,11 +2103,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.script().addUsedScript(f.script());
 
 					// not a special case... check regular parameter types
-					if (!applyRuleBasedValidation(node, visitor, params))
-						if (visitor.visit.function.script() == visitor.script())
-							synchronized (parameterValidations) {
-								parameterValidations.add(new ParameterValidation(node, f, visitor));
-							}
+					if (!visitor.preliminary)
+						if (!applyRuleBasedValidation(node, visitor, params))
+							if (visitor.visit.function.script() == visitor.script())
+								parameterValidations.add(new ParameterValidation(node, f, visitor.visit));
 				}
 				private void maybeUnknownMarker(CallDeclaration node, Visitor visitor, final String declarationName) throws ProblemException {
 					final IType container = unknownFunctionShouldBeError(node, visitor);

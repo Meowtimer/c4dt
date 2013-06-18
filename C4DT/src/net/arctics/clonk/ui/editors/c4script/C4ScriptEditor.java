@@ -169,12 +169,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		if (editingState != null) {
+		if (editingState != null)
 			editingState.cancelReparsingTimer();
-			final Function cursorFunc = functionAtCursor();
-			if (cursorFunc != null)
-				editingState.reportProblems(cursorFunc).deploy();
-		}
 		final ScriptContentAssistant a = as(contentAssistant(), ScriptContentAssistant.class);
 		if (a != null)
 			a.hide();
@@ -320,7 +316,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		final IDocument document = getDocumentProvider().getDocument(getEditorInput());
 		if (editingState != null)
 			editingState.cancelReparsingTimer();
-		return editingState.reparseWithDocumentContents(onlyDeclarations, document, new Runnable() {
+		return editingState.reparseWithDocumentContents(document, new Runnable() {
 			@Override
 			public void run() {
 				refreshOutline();

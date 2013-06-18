@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script;
 
+import static net.arctics.clonk.c4script.typing.TypeUnification.unify;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
@@ -67,6 +68,19 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		public final IType[] parameterTypes;
 		public final IType returnType;
 		public final IType[] nodeTypes;
+		public void printNodeTypes(Function containing) {
+			System.out.println("===================== This is " + containing.qualifiedName() + "=====================");
+			containing.traverse(new IASTVisitor<Typing>() {
+				@Override
+				public TraversalContinuation visitNode(ASTNode node, Typing context) {
+					if (node.localIdentifier() <= 0)
+						return TraversalContinuation.Continue;
+					System.out.println(String.format("%s: %s",
+						node.printed(), defaulting(context.nodeTypes[node.localIdentifier()], PrimitiveType.UNKNOWN)));
+					return TraversalContinuation.Continue;
+				}
+			}, this);
+		}
 	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -192,6 +206,21 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public IType returnType(Script script) {
 		final Typing typing = script != null && script.typings() != null ? script.typings().get(this) : null;
 		return typing != null ? typing.returnType : returnType();
+	}
+
+	public IType parameterType(int parameterIndex, IType context) {
+		boolean fallback = true;
+		IType t = PrimitiveType.UNKNOWN;
+		for (final IType p : context)
+			if (p instanceof Script) {
+				final Typing typing = ((Script)p).typings().get(this);
+				if (typing != null) {
+					fallback = false;
+					if (typing != null && typing.parameterTypes.length > parameterIndex)
+						t = unify(t, typing.parameterTypes[parameterIndex]);
+				}
+			}
+		return fallback && parameterIndex < numParameters() ? parameter(parameterIndex).type() : t;
 	}
 
 	/**
