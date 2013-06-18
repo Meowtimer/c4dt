@@ -983,7 +983,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean setParameterTypesBasedOnRules(Function function, TypeVariable[] parameterTypeVariables) {
 			if (rules != null)
 				for (final SpecialFuncRule funcRule : rules.defaultParmTypeAssignerRules())
-					if (funcRule.assignDefaultParmTypes(function, parameterTypeVariables))
+					if (funcRule.assignDefaultParmTypes(script, function, parameterTypeVariables))
 						return true;
 			return false;
 		}

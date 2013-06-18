@@ -298,11 +298,12 @@ public abstract class SpecialEngineRules {
 		}
 		/**
 		 * Assign default parameter types to a function.
+		 * @param script Context. Will not be the script actually declaring the function when revisiting function as part of visiting included declarations.
 		 * @param function The function
 		 * @return Returns false if this rule doesn't handle assigning default parameters of the passed function call. No types will be assigned and regular type inference takes place.
 		 */
 		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
-		public boolean assignDefaultParmTypes(Function function, TypeVariable[] parameterTypeVariables) {
+		public boolean assignDefaultParmTypes(Script script, Function function, TypeVariable[] parameterTypeVariables) {
 			return false;
 		}
 		/**

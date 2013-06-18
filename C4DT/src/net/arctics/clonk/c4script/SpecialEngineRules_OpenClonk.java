@@ -93,11 +93,11 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	})
 	public final SpecialFuncRule effectProplistAdhocTyping = new SpecialFuncRule() {
 		@Override
-		public boolean assignDefaultParmTypes(Function function, TypeVariable[] parameterTypeVariables) {
+		public boolean assignDefaultParmTypes(Script script, Function function, TypeVariable[] parameterTypeVariables) {
 			final EffectFunction fun = as(function, EffectFunction.class);
 			if (fun != null && fun.effect() != null) {
 				fun.effect();
-				final IType[] types = Effect.parameterTypesForCallback(fun.callbackName(), fun.script(), fun.effect());
+				final IType[] types = Effect.parameterTypesForCallback(fun.callbackName(), script, fun.effect());
 				for (int i = 0; i < Math.min(parameterTypeVariables.length, types.length); i++)
 					parameterTypeVariables[i].set(types[i]);
 				return true;
@@ -132,6 +132,17 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					return new EntityRegion(new HashSet<IIndexEntity>(effect.functions().values()), new Region(parmExpression.start()+1, parmExpression.getLength()-2));
 			}
 			return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
+		}
+	};
+
+	public final SpecialFuncRule definitionFuncTyping = new SpecialFuncRule() {
+		@Override
+		public boolean assignDefaultParmTypes(Script script, Function function, TypeVariable[] parameterTypeVariables) {
+			if (function.name().equals("Definition") && parameterTypeVariables.length > 0 && script instanceof Definition) {
+				parameterTypeVariables[0].set(((Definition)script).metaDefinition());
+				return true;
+			} else
+				return false;
 		}
 	};
 
