@@ -1036,6 +1036,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				script.typings().update(variableTypes, functionTypings);
 			else
 				script.setTypings(new Script.Typings(variableTypes, functionTypings));
+			for (final TypeVariable tv : typeEnvironment.values())
+				if (tv.declaration().containedIn(script))
+					tv.apply(false);
 		}
 
 		private void fillTypingMaps(final Map<String, IType> variableTypes, final Map<String, Function.Typing> functionTypings) {

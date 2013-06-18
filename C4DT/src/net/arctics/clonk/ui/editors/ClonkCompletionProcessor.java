@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
-
+import static net.arctics.clonk.util.Utilities.defaulting;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
@@ -149,7 +149,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
 			var, target,
 			var.name(), pl.offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
-			null, null, ": " + var.type(as(editor().structure(), Script.class)).typeName(true), //$NON-NLS-1$
+			null, null, ": " + var.type(defaulting(as(target, Script.class), pl.script)).typeName(true), //$NON-NLS-1$
 			editor()
 		);
 		setVariableCategory(var, prop);
