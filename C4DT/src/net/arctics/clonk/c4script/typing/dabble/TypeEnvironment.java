@@ -14,9 +14,7 @@ public class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 	public TypeEnvironment() { super(5); this.up = null; }
 	public TypeEnvironment(TypeEnvironment up) { super(5); this.up = up; }
 	public TypeEnvironment inject(TypeEnvironment other) {
-		System.out.println("Injecting");
 		for (final Map.Entry<Declaration, TypeVariable> otherInfo : other.entrySet()) {
-			System.out.println(otherInfo.getValue().toString());
 			final TypeVariable myVar = this.get(otherInfo.getKey());
 			if (myVar != null)
 				myVar.set(unify(myVar.get(), otherInfo.getValue().get()));
