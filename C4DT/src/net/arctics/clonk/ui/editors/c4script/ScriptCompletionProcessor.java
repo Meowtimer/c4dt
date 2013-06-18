@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -222,7 +223,24 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 			: computeProposalsInsideFunction(pl)))
 			return null;
 		assistant.setStatusMessage(proposalCycleMessage());
-		return pl.finish(proposalCycle);
+		ICompletionProposal[] proposals = pl.finish(proposalCycle);
+		if (proposals != null && pl.prefix == null || pl.prefix.length() == 0)
+			proposals = appendWhitespaceLocalGlobalDelimiter(proposals);
+		return proposals;
+	}
+
+	private ICompletionProposal[] appendWhitespaceLocalGlobalDelimiter(ICompletionProposal[] proposals) {
+		for (final ICompletionProposal p : proposals)
+			if (p instanceof ClonkCompletionProposal && ((ClonkCompletionProposal)p).category() < cats.LocalGlobalDelimiter) {
+				final ClonkCompletionProposal[] w = new ClonkCompletionProposal[5];
+				for (int i = 0; i < w.length; i++) {
+					w[i] = proposalForText(pl, WHITESPACE);
+					w[i].setCategory(cats.LocalGlobalDelimiter);
+				}
+				proposals = concat(proposals, w);
+				break;
+			}
+		return proposals;
 	}
 
 	@SuppressWarnings("unused")
@@ -325,9 +343,6 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	private void engineProposals(ProposalsSite pl) {
 		if (noStructureType(pl))
 			return;
-		if (!pl.proposals.isEmpty() && (pl.prefix == null || pl.prefix.length() == 0))
-			for (int i = 0; i < 3; i++)
-				proposalForText(pl, WHITESPACE).setCategory(cats.LocalGlobalDelimiter);
 		if (pl.script.index().engine() != null) {
 			if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
 				for (final Function func : pl.script.index().engine().functions())
