@@ -233,7 +233,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		loadUsedScripts();
 	}
 
-	public void extractSaveState(final SaveState state) {
+	protected void extractSaveState(final SaveState state) {
 		effects     = state.effects;
 		functions   = state.functions;
 		variables   = state.variables;
@@ -988,7 +988,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					continue;
 				if (sd instanceof Function && !seesFunction(((Function)sd)))
 					continue;
-					all.add(sd);
+				all.add(sd);
 			}
 		return all.toArray(new INode[all.size()]);
 	}

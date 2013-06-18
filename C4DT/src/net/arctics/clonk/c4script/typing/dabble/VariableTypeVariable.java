@@ -15,7 +15,9 @@ public class VariableTypeVariable extends TypeVariable {
 	}
 	public VariableTypeVariable(AccessVar origin) { this((Variable) origin.declaration()); }
 	@Override
-	public void apply(boolean soft) { variable.assignType(type); }
+	public void apply(boolean soft) {
+		variable.assignType(type);
+	}
 	@Override
 	public String toString() { return String.format("[%s: %s]", variable.name(), get().typeName(true)); }
 	@Override

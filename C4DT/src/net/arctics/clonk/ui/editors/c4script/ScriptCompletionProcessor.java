@@ -26,6 +26,7 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectSettings.Typing;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
+import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
@@ -231,7 +232,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 
 	private boolean computeProposalsInsideFunction(ProposalsSite pl) {
 		pl.pos(pl.offset - (pl.function != null ? pl.function.bodyLocation().start() : 0));
-		final ScriptParser parser = pl.script != null ? editor().editingState().updateFunctionFragment(pl.function, pl, true) : null;
+		final ScriptParser parser = pl.script != null ? editor().state().updateFunctionFragment(pl.function, pl, true) : null;
 
 		if (!checkProposalConditions(pl))
 			return false;
@@ -453,7 +454,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					final ASTNode parmExpr = innermostCallFunc.findSubElementContaining(pl.contextExpression);
-					funcRule.contributeAdditionalProposals(innermostCallFunc, editor().editingState().typingStrategy().localReporter(parser.script(), parser.fragmentOffset()), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl);
+					for (final ProblemReportingStrategy s : editor.state().problemReportingStrategies())
+						funcRule.contributeAdditionalProposals(innermostCallFunc, s.localReporter(parser.script(), parser.fragmentOffset()), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl);
 				}
 			}
 		}
@@ -780,7 +782,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		try {
 			final Function cursorFunc = editor().functionAtCursor();
 			if (cursorFunc != null)
-				editor().editingState().updateFunctionFragment(cursorFunc, null, false);
+				editor().state().updateFunctionFragment(cursorFunc, null, false);
 			final FuncCallInfo funcCallInfo = editor.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
 				IIndexEntity entity = functionFromCall(funcCallInfo.callFunc);

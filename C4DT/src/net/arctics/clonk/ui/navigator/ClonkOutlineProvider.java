@@ -3,16 +3,18 @@
  */
 package net.arctics.clonk.ui.navigator;
 
+import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
+
 import java.lang.ref.WeakReference;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.PrintParametersOptions;
-import net.arctics.clonk.c4script.ProblemReporter;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.ui.editors.ClonkContentOutlinePage;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -24,13 +26,10 @@ import org.eclipse.swt.graphics.Image;
 
 public class ClonkOutlineProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 
-	private final ClonkContentOutlinePage page;
 	protected static final Object[] NO_CHILDREN = new Object[0];
 	private WeakReference<Declaration> root;
 
-	public ClonkOutlineProvider(ClonkContentOutlinePage page) {
-		this.page = page;
-	}
+	public ClonkOutlineProvider() {}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
@@ -95,13 +94,10 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 			element instanceof Declaration &&
 			root != null && root.get() instanceof Declaration &&
 			!((Declaration)element).containedIn(root.get());
-		return styledTextFor(element, foreign,
-			root != null ? root.get() : null,
-			page != null && page.editor() != null ? page.editor().declarationObtainmentContext() : null
-		);
+		return styledTextFor(element, foreign, root != null ? root.get() : null);
 	}
 
-	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root, ProblemReporter context) {
+	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root) {
 		try {
 			final StyledString result = new StyledString();
 			if (foreign && element instanceof Declaration) {
@@ -111,27 +107,30 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 					result.append("::");
 				}
 			}
-			if (element instanceof Function) {
-				final Function func = ((Function)element);
-				result.append(func.parameterString(new PrintParametersOptions(
-					context != null ? context.script() : func.script(), true, false, false)));
-				final IType retType = func.returnType(context != null ? context.script() : null);
-				if (retType != null && retType != PrimitiveType.UNKNOWN) {
-					result.append(" : "); //$NON-NLS-1$
-					result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
+
+			if (element instanceof Declaration) {
+				final Script script = defaulting(as(root, Script.class), ((Declaration) element).script());
+				if (element instanceof Function) {
+					final Function func = ((Function)element);
+					result.append(func.parameterString(new PrintParametersOptions(script, true, false, false)));
+					final IType retType = func.returnType(script);
+					if (retType != null && retType != PrimitiveType.UNKNOWN) {
+						result.append(" : "); //$NON-NLS-1$
+						result.append(retType.typeName(true), StyledString.DECORATIONS_STYLER);
+					}
 				}
-			}
-			else if (element instanceof Variable) {
-				final Variable var = (Variable)element;
-				result.append(var.name());
-				final IType type = var.type(context != null ? context.script() : null);
-				if (type != null && type != PrimitiveType.UNKNOWN) {
-					result.append(" : ");
-					result.append(type.typeName(true));
+				else if (element instanceof Variable) {
+					final Variable var = (Variable)element;
+					result.append(var.name());
+					final IType type = var.type(script);
+					if (type != null && type != PrimitiveType.UNKNOWN) {
+						result.append(" : ");
+						result.append(type.typeName(true));
+					}
 				}
+				else if (element != null)
+					result.append(element.toString());
 			}
-			else if (element != null)
-				result.append(element.toString());
 			return result;
 		} catch (final Exception e) {
 			System.out.println(String.format("Computing styled text for '%s' failed", element.toString()));

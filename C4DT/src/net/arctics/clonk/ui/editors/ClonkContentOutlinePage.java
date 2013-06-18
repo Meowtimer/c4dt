@@ -156,7 +156,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 		final TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
 			return;
-		final WeakReferencingContentProvider<ClonkOutlineProvider> provider = new WeakReferencingContentProvider<ClonkOutlineProvider>(new ClonkOutlineProvider(this));
+		final WeakReferencingContentProvider<ClonkOutlineProvider> provider = new WeakReferencingContentProvider<ClonkOutlineProvider>(new ClonkOutlineProvider());
 		treeViewer.setLabelProvider(provider);
 		treeViewer.setContentProvider(provider);
 		treeViewer.setSorter(provider.sorter(DECLARATION_SORTER));
@@ -179,10 +179,10 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	}
 
 	/**
-	 * @param clonkTextEditor the editor to set
+	 * @param editor the editor to set
 	 */
-	public void setEditor(ClonkTextEditor clonkTextEditor) {
-		this.editor = clonkTextEditor;
+	public void setEditor(ClonkTextEditor editor) {
+		this.editor = editor;
 	}
 
 	public void refresh() {

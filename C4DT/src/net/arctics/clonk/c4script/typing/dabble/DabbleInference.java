@@ -20,7 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -79,6 +78,7 @@ import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.IterateArrayStatement;
 import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.MemberOperator;
+import net.arctics.clonk.c4script.ast.Messages;
 import net.arctics.clonk.c4script.ast.MissingStatement;
 import net.arctics.clonk.c4script.ast.NewProplist;
 import net.arctics.clonk.c4script.ast.Nil;
@@ -198,7 +198,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	@Override
-	public void run() { work(); }
+	public void run() {
+		projectName = findProjectName().intern();
+		synchronized (projectName) { work(); }
+	}
 
 	static class ParameterValidation {
 		Function called;
@@ -250,34 +253,38 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Profiled
 	final void work() {
-		projectName = findProjectName();
-		subTask("Computing graph");
+		subTask(Messages.DabbleInference_ComputingGraph);
 		parameterValidations.clear();
 		final Graph graph = new Graph(this);
-		subTask("Run inference");
+		subTask(Messages.DabbleInference_RunInference);
 		graph.run();
-		progressMonitor.subTask("Parametr validation");
+		subTask(Messages.DabbleInference_ValidateParameters);
+		validateParameters();
+		subTask(Messages.DabbleInference_Apply);
+		for (final Input input : this.input.values())
+			input.apply();
+	}
+
+	private void validateParameters() {
 		for (final ParameterValidation pv : parameterValidations) {
 			pv.regularParameterValidation(this);
 			markers.take(pv.visitor);
 		}
 		parameterValidations.clear();
-		subTask("Apply");
-		for (final Input input : this.input.values())
-			input.apply();
 	}
 
 	private String findProjectName() {
+		String name = Messages.DabbleInference_UnknownProject;
 		if (!input.isEmpty()) {
 			final Input inp = input.values().iterator().next();
 			if (inp.script() != null && inp.script().index() != null && inp.script().index().nature() != null)
-				return inp.script().index().nature().getProject().getName();
+				name = inp.script().index().nature().getProject().getName();
 		}
-		return "<???>";
+		return name;
 	}
 
 	private void subTask(String text) {
-		progressMonitor.subTask(String.format("%s: %s", projectName, text));
+		progressMonitor.subTask(String.format("%s: %s", projectName, text)); //$NON-NLS-1$
 	}
 
 	private void gatherInput(Script[] scripts) {
@@ -337,7 +344,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public String toString() {
-					return function.qualifiedName(script) + next != null ? (" " + next.toString()) : "";
+					return function.qualifiedName(script) + next != null ? (" " + next.toString()) : ""; //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			}
 
@@ -349,6 +356,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public Visit(Function function) {
 				super(function);
 				hash = function.qualifiedName(script).hashCode();
+				prepare();
 			}
 
 			@SuppressWarnings("unchecked")
@@ -360,9 +368,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 				inferredTypes = new IType[function.totalNumASTNodes()];
 				experts = new Expert<?>[function.totalNumASTNodes()];
 				function.body().traverse(new IASTVisitor<Void>() {
+					final boolean owns = function.containedIn(script);
 					@Override
 					public TraversalContinuation visitNode(ASTNode node, Void nothing) {
-						if (node instanceof AccessDeclaration && node.containedIn(script))
+						if (owns && node instanceof AccessDeclaration)
 							((AccessDeclaration)node).setDeclaration(null);
 						experts[node.localIdentifier()] = findExpert(node);
 						return TraversalContinuation.Continue;
@@ -381,7 +390,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final DabbleInference inference() { return DabbleInference.this; }
 
 			ControlFlow controlFlow;
-			TypeEnvironment typeEnvironment;
+			TypeEnvironment environment;
 			Visit visit;
 			int roaming;
 
@@ -391,7 +400,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (visit != null && localID >= 0) {
 					final Expert<?> expert = visit.experts[localID];
 					if (expert == null)
-						System.out.println("what");
+						System.out.println(Messages.DabbleInference_9);
 					return (Expert<? super T>) expert;
 				} else
 					return findExpert(node);
@@ -417,7 +426,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			@Override
 			public String toString() {
-				final String func = visit != null ? visit.function().qualifiedName() : "<no function>";
+				final String func = visit != null ? visit.function().qualifiedName() : "<no function>"; //$NON-NLS-1$
 				return String.format("Visitor (%s, %s)", input().toString(), func); //$NON-NLS-1$
 			}
 
@@ -582,7 +591,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 				}
 				if (DEBUG)
-					log("Call types: %s", Arrays.deepToString(types));
+					log("Call types: %s", Arrays.deepToString(types)); //$NON-NLS-1$
 			}
 
 			private IType nodeType(
@@ -593,7 +602,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final ASTNode node
 			) {
 				if (containingVisit != null && containingVisit.inferredTypes == null) {
-					System.out.println(toString() + " expected to get result of " + containingVisit.toString() + " but no");
+					System.out.println(toString() + " expected to get result of " + containingVisit.toString() + " but no"); //$NON-NLS-1$ //$NON-NLS-2$
 					return null;
 				}
 				IType ty = containingVisit != null ? containingVisit.inferredTypes[node.localIdentifier()] : null;
@@ -608,23 +617,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			public Visit visit(Visit visit) {
-				startVisit(visit);
+				this.visit = visit;
+				visit.visitor = this;
 				try {
 					innerVisit();
 				} catch (final Exception e) {
-					log("Error visiting '%s'", visit.function.qualifiedName());
+					log("Error visiting '%s'", visit.function.qualifiedName()); //$NON-NLS-1$
 					e.printStackTrace();
 				}
-				endVisit();
 				return visit;
 			}
 
-			private void startVisit(Visit v) {
-				visit = v;
-				v.visitor = this;
-			}
-
-			public void innerVisit() {
+			private void innerVisit() {
 
 				final Function function = visit.function();
 				final Script funScript = function.script();
@@ -659,8 +663,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 						env = endTypeEnvironment();
 					}
 					endTypeEnvironment();
-					if (ownedFunction)
-						env.apply(false);
 					warnAboutUnusedLocals(function, statements);
 				}
 				catch (final ProblemException e) {}
@@ -711,7 +713,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Variable p = function.parameter(i);
 					final TypeVariable tyvar = new VariableTypeVariable(p);
 					tyvar.set(p.staticallyTyped() ? p.type() : PrimitiveType.UNKNOWN);
-					typeEnvironment.add(tyvar);
+					environment.add(tyvar);
 					callTypes[i] = tyvar;
 				}
 				return callTypes;
@@ -739,7 +741,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				// Also, merging call types with how the parameter is actually used inside the body improves
 				// the chance of correctly deciding which kind of parameters are the 'right' ones to pass to the function.
 				if (DEBUG)
-					log("%s: Preliminary visit", toString());
+					log("%s: Preliminary visit", toString()); //$NON-NLS-1$
 				startRoaming();
 				{
 					final ControlFlow old = controlFlow;
@@ -752,8 +754,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				function.traverse(CLEAR_DECLARATION_REFERENCES_VISITOR, null);
 				preliminary = false;
 			}
-
-			private void endVisit() {}
 
 			public void concreteArgumentMismatch(ASTNode argument, Variable parameter, Function callee, IType expected, IType got) {
 				try {
@@ -785,7 +785,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return null;
 				Expert<? super T> expert = expert(expression);
 				if (expert == null) {
-					System.out.println("what gives: " + expression.printed());
+					System.out.println("what gives: " + expression.printed()); //$NON-NLS-1$
 					expert = expert(expression);
 				}
 				final ControlFlow old = controlFlow;
@@ -803,16 +803,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			public TypeEnvironment newTypeEnvironment() {
-				return this.typeEnvironment = new TypeEnvironment(defaulting(typeEnvironment, input().typeEnvironment));
+				return this.environment = new TypeEnvironment(defaulting(environment, input().typeEnvironment));
 			}
 
 			public TypeEnvironment endTypeEnvironment() {
-				typeEnvironment.up.inject(typeEnvironment);
-//				if (DEBUG && typeEnvironment.up == input().typeEnvironment)
-//					synchronized (input().typeEnvironment) {
-//						log("Global type environment: %s", input().typeEnvironment);
-//					}
-				return typeEnvironment = typeEnvironment.up == input().typeEnvironment ? null : typeEnvironment.up;
+				environment.up.inject(environment);
+				return environment = environment.up == input().typeEnvironment ? null : environment.up;
 			}
 
 			private boolean createWarningAtDeclarationOfVariable(
@@ -905,7 +901,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			void log(String msg, Object... args) {
 				final StringBuilder b = new StringBuilder(10+msg.length()+args.length*5);
 				b.append(this.toString());
-				b.append(": ");
+				b.append(": "); //$NON-NLS-1$
 				b.append(String.format(msg, args));
 				final String t = b.toString();
 				System.out.println(t);
@@ -1160,8 +1156,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public final TypeVariable findTypeVariable(Declaration key, Visitor visitor) {
 			if (key == null)
 				return null;
-			for (TypeEnvironment e = visitor.typeEnvironment; e != null; e = e.up) {
-				final TypeVariable tv = e.find(key);
+			for (TypeEnvironment e = visitor.environment; e != null; e = e.up) {
+				final TypeVariable tv = e.get(key);
 				if (tv != null)
 					return tv;
 			}
@@ -1185,7 +1181,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				break;
 			}
 
-			final TypeEnvironment env = visitor.typeEnvironment;
+			final TypeEnvironment env = visitor.environment;
 			if (env == null)
 				return null;
 			final Declaration key = typeEnvironmentKey(node, visitor);
@@ -1195,7 +1191,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			boolean topMostLayer = true;
 			TypeVariable base = null;
 			for (TypeEnvironment list = env; list != null; list = list.up) {
-				final TypeVariable tyvar = list.find(key);
+				final TypeVariable tyvar = list.get(key);
 				if (tyvar != null)
 					if (!topMostLayer) {
 						base = tyvar;
@@ -2181,10 +2177,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (inherited.body() != null) {
 							final Visit inhv = visitor.input().new Visit(inherited);
 							inhv.prepare();
-							final Visitor inhVisitor = visitor.input().new Visitor();
-							inhVisitor.startVisit(inhv);
-							inhVisitor.innerVisit();
-							inhVisitor.endVisit();
+							inhv.run();
 							visitor.judgment(node, inhv.get(), TypingJudgementMode.OVERWRITE);
 							return inhv.get();
 						} else
@@ -2421,7 +2414,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					supr.visit(node, visitor);
 					if (!visitor.script().engine().settings().supportsProplists)
 						visitor.markers().error(visitor, Problem.NotSupported, node, node, Markers.NO_THROW,
-							net.arctics.clonk.c4script.ast.Messages.PropListExpression_ProplistsFeature,
+							"",
 							visitor.script().engine().name());
 					for (final Variable v : node.components())
 						if (v.initializationExpression() != null)

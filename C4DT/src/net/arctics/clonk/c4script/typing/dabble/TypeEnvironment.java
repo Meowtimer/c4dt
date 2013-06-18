@@ -10,11 +10,13 @@ import net.arctics.clonk.c4script.typing.TypeVariable;
 
 @SuppressWarnings("serial")
 public class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
-	public TypeEnvironment up;
-	public TypeEnvironment() { super(5); }
-	public TypeEnvironment(TypeEnvironment up) { this(); this.up = up; }
+	public final TypeEnvironment up;
+	public TypeEnvironment() { super(5); this.up = null; }
+	public TypeEnvironment(TypeEnvironment up) { super(5); this.up = up; }
 	public TypeEnvironment inject(TypeEnvironment other) {
+		System.out.println("Injecting");
 		for (final Map.Entry<Declaration, TypeVariable> otherInfo : other.entrySet()) {
+			System.out.println(otherInfo.getValue().toString());
 			final TypeVariable myVar = this.get(otherInfo.getKey());
 			if (myVar != null)
 				myVar.set(unify(myVar.get(), otherInfo.getValue().get()));
@@ -27,9 +29,6 @@ public class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 		for (final TypeVariable info : this.values())
 			info.apply(soft);
 	}
-	public TypeVariable find(Declaration declaration) {
-		return this.get(declaration);
-	}
 	public void add(TypeVariable var) { this.put(var.key(), var); }
 	public static TypeEnvironment newSynchronized() {
 		return new TypeEnvironment() {
@@ -38,13 +37,7 @@ public class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 				return super.inject(other);
 			}
 			@Override
-			public synchronized TypeVariable find(Declaration declaration) {
-				return super.find(declaration);
-			}
-			@Override
-			public synchronized TypeVariable get(Object key) {
-				return super.get(key);
-			}
+			public synchronized TypeVariable get(Object key) { return super.get(key); }
 		};
 	}
 }

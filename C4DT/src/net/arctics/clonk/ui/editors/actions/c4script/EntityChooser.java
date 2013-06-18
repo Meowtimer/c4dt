@@ -47,7 +47,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		private final Pattern[] patterns;
 		public Filter() {
 			super();
-			patterns = ArrayUtil.map(((Text)getPatternControl()).getText().split(" "), Pattern.class, CASEINSENSITIVE_PATTERNS_FROM_STRINGS); 
+			patterns = ArrayUtil.map(((Text)getPatternControl()).getText().split(" "), Pattern.class, CASEINSENSITIVE_PATTERNS_FROM_STRINGS);
 		}
 		@Override
 		public boolean equalsFilter(ItemsFilter filter) {
@@ -83,7 +83,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		@Override
 		public StyledString getStyledText(Object element) {
 			if (element != null) {
-				final StyledString result = ClonkOutlineProvider.styledTextFor(element, false, null, null);
+				final StyledString result = ClonkOutlineProvider.styledTextFor(element, false, null);
 				if (element instanceof Declaration && ((Declaration)element).parentDeclaration() instanceof Engine) {
 					result.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 					result.append(((Declaration)element).parentDeclaration().name());
@@ -100,9 +100,9 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 				return new StyledString("");
 		}
 	}
-	
+
 	private static final String DIALOG_SETTINGS = "DeclarationChooserDialogSettings"; //$NON-NLS-1$
-	
+
 	private final Set<? extends IIndexEntity> entities;
 
 	public EntityChooser(String title, Shell shell, Collection<? extends IIndexEntity> entities) {
@@ -111,11 +111,11 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		setTitle(title);
 		setListLabelProvider(new LabelProvider());
 	}
-	
+
 	public EntityChooser(String title, Shell shell) { this(title, shell, null); }
 
 	@Override
-	public void create() { 
+	public void create() {
 		super.create();
 		if (entities != null && getInitialPattern() == null)
 			((Text)this.getPatternControl()).setText(".*");
@@ -132,10 +132,10 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 			return StringUtil.patternFromRegExOrWildcard(from);
 		}
 	};
-	
+
 	@Override
 	protected ItemsFilter createFilter() { return new Filter(); }
-	
+
 	@Override
 	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, final IProgressMonitor progressMonitor) throws CoreException {
 		// load scripts that have matching declaration names in their dictionaries
@@ -220,7 +220,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	public IIndexEntity[] selectedEntities() {
 		return convertArray(this.getResult(), IIndexEntity.class);
 	}
-	
+
 	public boolean openSelection() {
 		boolean b = true;
 		for (final IIndexEntity e : selectedEntities()) {
@@ -229,7 +229,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		}
 		return !b;
 	}
-	
+
 	public void run() {
 		if (open() == Window.OK)
 			openSelection();

@@ -41,6 +41,9 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 			final Comment node = as(node_, Comment.class);
 			if (node == null)
 				return TraversalContinuation.Continue;
+			final Script script = node.parentOfType(Script.class);
+			if (script == null || script.scriptFile() == null)
+				return TraversalContinuation.Continue;
 			final String s = node.text();
 			int markerPriority;
 			int searchStart = 0;
@@ -59,7 +62,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 					if (lineEnd == -1)
 						lineEnd = s.length();
 					searchStart = lineEnd;
-					markers.todo(node.parentOfType(Script.class).scriptFile(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
+					markers.todo(script.scriptFile(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
 				}
 			} while (markerPriority > IMarker.PRIORITY_LOW);
 			return TraversalContinuation.Continue;

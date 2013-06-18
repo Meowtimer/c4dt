@@ -114,7 +114,7 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	@Override
-	protected StructureEditingState<?, ?> editingState() {
+	protected StructureEditingState<?, ?> state() {
 		return editingState;
 	}
 

@@ -12,8 +12,6 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ProblemReporter;
-import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.EntityLocator;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
@@ -132,7 +130,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	public void refreshOutline() {
-		editingState().invalidate();
+		state().invalidate();
 		super.refreshOutline();
 	}
 
@@ -281,7 +279,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		try {
 			if (proposal.requiresDocumentReparse()) {
 				reparse(true);
-				editingState().scheduleReparsing(false);
+				state().scheduleReparsing(false);
 			}
 		} catch (IOException | ProblemException e) {
 			e.printStackTrace();
@@ -296,9 +294,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	@Override
-	protected ScriptEditingState editingState() { return editingState; }
-
-	public ProblemReportingStrategy typingStrategy() { return editingState().typingStrategy(); }
+	public ScriptEditingState state() { return editingState; }
 
 	public Function functionAt(int offset) {
 		final Script script = script();
@@ -314,7 +310,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public ASTNode section() { return functionAtCursor(); }
 
 	public Script script() {
-		final ScriptEditingState listener = editingState();
+		final ScriptEditingState listener = state();
 		return listener != null ? listener.structure() : null;
 	}
 
@@ -354,7 +350,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		final Function f = this.functionAt(offset);
 		if (f == null)
 			return null;
-		editingState().updateFunctionFragment(f, null, false);
+		state().updateFunctionFragment(f, null, false);
 		final EntityLocator locator = new EntityLocator(script(), getSourceViewer().getDocument(), new Region(offset, 0));
 		ASTNode expr;
 
@@ -393,11 +389,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (file != null)
 			ClonkProjectNature.get(file).index();
 		super.initializeEditor();
-	}
-
-	@Override
-	public ProblemReporter declarationObtainmentContext() {
-		return editingState().declarationObtainmentContext();
 	}
 
 }

@@ -1,9 +1,11 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.EntityLocator;
+import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.ui.editors.ClonkSourceViewerConfiguration;
 import net.arctics.clonk.ui.editors.ClonkTextHover;
 import net.arctics.clonk.util.StringUtil;
@@ -38,10 +40,7 @@ public class ScriptTextHover extends ClonkTextHover<C4ScriptEditor> {
 	private void appendEntityInfo(ITextViewer viewer, IRegion region, final StringBuilder messageBuilder) {
 		if (entityLocator != null && entityLocator.entity() != null) {
 			final ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessorInSequence() : null;
-			final Script context = pred == null
-				? configuration.editor().script()
-				: configuration.editor().editingState().typingStrategy().localReporter
-					(configuration.editor().script(), 0).typeOf(pred, Script.class);
+			final Script context = pred == null ? configuration.editor().script() : as(TypeUtil.inferredType(pred), Script.class);
 			messageBuilder.append(entityLocator.entity().infoText(context));
 		}
 		else {

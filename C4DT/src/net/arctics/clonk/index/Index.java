@@ -72,7 +72,7 @@ import org.eclipse.core.runtime.CoreException;
  * <p>Additionally, some lookup tables are stored to make access to some datasets quicker, like string -> <list of declarations with that name> maps.
  * The index itself can be directly used to iterate over all {@link Definition}s it manages, while iterating over other indexed {@link Script} objects requires calling {@link #allScripts()}
  * which yields an {@link Iterable} to iterate over {@link Definition}s, {@link SystemScript}s and {@link Scenario}s.</p>
- * <p>For indexes specific to Eclipse projects (as pretty much all actual ClonkIndex instances are), see {@link ProjectIndex}.</p>
+ * <p>For indexes specific to Eclipse projects (as pretty much all actual {@link Index} instances are), see {@link ProjectIndex}.</p>
  * @author madeen
  *
  */

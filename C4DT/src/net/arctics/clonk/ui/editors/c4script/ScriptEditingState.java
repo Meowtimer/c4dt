@@ -44,7 +44,11 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
@@ -63,25 +67,22 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 	private TimerTask reparseTask, reportFunctionProblemsTask;
 	private List<ProblemReportingStrategy> problemReportingStrategies;
-	private ProblemReportingStrategy typingStrategy;
 
 	@Override
 	protected void initialize() {
 		super.initialize();
+		instantiateProblemReportingStrategies();
+	}
+
+	private void instantiateProblemReportingStrategies() {
 		try {
 			problemReportingStrategies = structure.index().nature().instantiateProblemReportingStrategies(0);
-			for (final ProblemReportingStrategy strategy : problemReportingStrategies)
-				if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
-					typingStrategy = strategy;
-					break;
-				}
 		} catch (final Exception e) {
 			problemReportingStrategies = Arrays.asList();
 		}
 	}
 
 	public List<ProblemReportingStrategy> problemReportingStrategies() { return problemReportingStrategies; }
-	public ProblemReportingStrategy typingStrategy() { return typingStrategy; }
 
 	public static ScriptEditingState addTo(IDocument document, Script script, C4ScriptEditor client)  {
 		try {
@@ -155,17 +156,16 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return parser;
 	}
 
-	private void reportProblems() {
+	private synchronized void reportProblems() {
 		final Markers markers = new StructureMarkers(true);
 		reportProblems(markers);
 		markers.deploy();
 	}
 
 	private void reportProblems(final Markers markers) {
-		final ProblemReportingStrategy typing = this.typingStrategy();
-		if (typing != null) {
-			typing.initialize(markers, new NullProgressMonitor(), new Script[] {structure});
-			typing.run();
+		for (final ProblemReportingStrategy s : problemReportingStrategies) {
+			s.initialize(markers, new NullProgressMonitor(), new Script[] {structure});
+			s.run();
 		}
 	}
 
@@ -364,8 +364,6 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	 */
 	private WeakReference<Script> cachedScript = new WeakReference<Script>(null);
 
-	private WeakReference<ProblemReporter> cachedDeclarationObtainmentContext;
-
 	@Override
 	public Script structure() {
 		Script result = cachedScript.get();
@@ -419,25 +417,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	@Override
 	public void invalidate() {
 		cachedScript = new WeakReference<Script>(null);
-		cachedDeclarationObtainmentContext = new WeakReference<ProblemReporter>(null);
 		super.invalidate();
-	}
-
-	public ProblemReporter declarationObtainmentContext() {
-		if (cachedDeclarationObtainmentContext != null) {
-			final ProblemReporter ctx = cachedDeclarationObtainmentContext.get();
-			if (ctx != null && ctx.script() == structure())
-				return ctx;
-		}
-		ProblemReporter r = null;
-		for (final ProblemReportingStrategy strategy : problemReportingStrategies())
-			if ((strategy.capabilities() & Capabilities.TYPING) != 0) {
-				cachedDeclarationObtainmentContext = new WeakReference<ProblemReporter>(
-					r = strategy.localReporter(structure(), 0)
-				);
-				break;
-			}
-		return r;
 	}
 
 	public synchronized FunctionFragmentParser updateFunctionFragment(
@@ -447,18 +427,28 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	) {
 		final FunctionFragmentParser fparser = new FunctionFragmentParser(document, structure(), function, null);
 		final boolean change = fparser.update();
-		if (change || (observer != null && typingContextVisitInAnyCase)) {
-			typingStrategy.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure, function)));
-			typingStrategy.setObserver(observer);
-			typingStrategy.run();
-		}
+		if (change || (observer != null && typingContextVisitInAnyCase))
+			for (final ProblemReportingStrategy s : problemReportingStrategies)
+				if ((s.capabilities() & Capabilities.TYPING) != 0) {
+					s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure, function)));
+					s.setObserver(observer);
+					s.run();
+				}
 		return fparser;
 	}
 
 	@Override
 	public void partBroughtToTop(IWorkbenchPart part) {
-		if (editors.contains(part))
-			reportProblems();
+		if (editors.contains(part) && structure != null)
+			new Job("Refreshing problem markers") {
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					structure.requireLoaded();
+					reportProblems();
+					Display.getDefault().asyncExec(refreshEditorsRunnable());
+					return Status.OK_STATUS;
+				}
+			}.schedule();
 		super.partBroughtToTop(part);
 	}
 

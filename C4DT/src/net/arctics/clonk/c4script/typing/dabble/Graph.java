@@ -283,17 +283,10 @@ class Graph extends LinkedList<Runnable> {
 	Graph(DabbleInference inference) {
 		this.inference = inference;
 		populateVisitsMap();
-		prepareVisits();
 		determineRequirements();
 		//verify();
 		populate();
 		//output();
-	}
-
-	void prepareVisits() {
-		for (final List<Visit> l : visits.values())
-			for (final Visit v : l)
-				v.prepare();
 	}
 
 	void run() {

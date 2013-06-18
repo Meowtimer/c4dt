@@ -7,7 +7,6 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.DeclarationLocation;
 import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
@@ -248,7 +247,7 @@ public class ClonkTextEditor extends TextEditor {
 	 * @return the declaration
 	 */
 	public Declaration structure() {
-		final StructureEditingState<?, ?> listener = editingState();
+		final StructureEditingState<?, ?> listener = state();
 		return listener != null ? listener.structure() : null;
 	}
 
@@ -329,8 +328,8 @@ public class ClonkTextEditor extends TextEditor {
 	protected void doSetInput(IEditorInput input) throws CoreException {
 		super.doSetInput(input);
 		updatePartName();
-		if (editingState() != null)
-			editingState().invalidate();
+		if (state() != null)
+			state().invalidate();
 	}
 
 	private void updatePartName() {
@@ -408,7 +407,7 @@ public class ClonkTextEditor extends TextEditor {
 	 * Return the {@link StructureEditingState} object being shared for all editors on the same file.
 	 * @return The {@link StructureEditingState}
 	 */
-	protected StructureEditingState<?, ?> editingState() { return null; }
+	protected StructureEditingState<?, ?> state() { return null; }
 
 	@Override
 	protected void initializeKeyBindingScopes() {
@@ -451,7 +450,5 @@ public class ClonkTextEditor extends TextEditor {
 		super.createPartControl(parent);
 		initializeProjectionSupport();
 	}
-
-	public ProblemReporter declarationObtainmentContext() { return null; }
 
 }

@@ -34,42 +34,40 @@ import org.eclipse.jface.viewers.Viewer;
  */
 public class ClonkNavigator extends ClonkOutlineProvider {
 
-	public ClonkNavigator() {
-		super(null);
-	}
+	public ClonkNavigator() { super(); }
 
 	private boolean showStructureOutlines() {return ClonkPreferences.toggle(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);}
-	
+
 	@Override
 	public Object[] getChildren(Object element) {
 		if (element instanceof IResource && !((IResource)element).getProject().isOpen())
 			return NO_CHILDREN;
-		boolean showStructureOutlines = showStructureOutlines();
+		final boolean showStructureOutlines = showStructureOutlines();
 		Object[] baseResources = NO_CHILDREN;
 		if (element instanceof IContainer)
 			try {
 				createC4GroupLinksIn((IContainer)element);
 				baseResources = ((IContainer)element).members();
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 		// add additional virtual nodes to the project
 		if (element instanceof IFile && showStructureOutlines) {
 			// list contents of ini and script files
-			Script script = Script.get((IFile) element, true);
+			final Script script = Script.get((IFile) element, true);
 			if (script != null)
 				return ArrayUtil.concat(baseResources, super.getChildren(script));
 			try {
-				Structure s = Structure.pinned((IFile) element, false, false);
+				final Structure s = Structure.pinned((IFile) element, false, false);
 				if (s instanceof ITreeNode)
 					// call again for ITreeNode object (below)
 					return ArrayUtil.concat(baseResources, this.getChildren(s));
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}
 		else if (element instanceof ITreeNode && showStructureOutlines) {
-			Collection<? extends INode> children = ((ITreeNode)element).childCollection();
+			final Collection<? extends INode> children = ((ITreeNode)element).childCollection();
 			return children != null ? ArrayUtil.concat(baseResources, (Object[])children.toArray(new INode[children.size()])) : baseResources;
 		}
 		return showStructureOutlines
@@ -81,12 +79,12 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 		try {
 			if (element.isLinked())
 				return;
-			Engine engine = ClonkProjectNature.engineFromResource(element);
+			final Engine engine = ClonkProjectNature.engineFromResource(element);
 			if (engine == null)
 				return;
-			IResource[] resources = element.members();
+			final IResource[] resources = element.members();
 			NullProgressMonitor mon = null;
-			for (IResource res : resources) {
+			for (final IResource res : resources) {
 				C4GroupItem groupItem;
 				if (res instanceof IFile && engine.groupTypeForFileName(res.getName()) != GroupType.OtherGroup) {
 					if (mon == null)
@@ -96,8 +94,8 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 						// not linked to C4Group but some other thingie? - ignore
 						if (res.isLinked())
 							continue;
-						IFile file = (IFile)res;
-						IPath resLocation = res.getLocation();
+						final IFile file = (IFile)res;
+						final IPath resLocation = res.getLocation();
 						// evil shtupid hack? link existing file to null filesystem
 						file.createLink(new URI(
 							EFS.SCHEME_NULL, C4GroupFileSystem.replaceSpecialChars(resLocation.toOSString()), null),
@@ -106,7 +104,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 						// delete it (not deleting the actual file because it's linked)
 						file.delete(true, mon);
 						// create linked folder
-						IFolder folder = element.getFolder(new Path(resLocation.lastSegment()));
+						final IFolder folder = element.getFolder(new Path(resLocation.lastSegment()));
 						folder.createLink(new URI(
 							C4GroupFileSystem.SCHEME,
 							C4GroupFileSystem.replaceSpecialChars(resLocation.toOSString()), null),
@@ -117,7 +115,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 					if (!((C4Group)groupItem).existsOnDisk())
 						res.delete(true, mon);
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -126,11 +124,11 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	public boolean hasChildren(Object element) {
 		if (element instanceof IProject && !((IProject)element).isOpen())
 			return false;
-		boolean s = showStructureOutlines();
+		final boolean s = showStructureOutlines();
 		if (element instanceof IContainer)
 			return true;
 		else if (element instanceof IFile && s) {
-			Script script = Script.get((IFile) element, true);
+			final Script script = Script.get((IFile) element, true);
 			if (script != null)
 				return super.hasChildren(script);
 			Structure structure;
@@ -138,7 +136,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 				return structure instanceof ITreeNode && ((ITreeNode)structure).childCollection().size() > 0;
 		}
 		else if (element instanceof ITreeNode && s) {
-			ITreeNode node = (ITreeNode) element;
+			final ITreeNode node = (ITreeNode) element;
 			if (node.childCollection() != null && node.childCollection().size() > 0)
 				return true;
 		}
@@ -155,11 +153,11 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 
 	@Override
 	public void dispose() {
-		
+
 	}
 
 	@Override
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {	
+	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 	}
 
 }

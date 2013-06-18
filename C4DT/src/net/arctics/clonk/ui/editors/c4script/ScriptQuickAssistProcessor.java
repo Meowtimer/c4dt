@@ -22,6 +22,7 @@ import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
@@ -32,6 +33,7 @@ import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -409,7 +411,9 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		if (document == null)
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-		collectProposals(marker, position, proposals, document, editor.script(), editor.typingStrategy().localReporter(editor.script(), 0));
+		for (final ProblemReportingStrategy s : editor.state().problemReportingStrategies())
+			if ((s.capabilities() & Capabilities.TYPING) != 0)
+				collectProposals(marker, position, proposals, document, editor.script(), s.localReporter(editor.script(), 0));
 	}
 
 	public void collectProposals(

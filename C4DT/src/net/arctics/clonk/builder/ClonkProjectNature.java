@@ -84,7 +84,7 @@ public class ClonkProjectNature implements IProjectNature {
 		if (index == null && !indexLoadingPending) {
 			indexLoadingPending = true;
 			try {
-				loadIndex();
+				load();
 			} finally {
 				indexLoadingPending = false;
 			}
@@ -104,14 +104,6 @@ public class ClonkProjectNature implements IProjectNature {
 		if (indexFolder.isFile())
 			indexFolder.delete();
 		return index = new ProjectIndex(project, indexFolder);
-	}
-
-	public ProjectIndex loadOrCreateIndex() {
-		if (index == null) {
-			loadSettings();
-			index = new ProjectIndex(project, indexFolder());
-		}
-		return index;
 	}
 
 	public IPath settingsFilePath() {
@@ -159,7 +151,7 @@ public class ClonkProjectNature implements IProjectNature {
 	/**
 	 * Load the index from disk. Exceptions thrown while loading cause a new empty index to be created and returned.
 	 */
-	private void loadIndex() {
+	private void load() {
 		settings();
 		if (Core.instance().wasUpdated()) {
 			System.out.println(String.format("Update took place: Cleaning project %s", this.project.getName()));
