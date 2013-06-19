@@ -11,7 +11,6 @@ import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
@@ -68,7 +67,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString());
 	}
 
-	private class Visitor implements IResourceVisitor, IASTVisitor<ProblemReporter>, IEntityLocator {
+	private class Visitor implements IResourceVisitor, IASTVisitor<Script>, IEntityLocator {
 		private ProblemReporter ctx;
 
 		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
@@ -79,33 +78,33 @@ public class ReferencesSearchQuery extends SearchQuery {
 			return false;
 		}
 		@Override
-		public TraversalContinuation visitNode(ASTNode node, ProblemReporter context) {
+		public TraversalContinuation visitNode(ASTNode node, Script context) {
 			if (node instanceof AccessDeclaration) {
 				final AccessDeclaration accessDeclExpr = (AccessDeclaration) node;
 				Declaration dec = accessDeclExpr.declaration();
 				if (dec != null)
 					dec = dec.latestVersion();
 				if (dec == declaration || (dec instanceof ProxyVar && ((ProxyVar)dec).definition() == declaration))
-					result.addMatch(node, context, false, accessDeclExpr.indirectAccess());
+					result.addMatch(context, node, false, accessDeclExpr.indirectAccess());
 				else if (
 					dec instanceof Function && declaration instanceof Function &&
 					((Function)dec).baseFunction() == ((Function)declaration).baseFunction()
 				)
-					result.addMatch(node, context, false, true);
+					result.addMatch(context, node, false, true);
 				else if (potentiallyReferencedByObjectCall(node)) {
 					final Function otherFunc = (Function) accessDeclExpr.declaration();
 					final boolean potential = (otherFunc == null || !((Function)declaration).isRelatedFunction(otherFunc));
-					result.addMatch(node, context, potential, accessDeclExpr.indirectAccess());
+					result.addMatch(context, node, potential, accessDeclExpr.indirectAccess());
 				}
 			}
 			else if (node instanceof IDLiteral && declaration instanceof Script) {
 				if (((IDLiteral)node).definition() == declaration)
-					result.addMatch(node, context, false, false);
+					result.addMatch(context, node, false, false);
 			}
 			else if (node instanceof StringLiteral) {
 				final EntityRegion decRegion = node.entityAt(0, this);
 				if (decRegion != null && decRegion.entityAs(Declaration.class) == declaration)
-					result.addMatch(node, context, true, true);
+					result.addMatch(context, node, true, true);
 			}
 			return TraversalContinuation.Continue;
 		}
@@ -120,8 +119,22 @@ public class ReferencesSearchQuery extends SearchQuery {
 		}
 
 		public void searchScript(IResource resource, Script script) {
-			final ScriptParser parser = new ScriptParser(script);
-			searchScript(resource, strategy.localReporter(parser.script(), parser.fragmentOffset()));
+			if (script.scriptFile() != null) {
+				if (declaration instanceof Definition) {
+					final Directive include = script.directiveIncludingDefinition((Definition) declaration);
+					if (include != null)
+						result.addMatch(script, include, false, false);
+				}
+				for (final Function f : script.functions())
+					f.traverse(this, script);
+			}
+
+			// also search related files (actmap, defcore etc)
+			try {
+				searchScriptRelatedFiles(script);
+			} catch (final CoreException e) {
+				e.printStackTrace();
+			}
 		}
 
 		@SuppressWarnings("unchecked")
@@ -131,27 +144,6 @@ public class ReferencesSearchQuery extends SearchQuery {
 				return (X) ctx;
 			else
 				return null;
-		}
-
-		public void searchScript(IResource resource, ProblemReporter context) {
-			ctx = context;
-			final Script script = context.script();
-			if (script.scriptFile() != null) {
-				if (declaration instanceof Definition) {
-					final Directive include = script.directiveIncludingDefinition((Definition) declaration);
-					if (include != null)
-						result.addMatch(include, context, false, false);
-				}
-				for (final Function f : script.functions())
-					f.traverse(this, context);
-			}
-
-			// also search related files (actmap, defcore etc)
-			try {
-				searchScriptRelatedFiles(script);
-			} catch (final CoreException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 
@@ -180,17 +172,14 @@ public class ReferencesSearchQuery extends SearchQuery {
 							@Override
 							public void run() {
 								try {
-									final ScriptParser parser = new ScriptParser(script);
-									final ProblemReporter ctx = strategy.localReporter(parser.script(), parser.fragmentOffset());
-									visitor.searchScript((IResource) script.source(), ctx);
+									visitor.searchScript((IResource) script.source(), script);
 								} catch (final Exception e) {}
 							}
 						});
 					}
 					else if (scope instanceof Function) {
 						final Function func = (Function)scope;
-						final ScriptParser parser = new ScriptParser(func.script());
-						func.traverse(visitor, strategy.localReporter(parser.script(), parser.fragmentOffset()));
+						func.traverse(visitor, func.script());
 					}
 			}
 		}, 20);

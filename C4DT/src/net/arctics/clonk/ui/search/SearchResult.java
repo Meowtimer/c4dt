@@ -6,7 +6,6 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.parser.BufferedScanner;
 
@@ -35,26 +34,26 @@ public class SearchResult extends AbstractTextSearchResult {
 	public ISearchQuery getQuery() { return query; }
 	@Override
 	public String getTooltip() { return null; }
-	public void addMatch(ProblemReporter context, boolean potential, boolean indirect, int s, int l) {
+	public void addMatch(Script script, boolean potential, boolean indirect, int s, int l) {
 		BufferedScanner scanner;
 		synchronized (scanners) {
-			scanner = scanners.get(context.script());
+			scanner = scanners.get(script);
 			if (scanner == null) {
-				scanner = Core.instance().performActionsOnFileDocument(context.script().source(), new IDocumentAction<BufferedScanner>() {
+				scanner = Core.instance().performActionsOnFileDocument(script.source(), new IDocumentAction<BufferedScanner>() {
 					@Override
 					public BufferedScanner run(IDocument document) {
 						return new BufferedScanner(document.get());
 					}
 				}, false);
-				scanners.put(context.script(), scanner);
+				scanners.put(script, scanner);
 			}
 		}
 		final IRegion lineRegion = scanner.regionOfLineContainingRegion(new Region(s, l));
 		final String line = scanner.bufferSubstringAtRegion(lineRegion);
-		addMatch(new SearchMatch(line, lineRegion.getOffset(), context.script(), s, l, potential, indirect));
+		addMatch(new SearchMatch(line, lineRegion.getOffset(), script, s, l, potential, indirect));
 	}
-	public void addMatch(ASTNode match, ProblemReporter context, boolean potential, boolean indirect) {
-		addMatch(context, potential, indirect, match.identifierStart()+match.sectionOffset(), match.identifierLength());
+	public void addMatch(Script script, ASTNode match, boolean potential, boolean indirect) {
+		addMatch(script, potential, indirect, match.identifierStart()+match.sectionOffset(), match.identifierLength());
 	}
 	public void clearScanners() { scanners.clear(); }
 }
