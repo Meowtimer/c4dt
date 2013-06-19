@@ -760,7 +760,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					controlFlow = old;
 				}
 				endRoaming();
-				function.traverse(CLEAR_DECLARATION_REFERENCES_VISITOR, null);
+				if (function.containedIn(script))
+					function.traverse(CLEAR_DECLARATION_REFERENCES_VISITOR, null);
 				preliminary = false;
 			}
 
