@@ -861,7 +861,10 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 					final ASTNode pred = funcCallInfo.callPredecessor();
 					if (pred != null) {
 						final Function.Typing map = cursorFunc.script().typings().get(cursorFunc);
-						context = defaulting(as(map.nodeTypes[pred.localIdentifier()], Script.class), cursorFunc.script());
+						if (map != null)
+							context = defaulting(as(map.nodeTypes[pred.localIdentifier()], Script.class), cursorFunc.script());
+						else
+							context = cursorFunc.script();
 					} else
 						context = editor().script();
 					info = new ScriptContextInformation(

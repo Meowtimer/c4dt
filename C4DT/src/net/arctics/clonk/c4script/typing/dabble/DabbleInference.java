@@ -640,6 +640,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					TypeEnvironment env = newTypeEnvironment();
 					{
 						env.add(visit);
+						if (typing == Typing.STATIC)
+							visit.set(function.returnType());
 						createFunctionLocalsTypeVariables(function);
 						final TypeVariable[] parTypes = createParameterTypeVariables(function, parameters);
 						for (final TypeVariable pt : parTypes)
@@ -1025,13 +1027,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		private void fillTypingMaps(final Map<String, IType> variableTypes, final Map<String, Function.Typing> functionTypings) {
-			if (!partial)
-				for (final Script s : script.conglomerate())
-					for (final Variable v : s.variables()) {
-						final TypeVariable tyVar = typeEnvironment.get(v);
-						if (tyVar != null)
-							variableTypes.put(v.name(), tyVar.get());
-					}
+			if (typing == Typing.PARAMETERS_OPTIONALLY_TYPED)
+				if (!partial)
+					for (final Script s : script.conglomerate())
+						for (final Variable v : s.variables()) {
+							final TypeVariable tyVar = typeEnvironment.get(v);
+							if (tyVar != null)
+								variableTypes.put(v.name(), tyVar.get());
+						}
 			for (final Visit entry : plan.values())
 				putFunctionTyping(functionTypings, entry);
 		}
@@ -1044,10 +1047,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 			for (int i = 0; i < parms.size(); i++) {
 				final Variable p = parms.get(i);
 				final TypeVariable parTy = typeEnvironment.get(p);
-				parameterTypes[i] = parTy != null ? parTy.get() : PrimitiveType.UNKNOWN;
+				parameterTypes[i] = parTy != null ? parTy.get() : p.type();
 			}
 			functionTypings.put(fun.name(),
-				new Function.Typing(parameterTypes, retTy != null ? retTy.get() : PrimitiveType.UNKNOWN, visit.inferredTypes));
+				new Function.Typing(
+					parameterTypes,
+					retTy != null ? retTy.get() : fun.returnType(),
+					visit.inferredTypes
+				)
+			);
 		}
 
 		@Override
