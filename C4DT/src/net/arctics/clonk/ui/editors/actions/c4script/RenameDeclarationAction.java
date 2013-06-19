@@ -1,7 +1,5 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
-import static net.arctics.clonk.util.Utilities.as;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ResourceBundle;
 
@@ -11,7 +9,6 @@ import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
 import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.ui.refactoring.ClonkRenameRefactoringWizard;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -29,18 +26,14 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 	public RenameDeclarationAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
 		super(bundle, prefix, editor);
 	}
-	
+
 	@Override
 	public void run() {
 		try {
-			IIndexEntity entity = entityAtSelection(false);
-			if (entity != null) {
+			final IIndexEntity entity = entityAtSelection(false);
+			if (entity != null)
 				performRenameRefactoring((Declaration)entity, null, 0);
-				C4ScriptEditor scriptEditor = as(getTextEditor(), C4ScriptEditor.class);
-				if (scriptEditor != null)
-					scriptEditor.reparse(false);
-			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -54,21 +47,21 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 	public static void performRenameRefactoring(Declaration declarationToRename, String fixedNewName, int renameProcessorOptions) {
 		if (declarationToRename != null) {
 			saveModifiedFiles();
-			String newName = fixedNewName != null ? fixedNewName : declarationToRename.name();
-			RenameRefactoring refactoring = new RenameRefactoring(new RenameDeclarationProcessor(declarationToRename, newName, renameProcessorOptions));
-			ClonkRenameRefactoringWizard wizard = new ClonkRenameRefactoringWizard(refactoring, fixedNewName == null);
-			RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(wizard);
+			final String newName = fixedNewName != null ? fixedNewName : declarationToRename.name();
+			final RenameRefactoring refactoring = new RenameRefactoring(new RenameDeclarationProcessor(declarationToRename, newName, renameProcessorOptions));
+			final ClonkRenameRefactoringWizard wizard = new ClonkRenameRefactoringWizard(refactoring, fixedNewName == null);
+			final RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(wizard);
 			try {
 				op.run(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Performing Clonk Rename refactoring");
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				// do nothing
 			}
 		}
 	}
-	
+
 	private static void saveModifiedFiles() {
 
-		boolean anyModified = EditorUtil.editorPartsToBeSaved().iterator().hasNext();
+		final boolean anyModified = EditorUtil.editorPartsToBeSaved().iterator().hasNext();
 
 		if (anyModified) {
 			final ProgressMonitorDialog progressMonitor = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
@@ -76,11 +69,11 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 				progressMonitor.run(false, false, new IRunnableWithProgress() {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						for (IEditorPart part : EditorUtil.editorPartsToBeSaved())
+						for (final IEditorPart part : EditorUtil.editorPartsToBeSaved())
 							part.doSave(monitor);
 					}
 				});
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}
