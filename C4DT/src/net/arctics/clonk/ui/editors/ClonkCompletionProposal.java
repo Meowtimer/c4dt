@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors;
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -186,9 +187,12 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			displayString = declaration.displayString(context);
 			final Function func = as(declaration, Function.class);
 			if (func != null)
-				// adjust cursor position to jump over brackets if zero parameters, but only when not just inserting the plain function name
-				// for more than zero parameters, jump into brackets to let user type her parameters
-				if (replacementString.length() > declaration.name().length())
+				if (func.name().equals(Keywords.Inherited) || func.name().equals(Keywords.SafeInherited))
+					// for inherited/_inherited always jump into brackets
+					cursorPosition += 1;
+				else if (replacementString.length() > declaration.name().length())
+					// adjust cursor position to jump over brackets if zero parameters, but only when not just inserting the plain function name
+					// for more than zero parameters, jump into brackets to let user type her parameters
 					cursorPosition += func.numParameters() == 0 ? 2 : 1;
 		}
 		return displayString();
