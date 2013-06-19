@@ -350,4 +350,13 @@ public class ArrayUtil {
 		return interim;
 	}
 
+	public static <T> Sink<T> collectionSink(final Collection<? super T> collection) {
+		return new Sink<T>() {
+			@Override
+			public void receivedObject(T item) {
+				collection.add(item);
+			}
+		};
+	}
+
 }

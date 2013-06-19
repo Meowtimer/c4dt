@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.search;
 
+import static net.arctics.clonk.util.ArrayUtil.collectionSink;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
@@ -23,7 +24,6 @@ import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
@@ -239,7 +239,7 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 						}
 					});
 			break;
-		case ISearchPageContainer.SELECTION_SCOPE:
+		case ISearchPageContainer.SELECTION_SCOPE: {
 			final IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
 			IStructuredSelection ssel;
 			if (input != null)
@@ -255,18 +255,18 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 							e1.printStackTrace();
 						}
 			break;
-		case ISearchPageContainer.WORKSPACE_SCOPE:
-			for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
-				final ClonkProjectNature nature = ClonkProjectNature.get(proj);
+		}
+		case ISearchPageContainer.WORKSPACE_SCOPE: {
+			final IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
+			if (input != null) {
+				final ClonkProjectNature nature = ClonkProjectNature.get(input.getFile());
 				if (nature != null)
-					nature.index().allScripts(new Sink<Script>() {
-						@Override
-						public void receivedObject(Script item) {
-							scope.add(item);
-						}
-					});
+					for (final ClonkProjectNature n : ClonkProjectNature.allInWorkspace())
+						if (n.index().engine() == nature.index().engine())
+							n.index().allScripts(collectionSink(scope));
 			}
 			break;
+		}
 		case ISearchPageContainer.WORKING_SET_SCOPE:
 			for (final IWorkingSet workingSet : container.getSelectedWorkingSets())
 				for (final IAdaptable a : workingSet.getElements()) {
