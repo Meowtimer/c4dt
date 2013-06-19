@@ -88,12 +88,20 @@ public class ArrayUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> T[] filter(T[] array, IPredicate<T> filter) {
 		try {
-			final List<T> list = Utilities.filter(iterable(array), filter);
+			final List<T> list = filter(iterable(array), filter);
 			return list.toArray((T[]) Array.newInstance(array.getClass().getComponentType(), list.size()));
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public static <T> List<T> filter(Iterable<? extends T> iterable, IPredicate<T> filter) {
+		final List<T> result = new LinkedList<T>();
+		for (final T elm : iterable)
+			if (filter.test(elm))
+				result.add(elm);
+		return result;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -319,6 +327,27 @@ public class ArrayUtil {
 			if (array[i] != null)
 				array[j++] = array[i];
 		return j;
+	}
+
+	public interface Folder<T, Y extends T> {
+		Y fold(T interim, T next, int index);
+	}
+
+	public static <T, Y extends T> Y foldl(Iterable<? extends T> iterable, Folder<T, Y> folder) {
+		Y interim = null;
+		T first = null;
+		int i = 0;
+		for (final T item : iterable) {
+			if (interim == null) {
+				if (first != null)
+					interim = folder.fold(first, item, i);
+				else
+					first = item;
+			} else
+				interim = folder.fold(interim, item, i);
+			i++;
+		}
+		return interim;
 	}
 
 }

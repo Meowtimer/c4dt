@@ -2,7 +2,6 @@ package net.arctics.clonk.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.c4script.Script;
@@ -306,14 +305,6 @@ public abstract class Utilities {
 		return false;
 	}
 
-	public static <T> List<T> filter(Iterable<? extends T> iterable, IPredicate<T> filter) {
-		final List<T> result = new LinkedList<T>();
-		for (final T elm : iterable)
-			if (filter.test(elm))
-				result.add(elm);
-		return result;
-	}
-
 	public static void errorMessage(Throwable error, final String title) {
 		String message = error.getClass().getSimpleName();
 		if (error.getLocalizedMessage() != null)
@@ -425,27 +416,6 @@ public abstract class Utilities {
 				}
 			}
 		}
-	}
-
-	public interface Folder<T, Y extends T> {
-		Y fold(T interim, T next, int index);
-	}
-
-	public static <T, Y extends T> Y foldl(Iterable<? extends T> iterable, Folder<T, Y> folder) {
-		Y interim = null;
-		T first = null;
-		int i = 0;
-		for (final T item : iterable) {
-			if (interim == null) {
-				if (first != null)
-					interim = folder.fold(first, item, i);
-				else
-					first = item;
-			} else
-				interim = folder.fold(interim, item, i);
-			i++;
-		}
-		return interim;
 	}
 
 }

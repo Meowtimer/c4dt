@@ -9,7 +9,6 @@ import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.search.ReferencesSearchQuery;
 
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -24,17 +23,12 @@ public class FindReferencesAction extends ClonkTextEditorAction {
 	public void run() {
 		try {
 			Declaration declaration = declarationAtSelection(false);
+			final Declaration structure = ((ClonkTextEditor)getTextEditor()).structure();
 			if (declaration == null)
-				declaration = ((ClonkTextEditor)getTextEditor()).structure();
+				declaration = structure;
 			if (declaration != null) {
-				ClonkProjectNature nature = ClonkProjectNature.get(declaration.script());
-				if (nature == null)
-					nature = ClonkProjectNature.get(declaration.resource());
-				if (nature == null) {
-					MessageDialog.openError(getTextEditor().getSite().getShell(), Messages.FindReferencesAction_Label, Messages.FindReferencesAction_OnlyWorksWithinProject);
-					return;
-				}
-				NewSearchUI.runQueryInBackground(new ReferencesSearchQuery(declaration, nature));
+				final ClonkProjectNature nature = ClonkProjectNature.get(structure.resource().getProject());
+				NewSearchUI.runQueryInBackground(new ReferencesSearchQuery(nature, declaration));
 			}
 		} catch (final Exception e) {
 			e.printStackTrace();

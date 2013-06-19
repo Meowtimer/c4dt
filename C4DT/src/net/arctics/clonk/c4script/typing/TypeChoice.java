@@ -1,7 +1,7 @@
 package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.Utilities.eq;
-import static net.arctics.clonk.util.Utilities.foldl;
+import static net.arctics.clonk.util.ArrayUtil.foldl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,7 +15,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.typing.dabble.Maybe;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
-import net.arctics.clonk.util.Utilities.Folder;
+import net.arctics.clonk.util.ArrayUtil.Folder;
 
 /**
  * Represents a typing where either of two types are possible.

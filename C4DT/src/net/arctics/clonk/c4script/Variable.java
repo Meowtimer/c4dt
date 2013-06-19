@@ -4,13 +4,11 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.Serializable;
 import java.util.List;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IEvaluationContext;
-import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.typing.IType;
@@ -386,11 +384,11 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public Object[] occurenceScope(ClonkProjectNature project) {
+	public Object[] occurenceScope(Iterable<Index> indexes) {
 		if (parent instanceof Function)
 			return new Object[] {parent};
 		else
-			return super.occurenceScope(project);
+			return super.occurenceScope(indexes);
 	}
 
 	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = new IVariableFactory() {

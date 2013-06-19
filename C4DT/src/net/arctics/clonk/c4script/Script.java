@@ -2,12 +2,12 @@ package net.arctics.clonk.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.addAllSynchronized;
 import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
+import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
-import static net.arctics.clonk.util.Utilities.filter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

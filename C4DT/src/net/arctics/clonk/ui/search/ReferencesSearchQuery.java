@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.search;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
+
 import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
@@ -14,8 +16,6 @@ import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
-import net.arctics.clonk.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
@@ -54,12 +54,12 @@ public class ReferencesSearchQuery extends SearchQuery {
 
 	protected Declaration declaration;
 	private final Object[] scope;
-	protected ProblemReportingStrategy strategy;
 
-	public ReferencesSearchQuery(Declaration declaration, ClonkProjectNature project) {
+	public ReferencesSearchQuery(ClonkProjectNature start, Declaration declaration) {
 		super();
+		start.getProject().getReferencingProjects();
 		this.declaration = declaration.latestVersion();
-		this.scope = declaration.occurenceScope(project);
+		this.scope = declaration.occurenceScope(map(start.projectSet(), ClonkProjectNature.SELECT_INDEX));
 	}
 
 	@Override
@@ -151,12 +151,6 @@ public class ReferencesSearchQuery extends SearchQuery {
 	protected IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
 		final Visitor visitor = new Visitor();
-		try {
-			this.strategy = this.declaration.index().nature()
-				.instantiateProblemReportingStrategies(Capabilities.TYPING).get(0);
-		} catch (NullPointerException | IndexOutOfBoundsException e) {
-			return Status.CANCEL_STATUS;
-		}
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {

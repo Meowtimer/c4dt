@@ -1,5 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
+import static net.arctics.clonk.util.ArrayUtil.filter;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -143,7 +145,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 			//	}
 
 			if (projectDeclarations != null)
-				projectDeclarations = Utilities.filter(projectDeclarations, new IPredicate<IIndexEntity>() {
+				projectDeclarations = filter(projectDeclarations, new IPredicate<IIndexEntity>() {
 					@Override
 					public boolean test(IIndexEntity item) {
 						return access.declarationClass().isInstance(item);

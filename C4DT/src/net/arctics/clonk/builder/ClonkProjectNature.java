@@ -1,5 +1,7 @@
 package net.arctics.clonk.builder;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -7,8 +9,10 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Milestones;
@@ -24,6 +28,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ini.CustomIniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IProject;
@@ -44,6 +49,42 @@ import org.eclipse.swt.widgets.Display;
  * project nature for Clonk projects
  */
 public class ClonkProjectNature implements IProjectNature {
+
+	public static final IConverter<ClonkProjectNature, Index> SELECT_INDEX = new IConverter<ClonkProjectNature, Index>() {
+		@Override
+		public Index convert(ClonkProjectNature nature) {
+			return nature.index();
+		}
+	};
+
+	public static final IConverter<IProject, ClonkProjectNature> SELECT_NATURE = new IConverter<IProject, ClonkProjectNature>() {
+		@Override
+		public ClonkProjectNature convert(IProject project) {
+			return get(project);
+		}
+	};
+
+	public static ClonkProjectNature[] allInWorkspace() {
+		return map(clonkProjectsInWorkspace(), ClonkProjectNature.class, SELECT_NATURE);
+	}
+
+	public Set<ClonkProjectNature> projectSet() {
+		@SuppressWarnings("serial")
+		class ProjectSet extends HashSet<ClonkProjectNature> {
+			void addRecursive(ClonkProjectNature n) {
+				if (add(n))
+					for (final IProject p : n.getProject().getReferencingProjects()) {
+						final ClonkProjectNature referencing = get(p);
+						if (referencing != null)
+							addRecursive(referencing);
+					}
+			}
+			ProjectSet(ClonkProjectNature start) {
+				addRecursive(start);
+			}
+		}
+		return new ProjectSet(this);
+	}
 
 	/**
 	 * Reference to the project

@@ -1,13 +1,14 @@
 package net.arctics.clonk.ui.editors;
 
+import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.filter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.util.IPredicate;
+
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
@@ -22,26 +23,23 @@ public class EditorUtil {
 	}
 	@SuppressWarnings("unchecked")
 	public static <T extends IEditorPart> Iterable<T> clonkTextEditors(Class<T> c, boolean restore) {
-		List<T> editors = new ArrayList<T>();
-		for (IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows()) {
-			for (IWorkbenchPage p : w.getPages()) {
-				for (IEditorReference e : p.getEditorReferences()) {
+		final List<T> editors = new ArrayList<T>();
+		for (final IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows())
+			for (final IWorkbenchPage p : w.getPages())
+				for (final IEditorReference e : p.getEditorReferences()) {
 					FileEditorInput input;
 					try {
 						input = as(e.getEditorInput(), FileEditorInput.class);
-					} catch (PartInitException e1) {
+					} catch (final PartInitException e1) {
 						e1.printStackTrace();
 						continue;
 					}
 					if (input != null && ClonkProjectNature.get(input.getFile()) != null) {
-						IEditorPart part = e.getEditor(restore);
-						if (c.isInstance(part)) {
+						final IEditorPart part = e.getEditor(restore);
+						if (c.isInstance(part))
 							editors.add((T)part);
-						}
 					}
 				}
-			}
-		}
 		return editors;
 	}
 	public static Iterable<IEditorPart> editorPartsToBeSaved() {

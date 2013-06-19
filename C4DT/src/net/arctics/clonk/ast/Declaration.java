@@ -147,7 +147,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * @param project
 	 * @return
 	 */
-	public Object[] occurenceScope(ClonkProjectNature project) {
+	public Object[] occurenceScope(Iterable<Index> indexes) {
 		final Set<Object> result = new LinkedHashSet<Object>();
 		// first, add the script this declaration is declared in. Matches will most likely be found in there
 		// so it helps to make it the first item to be searched
@@ -158,21 +158,21 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		if (parent instanceof Definition) {
 			// first, add the definition this
 			final Definition def = (Definition)parent;
-			final Index projectIndex = project.index();
 			result.add(def);
-			def.index().allDefinitions(new Sink<Definition>() {
-				@Override
-				public void receivedObject(Definition item) {
-					result.add(item);
-				}
-				@Override
-				public boolean filter(Definition item) {
-					return item.doesInclude(projectIndex, def);
-				}
-			});
+			for (final Index index : indexes)
+				index.allDefinitions(new Sink<Definition>() {
+					@Override
+					public void receivedObject(Definition item) {
+						result.add(item);
+					}
+					@Override
+					public boolean filter(Definition item) {
+						return item.doesInclude(index, def);
+					}
+				});
 		}
 		// then add all the scripts, because everything might potentially be accessed from everything
-		for (final Index index : project.index().relevantIndexes())
+		for (final Index index : indexes)
 			index.allScripts(new Sink<Script>() {
 				@Override
 				public void receivedObject(Script item) {

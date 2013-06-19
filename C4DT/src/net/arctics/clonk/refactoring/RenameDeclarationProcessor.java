@@ -69,7 +69,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		if (!(script instanceof IResource))
 			return null;
 		final IResource declaringFile = (IResource) script;
-		final ReferencesSearchQuery query = new ReferencesSearchQuery(decl, ClonkProjectNature.get(declaringFile));
+		final ReferencesSearchQuery query = new ReferencesSearchQuery(ClonkProjectNature.get(declaringFile), decl);
 		query.run(monitor);
 		final SearchResult searchResult = (SearchResult) query.getSearchResult();
 		// all references in code
