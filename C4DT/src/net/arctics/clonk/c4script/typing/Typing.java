@@ -4,17 +4,18 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.ast.ThisType;
 import net.arctics.clonk.c4script.typing.dabble.Maybe;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.MetaDefinition;
-import net.arctics.clonk.util.IPredicate;
-import net.arctics.clonk.util.Utilities;
 
 public enum Typing {
 
@@ -46,13 +47,6 @@ public enum Typing {
 			return false;
 		}
 	}
-
-	private static final IPredicate<Script> IS_DEFINITION = new IPredicate<Script>() {
-		@Override
-		public boolean test(Script item) {
-			return item instanceof Definition;
-		}
-	};
 
 	private IType unifyLeft(IType a, IType b) {
 		if (a == null)
@@ -212,20 +206,17 @@ public enum Typing {
 			final List<Script> cda = da.conglomerate();
 			final List<Script> cdb = db.conglomerate();
 			cda.retainAll(cdb);
-			final List<Script> common = Utilities.filter(cda, IS_DEFINITION);
-			if (common.size() > 1) {
-				final List<Script> commonBases = new ArrayList<>(common.size());
-				for (final Script x : common) {
-					boolean includedByAll = true;
-					for (final Script y : common)
-						if (x != y && !y.doesInclude(y.index(), x)) {
-							includedByAll = false;
-							break;
-						}
-					if (includedByAll)
-						commonBases.add(x);
+			final List<Script> common = cda;
+			final Set<Script> blurps = new HashSet<>(common);
+			for (final Script s : blurps) {
+				if (!common.contains(s))
+					continue;
+				if (!(s instanceof Definition))
+					common.remove(s);
+				else {
+					final Collection<Script> cong = s.includes(GatherIncludesOptions.Recursive);
+					common.removeAll(cong);
 				}
-				common.removeAll(commonBases);
 			}
 			return common.size() > 0 ? TypeChoice.make(common) : PrimitiveType.OBJECT.unified();
 		}
