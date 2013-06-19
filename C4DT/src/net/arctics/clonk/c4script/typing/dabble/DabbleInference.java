@@ -78,7 +78,6 @@ import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.IterateArrayStatement;
 import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.MemberOperator;
-import net.arctics.clonk.c4script.ast.Messages;
 import net.arctics.clonk.c4script.ast.MissingStatement;
 import net.arctics.clonk.c4script.ast.NewProplist;
 import net.arctics.clonk.c4script.ast.Nil;
@@ -253,14 +252,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Profiled
 	final void work() {
-		subTask(Messages.DabbleInference_ComputingGraph);
+		subTask(Messages.ComputingGraph);
 		parameterValidations.clear();
 		final Graph graph = new Graph(this);
-		subTask(Messages.DabbleInference_RunInference);
+		subTask(Messages.RunInference);
 		graph.run();
-		subTask(Messages.DabbleInference_ValidateParameters);
+		subTask(Messages.ValidateParameters);
 		validateParameters();
-		subTask(Messages.DabbleInference_Apply);
+		subTask(Messages.Apply);
 		for (final Input input : this.input.values())
 			input.apply();
 	}
@@ -274,7 +273,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	private void findProjectName() {
-		String name = Messages.DabbleInference_UnknownProject;
+		String name = Messages.UnknownProject;
 		if (index != null && index.nature() != null)
 				name = index.nature().getProject().getName();
 		projectName = name.intern();
@@ -396,8 +395,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final int localID = node.localIdentifier();
 				if (visit != null && localID >= 0) {
 					final Expert<?> expert = visit.experts[localID];
-					if (expert == null)
-						System.out.println(Messages.DabbleInference_9);
 					return (Expert<? super T>) expert;
 				} else
 					return findExpert(node);
