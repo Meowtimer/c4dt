@@ -40,7 +40,7 @@ public class ProposalsSite extends PrecedingExpression {
 			}
 			decs.put(ccp.declaration().name(), ccp);
 		}
-		proposals.add(ccp);
+		proposals.add(proposal);
 	}
 	public void removeProposalForDeclaration(Declaration declaration) {
 		final Map<String, ClonkCompletionProposal> props = declarationProposals.get(declaration.getClass());

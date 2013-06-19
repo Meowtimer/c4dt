@@ -28,6 +28,7 @@ import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ProposalsSite;
+import net.arctics.clonk.ui.editors.c4script.ProposalCycle;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -59,7 +60,6 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 		super.computeCompletionProposals(viewer, offset);
-		final List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 
 		final IDocument doc = viewer.getDocument();
 		String line;
@@ -90,7 +90,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		}
 		prefix = prefix.toLowerCase();
 
-		pl = new ProposalsSite(offset, wordOffset, doc, prefix, proposals, editor().structure().index(), null, null);
+		pl = new ProposalsSite(offset, wordOffset, doc, prefix, new LinkedList<ICompletionProposal>(), editor().structure().index(), null, null);
 
 		editor().ensureIniUnitUpToDate();
 		section = editor().unit().sectionAtOffset(offset);
@@ -138,7 +138,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 			}
 		}
 
-		return proposals.toArray(new ICompletionProposal[proposals.size()]);
+		return pl.finish(ProposalCycle.ALL);
 	}
 
 	private void proposalsForCategoriesValue(ProposalsSite pl, IniEntryDefinition entryDef) {

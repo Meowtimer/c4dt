@@ -169,8 +169,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		if (editingState != null)
+		if (editingState != null) {;
 			editingState.cancelReparsingTimer();
+			final Function f = functionAtCursor();
+			if (f != null)
+				editingState.reportProblems(f);
+		}
 		final ScriptContentAssistant a = as(contentAssistant(), ScriptContentAssistant.class);
 		if (a != null)
 			a.hide();

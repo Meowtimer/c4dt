@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
@@ -18,6 +19,8 @@ import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ini.DefCoreUnit;
+import net.arctics.clonk.ini.IniUnit;
+import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.filesystem.EFS;
@@ -106,6 +109,12 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 					else {
 						final Structure s = Structure.pinned(file, true, true);
 						if (script instanceof Definition && s instanceof DefCoreUnit) {
+							// reparse for good measure
+							try {
+								new IniUnitParser((IniUnit) s).parse(false);
+							} catch (final ProblemException e) {
+								e.printStackTrace();
+							}
 							final ID id = ((DefCoreUnit)s).definitionID();
 							final Definition def = (Definition)script;
 							if (id != null)

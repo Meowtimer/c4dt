@@ -120,6 +120,7 @@ public class IniTextEditor extends ClonkTextEditor {
 
 	@Override
 	protected void editorSaved() {
+		ensureIniUnitUpToDate();
 		super.editorSaved();
 	}
 

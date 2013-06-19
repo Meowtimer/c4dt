@@ -351,23 +351,27 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @throws ProblemException
 	 */
 	private void parseFunctionBody(Function function) throws ProblemException {
-		final int bodyStart = this.offset;
-		if (!function.staticallyTyped())
-			function.assignType(PrimitiveType.UNKNOWN, false);
+		try {
+			final int bodyStart = this.offset;
+			if (!function.staticallyTyped())
+				function.assignType(PrimitiveType.UNKNOWN, false);
 
-		// reset local vars
-		function.resetLocalVarTypes();
-		// parse code block
-		final EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-		final List<ASTNode> statements = new LinkedList<ASTNode>();
-		function.setBodyLocation(new SourceLocation(bodyStart, Integer.MAX_VALUE));
-		parseStatementBlock(offset, statements, options, function.isOldStyle());
-		final FunctionBody bunch = new FunctionBody(function, statements);
-		if (function.isOldStyle() && statements.size() > 0)
-			function.bodyLocation().setEnd(statements.get(statements.size() - 1).end() + sectionOffset());
-		else
-			function.setBodyLocation(new SourceLocation(bodyStart, this.offset-1));
-		function.storeBody(bunch, functionSource(function));
+			// reset local vars
+			function.resetLocalVarTypes();
+			// parse code block
+			final EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+			final List<ASTNode> statements = new LinkedList<ASTNode>();
+			function.setBodyLocation(new SourceLocation(bodyStart, Integer.MAX_VALUE));
+			parseStatementBlock(offset, statements, options, function.isOldStyle());
+			final FunctionBody bunch = new FunctionBody(function, statements);
+			if (function.isOldStyle() && statements.size() > 0)
+				function.bodyLocation().setEnd(statements.get(statements.size() - 1).end() + sectionOffset());
+			else
+				function.setBodyLocation(new SourceLocation(bodyStart, this.offset-1));
+			function.storeBody(bunch, functionSource(function));
+		} catch (final Exception e) {
+			function.storeBody(new FunctionBody(function), functionSource(function));
+		}
 	}
 
 	private Variable addVarParmsParm(Function func) {
@@ -2291,7 +2295,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				unread();
 				condition = parseExpression();
 				if (condition == null)
-					error(Problem.ConditionExpected, savedOffset, this.offset, Markers.ABSOLUTE_MARKER_LOCATION);
+					error(Problem.ConditionExpected, savedOffset, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
 			}
 			eatWhitespace();
 			savedOffset = this.offset;

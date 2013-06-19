@@ -561,17 +561,30 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					visitors[ci] = visitor;
 
-					final Function ref = as(call.declaration(), Function.class);
+					Function ref = as(call.declaration(), Function.class);
 					// not related - short circuit skip
-					if (ref == null || ref.latestVersion() != function)
+					if (ref == null)
 						continue;
+					ref = (Function)ref.latestVersion();
 					RelevanceCheck: if (call.predecessorInSequence() != null) {
 						final IType predTy = nodeType(f, other, fVisit, visitor, call.predecessorInSequence());
 						if (predTy == null)
 							continue;
-						for (final IType t : predTy)
+						for (final IType t : predTy) {
 							if (t == script)
 								break RelevanceCheck;
+							if
+								(t instanceof Script &&
+								 ((Script)t).doesInclude(index, script) &&
+								 ((Script)t).seesFunction(ref))
+								break RelevanceCheck;
+						}
+						if (predTy instanceof Definition && script instanceof Definition) {
+							final Definition td = (Definition)predTy;
+							final Definition sd = (Definition)script;
+							if (td.definitionFolder().equals(sd.definitionFolder()))
+								System.out.println("Say what?");
+						}
 						continue;
 					}
 					final int parNum = Math.min(parameterTypes.length, call.params().length);
@@ -949,8 +962,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private HashMap<Function, Visit> makePlan(Function[] restrict) {
 			final HashMap<Function, Visit> result = new LinkedHashMap<>();
 			if (restrict != null && restrict.length > 0)
-				for (final Function f : restrict)
-					result.put(f, new Visit(f));
+				for (final Function f : restrict) {
+					if (f.body() != null)
+						result.put(f, new Visit(f));
+				}
 			else {
 				for (final Script s : conglomerate)
 					if (s != script)
@@ -1201,6 +1216,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (newtyvar != null) {
 				if (base != null)
 					newtyvar.set(base.get());
+				else if (visitor.input().partial)
+					if (key instanceof Variable)
+						newtyvar.set(((Variable)key).type(visitor.script()));
 				env.add(newtyvar);
 			}
 			return newtyvar;

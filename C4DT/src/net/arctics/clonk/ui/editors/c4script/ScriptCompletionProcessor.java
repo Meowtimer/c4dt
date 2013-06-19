@@ -230,6 +230,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 	}
 
 	private ICompletionProposal[] appendWhitespaceLocalGlobalDelimiter(ICompletionProposal[] proposals) {
+		if (proposals == null)
+			return null;
 		for (final ICompletionProposal p : proposals)
 			if (p instanceof ClonkCompletionProposal && ((ClonkCompletionProposal)p).category() < cats.LocalGlobalDelimiter) {
 				final ClonkCompletionProposal[] w = new ClonkCompletionProposal[5];
