@@ -292,13 +292,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 	}
 
-	@Override
-	public ProblemReporter localReporter(Script script, int fragmentOffset) {
-		assembleCommittee();
-		final Input info = new Input(script, fragmentOffset);
-		input.put(script, info);
-		return info.new Visitor();
-	}
 	/**
 	 * One script and associated information.
 	 * @author madeen

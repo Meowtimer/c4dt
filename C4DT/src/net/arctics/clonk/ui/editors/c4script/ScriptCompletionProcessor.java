@@ -26,7 +26,6 @@ import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
-import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
@@ -510,8 +509,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				final SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
 					final ASTNode parmExpr = innermostCallFunc.findSubElementContaining(pl.contextExpression);
-					for (final ProblemReportingStrategy s : editor.state().problemReportingStrategies())
-						funcRule.contributeAdditionalProposals(innermostCallFunc, s.localReporter(parser.script(), parser.fragmentOffset()), innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl);
+					funcRule.contributeAdditionalProposals(innermostCallFunc, innermostCallFunc.indexOfParm(parmExpr), parmExpr, this, pl);
 				}
 			}
 		}

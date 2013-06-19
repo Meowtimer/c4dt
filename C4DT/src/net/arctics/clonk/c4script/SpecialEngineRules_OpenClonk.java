@@ -357,10 +357,11 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
 			};
 			@Override
-			public void contributeAdditionalProposals(CallDeclaration node, ProblemReporter processor, int index, ASTNode parmExpression, ScriptCompletionProcessor completions, ProposalsSite pl) {
+			public void contributeAdditionalProposals(CallDeclaration node, int index, ASTNode parmExpression, ScriptCompletionProcessor completions, ProposalsSite pl) {
 				if (index != 0)
 					return;
-				final IType t = node.predecessorInSequence() != null ? processor.typeOf(node.predecessorInSequence()) : processor.script();
+				final Script script = node.parentOfType(Script.class);
+				final IType t = node.predecessorInSequence() != null ? script.typings().get(node.predecessorInSequence()) : script;
 				if (t != null) for (final IType ty : t)
 					if (ty instanceof Definition) {
 						final Definition def = (Definition) ty;
@@ -373,7 +374,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 										if (pl.prefix != null && !comp.name().toLowerCase().contains(pl.prefix))
 											continue;
 										pl.addProposal(new ClonkCompletionProposal(comp, as(t, Declaration.class), "\""+comp.name()+"\"", pl.offset, pl.prefix != null ? pl.prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText(processor.script()), "", completions.editor()));
+											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText(script), "", completions.editor()));
 									}
 								}
 					}

@@ -70,5 +70,4 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	public void setObserver(IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
 	public ProblemReportingStrategy configure(Index index, String args) { this.index = index; return this; }
 
-	public abstract ProblemReporter localReporter(Script script, int fragmentOffset);
 }

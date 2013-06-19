@@ -316,7 +316,7 @@ public abstract class SpecialEngineRules {
 
 		@SignifiesRole(role=FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
 		public void contributeAdditionalProposals(
-			CallDeclaration callFunc, ProblemReporter processor, int index, ASTNode parmExpression,
+			CallDeclaration callFunc, int index, ASTNode parmExpression,
 			ScriptCompletionProcessor completions, ProposalsSite pl) {}
 	}
 
