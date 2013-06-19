@@ -51,7 +51,7 @@ class Graph extends LinkedList<Runnable> {
 			}
 	}
 
-	boolean requires(Visit testDependent, Visit testRequirement, Set<Visit> catcher) {
+	static boolean requires(Visit testDependent, Visit testRequirement, Set<Visit> catcher) {
 		if (!catcher.add(testDependent))
 			return false;
 		if (testDependent.requirements.contains(testRequirement))
@@ -62,7 +62,7 @@ class Graph extends LinkedList<Runnable> {
 		return false;
 	}
 
-	void addRequirement(Visit dependent, Visit requirement) {
+	static void addRequirement(Visit dependent, Visit requirement) {
 		if (requirement == dependent)
 			return;
 		if (!requires(requirement, dependent, new HashSet<Visit>())) {
@@ -72,31 +72,7 @@ class Graph extends LinkedList<Runnable> {
 			System.out.println(String.format("Not adding requirement %s to %s", requirement.toString(), dependent.toString()));
 	}
 
-	IASTVisitor<Visit> resultUsedRequirementsDetector = new IASTVisitor<Visit>() {
-		@Override
-		public TraversalContinuation visitNode(ASTNode node, Visit v) {
-			if (node instanceof CallDeclaration && resultNeeded(node)) {
-				final CallDeclaration cd = (CallDeclaration) node;
-				final List<Visit> calledVisits = visits.get(cd.name());
-				if (calledVisits != null)
-					for (final Visit cv : calledVisits)
-						addRequirement(v, cv);
-			}
-			return TraversalContinuation.Continue;
-		}
-		boolean resultNeeded(final ASTNode node) {
-			boolean resultNeeded = false;
-			for (ASTNode p = node.parent(), c = node; p != null; c = p, p = p.parent()) {
-				if (p instanceof SimpleStatement)
-					break;
-				if (p instanceof Sequence && ((Sequence)p).lastElement() == c)
-					continue;
-				resultNeeded = true;
-				break;
-			}
-			return resultNeeded;
-		}
-	};
+	IASTVisitor<Visit> resultUsedRequirementsDetector = new ResultUsedRequirementsDetector();
 
 	final IASTVisitor<Visit> variableInitializationsRequirementsVisitor = new IASTVisitor<Visit>() {
 		@Override
@@ -163,6 +139,33 @@ class Graph extends LinkedList<Runnable> {
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.plan.values())
 				v.function.traverse(variableInitializationsRequirementsVisitor, v);
+	}
+
+	public class ResultUsedRequirementsDetector implements IASTVisitor<Visit> {
+		@Override
+		public TraversalContinuation visitNode(ASTNode node, Visit v) {
+			if (node instanceof CallDeclaration && resultNeeded(node)) {
+				final CallDeclaration cd = (CallDeclaration) node;
+				final List<Visit> calledVisits = visits.get(cd.name());
+				if (calledVisits != null)
+					for (final Visit cv : calledVisits)
+						addRequirement(v, cv);
+			}
+			return TraversalContinuation.Continue;
+		}
+
+		public boolean resultNeeded(final ASTNode node) {
+			boolean resultUsed = false;
+			for (ASTNode p = node.parent(), c = node; p != null; c = p, p = p.parent()) {
+				if (p instanceof SimpleStatement)
+					break;
+				if (p instanceof Sequence && ((Sequence)p).lastElement() == c)
+					continue;
+				resultUsed = true;
+				break;
+			}
+			return resultUsed;
+		}
 	}
 
 	class Cluster extends HashSet<Visit> implements Runnable {
@@ -284,7 +287,6 @@ class Graph extends LinkedList<Runnable> {
 		this.inference = inference;
 		populateVisitsMap();
 		determineRequirements();
-		//verify();
 		populate();
 		//output();
 	}
