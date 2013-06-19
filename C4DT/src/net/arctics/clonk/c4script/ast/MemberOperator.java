@@ -106,7 +106,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 			return false;
 		return true;
 	}
-	
+
 	public ASTNode successorInSequence() {
 		if (parent() instanceof Sequence)
 			return ((Sequence)parent()).successorOfSubElement(this);
@@ -116,7 +116,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
-		if (!dotNotation && !tidy.reporter.script().engine().settings().supportsProplists) {
+		if (!dotNotation && !parentOfType(Script.class).engine().settings().supportsProplists) {
 			final ASTNode succ = successorInSequence();
 			if (succ instanceof AccessVar)
 				return makeDotOperator();

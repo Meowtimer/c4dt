@@ -3,11 +3,8 @@ package net.arctics.clonk.c4script.ast;
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ITransformer;
-import net.arctics.clonk.c4script.ProblemReporter;
 
 public class Tidy implements ITransformer {
-	public final ProblemReporter reporter;
-	public Tidy(ProblemReporter reporter) { this.reporter = reporter; }
 	@Override
 	public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 		try {

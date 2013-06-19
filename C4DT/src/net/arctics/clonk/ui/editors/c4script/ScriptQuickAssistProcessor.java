@@ -30,7 +30,6 @@ import net.arctics.clonk.c4script.FunctionFragmentParser;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.MutableRegion;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
@@ -56,7 +55,6 @@ import net.arctics.clonk.c4script.ast.Unfinished;
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
@@ -273,7 +271,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							accessDec.setName(s);
 					}
 				try {
-					final Tidy tidy = new Tidy(TypeUtil.problemReportingContext(parser.script()));
+					final Tidy tidy = new Tidy();
 					this.replacementString = tidy.tidy(replacement.replacementExpression()).printed(tabIndentation+1);
 				} catch (final CloneNotSupportedException e) {
 					e.printStackTrace();
@@ -412,7 +410,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		for (final ProblemReportingStrategy s : editor.state().problemReportingStrategies())
 			if ((s.capabilities() & Capabilities.TYPING) != 0)
-				collectProposals(marker, position, proposals, document, editor.script(), s.localReporter(editor.script(), 0));
+				collectProposals(marker, position, proposals, document, editor.script());
 	}
 
 	public void collectProposals(
@@ -420,22 +418,21 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		final Position position,
 		final List<ICompletionProposal> proposals,
 		IDocument document,
-		final Script script,
-		final ProblemReporter problemReporting
+		final Script script
 	) {
 		if (document != null)
-			internalCollectProposals(marker, position, proposals, document, script, problemReporting);
+			internalCollectProposals(marker, position, proposals, document, script);
 		else
 			Core.instance().performActionsOnFileDocument(script.source(), new IDocumentAction<Void>() {
 				@Override
 				public Void run(IDocument connectedDocument) {
-					internalCollectProposals(marker, position, proposals, connectedDocument, script, problemReporting);
+					internalCollectProposals(marker, position, proposals, connectedDocument, script);
 					return null;
 				}
 			}, false);
 	}
 
-	private void internalCollectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script, ProblemReporter problemReporting) {
+	private void internalCollectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script) {
 		final Problem errorCode = Markers.problem(marker);
 		IRegion expressionRegion = new SourceLocation(marker.getAttribute(IMarker.CHAR_START, 0),  marker.getAttribute(IMarker.CHAR_END, 0));
 		if (expressionRegion.getOffset() == -1)
@@ -530,7 +527,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						final List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 						int p = 0;
 						for (final ASTNode parm : callFunc.params())
-							parms.add(new Variable(parmNameFromExpression(parm, ++p), problemReporting.typeOf(parm)));
+							parms.add(new Variable(parmNameFromExpression(parm, ++p), script.typings().get(parm)));
 						function.setParameters(parms);
 					}
 
@@ -637,7 +634,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 					if (statement.expression() instanceof BinaryOp) {
 						final BinaryOp binaryOp = (BinaryOp) statement.expression();
-						if (binaryOp.operator() == Operator.Equal && problemReporting.isModifiable(binaryOp.leftSide()))
+						if (binaryOp.operator() == Operator.Equal)
 							replacements.add(
 								Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
 								new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())
@@ -717,7 +714,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			try {
 				replacements.add(
 					Messages.ClonkQuickAssistProcessor_TidyUp,
-					new Tidy(problemReporting).tidyExhaustive(topLevel)
+					new Tidy().tidyExhaustive(topLevel)
 				);
 			} catch (final CloneNotSupportedException e) {
 				e.printStackTrace();

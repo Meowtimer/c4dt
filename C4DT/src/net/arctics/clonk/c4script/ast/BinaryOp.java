@@ -10,6 +10,7 @@ import net.arctics.clonk.ast.ControlFlow;
 import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Operator;
+import net.arctics.clonk.c4script.Script;
 
 public class BinaryOp extends OperatorExpression implements ITidyable {
 
@@ -18,7 +19,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
-		if (tidy.reporter.script().strictLevel() >= 2) {
+		if (parentOfType(Script.class).strictLevel() >= 2) {
 			Operator op = operator();
 			if (op == Operator.StringEqual || op == Operator.eq)
 				op = Operator.Equal;

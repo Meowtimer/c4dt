@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.ui.editors.c4script.ScriptQuickAssistProcessor;
 import net.arctics.clonk.ui.editors.c4script.ScriptQuickAssistProcessor.ParameterizedProposal;
@@ -24,7 +23,7 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 		final Script script = Script.get(marker.getResource(), true);
 		final List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>(10);
 		quickAssist.collectProposals(marker, new Position(marker.getAttribute(IMarker.CHAR_START, 0), marker.getAttribute(IMarker.CHAR_END, 0)-marker.getAttribute(IMarker.CHAR_START, 0)),
-			proposals, null, script, script.index().nature().instantiateProblemReportingStrategies(ProblemReportingStrategy.Capabilities.TYPING).get(0).localReporter(script, 0));
+			proposals, null, script);
 		final List<IMarkerResolution> res = new ArrayList<IMarkerResolution>(10);
 		for (final ICompletionProposal p : proposals)
 			if (p instanceof ParameterizedProposal)

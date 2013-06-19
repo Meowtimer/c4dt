@@ -20,7 +20,6 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.Tidy;
-import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.index.ProjectConversionConfiguration.CodeTransformation;
@@ -156,7 +155,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			}).transform(null, null, expression);
 			if (node != null)
 				try {
-					node = new Tidy(TypeUtil.problemReportingContext(parser.script())).tidyExhaustive(node);
+					node = new Tidy().tidyExhaustive(node);
 				} catch (final CloneNotSupportedException e) {
 					e.printStackTrace();
 				}

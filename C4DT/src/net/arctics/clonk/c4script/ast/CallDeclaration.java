@@ -19,10 +19,12 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.ProblemReporter;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.index.EngineFunction;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
@@ -173,6 +175,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		}
 		return result;
 	}
+	boolean isEngineFunction(String name) {
+		return declaration instanceof EngineFunction && declaration.name().equals(name);
+	}
 	@Override
 	public ASTNode tidy(Tidy tidy) throws CloneNotSupportedException {
 
@@ -191,7 +196,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 			return applyOperatorTo(tidy, params, replOperator);
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-		if (params.length >= 2 && declaration == tidy.reporter.cachedEngineDeclarations().ObjectCall && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
+		if (params.length >= 2 && isEngineFunction("ObjectCall") && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 			final ASTNode[] parmsWithoutObject = new ASTNode[params.length-2];
 			for (int i = 0; i < parmsWithoutObject.length; i++)
 				parmsWithoutObject[i] = tidy.tidy(params[i+2]);
@@ -215,7 +220,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable)
-			if (!tidy.reporter.script().engine().settings().supportsProplists && predecessorInSequence() != null)
+			if (!parentOfType(Script.class).engine().settings().supportsProplists && predecessorInSequence() != null)
 				return new CallDeclaration("LocalN", new StringLiteral(declarationName)); //$NON-NLS-1$
 			else
 				return new AccessVar(declarationName);
@@ -223,7 +228,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
 
 		// Par(5) -> nameOfParm6
-		if (params.length <= 1 && declaration != null && declaration == tidy.reporter.cachedEngineDeclarations().Par && (params.length == 0 || params[0] instanceof IntegerLiteral)) {
+		if (params.length <= 1 && declaration != null && isEngineFunction("Par") && (params.length == 0 || params[0] instanceof IntegerLiteral)) {
 			final IntegerLiteral number = params.length > 0 ? (IntegerLiteral) params[0] : IntegerLiteral.ZERO;
 			final Function func = this.parentOfType(Function.class);
 			if (func != null)
@@ -232,19 +237,19 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		}
 
 		// SetVar(5, "ugh") -> Var(5) = "ugh"
-		if (params.length == 2 && declaration != null && (declaration == tidy.reporter.cachedEngineDeclarations().SetVar || declaration == tidy.reporter.cachedEngineDeclarations().SetLocal || declaration == tidy.reporter.cachedEngineDeclarations().AssignVar))
+		if (params.length == 2 && (isEngineFunction("SetVar") || isEngineFunction("SetLocal") || isEngineFunction("AssignVar")))
 			return new BinaryOp(Operator.Assign, new CallDeclaration(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), tidy.tidy(params[0])), tidy.tidy(params[1])); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// DecVar(0) -> Var(0)--
-		if (params.length <= 1 && declaration != null && (declaration == tidy.reporter.cachedEngineDeclarations().DecVar || declaration == tidy.reporter.cachedEngineDeclarations().IncVar))
-			return new UnaryOp(declaration == tidy.reporter.cachedEngineDeclarations().DecVar ? Operator.Decrement : Operator.Increment, Placement.Prefix,
-					new CallDeclaration(tidy.reporter.cachedEngineDeclarations().Var.name(), new ASTNode[] {
+		if (params.length <= 1 && (isEngineFunction("DecVar") || isEngineFunction("IncVar")))
+			return new UnaryOp(isEngineFunction("DecVar") ? Operator.Decrement : Operator.Increment, Placement.Prefix,
+					new CallDeclaration("Var", new ASTNode[] {
 						params.length == 1 ? tidy.tidy(params[0]) : IntegerLiteral.ZERO
 					})
 			);
 
 		// Call("Func", 5, 5) -> Func(5, 5)
-		if (params.length >= 1 && declaration != null && declaration == tidy.reporter.cachedEngineDeclarations().Call && params[0] instanceof StringLiteral) {
+		if (params.length >= 1 && isEngineFunction("Call") && params[0] instanceof StringLiteral) {
 			final String lit = ((StringLiteral)params[0]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~') {
 				final ASTNode[] parmsWithoutName = new ASTNode[params.length-1];
