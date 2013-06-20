@@ -110,6 +110,7 @@ import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.EngineFunction;
 import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
@@ -210,7 +211,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		Function called;
 		CallDeclaration node;
 		Visit visit;
-		void regularParameterValidation(DabbleInference inference) {
+		void regularParameterValidation(DabbleInference inference, boolean judgeConcrete) {
 			final ASTNode[] params = node.params();
 			final IType pred = node.predecessorInSequence() != null ? visit.inferredTypes[node.predecessorInSequence().localIdentifier()] : visit.input().script();
 			for (int p = 0; p < params.length; p++) {
@@ -222,8 +223,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final IType unified = inference.typing.unifyNoChoice(parmTy, givenTy);
 				if (unified == null)
 					visit.visitor.incompatibleTypesMarker(node, given, parmTy, visit.inferredTypes[given.localIdentifier()]);
-//				else if (givenTy == PrimitiveType.UNKNOWN)
-//					visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
+				else if (judgeConcrete && givenTy == PrimitiveType.UNKNOWN)
+					visit.visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
 			}
 			if (inference.noticeParameterCountMismatch)
 				validateParameterCount(inference);
@@ -266,7 +267,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	private void validateParameters() {
 		for (final ParameterValidation pv : parameterValidations) {
-			pv.regularParameterValidation(this);
+			pv.regularParameterValidation(this, false);
 			markers.take(pv.visit.visitor);
 		}
 		parameterValidations.clear();
@@ -2113,7 +2114,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (!visitor.preliminary)
 						if (!applyRuleBasedValidation(node, visitor, params))
 							if (visitor.visit.function.script() == visitor.script())
-								parameterValidations.add(new ParameterValidation(node, f, visitor.visit));
+								if (f instanceof EngineFunction)
+									new ParameterValidation(node, f, visitor.visit).regularParameterValidation(visitor.inference(), true);
+								else
+									parameterValidations.add(new ParameterValidation(node, f, visitor.visit));
 				}
 				private void maybeUnknownMarker(CallDeclaration node, Visitor visitor, final String declarationName) throws ProblemException {
 					final IType container = unknownFunctionShouldBeError(node, visitor);

@@ -11,16 +11,14 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
-public class FunctionType implements IType {
+public class FunctionType implements IRefinedPrimitiveType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private final Function prototype;
-	
-	public Function prototype() {
-		return prototype;
-	}
-	
+
+	public Function prototype() { return prototype; }
+
 	public FunctionType(Function function) {
 		this.prototype = function;
 	}
@@ -46,8 +44,8 @@ public class FunctionType implements IType {
 	}
 
 	@Override
-	public IType simpleType() {
-		return PrimitiveType.FUNCTION;
-	}
+	public IType simpleType() { return PrimitiveType.FUNCTION; }
+	@Override
+	public PrimitiveType primitiveType() { return PrimitiveType.FUNCTION; }
 
 }

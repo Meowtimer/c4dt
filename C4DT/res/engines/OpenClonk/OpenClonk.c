@@ -291,7 +291,7 @@ global func int BoundBy(int value, int lower_bound, int upper_bound);
 global func bool Bubble(int x, int y);
 global func object Buy(id buy_object, int for_player, int pay_player, object to_base, bool show_errors);
 global func id C4Id(string id_string);
-global func any Call(any function);
+global func any Call(function|string function);
 global func bool CanConcatPictureWith(object other);
 global func int CastObjects(any id, any number, any level, any x, any y, any angle, any angle_variance);
 global func bool CastParticles(string name, int amount, int level, int x, int y, int a0, int a1, int b0, int b1, object obj);
