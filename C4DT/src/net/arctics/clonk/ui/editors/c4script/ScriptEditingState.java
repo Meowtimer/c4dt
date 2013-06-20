@@ -77,7 +77,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private void instantiateProblemReportingStrategies() {
 		try {
-			problemReportingStrategies = structure.index().nature().instantiateProblemReportingStrategies(0);
+			problemReportingStrategies = structure().index().nature().instantiateProblemReportingStrategies(0);
 		} catch (final Exception e) {
 			problemReportingStrategies = Arrays.asList();
 		}
@@ -100,7 +100,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	@Override
 	public void documentChanged(DocumentEvent event) {
 		super.documentChanged(event);
-		final Function f = structure.funcAt(event.getOffset());
+		final Function f = structure().funcAt(event.getOffset());
 		if (f != null && !f.isOldStyle())
 			// editing inside new-style function: adjust locations of declarations without complete reparse
 			// only recheck the function and display problems after delay
@@ -140,14 +140,15 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		Object scriptSource, Runnable uiRefreshRunnable
 	) throws ProblemException {
 		final Markers markers = new StructureMarkers(false);
-		final ScriptParser parser = new ScriptParser(scriptSource, structure, null) {{
+		structure().requireLoaded();
+		final ScriptParser parser = new ScriptParser(scriptSource, structure(), null) {{
 			setMarkers(markers);
 			script().clearDeclarations();
 			parseDeclarations();
 			script().deriveInformation();
 			validate();
 		}};
-		structure.traverse(Comment.TODO_EXTRACTOR, markers);
+		structure().traverse(Comment.TODO_EXTRACTOR, markers);
 		reportProblems(markers);
 		markers.deploy();
 		if (uiRefreshRunnable != null)
@@ -163,14 +164,14 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private void reportProblems(final Markers markers) {
 		for (final ProblemReportingStrategy s : problemReportingStrategies) {
-			s.initialize(markers, new NullProgressMonitor(), new Script[] {structure});
+			s.initialize(markers, new NullProgressMonitor(), new Script[] {structure()});
 			s.run();
 		}
 	}
 
 	public void scheduleReparsing(final boolean onlyDeclarations) {
 		reparseTask = cancelTimerTask(reparseTask);
-		if (structure == null)
+		if (structure() == null)
 			return;
 		reparseTimer.schedule(reparseTask = new TimerTask() {
 			@Override
@@ -220,18 +221,18 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private final class StructureMarkers extends Markers {
 		StructureMarkers(boolean functionBodies){
-			applyProjectSettings(structure.index());
+			applyProjectSettings(structure().index());
 			if (functionBodies)
 				captureMarkersInFunctionBodies();
 			else
-				captureExistingMarkers(structure.scriptFile());
+				captureExistingMarkers(structure().scriptFile());
 		}
 		private void captureMarkersInFunctionBodies() {
 			try {
-				captured = new ArrayList<>(Arrays.asList(structure.scriptFile().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
+				captured = new ArrayList<>(Arrays.asList(structure().scriptFile().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
 				for (final Iterator<IMarker> it = captured.iterator(); it.hasNext();) {
 					final IMarker c = it.next();
-					if (structure.funcAt(c.getAttribute(IMarker.CHAR_START, -1)) == null)
+					if (structure().funcAt(c.getAttribute(IMarker.CHAR_START, -1)) == null)
 						it.remove();
 				}
 			} catch (final CoreException e) {
@@ -267,8 +268,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			@Override
 			public void run() {
 				try {
-					if (structure.source() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure.source()) == null) {
-						removeMarkers(fn, structure);
+					if (structure().source() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure().source()) == null) {
+						removeMarkers(fn, structure());
 						final Function f = (Function) fn.latestVersion();
 						final Markers markers = reportProblems(f);
 						markers.deploy();
@@ -287,16 +288,16 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			return new Markers();
 
 		final Markers markers = new Markers(new MarkerConfines(function));
-		markers.applyProjectSettings(structure.index());
+		markers.applyProjectSettings(structure().index());
 
 		// main visit - this will also branch out to called functions so their parameter types will be adjusted taking into account
 		// concrete parameters passed from here
-		structure.deriveInformation();
+		structure().deriveInformation();
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
-			strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure, function)));
+			strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
 			strategy.run();
 		}
-		final Function.Typing typing = structure.typings().get(function);
+		final Function.Typing typing = structure().typings().get(function);
 		if (typing != null) {
 			final Set<Pair<Script, Function>> callees = new HashSet<Pair<Script, Function>>();
 			function.traverse(new IASTVisitor<Void>() {
@@ -306,7 +307,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 						final CallDeclaration cd = (CallDeclaration) node;
 						final Function f = as(cd.declaration(), Function.class);
 						if (f != null && f.body() != null) {
-							final IType pred = cd.predecessorInSequence() != null ? typing.nodeTypes[cd.predecessorInSequence().localIdentifier()] : structure;
+							final IType pred = cd.predecessorInSequence() != null ? typing.nodeTypes[cd.predecessorInSequence().localIdentifier()] : structure();
 							if (pred != null)
 								for (final IType t : pred)
 									if (t instanceof Script)
@@ -341,8 +342,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		if (reparseTimer != null)
 			reparseTimer.cancel();
 		try {
-			if (structure.source() instanceof IFile) {
-				final IFile file = (IFile)structure.source();
+			if (structure().source() instanceof IFile) {
+				final IFile file = (IFile)structure().source();
 				// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
 				if (file.exists())
 					reparseWithDocumentContents(file, null);
@@ -364,7 +365,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	private WeakReference<Script> cachedScript = new WeakReference<Script>(null);
 
 	@Override
-	public Script structure() {
+	public synchronized Script structure() {
 		Script result = cachedScript.get();
 		if (result != null) {
 			this.structure = result;
@@ -372,7 +373,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 
 		if (editors.isEmpty())
-			return super.structure();
+			return this.structure = null; // meh ?
 
 		final IEditorInput input = editors.get(0).getEditorInput();
 		if (input instanceof ScriptWithStorageEditorInput)
@@ -409,8 +410,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					return TraversalContinuation.Continue;
 				}
 			}, result);
-		this.structure = result;
-		return result;
+		return this.structure = result;
 	}
 
 	@Override
@@ -429,7 +429,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		if (change || (observer != null && typingContextVisitInAnyCase))
 			for (final ProblemReportingStrategy s : problemReportingStrategies)
 				if ((s.capabilities() & Capabilities.TYPING) != 0) {
-					s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure, function)));
+					s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
 					s.setObserver(observer);
 					s.run();
 				}
@@ -438,11 +438,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	@Override
 	public void partBroughtToTop(IWorkbenchPart part) {
-		if (editors.contains(part) && structure != null)
+		if (editors.contains(part) && structure() != null)
 			new Job("Refreshing problem markers") {
 				@Override
 				protected IStatus run(IProgressMonitor monitor) {
-					structure.requireLoaded();
+					structure().requireLoaded();
 					reportProblems();
 					Display.getDefault().asyncExec(refreshEditorsRunnable());
 					return Status.OK_STATUS;
