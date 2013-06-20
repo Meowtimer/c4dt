@@ -251,7 +251,7 @@ public class MatchingPlaceholder extends Placeholder {
 		) {
 			private static final long serialVersionUID = 1L;
 			@Override
-			public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
+			public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
 				if (!super.gatherIncludes(contextIndex, origin, set, options))
 					return false;
 				set.add(transformations);
@@ -382,7 +382,7 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	protected MatchingPlaceholder() { super(""); }
-	
+
 	public MatchingPlaceholder(Placeholder original) throws ProblemException {
 		super(original.entryName());
 		parse(original);

@@ -204,7 +204,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 					boolean startsWith, match, local;
 					Match(ClonkCompletionProposal proposal) {
 						for (final String s : proposal.identifiers())
-							if (s.length() > 0 && s.toLowerCase().startsWith(pfx)) {
+							if (s.length() > 0 && s.startsWith(pfx)) {
 								startsWith = true;
 								if (s.length() == pfx.length()) {
 									match = true;

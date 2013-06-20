@@ -573,12 +573,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 								 ((Script)t).seesFunction(ref))
 								break RelevanceCheck;
 						}
-						if (predTy instanceof Definition && script instanceof Definition) {
-							final Definition td = (Definition)predTy;
-							final Definition sd = (Definition)script;
-							if (td.definitionFolder().equals(sd.definitionFolder()))
-								System.out.println("Say what?");
-						}
 						continue;
 					}
 					final int parNum = Math.min(parameterTypes.length, call.params().length);

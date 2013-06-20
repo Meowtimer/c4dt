@@ -373,7 +373,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 
 		if (editors.isEmpty())
-			return this.structure = null; // meh ?
+			return structure;
 
 		final IEditorInput input = editors.get(0).getEditorInput();
 		if (input instanceof ScriptWithStorageEditorInput)

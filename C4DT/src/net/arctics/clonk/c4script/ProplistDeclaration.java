@@ -174,7 +174,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	}
 
 	@Override
-	public Collection<ProplistDeclaration> includes(Index contextIndex, Object origin, int options) {
+	public Collection<ProplistDeclaration> includes(Index contextIndex, ProplistDeclaration origin, int options) {
 		return IHasIncludes.Default.includes(contextIndex, this, origin, options);
 	}
 
@@ -186,7 +186,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	}
 
 	@Override
-	public boolean gatherIncludes(Index contextIndex, Object origin, Collection<ProplistDeclaration> set, int options) {
+	public boolean gatherIncludes(Index contextIndex, ProplistDeclaration origin, Collection<ProplistDeclaration> set, int options) {
 		if (!set.add(this))
 			return false;
 		final ProplistDeclaration proto = prototype();

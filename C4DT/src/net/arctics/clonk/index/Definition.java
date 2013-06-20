@@ -167,11 +167,11 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public  boolean gatherIncludes(Index contextIndex, Object origin, final Collection<Script> set, final int options) {
+	public  boolean gatherIncludes(Index contextIndex, Script origin, final Collection<Script> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
 		final Scenario originScenario = origin instanceof Script
-			? ((Script)origin).scenario()
+			? origin.scenario()
 				: origin instanceof IHasRelatedResource
 			? Scenario.containingScenario(((IHasRelatedResource)origin).resource())
 				: null;

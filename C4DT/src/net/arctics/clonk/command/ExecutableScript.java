@@ -20,7 +20,7 @@ public class ExecutableScript extends SelfContainedScript {
 
 
 	@Override
-	public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
+	public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
 		set.add(Command.BASE);
 		return super.gatherIncludes(contextIndex, origin, set, options);
 	}

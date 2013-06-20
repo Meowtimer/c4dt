@@ -389,7 +389,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @param contextIndex The project index to search for includes in.
 	 */
 	@Override
-	public boolean gatherIncludes(Index contextIndex, Object origin, Collection<Script> set, int options) {
+	public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
 		if (!set.add(this))
 			return false;
 		if (directives != null) {
@@ -405,7 +405,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					for (final Index in : contextIndex.relevantIndexes()) {
 						final Iterable<? extends Definition> defs = in.definitionsWithID(id);
 						if (defs != null)
-							for (final Definition def : defs)
+							for (final Definition def : defs) {
+								if (origin != null && def.scenario() != null && origin.scenario() != def.scenario())
+									continue;
 								if ((options & GatherIncludesOptions.Recursive) == 0)
 									set.add(def);
 								else {
@@ -413,6 +415,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 										options &= ~GatherIncludesOptions.NoAppendages;
 									def.gatherIncludes(contextIndex, origin, set, options);
 								}
+							}
 					}
 				}
 			}
@@ -437,7 +440,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private transient int _lastIncludesOptions;
 
 	@Override
-	public Collection<Script> includes(Index index, Object origin, int options) {
+	public Collection<Script> includes(Index index, Script origin, int options) {
 		synchronized (this) {
 			final int indexHash = index != null ? index.hashCode() : 0;
 			final int originHash = origin != null ? origin.hashCode() : 0;

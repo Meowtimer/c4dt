@@ -18,7 +18,7 @@ public interface IHasIncludes<T extends IHasIncludes<?>> extends IType {
 		public static final int NoAppendages = 2;
 	}
 
-	Collection<T> includes(Index contextIndex, Object origin, int options);
+	Collection<T> includes(Index contextIndex, T origin, int options);
 	/**
 	 * Return whether this type includes another one.
 	 * @param other The other type
@@ -33,7 +33,7 @@ public interface IHasIncludes<T extends IHasIncludes<?>> extends IType {
 	 * @return False if this type is already contained in the set, true if this type wasn't contained.
 	 * gatherIncludes implementations are responsible for adding this type to the set in this case, or else infinite recursion wreaks its ugly head.
 	 */
-	boolean gatherIncludes(Index contextIndex, Object origin, Collection<T> set, int options);
+	boolean gatherIncludes(Index contextIndex, T origin, Collection<T> set, int options);
 
 	/**
 	 * Default implementation for some interface methods.
@@ -48,7 +48,7 @@ public interface IHasIncludes<T extends IHasIncludes<?>> extends IType {
 		 * @param options Options mask. See {@link GatherIncludesOptions}
 		 * @return Requested includes.
 		 */
-		public static <T extends IHasIncludes<?>> Collection<T> includes(Index contextIndex, IHasIncludes<T> instance, Object origin, int options) {
+		public static <T extends IHasIncludes<?>> Collection<T> includes(Index contextIndex, IHasIncludes<T> instance, T origin, int options) {
 			final Set<T> result = new HashSet<T>(10);
 			instance.gatherIncludes(contextIndex, origin, result, options);
 			result.remove(instance);
