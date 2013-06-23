@@ -561,6 +561,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final IType[][] types,
 				final Visitor[] visitors
 			) {
+				final Function base = (Function) function.baseFunction().latestVersion();
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final CallDeclaration call = calls.get(ci);
 					final Function f = call.parentOfType(Function.class);
@@ -573,7 +574,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 					Function ref = as(call.declaration(), Function.class);
 					// not related - short circuit skip
-					if (ref == null)
+					if (ref == null || ref.baseFunction().latestVersion() != base)
 						continue;
 					ref = (Function)ref.latestVersion();
 					RelevanceCheck: if (call.predecessorInSequence() != null) {
@@ -583,10 +584,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						for (final IType t : predTy) {
 							if (t == script)
 								break RelevanceCheck;
-							if
-								(t instanceof Script &&
-								 ((Script)t).doesInclude(index, script) &&
-								 ((Script)t).seesFunction(ref))
+							if (t instanceof Script && script.doesInclude(index, (Script)t))
 								break RelevanceCheck;
 						}
 						continue;
