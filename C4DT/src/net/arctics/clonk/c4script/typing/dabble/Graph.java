@@ -38,6 +38,7 @@ import net.arctics.clonk.util.TaskExecution;
 class Graph extends LinkedList<Runnable> {
 	private final DabbleInference inference;
 	private final Map<String, List<Visit>> visits = new HashMap<>();
+	private final Set<Visit> doubleTakes = new HashSet<>();
 
 	void populateVisitsMap() {
 		for (final Input i : inference.input.values())
@@ -62,14 +63,18 @@ class Graph extends LinkedList<Runnable> {
 		return false;
 	}
 
-	static void addRequirement(Visit dependent, Visit requirement) {
+	void addRequirement(Visit dependent, Visit requirement) {
 		if (requirement == dependent)
 			return;
 		if (!requires(requirement, dependent, new HashSet<Visit>())) {
 			dependent.requirements.add(requirement);
 			requirement.dependents.add(dependent);
-		} else if (DEBUG)
-			System.out.println(String.format("Not adding requirement %s to %s", requirement.toString(), dependent.toString()));
+		} else {
+			if (DEBUG)
+				System.out.println(String.format("Not adding requirement %s to %s", requirement.toString(), dependent.toString()));
+			dependent.doubleTake = true;
+			doubleTakes.add(dependent);
+		}
 	}
 
 	IASTVisitor<Visit> resultUsedRequirementsDetector = new ResultUsedRequirementsDetector();
@@ -263,7 +268,7 @@ class Graph extends LinkedList<Runnable> {
 			final Cluster c = as(r, Cluster.class);
 			if (c == null)
 				continue;
-			try (FileWriter writer = new FileWriter(new File(String.format("/Users/madeen/Desktop/output%d.dot", ++x)))) {
+			try (FileWriter writer = new FileWriter(new File(String.format("/Users/madeen/Desktop/DabbleInference/output%d.dot", ++x)))) {
 				writer.append("digraph G {bgcolor=white\n");
 				final Set<Visit> f = c.flatten();
 				for (final Visit v : f)
@@ -310,5 +315,9 @@ class Graph extends LinkedList<Runnable> {
 						pool.execute(runnable);
 				}
 			}, 20);
+		for (final Visit v : doubleTakes) {
+			v.doubleTake = false;
+			v.run();
+		}
 	}
 }

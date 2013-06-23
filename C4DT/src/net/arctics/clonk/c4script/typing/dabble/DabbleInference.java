@@ -263,6 +263,21 @@ public class DabbleInference extends ProblemReportingStrategy {
 		subTask(Messages.Apply);
 		for (final Input input : this.input.values())
 			input.apply();
+
+		/*
+		for (final Input i : input.values())
+			for (final Visit v : i.plan.values()) {
+				final Function.Typing typing = i.script().typings().get(v.function());
+				if (typing == null)
+					System.out.println(String.format("Missing typing in %s for %s", i.script(), v.function()));
+				else
+					System.out.println(String.format("%s: (%s) -> %s",
+						v.toString(),
+						v.function().parameterString(new PrintParametersOptions(i.script(), false, false, false)),
+						typing.returnType.typeName(true)
+					));
+			}
+		*/
 	}
 
 	private void validateParameters() {
@@ -317,6 +332,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			Set<Visit> dependents = new HashSet<>();
 			Set<Visit> requirements = new HashSet<>();
 			int hash;
+			boolean doubleTake;
 
 			@Override
 			public int hashCode() { return super.hashCode(); }
@@ -917,7 +933,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public boolean isModifiable(ASTNode node) { return expert(node).isModifiable(node, this); }
 			@Override
-			public Markers markers() { return preliminary ? NULL_MARKERS : this; }
+			public Markers markers() { return preliminary || visit.doubleTake ? NULL_MARKERS : this; }
 			@Override
 			public void setGlobalMarkers(Markers markers) { DabbleInference.this.markers = markers; }
 			@Override
@@ -2105,7 +2121,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.script().addUsedScript(f.script());
 
 					// not a special case... check regular parameter types
-					if (!visitor.preliminary)
+					if (!visitor.preliminary && !visitor.visit.doubleTake)
 						if (!applyRuleBasedValidation(node, visitor, params))
 							if (visitor.visit.function.script() == visitor.script())
 								if (f instanceof EngineFunction)
