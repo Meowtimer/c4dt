@@ -389,7 +389,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 				if (s instanceof IHasIncludes) {
 					@SuppressWarnings("unchecked")
 					final Iterable<? extends IHasIncludes<?>> includes =
-						((IHasIncludes<IHasIncludes<?>>)s).includes(pl.index, pl.script, GatherIncludesOptions.Recursive);
+						((IHasIncludes<IHasIncludes<?>>)s).includes(pl.index, (IHasIncludes<?>) s, GatherIncludesOptions.Recursive);
 					for (final IHasIncludes<?> inc : includes)
 						proposalsForStructure((Declaration) inc, pl, s);
 				}
