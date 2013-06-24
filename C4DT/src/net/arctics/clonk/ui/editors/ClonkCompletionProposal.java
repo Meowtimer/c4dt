@@ -283,7 +283,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 			if (declaration instanceof Function)
 				decName += "()";
 			if (declaration instanceof Definition)
-				return new String[] {replacementString(), decName, ((Definition)declaration).id().stringValue()};
+				return new String[] {replacementString(), decName, ((Definition)declaration).localizedName()};
 			else
 				return new String[] {replacementString(), decName};
 		}
