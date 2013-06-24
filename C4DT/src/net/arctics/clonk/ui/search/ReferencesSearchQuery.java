@@ -207,19 +207,19 @@ public class ReferencesSearchQuery extends SearchQuery {
 					if (obj != null) {
 						final Declaration declaration = obj.findFunction(complex.stringValue());
 						if (declaration == this.declaration)
-							result.addMatch(iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false);
+							result.addMatch(iniUnit, complex.start(), complex.getLength(), false, false);
 					}
 				}
 				else if (declaration instanceof Definition)
 					if (entryClass == ID.class) {
 						if (script.index().anyDefinitionWithID((ID) complex.extendedValue()) == declaration)
-							result.addMatch(iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false);
+							result.addMatch(iniUnit, complex.start(), complex.getLength(), false, false);
 					}
 					else if (entryClass == IDArray.class)
 						for (final KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
 							final Definition obj = script.index().anyDefinitionWithID(pair.key());
 							if (obj == declaration)
-								result.addMatch(iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false);
+								result.addMatch(iniUnit, complex.start(), complex.getLength(), false, false);
 						}
 			}
 		}

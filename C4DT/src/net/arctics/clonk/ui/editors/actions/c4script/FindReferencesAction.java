@@ -4,6 +4,7 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
@@ -14,11 +15,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.FindReferences")
 public class FindReferencesAction extends ClonkTextEditorAction {
-
-	public FindReferencesAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
-		super(bundle, prefix, editor);
-	}
-
+	public FindReferencesAction(ResourceBundle bundle, String prefix, ITextEditor editor) { super(bundle, prefix, editor); }
 	@Override
 	public void run() {
 		try {
@@ -27,6 +24,8 @@ public class FindReferencesAction extends ClonkTextEditorAction {
 			if (declaration == null)
 				declaration = structure;
 			if (declaration != null) {
+				if (declaration instanceof ProxyVar)
+					declaration = ((ProxyVar)declaration).definition();
 				final ClonkProjectNature nature = ClonkProjectNature.get(structure.resource().getProject());
 				NewSearchUI.runQueryInBackground(new ReferencesSearchQuery(nature, declaration));
 			}
@@ -34,5 +33,4 @@ public class FindReferencesAction extends ClonkTextEditorAction {
 			e.printStackTrace();
 		}
 	}
-
 }
