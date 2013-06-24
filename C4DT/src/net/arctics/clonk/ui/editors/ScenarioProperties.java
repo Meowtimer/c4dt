@@ -172,7 +172,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					final
 					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) cell.getElement();
 					final Definition def = scenario.nearestDefinitionWithId(kv.key());
-					cell.setText(def != null ? def.name() : kv.key().toString());
+					cell.setText(def != null ? def.localizedName() : kv.key().toString());
 				}
 			});
 			defColumn.setEditingSupport(new EditingSupport(viewer) {
@@ -184,7 +184,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 						@Override
 						public void receivedObject(Definition item) {
 							if (
-								(item.name() != null && item.name().equals(value)) ||
+								(item.localizedName() != null && item.localizedName().equals(value)) ||
 								(item.id() != null && item.id().stringValue().equals(value))
 							) {
 								found = item;
@@ -209,7 +209,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				protected Object getValue(Object element) {
 					final KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
 					final Definition def = scenario.nearestDefinitionWithId(kv.key());
-					return def != null ? def.name() : kv.key().toString();
+					return def != null ? def.localizedName() : kv.key().toString();
 				}
 				@Override
 				protected CellEditor getCellEditor(Object element) {
@@ -425,7 +425,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					switch (columnIndex) {
 					case 1:
 						final Definition def = scenario.nearestDefinitionWithId(kv.key());
-						return def != null ? def.name() : kv.key().toString();
+						return def != null ? def.localizedName() : kv.key().toString();
 					case 2:
 						return kv.value().toString();
 					default:

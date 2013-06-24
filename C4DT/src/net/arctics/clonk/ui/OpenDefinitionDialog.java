@@ -31,24 +31,24 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.PlatformUI;
 
 public class OpenDefinitionDialog extends EntityChooser {
-	
+
 	public static final String DIALOG_SETTINGS = "OpenDefinitionDialogSettings"; //$NON-NLS-1$
-	
+
 	private final Object selection;
 	private IConverter<Definition, Image> imageStore;
-	
+
 	public void setImageStore(IConverter<Definition, Image> imageStore) {
 		this.imageStore = imageStore;
 	}
-	
+
 	private class OpenDefinitionLabelProvider extends LabelProvider implements IStyledLabelProvider {
 		@Override
 		public StyledString getStyledText(Object element) {
 			if (element == null)
 				return new StyledString(Messages.OpenDefinitionDialog_Empty);
 			if (!(element instanceof Definition)) return new StyledString(element.toString());
-			Definition obj = (Definition) element;
-			StyledString buf = new StyledString(obj.name());
+			final Definition obj = (Definition) element;
+			final StyledString buf = new StyledString(obj.localizedName());
 			buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
 			buf.append(obj.id().stringValue(), StyledString.QUALIFIER_STYLER);
 			return buf;
@@ -61,12 +61,12 @@ public class OpenDefinitionDialog extends EntityChooser {
 				return null;
 		}
 	}
-	
+
 	public OpenDefinitionDialog() {
 		this(UI.projectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite()));
-		
+
 	}
-	
+
 	/**
 	 * Create dialog with specified selection. The selection can be a {@link IStructuredSelection} with a {@link IStructuredSelection#getFirstElement()} being an {@link IResource}
 	 * in which case the dialog will be populated with definitions visible from the resource's project.
@@ -89,13 +89,13 @@ public class OpenDefinitionDialog extends EntityChooser {
 	@Override
 	protected void fillContentProvider(AbstractContentProvider contentProvider, ItemsFilter itemsFilter, IProgressMonitor progressMonitor) throws CoreException {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource) {
-			IProject proj = ((IResource)((IStructuredSelection)selection).getFirstElement()).getProject();
-			ClonkProjectNature nat = ClonkProjectNature.get(proj);
+			final IProject proj = ((IResource)((IStructuredSelection)selection).getFirstElement()).getProject();
+			final ClonkProjectNature nat = ClonkProjectNature.get(proj);
 			if (nat != null && nat.index() != null)
-				for (Index index : nat.index().relevantIndexes())
+				for (final Index index : nat.index().relevantIndexes())
 					fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, index);
 		} else if (selection instanceof Iterable)
-			for (Object o : (Iterable<?>)selection)
+			for (final Object o : (Iterable<?>)selection)
 				contentProvider.add(o, itemsFilter);
 	}
 
@@ -112,7 +112,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 				progressMonitor.worked(1);
 			}
 		});
-		for (Scenario s : index.indexedScenarios())
+		for (final Scenario s : index.indexedScenarios())
 			contentProvider.add(s, itemsFilter);
 		progressMonitor.done();
 	}
@@ -147,7 +147,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 	protected IStatus validateItem(Object item) {
 		return Status.OK_STATUS;
 	}
-	
+
 	public Definition[] selectedDefinitions() {
 		return ArrayUtil.convertArray(getResult(), Definition.class);
 	}

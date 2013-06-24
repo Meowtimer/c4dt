@@ -80,7 +80,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	public String infoTextIncludingIDAndName() {
-		return id() != null ? String.format(Messages.DefinitionIDWithName, name(), id().toString()) : name();
+		return id() != null ? String.format(Messages.DefinitionIDWithName, localizedName(), id().toString()) : localizedName();
 	}
 
 	/**
@@ -218,7 +218,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 *
 	 */
 	public final class ProxyVar extends Variable implements IReplacedWhenSaved {
-		public ProxyVar() { super(Definition.this.name(), Scope.STATIC); }
+		public ProxyVar() { super(Definition.this.id().stringValue(), Scope.STATIC); }
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public String name() { return id().stringValue(); }
@@ -276,6 +276,10 @@ public class Definition extends Script implements IProplistDeclaration {
 			e1.printStackTrace();
 		}
 	}
+
+	@Override
+	public String name() { return id().stringValue(); }
+	public String localizedName() { return name; }
 
 	/**
 	 * The member <tt>Script.c</tt>
@@ -367,7 +371,7 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	@Override
 	public String toString() {
-		return (name() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+		return (localizedName() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	@Override
@@ -376,7 +380,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	@Override
 	public String infoText(IIndexEntity context) {
 		return String.format(INFO_TEXT_TEMPLATE,
-			name(),
+			localizedName(),
 			super.infoText(context),
 			definitionFolder().getFullPath().toOSString()
 		);
@@ -418,7 +422,7 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	@Override
 	public String typeName(boolean special) {
-		final String specialName = this.engine().name().equals("OpenClonk") ? (id != null ? id.stringValue() : null) : name();
+		final String specialName = this.engine().name().equals("OpenClonk") ? (id != null ? id.stringValue() : null) : localizedName();
 		return special && specialName != null ? specialName : PrimitiveType.OBJECT.typeName(false);
 	}
 

@@ -85,8 +85,8 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 
 			if (pl.prefix != null)
 				if (!(
-					stringMatchesPrefix(def.name(), pl.prefix) ||
-					stringMatchesPrefix(def.id().stringValue(), pl.prefix)
+					stringMatchesPrefix(def.localizedName(), pl.prefix) ||
+					stringMatchesPrefix(def.name(), pl.prefix)
 					/* // also check if the user types in the folder name
 					(def instanceof Definition && def.definitionFolder() != null &&
 					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
@@ -106,7 +106,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 		if (def.engine().settings().definitionsHaveProxyVariables)
 			return def.id().stringValue();
 		else
-			return String.format("%s (%s)", def.name(), def.id().stringValue());
+			return String.format("%s (%s)", def.localizedName(), def.id().stringValue());
 	}
 
 	protected IFile pivotFile() {
