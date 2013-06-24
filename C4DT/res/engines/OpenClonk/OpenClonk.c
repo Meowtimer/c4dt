@@ -53,7 +53,7 @@ static const int OCF_Living;
 static const int OCF_NotContained;
 static const int OCF_OnFire;
 static const int OCF_Rotate;
-static const int this;
+static const object this;
 static const int C4V_Effect;
 static const int C4V_Def;
 static const int C4V_Function;
