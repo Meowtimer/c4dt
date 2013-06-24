@@ -1207,6 +1207,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * </ol>
 	 */
 	public void deriveInformation() {
+		if (file() != null)
+			pinTo(file());
 		findScenario();
 		detectEffects();
 		final List<Script> conglo = this.conglomerate();

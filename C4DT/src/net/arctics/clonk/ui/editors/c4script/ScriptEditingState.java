@@ -22,6 +22,7 @@ import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.TraversalContinuation;
+import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4GroupItem;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
@@ -67,23 +68,6 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
 	private TimerTask reparseTask, reportFunctionProblemsTask;
-	private List<ProblemReportingStrategy> problemReportingStrategies;
-
-	@Override
-	protected void initialize() {
-		super.initialize();
-		instantiateProblemReportingStrategies();
-	}
-
-	private void instantiateProblemReportingStrategies() {
-		try {
-			problemReportingStrategies = structure().index().nature().instantiateProblemReportingStrategies(0);
-		} catch (final Exception e) {
-			problemReportingStrategies = Arrays.asList();
-		}
-	}
-
-	public List<ProblemReportingStrategy> problemReportingStrategies() { return problemReportingStrategies; }
 
 	public static ScriptEditingState addTo(IDocument document, Script script, C4ScriptEditor client)  {
 		try {
@@ -163,10 +147,14 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	private void reportProblems(final Markers markers) {
-		for (final ProblemReportingStrategy s : problemReportingStrategies) {
+		for (final ProblemReportingStrategy s : problemReportingStrategies()) {
 			s.initialize(markers, new NullProgressMonitor(), new Script[] {structure()});
 			s.run();
 		}
+	}
+
+	public List<ProblemReportingStrategy> problemReportingStrategies() {
+		return ClonkProjectNature.get(structure().file()).problemReportingStrategies();
 	}
 
 	public void scheduleReparsing(final boolean onlyDeclarations) {
@@ -293,7 +281,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		// main visit - this will also branch out to called functions so their parameter types will be adjusted taking into account
 		// concrete parameters passed from here
 		structure().deriveInformation();
-		for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
+		for (final ProblemReportingStrategy strategy : problemReportingStrategies()) {
 			strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
 			strategy.run();
 		}
@@ -318,7 +306,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				}
 			}, null);
 			if (callees.size() > 0)
-				for (final ProblemReportingStrategy strategy : problemReportingStrategies) {
+				for (final ProblemReportingStrategy strategy : problemReportingStrategies()) {
 					strategy.initialize(markers, new NullProgressMonitor(), callees);
 					strategy.run();
 				}
@@ -425,7 +413,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		final FunctionFragmentParser fparser = new FunctionFragmentParser(document, structure(), function, null);
 		final boolean change = fparser.update();
 		if (change || (observer != null && typingContextVisitInAnyCase))
-			for (final ProblemReportingStrategy s : problemReportingStrategies)
+			for (final ProblemReportingStrategy s : problemReportingStrategies())
 				if ((s.capabilities() & Capabilities.TYPING) != 0) {
 					s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
 					s.setObserver(observer);

@@ -50,6 +50,8 @@ import org.eclipse.swt.widgets.Display;
  */
 public class ClonkProjectNature implements IProjectNature {
 
+	private final Object lock = new Object();
+
 	public static final IConverter<ClonkProjectNature, Index> SELECT_INDEX = new IConverter<ClonkProjectNature, Index>() {
 		@Override
 		public Index convert(ClonkProjectNature nature) {
@@ -106,6 +108,8 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	private ProjectSettings settings;
 
+	private List<ProblemReportingStrategy> problemReportingStrategies;
+
 	public ClonkProjectNature() {}
 
 	@Override
@@ -116,21 +120,30 @@ public class ClonkProjectNature implements IProjectNature {
 	public IProject getProject() { return project; }
 	@Override
 	public void setProject(IProject project) { this.project = project; }
+	public List<ProblemReportingStrategy> problemReportingStrategies() {
+		synchronized (lock) {
+			if (problemReportingStrategies == null)
+				instantiateProblemReportingStrategies(0);
+		}
+		return problemReportingStrategies;
+	}
 
 	/**
 	 * Returns the index of the project, loading it from disk if necessary.
 	 * @return the project index
 	 */
-	public synchronized ProjectIndex index() {
-		if (index == null && !indexLoadingPending) {
-			indexLoadingPending = true;
-			try {
-				load();
-			} finally {
-				indexLoadingPending = false;
+	public ProjectIndex index() {
+		synchronized (lock) {
+			if (index == null && !indexLoadingPending) {
+				indexLoadingPending = true;
+				try {
+					load();
+				} finally {
+					indexLoadingPending = false;
+				}
 			}
+			return index;
 		}
-		return index;
 	}
 
 	/**
@@ -138,13 +151,16 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return The newly created index.
 	 */
 	public ProjectIndex forceIndexRecreation() {
-		index = null;
-		loadSettings();
-		final File indexFolder = indexFolder();
-		// legacy index file - delete
-		if (indexFolder.isFile())
-			indexFolder.delete();
-		return index = new ProjectIndex(project, indexFolder);
+		synchronized (lock) {
+			problemReportingStrategies = null;
+			index = null;
+			loadSettings();
+			final File indexFolder = indexFolder();
+			// legacy index file - delete
+			if (indexFolder.isFile())
+				indexFolder.delete();
+			return index = new ProjectIndex(project, indexFolder);
+		}
 	}
 
 	public IPath settingsFilePath() {
@@ -287,8 +303,10 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	public ProjectSettings settings() {
-		if (settings == null)
-			loadSettings();
+		synchronized (lock) {
+			if (settings == null)
+				loadSettings();
+		}
 		return settings;
 	}
 
@@ -349,25 +367,31 @@ public class ClonkProjectNature implements IProjectNature {
 			return null;
 	}
 
-	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(int requiredCapabilities) {
-		if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
-			return Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
-		final Collection<ProblemReportingStrategyInfo> classes = settings().problemReportingStrategies();
-		final List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
-		for (final ProblemReportingStrategyInfo c : classes) {
-			final Capabilities caps = c.cls.getAnnotation(Capabilities.class);
-			if (caps == null || (caps.capabilities() & requiredCapabilities) != requiredCapabilities)
-				continue;
-			try {
-				final ProblemReportingStrategy instance = c.cls.newInstance();
-				instance.configure(index(), c.args);
-				instances.add(instance);
-			} catch (InstantiationException | IllegalAccessException e) {
-				e.printStackTrace();
-				continue;
+	public void instantiateProblemReportingStrategies(int requiredCapabilities) {
+		try {
+			if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true)) {
+				problemReportingStrategies = Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
+				return;
 			}
+			final Collection<ProblemReportingStrategyInfo> classes = settings().problemReportingStrategies();
+			final List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
+			for (final ProblemReportingStrategyInfo c : classes) {
+				final Capabilities caps = c.cls.getAnnotation(Capabilities.class);
+				if (caps == null || (caps.capabilities() & requiredCapabilities) != requiredCapabilities)
+					continue;
+				try {
+					final ProblemReportingStrategy instance = c.cls.newInstance();
+					instance.configure(index(), c.args);
+					instances.add(instance);
+				} catch (InstantiationException | IllegalAccessException e) {
+					e.printStackTrace();
+					continue;
+				}
+			}
+			problemReportingStrategies = instances;
+		} catch (final Exception e) {
+			problemReportingStrategies = Arrays.asList();
 		}
-		return instances;
 	}
 
 }

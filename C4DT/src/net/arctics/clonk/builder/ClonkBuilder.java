@@ -332,7 +332,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			System.out.println(String.format("%s: Reporting problems", getProject().getName()));
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
-		for (final ProblemReportingStrategy strategy : index.nature().instantiateProblemReportingStrategies(0)) {
+		for (final ProblemReportingStrategy strategy : index.nature().problemReportingStrategies()) {
 			strategy.initialize(markers, this.monitor(), scripts);
 			strategy.run();
 		}
