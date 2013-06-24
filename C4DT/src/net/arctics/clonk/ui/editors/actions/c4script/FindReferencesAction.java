@@ -29,8 +29,6 @@ public class FindReferencesAction extends ClonkTextEditorAction {
 				final ClonkProjectNature nature = ClonkProjectNature.get(structure.resource().getProject());
 				NewSearchUI.runQueryInBackground(new ReferencesSearchQuery(nature, declaration));
 			}
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
+		} catch (final Exception e) { e.printStackTrace(); }
 	}
 }

@@ -15,7 +15,6 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IASTVisitor;
-import net.arctics.clonk.ast.IEntityLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.ScriptParser;
@@ -184,7 +183,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator l) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> l) {
 		// parse comment as expression and see what goes
 		try {
 			final Script script = parentOfType(Script.class);

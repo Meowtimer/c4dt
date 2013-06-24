@@ -16,6 +16,7 @@ import net.arctics.clonk.util.Sink.Decision;
 
 public class ArrayUtil {
 
+	@SafeVarargs
 	@SuppressWarnings("unchecked")
 	public static <T> T[] concat(T[] a, T... b) {
 		final int alen = a != null ? a.length : 0;

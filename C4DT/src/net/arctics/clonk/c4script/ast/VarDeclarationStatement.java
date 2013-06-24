@@ -7,7 +7,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
@@ -71,7 +71,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 	}
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		Function activeFunc = this.parentOfType(Function.class);
 		if (activeFunc != null) {
 			int addToMakeAbsolute = activeFunc.bodyLocation().start() + this.start();

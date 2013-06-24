@@ -9,7 +9,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.ProplistDeclaration;
@@ -149,7 +149,7 @@ public class PropListExpression extends ASTNode {
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		final int secOff = sectionOffset();
 		final int absolute = secOff+start()+offset;
 		for (final Variable v : this.components())

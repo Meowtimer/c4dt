@@ -6,7 +6,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.NameValueAssignment;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Script;
@@ -35,7 +35,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		this.contents = contents;
 	}
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		if (contents == null)
 			return null;
 		final String[] parts = contents.split("\\|"); //$NON-NLS-1$

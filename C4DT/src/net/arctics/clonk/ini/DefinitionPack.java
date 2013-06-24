@@ -1,5 +1,6 @@
 package net.arctics.clonk.ini;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 
 /**
@@ -7,7 +8,8 @@ import net.arctics.clonk.ini.IniData.IniEntryDefinition;
  * @author madeen
  *
  */
-public class DefinitionPack extends IniEntryValueBase {
+public class DefinitionPack extends IniEntryValue {
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private String value;
 	@Override
 	public String toString() { return value; }

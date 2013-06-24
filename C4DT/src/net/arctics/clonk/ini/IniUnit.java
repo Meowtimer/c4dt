@@ -25,7 +25,9 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.CustomizationNature;
 import net.arctics.clonk.c4group.C4GroupItem;
+import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
@@ -129,6 +131,28 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		}
 	}
 
+	static Object createEntryValueFromString(Class<?> type, String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+		if (value == null)
+			value = ""; //$NON-NLS-1$
+		if (type.equals(IDLiteral.class))
+			return new IDLiteral(ID.get(value));
+		else if (type.equals(String.class))
+			return value;
+		else if (IniEntryValue.class.isAssignableFrom(type))
+			try {
+				final IniEntryValue obj = ((IniEntryValue)type.newInstance());
+				obj.setInput(value, entryData, context);
+				return obj;
+			} catch (InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
+				return null;
+			}
+		else if (type.isEnum())
+			return Utilities.enumValueFromString(type, value);
+		else
+			return null;
+	}
+
 	/**
 	 * Checks whether this entry name/value combination is valid.<br>
 	 * Clients may override. This implementation always returns unmodified <tt>entry</tt>.
@@ -150,8 +174,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		if (dataItem instanceof IniEntryDefinition) {
 			final IniEntryDefinition entryConfig = (IniEntryDefinition) dataItem;
 			try {
-				final Object value = configuration.factory().create(entryConfig.entryClass(), entry.stringValue(), entryConfig, this);
-				return ComplexIniEntry.adaptFrom(entry, value, entryConfig, modifyMarkers);
+				final Object value = createEntryValueFromString(entryConfig.entryClass(), entry.stringValue(), entryConfig, this);
+				return entry.update(value, entryConfig);
 			}
 			catch (final IniParserException e) { // add offsets and throw through
 				// FIXME: whitespace before and after '=' is not taken into account
@@ -529,7 +553,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 						}
 						if (value != null) {
 							final IniSection section = this.requestSection(category, dataSection);
-							final ComplexIniEntry complEntry = new ComplexIniEntry(0, 0, f.getName(), value);
+							final IniEntry complEntry = new IniEntry(0, 0, f.getName(), value);
 							complEntry.setDefinition(entry);
 							section.putEntry(complEntry);
 						}
@@ -549,7 +573,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			if (section == null)
 				return null;
 		}
-		final ComplexIniEntry entry = section != null ? as(section.itemByKey(p[p.length-1]), ComplexIniEntry.class) : null;
+		final IniEntry entry = section != null ? as(section.itemByKey(p[p.length-1]), IniEntry.class) : null;
 		return entry != null ? as(entry.value(), cls) : null;
 	}
 

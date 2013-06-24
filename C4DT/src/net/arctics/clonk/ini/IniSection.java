@@ -11,6 +11,7 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.SourceLocation;
@@ -89,21 +90,13 @@ public class IniSection
 			throw new IllegalArgumentException("node");
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T addDeclaration(T item) {
 		final IniItem ini = (IniItem) item;
 		map.put(ini.key(), ini);
 		list.add(ini);
 		item.setParent(this);
-		try {
-			if (item instanceof IniEntry)
-				return (T)topLevelParentDeclarationOfType(IniUnit.class).validateEntry((IniEntry)item, this, false);
-			else
-				return item;
-		} catch (final IniParserException e) {
-			return null;
-		}
+		return item;
 	}
 
 	public void removeItem(IniItem item) {
@@ -233,4 +226,6 @@ public class IniSection
 				}
 			}
 	}
+	@Override
+	public ASTNode[] subElements() { return list.toArray(new ASTNode[list.size()]); }
 }

@@ -13,13 +13,13 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.c4script.SpecialEngineRules.ScenarioConfigurationProcessing;
+import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.ini.ComplexIniEntry;
-import net.arctics.clonk.ini.IDArray;
 import net.arctics.clonk.ini.IniEntry;
+import net.arctics.clonk.ini.IDArray;
 import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnitParser;
@@ -194,13 +194,13 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					}
 					final DefFinder finder = new DefFinder();
 					scenario.index().allDefinitions(finder);
-					if (finder.found != null && array.find(finder.found.id()) == null) {
+					if (finder.found != null && array.find(new IDLiteral(finder.found.id())) == null) {
 						@SuppressWarnings("unchecked")
 						final
 						KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>)element;
 						final int index = array.components().indexOf(kv);
 						array.components().remove(index);
-						array.components().add(index, new KeyValuePair<ID, Integer>(finder.found.id(), kv.value()));
+						array.components().add(index, new KeyValuePair<IDLiteral, Integer>(new IDLiteral(finder.found.id()), kv.value()));
 						viewer.refresh();
 					}
 				}
@@ -308,7 +308,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 						change = -1;
 					final int[] indices = table.getSelectionIndices();
 					for (int i = indices.length-1; i >= 0; i--) {
-						final KeyValuePair<ID, Integer> kv = array.childCollection().get(indices[i]);
+						final KeyValuePair<IDLiteral, Integer> kv = array.childCollection().get(indices[i]);
 						kv.setValue(Math.max(1, kv.value()+change));
 					}
 					viewer.refresh();
@@ -356,7 +356,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				@Override
 				public boolean performDrop(Object data) {
 					try {
-						final List<KeyValuePair<ID, Integer>> items = DefinitionListEditor.this.array.childCollection();
+						final List<KeyValuePair<IDLiteral, Integer>> items = DefinitionListEditor.this.array.childCollection();
 						int c = items.indexOf(this.target);
 						if (c == -1)
 							c = items.size();
@@ -368,13 +368,13 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 							selection[i] = b.getInt(i*4);
 						@SuppressWarnings("unchecked")
 						final
-						KeyValuePair<ID, Integer>[] draggedItems = new KeyValuePair[selection.length];
+						KeyValuePair<IDLiteral, Integer>[] draggedItems = new KeyValuePair[selection.length];
 						for (int i = selection.length-1; i >= 0; i--) {
 							draggedItems[i] = items.get(selection[i]);
 							if (selection[i] < c)
 								c--;
 						}
-						final List<KeyValuePair<ID, Integer>> draggedItemsList = Arrays.asList(draggedItems);
+						final List<KeyValuePair<IDLiteral, Integer>> draggedItemsList = Arrays.asList(draggedItems);
 						items.removeAll(draggedItemsList);
 						items.addAll(c, draggedItemsList);
 						DefinitionListEditor.this.viewer.refresh();
@@ -447,8 +447,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					}
 					@Override
 					public boolean filter(Definition item) {
-						for (final KeyValuePair<ID, Integer> kv : array.components())
-							if (kv.key().equals(item.id()))
+						for (final KeyValuePair<IDLiteral, Integer> kv : array.components())
+							if (kv.key().idValue().equals(item.id()))
 								return false;
 						return definitionFilter.test(item);
 					}
@@ -465,11 +465,11 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			switch (chooser.open()) {
 			case Window.OK:
 				for (final Definition d : chooser.selectedDefinitions()) {
-					final KeyValuePair<ID, Integer> kv = array.find(d.id());
+					final KeyValuePair<IDLiteral, Integer> kv = array.find(new IDLiteral(d.id()));
 					if (kv != null)
 						kv.setValue(kv.value()+1);
 					else
-						array.add(d.id(), 1);
+						array.add(new IDLiteral(d.id()), 1);
 				}
 				viewer.refresh();
 				break;
@@ -480,7 +480,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			array.components().clear();
 			for (int i = 0; i < other.array.components().size(); i++)
 				try {
-					array.add((KeyValuePair<ID, Integer>) other.array.components().get(i).clone());
+					array.add((KeyValuePair<IDLiteral, Integer>) other.array.components().get(i).clone());
 				} catch (final CloneNotSupportedException e) {
 					e.printStackTrace();
 				}
@@ -577,11 +577,11 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			if (i == null) {
 				final int[] values = new int[4];
 				values[index] = value;
-				final ComplexIniEntry ci = new ComplexIniEntry(-1, -1, entry, new IntegerArray(values));
+				final IniEntry ci = new IniEntry(-1, -1, entry, new IntegerArray(values));
 				i = ci;
 				s.addDeclaration(ci);
 			} else {
-				final IntegerArray ints = (IntegerArray)((ComplexIniEntry)i).value();
+				final IntegerArray ints = (IntegerArray)((IniEntry)i).value();
 				if (ints.values().length <= index)
 					ints.grow(index+1);
 				ints.values()[index].setSummedValue(value);
@@ -590,8 +590,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		private int value(int index) {
 			final IniEntry e = scenarioConfiguration.entryInSection(section, entry);
 			try {
-				return e instanceof ComplexIniEntry && ((ComplexIniEntry)e).value() instanceof IntegerArray
-					? ((IntegerArray)((ComplexIniEntry)e).value()).values()[index].summedValue() : 0;
+				return e instanceof IniEntry && e.value() instanceof IntegerArray
+					? ((IntegerArray)e.value()).values()[index].summedValue() : 0;
 			} catch (final IndexOutOfBoundsException bounds) {
 				return 0;
 			}
@@ -632,9 +632,9 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	}
 
 	public DefinitionListEditor listEditorFor(Composite parent, String sectionName, String entryName, String friendlyName) {
-		ComplexIniEntry entry;
+		IniEntry entry;
 		try {
-			entry = as(scenarioConfiguration.sectionWithName(sectionName, false).itemByKey(entryName), ComplexIniEntry.class);
+			entry = as(scenarioConfiguration.sectionWithName(sectionName, false).itemByKey(entryName), IniEntry.class);
 			if (entry == null)
 				throw new NullPointerException();
 		} catch (final NullPointerException itemCreation) {
@@ -642,8 +642,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				final IniSection section = scenarioConfiguration.sectionWithName(sectionName, true);
 				IniItem item = section.itemByKey(entryName);
 				if (item == null)
-					item = section.addDeclaration(new ComplexIniEntry(-1, -1, entryName, new IDArray()));
-				entry = (ComplexIniEntry)item;
+					item = section.addDeclaration(new IniEntry(-1, -1, entryName, new IDArray()));
+				entry = (IniEntry)item;
 			} catch (final Exception fail) {
 				return null;
 			}

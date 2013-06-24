@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui.search;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
+import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.concurrent.ExecutorService;
 
@@ -8,14 +9,12 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.IASTVisitor;
-import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
@@ -24,14 +23,7 @@ import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Definition.ProxyVar;
-import net.arctics.clonk.index.ID;
-import net.arctics.clonk.ini.ComplexIniEntry;
-import net.arctics.clonk.ini.FunctionEntry;
-import net.arctics.clonk.ini.IDArray;
-import net.arctics.clonk.ini.IniItem;
-import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
-import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.Utilities;
@@ -67,9 +59,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 		return String.format(Messages.ClonkSearchQuery_SearchFor, declaration.toString());
 	}
 
-	private class Visitor implements IResourceVisitor, IASTVisitor<Script>, IEntityLocator {
-		private ProblemReporter ctx;
-
+	private class Visitor extends ExpressionLocator<Structure> implements IResourceVisitor {
 		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
 			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
 				final CallDeclaration callFunc = (CallDeclaration) expression;
@@ -78,7 +68,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 			return false;
 		}
 		@Override
-		public TraversalContinuation visitNode(ASTNode node, Script context) {
+		public TraversalContinuation visitNode(ASTNode node, Structure context) {
 			if (node instanceof AccessDeclaration) {
 				final AccessDeclaration accessDeclExpr = (AccessDeclaration) node;
 				Declaration dec = accessDeclExpr.declaration();
@@ -97,8 +87,8 @@ public class ReferencesSearchQuery extends SearchQuery {
 					result.addMatch(context, node, potential, accessDeclExpr.indirectAccess());
 				}
 			}
-			else if (node instanceof IDLiteral && declaration instanceof Script) {
-				if (((IDLiteral)node).definition() == declaration)
+			else if (node instanceof IDLiteral && declaration instanceof Definition) {
+				if (((IDLiteral)node).idValue().equals(((Definition)declaration).id()))
 					result.addMatch(context, node, false, false);
 			}
 			else if (node instanceof StringLiteral) {
@@ -117,7 +107,6 @@ public class ReferencesSearchQuery extends SearchQuery {
 			}
 			return true;
 		}
-
 		public void searchScript(IResource resource, Script script) {
 			if (script.file() != null) {
 				if (declaration instanceof Definition) {
@@ -136,14 +125,17 @@ public class ReferencesSearchQuery extends SearchQuery {
 				e.printStackTrace();
 			}
 		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public <X> X context(Class<X> cls) {
-			if (cls == ProblemReporter.class)
-				return (X) ctx;
-			else
-				return null;
+		private void searchScriptRelatedFiles(Script script) throws CoreException {
+			if (script instanceof Definition) {
+				final IContainer objectFolder = ((Definition)script).definitionFolder();
+				for (final IResource res : objectFolder.members())
+					if (res instanceof IFile) {
+						final IFile file = (IFile)res;
+						final IniUnit unit = as(Structure.pinned(file, true, false), IniUnit.class);
+						if (unit != null)
+							unit.traverse(this, unit);
+					}
+			}
 		}
 	}
 
@@ -178,51 +170,6 @@ public class ReferencesSearchQuery extends SearchQuery {
 			}
 		}, 20);
 		return new Status(IStatus.OK, Core.PLUGIN_ID, 0, Messages.ClonkSearchQuery_Success, null);
-	}
-
-	private void searchScriptRelatedFiles(Script script) throws CoreException {
-		if (script instanceof Definition) {
-			final IContainer objectFolder = ((Definition)script).definitionFolder();
-			for (final IResource res : objectFolder.members())
-				if (res instanceof IFile) {
-					final IFile file = (IFile)res;
-					final Structure pinned = Structure.pinned(file, true, false);
-					if (pinned instanceof IniUnit) {
-						final IniUnit iniUnit = (IniUnit) pinned;
-						for (final IniSection sec : iniUnit)
-							for (final IniItem entry : sec)
-								searchIniEntry(script, objectFolder, iniUnit, entry);
-					}
-				}
-		}
-	}
-
-	private void searchIniEntry(Script script, final IContainer objectFolder, final IniUnit iniUnit, final IniItem entry) {
-		if (entry instanceof ComplexIniEntry) {
-			final ComplexIniEntry complex = (ComplexIniEntry) entry;
-			if (complex.definition() != null) {
-				final Class<?> entryClass = complex.definition().entryClass();
-				if (entryClass == FunctionEntry.class) {
-					final Definition obj = Definition.definitionCorrespondingToFolder(objectFolder);
-					if (obj != null) {
-						final Declaration declaration = obj.findFunction(complex.stringValue());
-						if (declaration == this.declaration)
-							result.addMatch(iniUnit, complex.start(), complex.getLength(), false, false);
-					}
-				}
-				else if (declaration instanceof Definition)
-					if (entryClass == ID.class) {
-						if (script.index().anyDefinitionWithID((ID) complex.extendedValue()) == declaration)
-							result.addMatch(iniUnit, complex.start(), complex.getLength(), false, false);
-					}
-					else if (entryClass == IDArray.class)
-						for (final KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
-							final Definition obj = script.index().anyDefinitionWithID(pair.key());
-							if (obj == declaration)
-								result.addMatch(iniUnit, complex.start(), complex.getLength(), false, false);
-						}
-			}
-		}
 	}
 
 	@Override

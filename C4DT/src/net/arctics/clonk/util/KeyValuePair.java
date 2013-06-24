@@ -31,8 +31,6 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	public boolean hasChildren() { return true;
 	}
 	@Override
-	public void setValueOfChildAt(int index, Object value) {}
-	@Override
 	public void addChild(ITreeNode node) {}
 	@Override
 	public Collection<? extends ITreeNode> childCollection() { return null; }

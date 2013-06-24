@@ -31,7 +31,7 @@ public class Placeholder extends ASTNode {
 		builder.append('$');
 	}
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		final StringTbl stringTbl = parentOfType(Script.class).localStringTblMatchingLanguagePref();
 		if (stringTbl != null) {
 			final NameValueAssignment entry = stringTbl.map().get(entryName);

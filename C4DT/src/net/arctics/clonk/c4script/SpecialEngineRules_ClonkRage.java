@@ -20,9 +20,9 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 		putFuncRule(objectCreationRule, "FindObject");
 		putFuncRule(setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+			public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 				if (index == 1 && node.name().equals("ObjectSetAction")) {
-					final IType t = processor.typeOf(node.params()[0]);
+					final IType t = script.typings().get(node.params()[0]);
 					if (t != null) for (final IType ty : t)
 						if (ty instanceof Definition) {
 							final Definition def = (Definition)ty;
@@ -31,7 +31,7 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 								return result;
 						}
 				}
-				return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
+				return super.locateEntityInParameter(node, script, index, offsetInExpression, parmExpression);
 			};
 		}, "ObjectSetAction");
 	}

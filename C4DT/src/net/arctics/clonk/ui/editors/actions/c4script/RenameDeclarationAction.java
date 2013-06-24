@@ -6,6 +6,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
+import net.arctics.clonk.ui.editors.ClonkTextEditor;
 import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
@@ -22,22 +23,20 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.RenameDeclaration")
 public class RenameDeclarationAction extends ClonkTextEditorAction {
-
-	public RenameDeclarationAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
-		super(bundle, prefix, editor);
-	}
-
+	public RenameDeclarationAction(ResourceBundle bundle, String prefix, ITextEditor editor) { super(bundle, prefix, editor); }
 	@Override
 	public void run() {
 		try {
-			final IIndexEntity entity = entityAtSelection(false);
+			final Declaration structure = ((ClonkTextEditor)getTextEditor()).structure();
+			IIndexEntity entity = entityAtSelection(false);
+			if (entity == null)
+				entity = structure;
 			if (entity != null)
 				performRenameRefactoring((Declaration)entity, null, 0);
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
-
 	/**
 	 * Perform a Rename Refactoring on the specified declaration. Custom options are passed to {@link RenameDeclarationProcessor#RenameDeclarationProcessor(Declaration, String, int)}
 	 * @param declarationToRename The {@link Declaration} to rename
@@ -58,11 +57,8 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 			}
 		}
 	}
-
 	private static void saveModifiedFiles() {
-
 		final boolean anyModified = EditorUtil.editorPartsToBeSaved().iterator().hasNext();
-
 		if (anyModified) {
 			final ProgressMonitorDialog progressMonitor = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 			try {
@@ -78,5 +74,4 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 			}
 		}
 	}
-
 }

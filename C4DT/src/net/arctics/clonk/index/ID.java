@@ -29,7 +29,7 @@ public final class ID implements Serializable, IDeserializationResolvable {
 	@Override
 	public ID resolve(Index index, IndexEntity deserializee) {
 		synchronized (idPool) {
-			ID special = idPool.get(name);
+			final ID special = idPool.get(name);
 			if (special == null) {
 				idPool.put(name, this);
 				return this;
@@ -45,7 +45,7 @@ public final class ID implements Serializable, IDeserializationResolvable {
 	 */
 	public static ID get(String stringValue) {
 		synchronized (idPool) {
-			ID existing = idPool.get(stringValue);
+			final ID existing = idPool.get(stringValue);
 			return existing != null ? existing : new ID(stringValue);
 		}
 	}
@@ -55,7 +55,7 @@ public final class ID implements Serializable, IDeserializationResolvable {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof ID && ((ID)obj).stringValue().equals(stringValue());
+		return obj == this; // ids are unique and magnifique
 	}
 
 	/* (non-Javadoc)

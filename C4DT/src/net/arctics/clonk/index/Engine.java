@@ -465,14 +465,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			final IniSection fs = descriptions.addDeclaration(new IniSection(f.name()));
 			final String fd = f.userDescription();
 			if (fd != null)
-				fs.addDeclaration(new IniEntry(0, 0, "Description", fd.trim()));
+				fs.addDeclaration(new ComplexIniEntry(0, 0, "Description", fd.trim()));
 			for (final Variable p : f.parameters()) {
 				final String pd = p.userDescription();
 				if (pd == null)
 					continue;
 				final IniSection ps = fs.addDeclaration(new IniSection(p.name()));
 				if (ps != null)
-					ps.addDeclaration(new IniEntry(0, 0, "Description", pd.trim()));
+					ps.addDeclaration(new ComplexIniEntry(0, 0, "Description", pd.trim()));
 				else
 					System.out.println("you should feel bad");
 			}
@@ -483,7 +483,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			if (vd == null)
 				continue;
 			final IniSection vs = descriptions.addDeclaration(new IniSection(v.name()));
-			vs.addDeclaration(new IniEntry(0, 0, "Description", vd.trim()));
+			vs.addDeclaration(new ComplexIniEntry(0, 0, "Description", vd.trim()));
 		}
 		try (FileWriter writer = new FileWriter(file)) {
 			unit.save(new AppendableBackedExprWriter(writer), true);

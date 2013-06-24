@@ -1,12 +1,13 @@
 package net.arctics.clonk.ini;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 
-public class IconSpec extends IniEntryValueBase implements IConvertibleToPrimitive {
-
+public class IconSpec extends IniEntryValue implements IConvertibleToPrimitive {
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private String definition;
 	private int index;
-	
+
 	@Override
 	public Object convertToPrimitive() {
 		return definition;
@@ -14,15 +15,15 @@ public class IconSpec extends IniEntryValueBase implements IConvertibleToPrimiti
 
 	@Override
 	public void setInput(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
-		String[] split = value.split(":");
+		final String[] split = value.split(":");
 		definition = split[0];
 		if (split.length > 1) try {
 			index = Integer.parseInt(split[1]);
-		} catch (NumberFormatException e) {
+		} catch (final NumberFormatException e) {
 			index = 0;
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.format("%s:%d", definition, index);

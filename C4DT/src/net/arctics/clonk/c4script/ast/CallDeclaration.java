@@ -11,7 +11,7 @@ import net.arctics.clonk.ast.ControlFlow;
 import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.c4script.Conf;
@@ -281,7 +281,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		return new EntityRegion(set(declaration()), new Region(start(), name().length()));
 	}
 	public ASTNode soleParm() {

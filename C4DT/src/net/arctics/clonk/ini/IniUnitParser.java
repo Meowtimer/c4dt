@@ -2,6 +2,7 @@ package net.arctics.clonk.ini;
 
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.ast.SourceLocation;
@@ -160,6 +161,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 			if (modifyMarkers)
 				markers.marker(this, Problem.TokenExpected, unit, keyStart+key.length(), tell(), Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, IMarker.SEVERITY_ERROR, (Object)"="); //$NON-NLS-1$
 		eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
+		final int valStart = tell();
 		String value = readStringUntil(BufferedScanner.NEWLINE_CHARS);
 		int valEnd = tell();
 		final int commentStart = value != null ? value.indexOf('#') : -1;
@@ -167,11 +169,13 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 			valEnd -= value.length()-commentStart;
 			value = value.substring(0, commentStart);
 		}
-		//eat(BufferedScanner.NEWLINE_CHARS);
 		final IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
 		entry.setParent(section);
 		try {
-			return unit.validateEntry(entry, section, modifyMarkers);
+			unit.validateEntry(entry, section, modifyMarkers);
+			if (entry.value() instanceof ASTNode)
+				((ASTNode)entry.value()).setLocation(valStart-keyStart, valEnd-keyStart);
+			return entry;
 		} catch (final IniParserException e) {
 			if (modifyMarkers)
 				markers.marker(this, Problem.GenericError, unit, e.offset(), e.endOffset(), Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, e.severity(), (Object)e.getMessage());

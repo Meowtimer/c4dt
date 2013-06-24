@@ -5,7 +5,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.ID;
@@ -53,7 +53,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	 * @param dotNotation If true, the operator represents a '.', otherwise '->'
 	 * @param hasTilde Whether '->' is followed by '~'
 	 * @param id {@link ID} specified after '->'. Can be null.
-	 * @param idOffset Relative offset of id, used for correct hyperlink detection (see {@link #entityAt(int, IEntityLocator)})
+	 * @param idOffset Relative offset of id, used for correct hyperlink detection (see {@link #entityAt(int, ExpressionLocator)})
 	 */
 	public MemberOperator(boolean dotNotation, boolean hasTilde, ID id, int idOffset) {
 		super();
@@ -91,7 +91,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	public boolean isValidAtEndOfSequence() { return false; }
 
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
 			return new EntityRegion(parentOfType(Script.class).nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
 		return null;

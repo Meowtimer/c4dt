@@ -1,5 +1,7 @@
 package net.arctics.clonk.ini;
 
-public class Action extends NamedReference {
+import net.arctics.clonk.Core;
 
+public class Action extends NamedReference {
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 }

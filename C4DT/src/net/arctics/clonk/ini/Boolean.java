@@ -1,5 +1,6 @@
 package net.arctics.clonk.ini;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 
@@ -7,6 +8,7 @@ import net.arctics.clonk.ini.IniData.IniEntryDefinition;
  * Specialization to have fancy checkboxes for it in the ini editor
  */
 public class Boolean extends UnsignedInteger {
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	@Override
 	public Object convertToPrimitive() {
 		return this.getNumber() != 0;

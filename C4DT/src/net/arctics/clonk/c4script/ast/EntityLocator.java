@@ -18,10 +18,8 @@ import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.InitializationFunction;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
@@ -41,7 +39,6 @@ import org.eclipse.jface.text.Region;
 public class EntityLocator extends ExpressionLocator<Void> {
 	private IIndexEntity entity;
 	private Set<IIndexEntity> potentialEntities;
-	private final Script script;
 
 	/**
 	 * Set of entities the location potentially refers to. Filled in the case of a function call for which the object type is not exactly known and similar situations.
@@ -89,7 +86,6 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	 * @throws ProblemException
 	 */
 	public EntityLocator(Script script, IDocument doc, IRegion region) throws BadLocationException, ProblemException {
-		this.script = script;
 		if (script == null)
 			return;
 		final RegionDescription d = new RegionDescription();
@@ -226,14 +222,4 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		}, null);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
 	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <X> X context(Class<X> cls) {
-		if (cls == ProblemReporter.class)
-			return (X) TypeUtil.problemReportingContext(script);
-		else
-			return null;
-	}
-
 }

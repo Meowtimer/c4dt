@@ -6,7 +6,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Variable;
@@ -55,7 +55,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		return new EntityRegion(declaration(), region(0));
 	}
 

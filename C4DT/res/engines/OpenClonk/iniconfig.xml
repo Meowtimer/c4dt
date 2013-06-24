@@ -31,7 +31,7 @@
 	</file>
 	<file name="DefCore.txt">
 		<section name="DefCore">
-			<entry name="id" class="C4ID" description="Id des Objekts."/>
+			<entry name="id" class="ID" description="Id des Objekts."/>
 			<entry name="Version" class="IntegerArray" description="Minimale vom Objekt ben&#xF6;tigte Engine-Version. Dieser Eintrag sollte bei jeder &#xC4;nderung auf die jeweils\n  aktuelle Clonk-Version gesetzt werden, damit ersichtlich ist, zu welchem Zeitpunkt das Objekt erschienen ist."/>
 			<entry name="Category" class="CategoriesValue" description="Kategorie des Objekts. Siehe Objektkategorien." constantsPrefix="C4D_"/>
 			<entry name="TimerCall" class="FunctionEntry" description="Regelm&#xE4;&#xDF;ig aufgerufene Funktion des Objektscripts.\n  Siehe Objektscripte."/>
@@ -59,7 +59,7 @@
 			<entry name="Exclusive" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt dahinterliegende Objekte blockiert."/>
 			<entry name="ContactIncinerate" class="SignedInteger" description="Kontaktentz&#xFC;ndlichkeit: 0 keine, 1 (hoch) bis 5 (niedrig)"/>
 			<entry name="BlastIncinerate" class="SignedInteger" description="Explosionsentz&#xFC;ndlichkeit: 0 keine, sonst bei angegebenem Schadenswert"/>
-			<entry name="BurnTo" class="C4ID" description="Definitionswechsel bei Entz&#xFC;ndung."/>
+			<entry name="BurnTo" class="ID" description="Definitionswechsel bei Entz&#xFC;ndung."/>
 			<entry name="Base" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt Heimatbasis sein kann."/>
 			<entry name="Line" class="CategoriesValue" description="1 Energieleitung, 2 Zuflussrohr, 3 Abflussrohr."/>
 			<entry name="LineConnect" class="CategoriesValue" description="Anschlussf&#xE4;higkeit f&#xFC;r Leitungen.\n  Siehe LineConnect."/>
@@ -69,7 +69,7 @@
 			<entry name="Growth" class="SignedInteger" description="Wachstum des Objekts. Baum 1-4, Lebewesen 15."/>
 			<entry name="Rebuy" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt nach Verkauf zur&#xFC;ckgekauft werden kann."/>
 			<entry name="Construction" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt als Baustelle gebaut werden kann."/>
-			<entry name="ConstructTo" class="C4ID" description="Definitionswechsel beim Bau."/>
+			<entry name="ConstructTo" class="ID" description="Definitionswechsel beim Bau."/>
 			<entry name="Grab" class="SignedInteger" description="0 kein Anfassen, 1 Anfassen und Verschieben, 2 nur Anfassen."/>
 			<entry name="GrabPutGet" class="CategoriesValue" description="Bitmaske: Bit 0 (Wert 1) Grab und Put, Bit 1 (Wert 2) Grab und Get"/>
 			<entry name="Collectible" class="Boolean" description="0 oder 1. Legt fest, ob das Objekt eingesammelt werden kann."/>
@@ -184,8 +184,8 @@
 			<entry name="Friction" class="SignedInteger" description="0-100. Reibung."/>
 			<entry name="DigFree" class="SignedInteger" description="0 oder 1. Bestimmt, ob das Material freigegraben werden kann."/>
 			<entry name="BlastFree" class="SignedInteger" description="0 oder 1. Bestimmt, ob das Material freigesprengt werden kann."/>
-			<entry name="Blast2Object" class="C4ID" description="Freigesprengte Objekte."/>
-			<entry name="Dig2Object" class="C4ID" description="Freigegrabene Objekte."/>
+			<entry name="Blast2Object" class="ID" description="Freigesprengte Objekte."/>
+			<entry name="Dig2Object" class="ID" description="Freigegrabene Objekte."/>
 			<entry name="Dig2ObjectRatio" class="SignedInteger" description="ca. 100-500. Massenverh&#xE4;ltnis beim Freigraben."/>
 			<entry name="Dig2ObjectRequest" class="SignedInteger" description="0 oder 1. Wenn 1, werden Objekte nur auf Wunsch freigegraben."/>
 			<entry name="Dig2ObjectCollect" class="SignedInteger"/>

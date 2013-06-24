@@ -28,6 +28,7 @@ import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.NumberLiteral;
 import net.arctics.clonk.c4script.ast.PropListExpression;
@@ -46,9 +47,8 @@ import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.ini.ComplexIniEntry;
-import net.arctics.clonk.ini.IDArray;
 import net.arctics.clonk.ini.IniEntry;
+import net.arctics.clonk.ini.IDArray;
 import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.PlayerControlsUnit;
@@ -121,16 +121,16 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		};
 		@Override
 		public EntityRegion locateEntityInParameter(
-			CallDeclaration node, ProblemReporter processor, int index,
+			CallDeclaration node, Script script, int index,
 			int offsetInExpression, ASTNode parmExpression
 		) {
 			if (parmExpression instanceof StringLiteral && node.params().length >= 1 && node.params()[0] == parmExpression) {
 				final String effectName = ((StringLiteral)parmExpression).literal();
-				final Effect effect = processor.script().effects().get(effectName);
+				final Effect effect = script.script().effects().get(effectName);
 				if (effect != null)
 					return new EntityRegion(new HashSet<IIndexEntity>(effect.functions().values()), new Region(parmExpression.start()+1, parmExpression.getLength()-2));
 			}
-			return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
+			return super.locateEntityInParameter(node, script, index, offsetInExpression, parmExpression);
 		}
 	};
 
@@ -189,10 +189,10 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return false; // default validation
 		}
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			String property;
 			if (index == 0 && (property = as(parmExpression.evaluateStatic(callFunc.parentOfType(Function.class)), String.class)) != null) {
-				final IType ty = callFunc.predecessorInSequence() != null ? processor.typeOf(callFunc.predecessorInSequence()) : processor.script();
+				final IType ty = callFunc.predecessorInSequence() != null ? script.typings().get(callFunc.predecessorInSequence()) : script.script();
 				final Set<Variable> vars = new HashSet<Variable>();
 				for (final IType t : ty)
 					if (t instanceof IProplistDeclaration) {
@@ -344,17 +344,17 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return null;
 			};
 			@Override
-			public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+			public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 				if (index != 0)
 					return null;
-				final IType t = node.predecessorInSequence() != null ? processor.typeOf(node.predecessorInSequence()) : null;
+				final IType t = node.predecessorInSequence() != null ? script.typings().get(node.predecessorInSequence()) : null;
 				if (t != null) for (final IType ty : t)
 					if (ty instanceof Definition) {
 						final EntityRegion result = actionLinkForDefinition(node.parentOfType(Function.class), (Definition)ty, parmExpression);
 						if (result != null)
 							return result;
 					}
-				return super.locateEntityInParameter(node, processor, index, offsetInExpression, parmExpression);
+				return super.locateEntityInParameter(node, script, index, offsetInExpression, parmExpression);
 			};
 			@Override
 			public void contributeAdditionalProposals(CallDeclaration node, int index, ASTNode parmExpression, ScriptCompletionProcessor completions, ProposalsSite pl) {
@@ -413,12 +413,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	private final ASTNode PLACE_CALL;
 
-	public class ComputedScenarioConfigurationEntry extends ComplexIniEntry {
+	public class ComputedScenarioConfigurationEntry extends IniEntry {
 		public ComputedScenarioConfigurationEntry(String key, IDArray values) {
 			super(-1, -1, key, values);
 		}
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public class Item extends KeyValuePair<ID, Integer> {
+		public class Item extends KeyValuePair<IDLiteral, Integer> {
 			private transient CallDeclaration placeCall;
 			@Override
 			public Item clone() throws CloneNotSupportedException {
@@ -428,7 +428,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			}
 			public CallDeclaration placeCall() { return placeCall; }
 			public Item(ID first, Integer second, CallDeclaration placeCall) {
-				super(first, second);
+				super(new IDLiteral(first), second);
 				this.placeCall = placeCall;
 			}
 			public boolean updatePlaceCall() {
@@ -450,14 +450,14 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		}
 		public boolean updatePlaceCalls(Function function, List<ASTNode> modified) {
 			boolean wholeFunc = false;
-			for (final KeyValuePair<ID, Integer> kv : value().components())
+			for (final KeyValuePair<IDLiteral, Integer> kv : value().components())
 				if (kv instanceof Item) {
 					final Item item = (Item)kv;
 					if (item.updatePlaceCall())
 						modified.add(item.num());
 				} else {
 					final Statement newStatement = SimpleStatement.wrapExpression(PLACE_CALL.transform(ArrayUtil.<String, Object>map(false,
-						"id", new Object[] {new AccessVar(kv.key().stringValue())},
+						"id", new Object[] {new AccessVar(kv.key().idValue().stringValue())},
 						"placeCall", new Object[] {new CallDeclaration("Place", new IntegerLiteral(kv.value()))}
 					), null));
 					wholeFunc = true;
@@ -524,7 +524,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return PLACE_CALL.match(s, this) && id != null && placeCall != null && determineConfigurationInsertionPoint();
 			}
 			public boolean matchedButNoCorrespondingItem() {
-				return matched && entry.value().find(definition().id()) == null;
+				return matched && entry.value().find(new IDLiteral(definition().id())) == null;
 			}
 		}
 		switch (processing) {
@@ -554,8 +554,8 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					for (int i = 0; i < matches.size(); i++)
 						if (matches.get(i).first() == s && matches.get(i).second().definition() != null) {
 							int ndx = 0;
-							for (final KeyValuePair<ID, Integer> kv : vegetation.value().components())
-								if (kv.key().equals(matches.get(i).second().definition().id()))
+							for (final KeyValuePair<IDLiteral, Integer> kv : vegetation.value().components())
+								if (kv.key().idValue().equals(matches.get(i).second().definition().id()))
 									return ndx;
 								else
 									ndx++;

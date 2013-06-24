@@ -1,20 +1,28 @@
 package net.arctics.clonk.ini;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.util.KeyValuePair;
 
-public class IDArray extends KeyValueArrayEntry<ID, Integer> {
+public class IDArray extends ArrayValue<IDLiteral, Integer> {
+	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public IDArray() { super(); }
 	@SafeVarargs
-	public IDArray(KeyValuePair<ID, Integer>... values) {
-		for (KeyValuePair<ID, Integer> v : values)
+	public IDArray(KeyValuePair<IDLiteral, Integer>... values) {
+		for (final KeyValuePair<IDLiteral, Integer> v : values)
 			add(v);
 	}
 	@Override
-	public KeyValuePair<ID, Integer> singleComponentFromString(String s) {
-		String[] idAndCount = s.split("="); //$NON-NLS-1$
+	public KeyValuePair<IDLiteral, Integer> singleComponentFromString(int offset, String s) {
+		final String[] idAndCount = s.split("="); //$NON-NLS-1$
 		if (idAndCount.length < 2)
 			return null;
-		return new KeyValuePair<ID, Integer>(ID.get(idAndCount[0].trim()), Integer.parseInt(idAndCount[1].trim()));
+		final IDLiteral lit = new IDLiteral(ID.get(idAndCount[0].trim()));
+		lit.setLocation(offset, offset+lit.idValue().stringValue().length());
+		return new KeyValuePair<IDLiteral, Integer>(
+			lit,
+			Integer.parseInt(idAndCount[1].trim())
+		);
 	}
 }

@@ -24,7 +24,7 @@ import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.ini.CategoriesValue;
-import net.arctics.clonk.ini.ComplexIniEntry;
+import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.DefCoreUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IHasRelatedResource;
@@ -428,7 +428,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 */
 	public CategoriesValue category() {
 		final DefCoreUnit defCore = defCore();
-		final ComplexIniEntry category = defCore != null ? as(defCore.itemInSection("DefCore", "Category"), ComplexIniEntry.class) : null;
+		final IniEntry category = defCore != null ? as(defCore.itemInSection("DefCore", "Category"), IniEntry.class) : null;
 		return category != null ? as(category.value(), CategoriesValue.class) : null;
 	}
 

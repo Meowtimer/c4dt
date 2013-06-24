@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
+import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
@@ -54,75 +55,57 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.PlatformUI;
 
 public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration<IniTextEditor> {
-	
 	public static Pattern NO_ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)"); //$NON-NLS-1$
 	public static Pattern ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*"); //$NON-NLS-1$
-	
 	private static final ScannerPerEngine<IniScanner> SCANNERS = new ScannerPerEngine<IniScanner>(IniScanner.class);
-	
+	private ContentAssistant assistant;
 	private static class IniSourceHyperlinkPresenter extends DefaultHyperlinkPresenter {
-
-		public IniSourceHyperlinkPresenter(IPreferenceStore store) {
-			super(store);
-		}
-		
-		public IniSourceHyperlinkPresenter(RGB color) {
-			super(color);
-		}
-		
+		public IniSourceHyperlinkPresenter(IPreferenceStore store) { super(store); }
+		public IniSourceHyperlinkPresenter(RGB color) { super(color); }
 		@Override
-		public void hideHyperlinks() {
-			//getEditor().forgetUnitParsed();
-			super.hideHyperlinks();
-		}
-		
+		public void hideHyperlinks() { super.hideHyperlinks(); }
 		@Override
-		public void documentChanged(DocumentEvent event) {
-			super.documentChanged(event);
-		}
-		
+		public void documentChanged(DocumentEvent event) { super.documentChanged(event); }
 	}
-	
 	private class IniSourceHyperlinkDetector implements IHyperlinkDetector {
-		
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			if (!editor().ensureIniUnitUpToDate())
 				return null;
 			try {
-				IRegion lineRegion = textViewer.getDocument().getLineInformationOfOffset(region.getOffset());
-				String line = textViewer.getDocument().get(lineRegion.getOffset(), lineRegion.getLength());
+				final IRegion lineRegion = textViewer.getDocument().getLineInformationOfOffset(region.getOffset());
+				final String line = textViewer.getDocument().get(lineRegion.getOffset(), lineRegion.getLength());
 				Matcher m;
-				IniSection section = editor().unit().sectionAtOffset(region.getOffset());
+				final IniSection section = editor().unit().sectionAtOffset(region.getOffset());
 				if (section != null && section.definition() != null) {
-					int relativeOffset = region.getOffset()-lineRegion.getOffset();
+					final int relativeOffset = region.getOffset()-lineRegion.getOffset();
 					if ((m = ASSIGN_PATTERN.matcher(line)).matches()) {
-						boolean hoverOverAttrib = relativeOffset < m.start(2);
-						String attrib = m.group(1);
+						final boolean hoverOverAttrib = relativeOffset < m.start(2);
+						final String attrib = m.group(1);
 						final String value = m.group(2);
 						if (!hoverOverAttrib) {
 							// link stuff on the value side
-							IniDataBase dataItem = section.definition().entryForKey(attrib);
+							final IniDataBase dataItem = section.definition().entryForKey(attrib);
 							int linkStart = lineRegion.getOffset()+m.start(2), linkLen = value.length();
 							if (dataItem instanceof IniEntryDefinition) {
-								IniEntryDefinition entry = (IniEntryDefinition) dataItem;
-								Class<?> entryClass = entry.entryClass();
+								final IniEntryDefinition entry = (IniEntryDefinition) dataItem;
+								final Class<?> entryClass = entry.entryClass();
 								Declaration declaration = null;
-								if (entryClass == ID.class) {
-									IResource r = Utilities.fileEditedBy(editor());
-									Index index = ProjectIndex.fromResource(r);
+								if (entryClass == IDLiteral.class) {
+									final IResource r = Utilities.fileEditedBy(editor());
+									final Index index = ProjectIndex.fromResource(r);
 									declaration = index.definitionNearestTo(r, ID.get(value));
 								}
 								else if (entryClass == FunctionEntry.class) {
-									Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileEditedBy(editor()).getParent());
+									final Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileEditedBy(editor()).getParent());
 									if (obj != null)
 										declaration = obj.findFunction(value);
 								}
 								else if (entryClass == IDArray.class) {
-									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
-									IResource r = Utilities.fileEditedBy(editor());
-									Index index = ProjectIndex.fromResource(r);
-									String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
+									final IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
+									final IResource r = Utilities.fileEditedBy(editor());
+									final Index index = ProjectIndex.fromResource(r);
+									final String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
 									if (index.engine() != null && index.engine().acceptsId(id)) {
 										declaration = index.definitionNearestTo(r, ID.get(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
@@ -130,11 +113,11 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == Action.class) {
-									IniUnitWithNamedSections iniUnit = (IniUnitWithNamedSections) editor().unit();
+									final IniUnitWithNamedSections iniUnit = (IniUnitWithNamedSections) editor().unit();
 									declaration = iniUnit.sectionMatching(iniUnit.nameMatcherPredicate(value));
 								}
 								else if (entryClass == CategoriesValue.class || entryClass == IntegerArray.class) {
-									IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
+									final IRegion idRegion = Utilities.wordRegionAt(line, relativeOffset);
 									if (idRegion.getLength() > 0) {
 										declaration = editor().unit().engine().findVariable(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength()));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
@@ -142,13 +125,13 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 									}
 								}
 								else if (entryClass == DefinitionPack.class) {
-									Index projIndex = ProjectIndex.fromResource(Utilities.fileEditedBy(editor()).getParent()).index();
-									List<Index> indexes = projIndex.relevantIndexes();
-									for (Index index : indexes)
+									final Index projIndex = ProjectIndex.fromResource(Utilities.fileEditedBy(editor()).getParent()).index();
+									final List<Index> indexes = projIndex.relevantIndexes();
+									for (final Index index : indexes)
 										if (index instanceof ProjectIndex) {
-											ProjectIndex pi = (ProjectIndex) index;
-											IPath path = Path.fromPortableString(value.replaceAll("\\\\", "/"));
-											IResource res = pi.nature().getProject().findMember(path);
+											final ProjectIndex pi = (ProjectIndex) index;
+											final IPath path = Path.fromPortableString(value.replaceAll("\\\\", "/"));
+											final IResource res = pi.nature().getProject().findMember(path);
 											if (res instanceof IContainer)
 												return new IHyperlink[] {
 													new HyperlinkToResource(res, new Region(linkStart, linkLen), PlatformUI.getWorkbench().getActiveWorkbenchWindow())
@@ -156,20 +139,20 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 										}
 								}
 								else if (entryClass == IconSpec.class) {
-									String firstPart = value.split(":")[0];
-									IResource r = Utilities.fileEditedBy(editor());
-									Index index = ProjectIndex.fromResource(r);
+									final String firstPart = value.split(":")[0];
+									final IResource r = Utilities.fileEditedBy(editor());
+									final Index index = ProjectIndex.fromResource(r);
 									declaration = index.definitionNearestTo(r, ID.get(firstPart));
 								}
 								else if (entryClass == String.class) {
-									EntityRegion reg = StringTbl.entryForLanguagePref(value, 0, relativeOffset, editor().unit(), true);
+									final EntityRegion reg = StringTbl.entryForLanguagePref(value, 0, relativeOffset, editor().unit(), true);
 									if (reg != null) {
 										declaration = reg.entityAs(Declaration.class);
 										linkStart += reg.region().getOffset();
 										linkLen = reg.region().getLength();
 									}
 								}
-								
+
 								if (declaration != null)
 									return new IHyperlink[] {
 										new ClonkHyperlink(new Region(linkStart, linkLen), declaration)
@@ -179,76 +162,67 @@ public class IniSourceViewerConfiguration extends ClonkSourceViewerConfiguration
 					}
 				}
 				return null;
-			} catch (BadLocationException e) {
+			} catch (final BadLocationException e) {
 				//e.printStackTrace(); oh well, happens
 				return null;
-			} catch (NullPointerException e) {
+			} catch (final NullPointerException e) {
 				// ignore, due to file being at unusual location
 				return null;
 			}
 		}
-		
 	}
-	
 	@Override
 	public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
 		if (fPreferenceStore == null)
 			return new IniSourceHyperlinkPresenter(new RGB(0, 0, 255));
 		return new IniSourceHyperlinkPresenter(fPreferenceStore);
 	}
-	
 	@Override
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
 		try {
 			return new IHyperlinkDetector[] {
 				new IniSourceHyperlinkDetector()
 			};
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
-	
 	public IniSourceViewerConfiguration(IPreferenceStore store, ColorManager colorManager, IniTextEditor textEditor) {
 		super(store, colorManager, textEditor);
 	}
-
 	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
-		PresentationReconciler reconciler = new PresentationReconciler();
-		
-		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(SCANNERS.get(editor().unit().engine()));
+		final PresentationReconciler reconciler = new PresentationReconciler();
+
+		final DefaultDamagerRepairer dr = new DefaultDamagerRepairer(SCANNERS.get(editor().unit().engine()));
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
-		
+
 		return reconciler;
 	}
-	
-	private ContentAssistant assistant;
-	
 	@Override
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 		if (assistant != null)
 			return assistant;
-		
+
 		assistant = new ContentAssistant();
-		IniCompletionProcessor processor = new IniCompletionProcessor(editor(), assistant);
+		final IniCompletionProcessor processor = new IniCompletionProcessor(editor(), assistant);
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.addCompletionListener(processor);
 		assistant.install(sourceViewer);
-		
+
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
-		
+
 		assistant.setStatusLineVisible(true);
 		assistant.setStatusMessage(Utilities.fileEditedBy(editor()).getName() + " proposals"); //$NON-NLS-1$
-		
+
 		assistant.enablePrefixCompletion(false);
 		assistant.enableAutoInsert(true);
 		assistant.enableAutoActivation(true);
-		
+
 		assistant.enableColoredLabels(true);
-		
+
 		return assistant;
 	}
-	
 }

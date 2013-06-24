@@ -346,7 +346,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param locator TODO
 	 * @return An object describing the referenced entity or null if no entity is referenced.
 	 */
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		return null;
 	}
 

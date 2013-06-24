@@ -4,7 +4,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.typing.IType;
@@ -95,7 +95,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		if (type instanceof IIndexEntity && offset < type.typeName(false).length())
 			return new EntityRegion((IIndexEntity) type, new Region(start(), type.typeName(false).length()));
 		else

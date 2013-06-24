@@ -9,20 +9,16 @@ import org.eclipse.jface.text.Region;
  * @author madeen
  *
  */
-public class ExpressionLocator<T> implements IASTVisitor<T>, IEntityLocator {
-	
+public class ExpressionLocator<T> implements IASTVisitor<T> {
 	protected ASTNode exprAtRegion;
 	protected ASTNode topLevelInRegion;
 	protected IRegion exprRegion;
-	
 	// derived classes don't need to call the one-arg constructor
 	public ExpressionLocator() {}
-	
 	public ASTNode topLevelInRegion() { return topLevelInRegion; }
 	public ExpressionLocator(IRegion exprRegion) { this.exprRegion = exprRegion; }
 	public ExpressionLocator(int pos) { this(new Region(pos, 0)); }
 	public ASTNode expressionAtRegion() { return exprAtRegion; }
-
 	@Override
 	public TraversalContinuation visitNode(ASTNode expression, Object context) {
 		expression.traverse(new IASTVisitor<Object>() {
@@ -39,10 +35,4 @@ public class ExpressionLocator<T> implements IASTVisitor<T>, IEntityLocator {
 		}, context);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
 	}
-	
-	@Override
-	public <X> X context(Class<X> cls) { 
-		return null;
-	}
-
 }

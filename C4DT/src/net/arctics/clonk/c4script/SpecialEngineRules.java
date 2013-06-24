@@ -53,12 +53,11 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ini.CategoriesValue;
-import net.arctics.clonk.ini.ComplexIniEntry;
+import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IDArray;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
-import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniUnitWithNamedSections;
@@ -284,14 +283,14 @@ public abstract class SpecialEngineRules {
 		 * Actually only called for {@link StringLiteral}s since other kinds of expressions don't lend themselves to refer to
 		 * something only in special contexts.
 		 * @param callFunc Function call the passed expression is a parameter of
-		 * @param processor processor
+		 * @param script processor
 		 * @param index parameter index
 		 * @param offsetInExpression Character offset in the parameter expression
 		 * @param parmExpression Parameter expression that should be made link-clickable
 		 * @return Return null if no declaration could be found that is referred to.
 		 */
 		@SignifiesRole(role=DECLARATION_LOCATOR)
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			return null;
 		}
 		/**
@@ -485,7 +484,7 @@ public abstract class SpecialEngineRules {
 			if (declarationName.equals("Find_Func") && node.params().length >= 1) {
 				final Object ev = node.params()[0].evaluateStatic(node.parentOfType(Function.class));
 				if (ev instanceof String)
-					return typeByFunction(processor, ev);
+					return typeByFunction(processor.script(), ev);
 			}
 			return null;
 		}
@@ -527,8 +526,8 @@ public abstract class SpecialEngineRules {
 				}
 			return processor.script().typing().unify(types);
 		}
-		private IType typeByFunction(ProblemReporter processor, final Object ev) {
-			final List<Declaration> functions = functionsNamed(processor, (String)ev);
+		private IType typeByFunction(Script script, final Object ev) {
+			final List<Declaration> functions = functionsNamed(script, (String)ev);
 			final List<IType> types = new ArrayList<IType>(functions.size());
 			for (final Declaration f : functions)
 				if (f.script() instanceof Definition)
@@ -536,21 +535,21 @@ public abstract class SpecialEngineRules {
 				else if (f.script() != null)
 					for (final Directive directive : f.script().directives())
 						if (directive.type() == DirectiveType.APPENDTO) {
-							final Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
+							final Definition def = f.script().index().definitionNearestTo(script.resource(), directive.contentAsID());
 							if (def != null)
 								types.add(def);
 						}
-			for (final Index index : processor.script().index().relevantIndexes())
+			for (final Index index : script.index().relevantIndexes())
 				for (final Function f : index.declarationsWithName((String)ev, Function.class))
 					if (f.script() instanceof Definition)
 						types.add(f.script());
 					else for (final Directive directive : f.script().directives())
 						if (directive.type() == DirectiveType.APPENDTO) {
-							final Definition def = f.script().index().definitionNearestTo(processor.script().resource(), directive.contentAsID());
+							final Definition def = f.script().index().definitionNearestTo(script.resource(), directive.contentAsID());
 							if (def != null)
 								types.add(def);
 						}
-			final IType ty = processor.script().typing().unify(types);
+			final IType ty = script.typing().unify(types);
 			return ty;
 		};
 	};
@@ -599,12 +598,12 @@ public abstract class SpecialEngineRules {
 			return false; // don't stop regular parameter validating
 		};
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral) parmExpression;
 				final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(offsetInExpression-1); // make up for '"'
 				try {
-					ScriptsHelper.parseStandaloneNode(lit.literal(), node.parentOfType(Function.class), locator, null, processor.script().engine(), null);
+					ScriptsHelper.parseStandaloneNode(lit.literal(), node.parentOfType(Function.class), locator, null, script.engine(), null);
 				} catch (final ProblemException e) {}
 				if (locator.expressionAtRegion() != null) {
 					final EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, locator);
@@ -619,11 +618,11 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"ScheduleCall"})
 	public final SpecialFuncRule scheduleCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral) parmExpression;
-				final IType t = processor.typeOf(callFunc.params()[0]);
-				final Script scriptToLookIn = t instanceof Script ? (Script)t : processor.script();
+				final IType t = script.typings().get(callFunc.params()[0]);
+				final Script scriptToLookIn = t instanceof Script ? (Script)t : script;
 				final Function func = scriptToLookIn.findFunction(lit.literal());
 				if (func != null)
 					return new EntityRegion(func, new Region(lit.start()+1, lit.getLength()-2));
@@ -671,11 +670,11 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"GameCall"})
 	public final SpecialFuncRule gameCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, ProblemReporter processor, int parameterIndex, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int parameterIndex, int offsetInExpression, ASTNode parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				final Index index = processor.script().index();
-				final Scenario scenario = Scenario.nearestScenario(processor.script().resource());
+				final Index index = script.index();
+				final Scenario scenario = Scenario.nearestScenario(script.resource());
 				if (scenario != null) {
 					final Function scenFunc = scenario.findFunction(lit.stringValue());
 					if (scenFunc != null)
@@ -706,10 +705,10 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Call"})
 	public final SpecialFuncRule callLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				final Function f = processor.script().findFunction(lit.stringValue());
+				final Function f = script.findFunction(lit.stringValue());
 				if (f != null)
 					return new EntityRegion(f, lit.identifierRegion());
 			}
@@ -723,14 +722,14 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"PrivateCall", "PublicCall", "PrivateCall"})
 	public final SpecialFuncRule scopedCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				Definition def = processor.typeOf(callFunc.params()[0], Definition.class);
+				Definition def = as(script.typings().get(callFunc.params()[0]), Definition.class);
 				if (def == null && callFunc.predecessorInSequence() != null)
-					def = processor.typeOf(callFunc.predecessorInSequence(), Definition.class);
+					def = as(script.typings().get(callFunc.predecessorInSequence()), Definition.class);
 				if (def == null)
-					def = processor.definition();
+					def = as(script, Definition.class);
 				if (def != null) {
 					final Function f = def.findFunction(lit.stringValue());
 					if (f != null)
@@ -747,14 +746,14 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"LocalN"})
 	public final SpecialFuncRule localNLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				Definition def = callFunc.params().length > 1 ? processor.typeOf(callFunc.params()[1], Definition.class) : null;
+				Definition def = callFunc.params().length > 1 ? as(script.typings().get(callFunc.params()[1]), Definition.class) : null;
 				if (def == null && callFunc.predecessorInSequence() != null)
-					def = processor.typeOf(callFunc.predecessorInSequence(), Definition.class);
+					def = as(script.typings().get(callFunc.predecessorInSequence()), Definition.class);
 				if (def == null)
-					def = processor.definition();
+					def = as(script, Definition.class);
 				if (def != null) {
 					final Variable var = def.findVariable(lit.stringValue());
 					if (var != null)
@@ -780,14 +779,14 @@ public abstract class SpecialEngineRules {
 	};
 
 	public abstract class LocateResourceByNameRule extends SpecialFuncRule {
-		public abstract Set<IIndexEntity> locateEntitiesByName(CallDeclaration node, String name, ProjectIndex pi, ProblemReporter processor);
+		public abstract Set<IIndexEntity> locateEntitiesByName(CallDeclaration node, String name, ProjectIndex pi, Script script);
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			Object parmEv;
 			if (index == 0 && (parmEv = parmExpression.evaluateStatic(node.parentOfType(Function.class))) instanceof String) {
 				final String resourceName = (String)parmEv;
-				final ProjectIndex pi = (ProjectIndex)processor.script().index();
-				final Set<IIndexEntity> e = locateEntitiesByName(node, resourceName, pi, processor);
+				final ProjectIndex pi = (ProjectIndex)script.index();
+				final Set<IIndexEntity> e = locateEntitiesByName(node, resourceName, pi, script);
 				if (e != null)
 					return new EntityRegion(e, parmExpression);
 			}
@@ -801,8 +800,8 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"CreateParticle", "CastAParticles", "CastParticles", "CastBackParticles", "PushParticles"})
 	public final SpecialFuncRule linkToParticles = new LocateResourceByNameRule() {
 		@Override
-		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, ProblemReporter processor) {
-			final IIndexEntity unit = pi.findPinnedStructure(ParticleUnit.class, name, processor.script().resource(), true, "Particle.txt");
+		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, Script script) {
+			final IIndexEntity unit = pi.findPinnedStructure(ParticleUnit.class, name, script.resource(), true, "Particle.txt");
 			return ArrayUtil.set(unit);
 		}
 	};
@@ -814,12 +813,12 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Format"})
 	public final SpecialFuncRule linkFormat = new LocateResourceByNameRule() {
 		@Override
-		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration formatCall, String name, ProjectIndex pi, ProblemReporter processor) {
+		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration formatCall, String name, ProjectIndex pi, Script script) {
 			final CallDeclaration containingCall = as(formatCall.parent(), CallDeclaration.class);
 			if (containingCall != null && containingCall.indexOfParm(formatCall) == 0) {
 				final SpecialFuncRule rule = formatCall.parentOfType(Declaration.class).engine().specialRules().funcRuleFor(containingCall.name(), DECLARATION_LOCATOR);
 				if (rule instanceof LocateResourceByNameRule)
-					return ((LocateResourceByNameRule)rule).locateEntitiesByName(formatCall, name, pi, processor);
+					return ((LocateResourceByNameRule)rule).locateEntitiesByName(formatCall, name, pi, script);
 			}
 			return null;
 		}
@@ -840,8 +839,8 @@ public abstract class SpecialEngineRules {
 			}
 		}
 		@Override
-		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, ProblemReporter processor) {
-			final Engine engine = processor.script().engine();
+		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, Script script) {
+			final Engine engine = script.engine();
 			name = name.replace(".", "\\\\.").replaceAll("[\\*\\?]", ".*?").replace("%d", "[0-9]*");
 			final HashSet<IIndexEntity> results = new HashSet<IIndexEntity>();
 			boolean extensionWildcardNeeded = true;
@@ -854,7 +853,7 @@ public abstract class SpecialEngineRules {
 				name += "\\." + StringUtil.writeBlock(null, "(", ")", "|", engine.settings().supportedSoundFileExtensions());
 			final Matcher nameMatcher = Pattern.compile(name).matcher("");
 			final String soundGroupName = "Sound."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
-			final IResource r = processor.script().resource();
+			final IResource r = script.resource();
 			for (
 				IContainer c = r instanceof IContainer ? (IContainer)r : r != null ? r.getParent() : null, d = null;
 				c != null;
@@ -875,8 +874,8 @@ public abstract class SpecialEngineRules {
 	 */
 	protected class SetActionLinkRule extends SpecialFuncRule {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration node, ProblemReporter processor, int index, int offsetInExpression, ASTNode parmExpression) {
-			return actionLinkForDefinition(node.parentOfType(Function.class), processor.definition(), parmExpression);
+		public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+			return actionLinkForDefinition(node.parentOfType(Function.class), as(script, Definition.class), parmExpression);
 		}
 		protected EntityRegion actionLinkForDefinition(Function currentFunction, Definition definition, ASTNode actionNameExpression) {
 			Object parmEv;
@@ -904,7 +903,7 @@ public abstract class SpecialEngineRules {
 	public SpecialFuncRule setActionLinkRule = new SetActionLinkRule();
 
 	private abstract class SearchCriteriaRuleBase extends SpecialFuncRule {
-		protected List<Declaration> functionsNamed(ProblemReporter processor, final String name) {
+		protected List<Declaration> functionsNamed(Script script, final String name) {
 			final List<Declaration> matchingDecs = new LinkedList<Declaration>();
 			final Sink<Script> scriptSink = new Sink<Script>() {
 				@Override
@@ -917,7 +916,7 @@ public abstract class SpecialEngineRules {
 					}
 				}
 			};
-			processor.script().index().forAllRelevantIndexes(new Sink<Index>() {
+			script.index().forAllRelevantIndexes(new Sink<Index>() {
 				@Override
 				public void receivedObject(Index index) {
 					index.allScripts(scriptSink);
@@ -933,11 +932,11 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Find_Func"})
 	public final SpecialFuncRule findFuncRule = new SearchCriteriaRuleBase() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, ProblemReporter processor,
+		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script,
 			int index, int offsetInExpression, ASTNode parmExpression) {
 			if (parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				final List<Declaration> matchingDecs = functionsNamed(processor, lit.stringValue());
+				final List<Declaration> matchingDecs = functionsNamed(script, lit.stringValue());
 				if (matchingDecs.size() > 0)
 					return new EntityRegion(new HashSet<IIndexEntity>(matchingDecs), lit.identifierRegion());
 			}
@@ -1023,9 +1022,9 @@ public abstract class SpecialEngineRules {
 	}
 
 	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
-		if (entry instanceof ComplexIniEntry && ((ComplexIniEntry)entry).definition() != null && ((ComplexIniEntry)entry).definition().categoryFilter() != null)
+		if (entry instanceof IniEntry && entry.definition() != null && entry.definition().categoryFilter() != null)
 			return new IPredicate<Definition>() {
-				final String filter = ((ComplexIniEntry)entry).definition().categoryFilter();
+				final String filter = entry.definition().categoryFilter();
 				@Override
 				public boolean test(Definition item) {
 					final CategoriesValue category = item.category();

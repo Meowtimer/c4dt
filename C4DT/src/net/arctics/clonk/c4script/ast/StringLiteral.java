@@ -4,10 +4,9 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
-import net.arctics.clonk.ast.IEntityLocator;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.SourceLocation;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
@@ -39,7 +38,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, IEntityLocator locator) {
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 
 		// first check if a string tbl entry is referenced
 		final EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), parentOfType(Script.class), true);
@@ -53,12 +52,9 @@ public final class StringLiteral extends Literal<String> {
 			// delegate finding a link to special function rules
 			final SpecialFuncRule funcRule = parentOfType(Declaration.class).engine().specialRules().funcRuleFor(parentFunc.name(), SpecialEngineRules.DECLARATION_LOCATOR);
 			if (funcRule != null) {
-				final ProblemReporter reporter = locator.context(ProblemReporter.class);
-				if (reporter != null) {
-					final EntityRegion region = funcRule.locateEntityInParameter(parentFunc, reporter, myIndex, offset, this);
-					if (region != null)
-						return region;
-				}
+				final EntityRegion region = funcRule.locateEntityInParameter(parentFunc, parentOfType(Script.class), myIndex, offset, this);
+				if (region != null)
+					return region;
 			}
 		}
 		return super.entityAt(offset, locator);
