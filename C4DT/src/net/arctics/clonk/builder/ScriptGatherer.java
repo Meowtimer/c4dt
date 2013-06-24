@@ -48,7 +48,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 					final Definition d = (Definition)item;
 					if (d.definitionFolder() == null || !d.definitionFolder().equals(deleted))
 						return;
-				} else if (item.scriptFile() == null || !item.scriptFile().equals(deleted))
+				} else if (item.file() == null || !item.file().equals(deleted))
 					return;
 				obsoleted.add(item);
 				decision(Decision.AbortIteration);
@@ -123,7 +123,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 					}
 					obsoleted.remove(script);
 				}
-				if (script != null && file.equals(script.scriptFile()))
+				if (script != null && file.equals(script.file()))
 					builder.queueScript(script);
 				else
 					processAuxiliaryFiles(file, script);

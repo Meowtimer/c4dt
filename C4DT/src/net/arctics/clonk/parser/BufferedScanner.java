@@ -493,21 +493,11 @@ public class BufferedScanner implements ICharacterScanner {
 		return this.readStringAt(region.getOffset(), region.getOffset()+region.getLength());
 	}
 
-	/**
-	 * Returns the line region is contained in as a region
-	 * @param text the string to look for the line in
-	 * @param regionInLine the region
-	 * @return the line region
-	 */
-	public static IRegion regionOfLineContainingRegion(char[] text, IRegion regionInLine) {
-		int start, end;
-		for (start = regionInLine.getOffset(); start > 0 && start < text.length && !isLineDelimiterChar(text[start-1]); start--);
-		for (end = regionInLine.getOffset()+regionInLine.getLength(); end+1 < text.length && !isLineDelimiterChar(text[end+1]); end++);
-		return new Region(start, end-start+1);
-	}
-
 	public final IRegion regionOfLineContainingRegion(IRegion regionInLine) {
-		return regionOfLineContainingRegion(this.buffer, regionInLine);
+		int start, end;
+		for (start = regionInLine.getOffset(); start > 0 && start < this.buffer.length && !isLineDelimiterChar(this.buffer[start-1]); start--);
+		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < this.buffer.length && !isLineDelimiterChar(this.buffer[end]); end++);
+		return new Region(start, end-start);
 	}
 
 	/**

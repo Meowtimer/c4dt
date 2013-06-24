@@ -42,7 +42,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 			if (node == null)
 				return TraversalContinuation.Continue;
 			final Script script = node.parentOfType(Script.class);
-			if (script == null || script.scriptFile() == null)
+			if (script == null || script.file() == null)
 				return TraversalContinuation.Continue;
 			final String s = node.text();
 			int markerPriority;
@@ -62,7 +62,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 					if (lineEnd == -1)
 						lineEnd = s.length();
 					searchStart = lineEnd;
-					markers.todo(script.scriptFile(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
+					markers.todo(script.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
 				}
 			} while (markerPriority > IMarker.PRIORITY_LOW);
 			return TraversalContinuation.Continue;
@@ -190,7 +190,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 			final Script script = parentOfType(Script.class);
 			if (script == null)
 				return null;
-			final ScriptParser commentParser = new ScriptParser(comment, script, script.scriptFile()) {
+			final ScriptParser commentParser = new ScriptParser(comment, script, script.file()) {
 				@Override
 				protected void initialize() {
 					super.initialize();

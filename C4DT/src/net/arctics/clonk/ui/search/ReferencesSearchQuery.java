@@ -119,7 +119,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 		}
 
 		public void searchScript(IResource resource, Script script) {
-			if (script.scriptFile() != null) {
+			if (script.file() != null) {
 				if (declaration instanceof Definition) {
 					final Directive include = script.directiveIncludingDefinition((Definition) declaration);
 					if (include != null)
@@ -207,19 +207,19 @@ public class ReferencesSearchQuery extends SearchQuery {
 					if (obj != null) {
 						final Declaration declaration = obj.findFunction(complex.stringValue());
 						if (declaration == this.declaration)
-							result.addMatch(new SearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
+							result.addMatch(iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false);
 					}
 				}
 				else if (declaration instanceof Definition)
 					if (entryClass == ID.class) {
 						if (script.index().anyDefinitionWithID((ID) complex.extendedValue()) == declaration)
-							result.addMatch(new SearchMatch(complex.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
+							result.addMatch(iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false);
 					}
 					else if (entryClass == IDArray.class)
 						for (final KeyValuePair<ID, Integer> pair : ((IDArray)complex.extendedValue()).components()) {
 							final Definition obj = script.index().anyDefinitionWithID(pair.key());
 							if (obj == declaration)
-								result.addMatch(new SearchMatch(pair.toString(), 0, iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false));
+								result.addMatch(iniUnit, complex.end()-complex.stringValue().length(), complex.stringValue().length(), false, false);
 						}
 			}
 		}

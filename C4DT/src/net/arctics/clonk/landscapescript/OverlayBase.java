@@ -66,7 +66,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	}
 
 	public boolean setAttribute(String attr, String valueLo, String valueHi) throws SecurityException, NoSuchFieldException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		Field f = getClass().getField(attr);
+		final Field f = getClass().getField(attr);
 		if (f != null) {
 			if (f.getType().getSuperclass() == Enum.class)
 				f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), valueLo)); //$NON-NLS-1$
@@ -86,7 +86,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	}
 
 	public void copyFromTemplate(OverlayBase template) throws IllegalArgumentException, IllegalAccessException {
-		for (Field field : getClass().getFields())
+		for (final Field field : getClass().getFields())
 			field.set(this, field.get(template));
 	}
 
@@ -103,7 +103,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	}
 
 	public String typeName() {
-		for (String key : DEFAULT_CLASS.keySet())
+		for (final String key : DEFAULT_CLASS.keySet())
 			if (DEFAULT_CLASS.get(key).equals(this.getClass()))
 				return key;
 		return null;
@@ -112,7 +112,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	@Override
 	public void doPrint(ASTNodePrinter builder, int depth) {
 		try {
-			String type = typeName();
+			final String type = typeName();
 			if (type != null) {
 				builder.append(type);
 				if (nodeName() != null) {
@@ -121,9 +121,9 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 				}
 				builder.append(" {\n"); //$NON-NLS-1$
 			}
-			for (Field f : this.getClass().getFields())
+			for (final Field f : this.getClass().getFields())
 				if (Modifier.isPublic(f.getModifiers()) && !Modifier.isStatic(f.getModifiers())) {
-					Object val = f.get(this);
+					final Object val = f.get(this);
 					// flatly cloned attributes of template -> don't print
 					// FIXME: doesn't work for enums of course -.-
 					if (val != null && (template() == null || (val != f.get(template())))) {
@@ -135,14 +135,14 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 						builder.append("\n"); //$NON-NLS-1$
 					}
 				}
-			Collection<? extends OverlayBase> children = this.childCollection();
+			final Collection<? extends OverlayBase> children = this.childCollection();
 			if (children != null) {
 				Operator lastOp = null;
-				for (OverlayBase child : children) {
+				for (final OverlayBase child : children) {
 					if (lastOp == null)
 						builder.append(StringUtil.multiply(Conf.indentString, depth));
 					child.print(builder, depth+1);
-					Operator op = child.operator();
+					final Operator op = child.operator();
 					if (op != null) {
 						builder.append(" "); //$NON-NLS-1$
 						builder.append(op.toString());
@@ -156,7 +156,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 				builder.append(StringUtil.multiply(Conf.indentString, depth));
 				builder.append("}"); //$NON-NLS-1$
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}

@@ -6,7 +6,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.parser.BufferedScanner;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -18,9 +18,18 @@ import org.eclipse.search.ui.text.AbstractTextSearchResult;
 import org.eclipse.search.ui.text.IEditorMatchAdapter;
 import org.eclipse.search.ui.text.IFileMatchAdapter;
 
+/**
+ * Represents a search result for the various searches.
+ * @author madeen
+ *
+ */
 public class SearchResult extends AbstractTextSearchResult {
 	private final SearchQuery query;
-	private final Map<Script, BufferedScanner> scanners = new HashMap<>();
+	private final Map<Structure, BufferedScanner> scanners = new HashMap<>();
+	/**
+	 * Create as the result of the specified query.
+	 * @param query The query the created object is to be the result of
+	 */
 	public SearchResult(SearchQuery query) { this.query = query; }
 	@Override
 	public IEditorMatchAdapter getEditorMatchAdapter() { return query; }
@@ -34,26 +43,42 @@ public class SearchResult extends AbstractTextSearchResult {
 	public ISearchQuery getQuery() { return query; }
 	@Override
 	public String getTooltip() { return null; }
-	public void addMatch(Script script, boolean potential, boolean indirect, int s, int l) {
+	/**
+	 * Add a match of the query which was found in a {@link Structure}.
+	 * @param structure The structure
+	 * @param charStart Absolute character offset where the match starts
+	 * @param charLength Length of the match
+	 * @param potential Flag indicating that the match is only potential and not definite
+	 * @param indirect Flag indicating whether the match indirectly refers to the declaration references were searched for.
+	 */
+	public void addMatch(Structure structure, int charStart, int charLength, boolean potential, boolean indirect) {
 		BufferedScanner scanner;
 		synchronized (scanners) {
-			scanner = scanners.get(script);
+			scanner = scanners.get(structure);
 			if (scanner == null) {
-				scanner = Core.instance().performActionsOnFileDocument(script.source(), new IDocumentAction<BufferedScanner>() {
+				scanner = Core.instance().performActionsOnFileDocument(structure.file(), new IDocumentAction<BufferedScanner>() {
 					@Override
-					public BufferedScanner run(IDocument document) {
-						return new BufferedScanner(document.get());
-					}
+					public BufferedScanner run(IDocument document) { return new BufferedScanner(document.get()); }
 				}, false);
-				scanners.put(script, scanner);
+				scanners.put(structure, scanner);
 			}
 		}
-		final IRegion lineRegion = scanner.regionOfLineContainingRegion(new Region(s, l));
+		final IRegion lineRegion = scanner.regionOfLineContainingRegion(new Region(charStart, charLength));
 		final String line = scanner.bufferSubstringAtRegion(lineRegion);
-		addMatch(new SearchMatch(line, lineRegion.getOffset(), script, s, l, potential, indirect));
+		addMatch(new SearchMatch(line, lineRegion.getOffset(), structure, charStart, charLength, potential, indirect));
 	}
-	public void addMatch(Script script, ASTNode match, boolean potential, boolean indirect) {
-		addMatch(script, potential, indirect, match.identifierStart()+match.sectionOffset(), match.identifierLength());
+	/**
+	 * Add a match described by an {@link ASTNode}.
+	 * @param structure The {@link Structure} in which the match was found
+	 * @param match Node. Relevant properties describing the location of the match are {@link ASTNode#identifierStart()}, {@link ASTNode#identifierLength()} plus {@link ASTNode#sectionOffset()}.
+	 * @param potential Flag indicating that the match is only potential and not definite
+	 * @param indirect Flag indicating whether the match indirectly refers to the declaration references were searched for.
+	 */
+	public void addMatch(Structure structure, ASTNode match, boolean potential, boolean indirect) {
+		addMatch(structure, match.identifierStart()+match.sectionOffset(), match.identifierLength(), potential, indirect);
 	}
+	/**
+	 * Clear internally maintained list of {@link BufferedScanner}s that were created for each file in which a match was found.
+	 */
 	public void clearScanners() { scanners.clear(); }
 }

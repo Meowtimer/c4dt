@@ -44,7 +44,7 @@ public abstract class SearchQuery implements ISearchQuery, IFileMatchAdapter, IE
 	@Override
 	public IFile getFile(Object element) {
 		if (element instanceof Script)
-			return  ((Script)element).scriptFile();
+			return  ((Script)element).file();
 		if (element instanceof IFile)
 			return (IFile)element;
 		if (element instanceof IHasRelatedResource)

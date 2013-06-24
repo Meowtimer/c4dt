@@ -74,7 +74,7 @@ public final class StringLiteral extends Literal<String> {
 		if (r.singleDeclarationRegionUsed != null && literal().matches("\\$.*?\\$"))
 			context.reportOriginForExpression(this, r.singleDeclarationRegionUsed.region(), (IFile) r.singleDeclarationRegionUsed.entityAs(Declaration.class).resource());
 		else if (!r.anySubstitutionsApplied)
-			context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().scriptFile());
+			context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().file());
 		return r.evaluated;
 	}
 

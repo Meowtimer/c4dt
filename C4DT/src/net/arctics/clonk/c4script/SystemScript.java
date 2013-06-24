@@ -110,7 +110,7 @@ public class SystemScript extends Script implements Serializable {
 				if (index != null)
 					for (final Script script : index.indexedScripts()) {
 						final SystemScript sysScript = as(script, SystemScript.class);
-						if (sysScript != null && sysScript.scriptFile() != null && sysScript.scriptFile().equals(resource)) {
+						if (sysScript != null && sysScript.file() != null && sysScript.file().equals(resource)) {
 							try {
 								index.loadEntity(sysScript);
 							} catch (final Exception e) {
@@ -133,7 +133,7 @@ public class SystemScript extends Script implements Serializable {
 			if (d.type() == DirectiveType.APPENDTO) {
 				final ID id = d.contentAsID();
 				if (id != null) {
-					final Definition def = index().definitionNearestTo(scriptFile(), id);
+					final Definition def = index().definitionNearestTo(file(), id);
 					if (def != null)
 						targets.add(def);
 				}

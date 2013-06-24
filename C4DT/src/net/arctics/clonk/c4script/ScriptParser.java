@@ -788,7 +788,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				t = null;
 			else if (t == null && typing.allowsNonParameterAnnotations()) {
 				if (script.index() != null && engine.acceptsId(str))
-					t = script.index().definitionNearestTo(script.scriptFile(), ID.get(str));
+					t = script.index().definitionNearestTo(script.file(), ID.get(str));
 			}
 			else if (pt != null && script != engine)
 				/* give explicit parameter types authority boost -

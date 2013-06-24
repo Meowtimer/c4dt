@@ -224,4 +224,9 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		return d;
 	}
 
+	public IFile file() {
+		final Structure p = parentOfType(Structure.class);
+		return p != null ? p.file() : null;
+	}
+
 }

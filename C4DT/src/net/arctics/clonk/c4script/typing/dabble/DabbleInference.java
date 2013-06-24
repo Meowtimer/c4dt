@@ -921,7 +921,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public Script script() { return input().script; }
 			@Override
-			public IFile file() { return script().scriptFile(); }
+			public IFile file() { return script().file(); }
 			@Override
 			public Declaration container() { return script(); }
 			@Override

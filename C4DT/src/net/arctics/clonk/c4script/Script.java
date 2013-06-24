@@ -776,7 +776,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public abstract IStorage source();
 
-	public final IFile scriptFile() {
+	@Override
+	public final IFile file() {
 		final IStorage storage = source();
 		return storage instanceof IFile ? (IFile)storage : null;
 	}
@@ -1287,7 +1288,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	public void saveNodes(final Collection<? extends ASTNode> expressions, final boolean absoluteLocations) {
-		Core.instance().performActionsOnFileDocument(scriptFile(), new IDocumentAction<Boolean>() {
+		Core.instance().performActionsOnFileDocument(file(), new IDocumentAction<Boolean>() {
 			@Override
 			public Boolean run(IDocument document) {
 				try {

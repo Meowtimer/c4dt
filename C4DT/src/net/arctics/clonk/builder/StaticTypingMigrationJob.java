@@ -33,7 +33,7 @@ final class StaticTypingMigrationJob extends TypingMigrationJob {
 		monitor.beginTask("Static Typing Migration", parsers.length);
 		runWithoutAutoBuild(new Runnable() { @Override public void run() {
 			for (final ScriptParser parser : parsers) {
-				if (parser != null && parser.script() != null && parser.script().scriptFile() != null)
+				if (parser != null && parser.script() != null && parser.script().file() != null)
 					insertTypeAnnotations(parser);
 				monitor.worked(1);
 			}
@@ -44,7 +44,7 @@ final class StaticTypingMigrationJob extends TypingMigrationJob {
 	}
 
 	private void insertTypeAnnotations(final ScriptParser parser) {
-		Core.instance().performActionsOnFileDocument(parser.script().scriptFile(), new IDocumentAction<Object>() {
+		Core.instance().performActionsOnFileDocument(parser.script().file(), new IDocumentAction<Object>() {
 			@Override
 			public Object run(IDocument document) {
 				final StringBuilder builder = new StringBuilder(document.get());

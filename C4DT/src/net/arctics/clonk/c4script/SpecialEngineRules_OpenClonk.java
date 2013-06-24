@@ -258,7 +258,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			if (parmIndex+1 >= arguments.length) {
 				if (evTracer.tracedFile == null)
 					return true;
-				if (evTracer.tracedFile.equals(processor.script().scriptFile())) {
+				if (evTracer.tracedFile.equals(processor.script().file())) {
 					processor.markers().error(processor, Problem.MissingFormatArg, node, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION,
 							formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 					return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
@@ -584,7 +584,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	private Function appendFunction(final Script script, final String name) {
 		Function f;
-		Core.instance().performActionsOnFileDocument(script.scriptFile(), new IDocumentAction<Void>() {
+		Core.instance().performActionsOnFileDocument(script.file(), new IDocumentAction<Void>() {
 			@Override
 			public Void run(IDocument document) {
 				final String oldContents = document.get();

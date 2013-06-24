@@ -30,7 +30,7 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 
 	@Override
 	public T evaluateStatic(IEvaluationContext context) {
-		context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().scriptFile());
+		context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().file());
 		return literal();
 	}
 

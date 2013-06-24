@@ -126,7 +126,7 @@ public class ASTSearchQuery extends SearchQuery {
 					}
 				}
 				for (final Script s : scope)
-					if (s.scriptFile() != null)
+					if (s.file() != null)
 						item.execute(new ScriptSearcher(s));
 			}
 		}, 20);

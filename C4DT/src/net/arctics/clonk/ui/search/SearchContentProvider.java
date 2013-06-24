@@ -28,7 +28,7 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 
 	private final boolean flat;
 	private SearchResult searchResult;
-	
+
 	public SearchContentProvider(SearchResultPage page, boolean flat) {
 		super();
 		this.flat = flat;
@@ -52,15 +52,15 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 		if (element instanceof ITreeNode)
 			return ((ITreeNode)element).childCollection().size() > 0;
 		else
-			return searchResult.getMatchCount(element) > 0;		
+			return searchResult.getMatchCount(element) > 0;
 	}
 
 	@Override
 	public Object[] getElements(Object input) {
 		if (flat) {
-			List<Match> matches = new LinkedList<Match>(); 
-			for (Object elm : searchResult.getElements())
-				for (Match m : searchResult.getMatches(elm))
+			final List<Match> matches = new LinkedList<Match>();
+			for (final Object elm : searchResult.getElements())
+				for (final Match m : searchResult.getMatches(elm))
 					matches.add(m);
 			return matches.toArray(new Match[matches.size()]);
 		} else
@@ -75,7 +75,7 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		searchResult = (SearchResult) newInput;
 	}
-	
+
 	@Override
 	public String getText(Object element) {
 		if (element instanceof Function)
@@ -87,7 +87,7 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 	}
 	@Override
 	public Image getImage(Object element) {
-		Engine engine = element instanceof Declaration ? ((Declaration)element).engine() : null;
+		final Engine engine = element instanceof Declaration ? ((Declaration)element).engine() : null;
 		if (engine != null) {
 			if (element instanceof Scenario)
 				return engine.image(GroupType.ScenarioGroup);
@@ -95,10 +95,10 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 				return engine.image(GroupType.DefinitionGroup);
 			if (element instanceof SystemScript)
 				return UI.SCRIPT_ICON;
-			
+
 		}
 		else if (element instanceof IHasLabelAndImage) {
-			IHasLabelAndImage lblimg = (IHasLabelAndImage) element;
+			final IHasLabelAndImage lblimg = (IHasLabelAndImage) element;
 			return lblimg.image();
 		}
 		return super.getImage(element);
@@ -106,24 +106,24 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 	@Override
 	public StyledString getStyledText(Object element) {
 		if (element instanceof SearchMatch) try {
-			StyledString result = new StyledString();
-			SearchMatch match = (SearchMatch) element;
-			String firstHalf = match.line().substring(0, match.getOffset()-match.lineOffset());
-			String matchStr = match.line().substring(match.getOffset()-match.lineOffset(), match.getOffset()-match.lineOffset()+match.getLength());
-			String secondHalf = match.line().substring(match.getOffset()-match.lineOffset()+match.getLength(), match.line().length());
+			final StyledString result = new StyledString();
+			final SearchMatch match = (SearchMatch) element;
+			final String firstHalf = match.line().substring(0, match.getOffset()-match.lineOffset());
+			final String matchStr = match.line().substring(match.getOffset()-match.lineOffset(), match.getOffset()-match.lineOffset()+match.getLength());
+			final String secondHalf = match.line().substring(match.getOffset()-match.lineOffset()+match.getLength(), match.line().length());
 			result.append(firstHalf);
 			result.append(matchStr, StyledString.DECORATIONS_STYLER);
 			result.append(secondHalf);
 			result.append(" - ");
-			result.append(match.structure().resource().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
+			result.append(match.structure().file().getProjectRelativePath().toOSString(), StyledString.QUALIFIER_STYLER);
 			return result;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return new StyledString(((SearchMatch)element).line());
 		}
 		else if (element instanceof Function)
 			return new StyledString(((Function)element).qualifiedName());
 		else if (element instanceof IHasLabelAndImage) {
-			IHasLabelAndImage lblimg = (IHasLabelAndImage) element;
+			final IHasLabelAndImage lblimg = (IHasLabelAndImage) element;
 			return new StyledString(lblimg.label());
 		}
 		return new StyledString(element.toString());
@@ -135,7 +135,7 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 			public int compare(Viewer viewer, Object e1, Object e2) {
 				try {
 					return getText(e1).compareTo(getText(e2));
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					return -1;
 				}
 			}
