@@ -147,6 +147,19 @@ public class Definition extends Script implements IProplistDeclaration {
 		}
 	}
 
+	@Override
+	public void deriveInformation() {
+		super.deriveInformation();
+		if (definitionFolder != null)
+			try {
+				for (final IResource r : definitionFolder.members())
+					if (r instanceof IFile)
+						processDefinitionFolderFile((IFile)r);
+			} catch (CoreException | IOException e) {
+				e.printStackTrace();
+			}
+	}
+
 	public Map<String, String> localizedNames() {
 		return localizedNames;
 	}
