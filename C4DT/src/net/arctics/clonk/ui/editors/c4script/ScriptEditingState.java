@@ -225,11 +225,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			if (functionBodies)
 				captureMarkersInFunctionBodies();
 			else
-				captureExistingMarkers(structure().scriptFile());
+				captureExistingMarkers(structure().file());
 		}
 		private void captureMarkersInFunctionBodies() {
 			try {
-				captured = new ArrayList<>(Arrays.asList(structure().scriptFile().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
+				captured = new ArrayList<>(Arrays.asList(structure().file().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
 				for (final Iterator<IMarker> it = captured.iterator(); it.hasNext();) {
 					final IMarker c = it.next();
 					if (structure().funcAt(c.getAttribute(IMarker.CHAR_START, -1)) == null)
@@ -367,55 +367,53 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	@Override
 	public synchronized Script structure() {
 		Script result = cachedScript.get();
-		if (result != null) {
-			this.structure = result;
-			return result;
-		}
+		Cases: if (result == null) {
+			if (editors.isEmpty()) {
+				result = structure;
+				break Cases;
+			}
 
-		if (editors.isEmpty())
-			return structure;
+			final IEditorInput input = editors.get(0).getEditorInput();
+			if (input instanceof ScriptWithStorageEditorInput) {
+				result = ((ScriptWithStorageEditorInput)input).script();
+				break Cases;
+			}
 
-		final IEditorInput input = editors.get(0).getEditorInput();
-		if (input instanceof ScriptWithStorageEditorInput)
-			result = ((ScriptWithStorageEditorInput)input).script();
-
-		if (result == null) {
 			final IFile f = Utilities.fileFromEditorInput(input);
 			if (f != null) {
 				final Script script = Script.get(f, true);
-				if (script != null)
+				if (script != null) {
 					result = script;
+					break Cases;
+				}
 			}
-		}
 
-		boolean needsReparsing = false;
-		if (result == null && cachedScript.get() == null) {
 			result = new ScratchScript(editors.get(0));
-			needsReparsing = true;
-		}
-		cachedScript = new WeakReference<Script>(result);
-		if (needsReparsing)
+			cachedScript = new WeakReference<Script>(result);
 			try {
 				reparse();
+				result.traverse(new IASTVisitor<Script>() {
+					@Override
+					public TraversalContinuation visitNode(ASTNode node, Script parser) {
+						final AccessDeclaration ad = as(node, AccessDeclaration.class);
+						if (ad != null && ad.declaration() != null)
+							ad.setDeclaration(ad.declaration().latestVersion());
+						return TraversalContinuation.Continue;
+					}
+				}, result);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		if (result != null)
-			result.traverse(new IASTVisitor<Script>() {
-				@Override
-				public TraversalContinuation visitNode(ASTNode node, Script parser) {
-					final AccessDeclaration ad = as(node, AccessDeclaration.class);
-					if (ad != null && ad.declaration() != null)
-						ad.setDeclaration(ad.declaration().latestVersion());
-					return TraversalContinuation.Continue;
-				}
-			}, result);
+		}
+
+		cachedScript = new WeakReference<Script>(result);
 		return this.structure = result;
 	}
 
 	@Override
 	public void invalidate() {
 		cachedScript = new WeakReference<Script>(null);
+		structure();
 		super.invalidate();
 	}
 

@@ -310,8 +310,8 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	public ASTNode section() { return functionAtCursor(); }
 
 	public Script script() {
-		final ScriptEditingState listener = state();
-		return listener != null ? listener.structure() : null;
+		final ScriptEditingState state = state();
+		return state != null ? state.structure() : null;
 	}
 
 	public ScriptParser reparse(boolean onlyDeclarations) throws IOException, ProblemException {
