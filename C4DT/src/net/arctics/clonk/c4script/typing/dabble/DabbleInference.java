@@ -150,7 +150,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	@Override
 	public DabbleInference configure(Index index, String args) {
 		super.configure(index, args);
-		typing = index.typing();
+		typing = defaulting(index != null ? index.typing() : null, Typing.PARAMETERS_OPTIONALLY_TYPED);
 		for (final String a : args.split("\\|")) //$NON-NLS-1$
 			switch (a) {
 			case "noticeParameterCountMismatch": //$NON-NLS-1$

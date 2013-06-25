@@ -30,6 +30,7 @@ public class DabbleInferenceTest extends TestBase {
 		final Markers inferenceMarkers = new Markers();
 		Setup(final... scripts) {
 			super(scripts)
+			inference.configure(index, "")
 			parsers.each { it.run() }
 			index.refresh()
 			this.scripts.each { it.deriveInformation() }
