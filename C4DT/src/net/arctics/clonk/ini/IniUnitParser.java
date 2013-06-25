@@ -59,10 +59,8 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 				end = tell();
 				eat(BufferedScanner.NEWLINE_CHARS); // ignore rest of section line
 			}
-			final IniSection section = new IniSection(new SourceLocation(
-				start - (parentSection != null ? parentSection.sectionOffset() : 0),
-				end - (parentSection != null ? parentSection.sectionOffset() : 0)
-			), name);
+			final int psoff = parentSection != null ? parentSection.absoluteOffset() : 0;
+			final IniSection section = new IniSection(new SourceLocation(start-psoff, end-psoff), name);
 			section.setParent(parentSection != null ? parentSection : unit);
 			section.setIndentation(indentation);
 			// parse entries

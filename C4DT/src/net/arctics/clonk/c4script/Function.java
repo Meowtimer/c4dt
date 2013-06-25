@@ -820,14 +820,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return body = null;
 	}
 
-	/**
-	 * Return the cached block without performing checks.
-	 * @return The cached code block
-	 */
-	public FunctionBody body() {
-		return bodyMatchingSource(null);
-	}
-
 	@Override
 	public <T extends Declaration> T latestVersionOf(T from) {
 		if (from instanceof Variable)
@@ -835,27 +827,22 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		else
 			return null;
 	}
-
-	@Override
-	public int absoluteExpressionsOffset() {
-		return bodyLocation().getOffset();
-	}
-
 	@Override
 	public Object valueForVariable(AccessVar access) {
-		if (access.predecessorInSequence() == null)
-			return findVariable(access.name()); // return meta object instead of concrete value
-		else
-			return null;
+		return access.predecessorInSequence() == null ? findVariable(access.name()) : null;
 	}
 
 	@Override
 	public Object[] arguments() {
-		synchronized (parameters) {
-			return parameters.toArray();
-		}
+		synchronized (parameters) { return parameters.toArray(); }
 	}
-
+	@Override
+	public int absoluteExpressionsOffset() { return bodyLocation().getOffset(); }
+	/**
+	 * Return the cached block without performing checks.
+	 * @return The cached code block
+	 */
+	public FunctionBody body() { return bodyMatchingSource(null); }
 	@Override
 	public Object cookie() { return null; }
 	@Override
@@ -868,6 +855,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public boolean isLocal() { return true; }
 	@Override
 	public ASTNode code() { return body(); }
+	@Override
+	public ASTNode[] subElements() { return concat(super.subElements(), body()); }
+	@Override
+	public void setSubElements(ASTNode[] elms) { storeBody(elms[0], ""); }
+	@Override
+	public int absoluteOffset() { return bodyLocation().start(); }
+	@Override
+	public IRegion selectionRegion() { return wholeBody(); }
 
 	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, final Script context, Variable... parameters) {
 		final StringBuilder builder = new StringBuilder();
@@ -893,20 +888,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public ASTNode[] subElements() {
-		return concat(super.subElements(), body());
-	}
-	@Override
-	public void setSubElements(ASTNode[] elms) { storeBody(elms[0], ""); }
-
-	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		printHeader(output);
 		Conf.blockPrelude(output, depth);
 		body.print(output, depth);
 	}
-
-	@Override
-	public int absoluteOffset() { return bodyLocation().start(); }
-
 }

@@ -211,10 +211,6 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 	@Override
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) { return null; }
 	@Override
-	public char[] getCompletionProposalAutoActivationCharacters() { return new char[] {'='}; }
-	@Override
-	public char[] getContextInformationAutoActivationCharacters() { return null; }
-	@Override
 	public IContextInformationValidator getContextInformationValidator() { return null; }
 	@Override
 	public void assistSessionEnded(ContentAssistEvent event) { state().unlockUnit(); }

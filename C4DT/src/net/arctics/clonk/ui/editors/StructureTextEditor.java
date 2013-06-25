@@ -6,7 +6,10 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.DeclarationLocation;
+import net.arctics.clonk.ast.IASTSection;
+import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
@@ -26,6 +29,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.source.Annotation;
@@ -211,9 +215,7 @@ public class StructureTextEditor extends TextEditor {
 		return null;
 	}
 
-	protected void refreshStructure() {
-
-	}
+	protected void refreshStructure() {}
 
 	public IIndexEntity entityAtRegion(boolean fallbackToCurrentFunction, IRegion r) {
 		return null;
@@ -251,8 +253,35 @@ public class StructureTextEditor extends TextEditor {
 		return listener != null ? listener.structure() : null;
 	}
 
+	public int cursorPos() {
+		return ((TextSelection)getSelectionProvider().getSelection()).getOffset();
+	}
+
 	public ASTNode section() {
-		return null;
+		final Declaration structure = structure();
+		if (structure != null) {
+			class SectionFinder implements IASTVisitor<Void> {
+				int cursorPos = cursorPos();
+				ASTNode section = null;
+				@Override
+				public TraversalContinuation visitNode(ASTNode node, Void context) {
+					if (node instanceof IASTSection) {
+						final IRegion abs = node.absolute();
+						if (cursorPos > abs.getOffset() && cursorPos < abs.getOffset()+abs.getLength()) {
+							section = node;
+							return TraversalContinuation.TraverseSubElements;
+						}
+					}
+					return section != null ? TraversalContinuation.TraverseSubElements : TraversalContinuation.Continue;
+				}
+			};
+			final SectionFinder finder = new SectionFinder();
+			structure.traverse(finder, null);
+			if (finder.section != null)
+				System.out.println(finder.section.toString());
+			return finder.section;
+		} else
+			return null;
 	}
 
 	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$

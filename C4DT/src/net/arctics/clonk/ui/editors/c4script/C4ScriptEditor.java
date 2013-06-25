@@ -15,9 +15,9 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.EntityLocator;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
-import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
 import net.arctics.clonk.ui.editors.StructureEditingState;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.c4script.EvaluateC4Script;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicatesAction;
@@ -36,7 +36,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextOperationTarget;
-import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.swt.events.KeyEvent;
@@ -221,14 +220,9 @@ public class C4ScriptEditor extends StructureTextEditor {
 		}
 	}
 
-	public int cursorPos() {
-		return ((TextSelection)getSelectionProvider().getSelection()).getOffset();
-	}
-
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
-
 		// highlight active function
 		final Function f = functionAtCursor();
 		boolean noHighlight = true;
@@ -238,11 +232,9 @@ public class C4ScriptEditor extends StructureTextEditor {
 		}
 		if (noHighlight)
 			this.resetHighlightRange();
-
 		// inform auto edit strategy about cursor position change so it can delete its override regions
 		state().autoEditStrategy().removeOverrideRegionsNotAtLine(
 			cursorPos(), getDocumentProvider().getDocument(getEditorInput()));
-
 	}
 
 	@Override

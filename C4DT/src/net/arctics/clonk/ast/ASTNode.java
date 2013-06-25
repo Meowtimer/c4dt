@@ -675,11 +675,24 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	private transient int localIdentifier = -1;
 	public final int localIdentifier() { return localIdentifier; }
 	public final void localIdentifier(int v) { localIdentifier = v; }
-
 	public final int sectionOffset() {
-		final IASTSection f = parentOfType(IASTSection.class);
+		final IASTSection f = section();
 		return f != null ? f.absoluteOffset() : 0;
 	}
+	public IASTSection section() { return parentOfType(IASTSection.class); }
 	public IRegion absolute() { return this.region(sectionOffset()); }
+
+	public void shift(int localInsertionOffset, int amount) {
+		for (final ASTNode node : subElements())
+			if (node != null) {
+				if (node.start() >= localInsertionOffset)
+					node.setStart(node.start()+amount);
+				if (node.end() >= localInsertionOffset)
+					node.setEnd(node.end()+amount);
+			}
+		final IASTSection section = section();
+		if (section != null)
+			((ASTNode)section).shift(localInsertionOffset, amount);
+	}
 
 }

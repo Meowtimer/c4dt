@@ -1,5 +1,7 @@
 package net.arctics.clonk.ini;
 
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTSection;
@@ -12,4 +14,6 @@ public abstract class IniEntryValue extends ASTNode implements IASTSection {
 	public boolean isEmpty() { return false; }
 	@Override
 	public int absoluteOffset() { return sectionOffset()+start; }
+	@Override
+	public IRegion selectionRegion() { return absolute(); }
 }

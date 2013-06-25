@@ -2,6 +2,8 @@ package net.arctics.clonk.ini;
 
 import java.util.Collection;
 
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -45,6 +47,8 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 	public Object value() { return value; }
 	@Override
 	public int absoluteOffset() { return sectionOffset()+start; }
+	@Override
+	public IRegion selectionRegion() { return absolute(); }
 	@Override
 	public Object[] children() {
 		if (value instanceof IHasChildrenWithContext)

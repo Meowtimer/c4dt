@@ -14,6 +14,7 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
@@ -25,10 +26,11 @@ import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.jface.text.IRegion;
 
 public class IniSection
 	extends Declaration
-	implements IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>, IniItem
+	implements IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>, IniItem, IASTSection
 {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -74,6 +76,12 @@ public class IniSection
 	public Object[] subDeclarationsForOutline() { return hasChildren() ? this.children() : null; }
 	@Override
 	public Iterator<IniItem> iterator() { return new ReadOnlyIterator<IniItem>(this.map.values().iterator()); }
+	@Override
+	public ASTNode[] subElements() { return list.toArray(new ASTNode[list.size()]); }
+	@Override
+	public int absoluteOffset() { return sectionOffset()+start; }
+	@Override
+	public IRegion selectionRegion() { return absolute(); }
 
 	public IniSection(String name) { this.name = name; }
 
@@ -226,6 +234,4 @@ public class IniSection
 				}
 			}
 	}
-	@Override
-	public ASTNode[] subElements() { return list.toArray(new ASTNode[list.size()]); }
 }
