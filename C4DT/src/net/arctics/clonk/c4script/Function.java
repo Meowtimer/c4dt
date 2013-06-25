@@ -321,18 +321,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public static class PrintParametersOptions {
 		/** Context used to obtain parameter type information from */
-		final Script context;
+		final Typing typing;
 		/** Include function name in printed string */
 		final boolean functionName;
 		/** Print string that the engine will be able to parse (no special typing constructs or 'any') */
 		final boolean engineCompatible;
 		/** Include comments of parameters */
 		final boolean parameterComments;
-		public PrintParametersOptions(Script context, boolean functionName, boolean engineCompatible, boolean parameterComments) {
+		public PrintParametersOptions(Typing typing, boolean functionName, boolean engineCompatible, boolean parameterComments) {
 			super();
-			if (context == null)
-				throw new IllegalArgumentException();
-			this.context = context;
+			this.typing = typing;
 			this.functionName = functionName;
 			this.engineCompatible = engineCompatible;
 			this.parameterComments = parameterComments;
@@ -358,13 +356,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public String displayString(IIndexEntity context) {
-		return parameterString(new PrintParametersOptions(defaulting(as(context, Script.class), script()), true, true, false));
+		return parameterString(new PrintParametersOptions(defaulting(as(context, Script.class), script()).typings().get(this), true, true, false));
 	}
 
 	private void printParametersString(ASTNodePrinter output, final PrintParametersOptions options) {
 		if (numParameters() > 0)
 			StringUtil.writeBlock(output, "", "", ", ", map(parameters(), new IConverter<Variable, String>() {
-				final Function.Typing typing = options.context.typings().get(Function.this);
+				final Function.Typing typing = options.typing;
 				int i = -1;
 				@Override
 				public String convert(Variable par) {
@@ -450,7 +448,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			: script().name();
 		for (final String line : new String[] {
 			MessageFormat.format("<i>{0}</i><br/>", scriptPath), //$NON-NLS-1$ //$NON-NLS-2$
-			MessageFormat.format("<b>{0}</b><br/>", parameterString(new PrintParametersOptions(context, true, false, false))), //$NON-NLS-1$ //$NON-NLS-2$
+			MessageFormat.format("<b>{0}</b><br/>", parameterString(new PrintParametersOptions(context.typings().get(this), true, false, false))), //$NON-NLS-1$ //$NON-NLS-2$
 			"<br/>", //$NON-NLS-1$
 			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
 			"<br/>", //$NON-NLS-1$
@@ -633,7 +631,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		output.append(name());
 		if (!oldStyle) {
 			output.append("("); //$NON-NLS-1$
-			printParametersString(output, new PrintParametersOptions(script(), true, true, false));
+			printParametersString(output, new PrintParametersOptions(script().typings().get(this), true, true, false));
 			output.append(")"); //$NON-NLS-1$
 		}
 		else

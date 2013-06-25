@@ -634,7 +634,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				writer.append(desc);
 			}
 			final String text = String.format("%s %s %s %s;\n", f.visibility().toKeyword(), Keywords.Func, returnType, //$NON-NLS-1$
-				f.parameterString(new PrintParametersOptions(this, true, true, true)));
+				f.parameterString(new PrintParametersOptions(typings().get(f), true, true, true)));
 			writer.append(text);
 		}
 	}

@@ -59,7 +59,7 @@ public class StackFrame extends DebugElement implements IStackFrame {
 		final Function f = as(function, Function.class);
 		if (f != null)
 			return String.format(NAME_FORMAT, f.script().name(), f.parameterString
-				(new PrintParametersOptions(f.script(), true, true, false)), line);
+				(new PrintParametersOptions(f.script().typings().get(f), true, true, false)), line);
 		else if (function != null)
 			return function.toString();
 		else

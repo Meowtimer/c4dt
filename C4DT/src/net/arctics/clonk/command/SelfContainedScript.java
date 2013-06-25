@@ -20,16 +20,18 @@ public class SelfContainedScript extends Script {
 		super(index);
 		setName(name);
 		this.script = script;
-		final ScriptParser parser = new ScriptParser(script, this, null);
-		try {
-			parser.parse();
-			deriveInformation();
-			new DabbleInference()
+		if (script != null) {
+			final ScriptParser parser = new ScriptParser(script, this, null);
+			try {
+				parser.parse();
+				deriveInformation();
+				new DabbleInference()
 				.configure(index, "")
 				.initialize(null, new NullProgressMonitor(), new Script[] {this})
 				.run();
-		} catch (final ProblemException e) {
-			e.printStackTrace();
+			} catch (final ProblemException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

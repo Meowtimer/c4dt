@@ -112,7 +112,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 				final Script script = defaulting(as(root, Script.class), ((Declaration) element).script());
 				if (element instanceof Function) {
 					final Function func = ((Function)element);
-					result.append(func.parameterString(new PrintParametersOptions(script, true, false, false)));
+					result.append(func.parameterString(new PrintParametersOptions(script.typings().get(func), true, false, false)));
 					final IType retType = func.returnType(script);
 					if (retType != null && retType != PrimitiveType.UNKNOWN) {
 						result.append(" : "); //$NON-NLS-1$
