@@ -66,10 +66,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private static final List<ScriptEditingState> list = new ArrayList<>();
 
-	private final Timer reparseTimer = new Timer("ReparseTimer"); //$NON-NLS-1$
+	private final Timer timer = new Timer("ReparseTimer"); //$NON-NLS-1$
 	private TimerTask reparseTask, reportFunctionProblemsTask;
 
-	public static ScriptEditingState addTo(IDocument document, Script script, C4ScriptEditor client)  {
+	public static ScriptEditingState request(IDocument document, Script script, C4ScriptEditor client)  {
 		try {
 			return request(list, ScriptEditingState.class, document, script, client);
 		} catch (final Exception e) {
@@ -159,9 +159,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	public void scheduleReparsing(final boolean onlyDeclarations) {
 		reparseTask = cancelTimerTask(reparseTask);
-		if (structure() == null)
+		if (timer == null || structure() == null)
 			return;
-		reparseTimer.schedule(reparseTask = new TimerTask() {
+		timer.schedule(reparseTask = new TimerTask() {
 			@Override
 			public void run() {
 				if (errorsWhileTypingDisabled())
@@ -249,10 +249,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	private void scheduleProblemReport(final Function fn) {
-		if (errorsWhileTypingDisabled())
+		if (timer == null || errorsWhileTypingDisabled())
 			return;
 		reportFunctionProblemsTask = cancelTimerTask(reportFunctionProblemsTask);
-		reparseTimer.schedule(reportFunctionProblemsTask = new TimerTask() {
+		timer.schedule(reportFunctionProblemsTask = new TimerTask() {
 			@Override
 			public void run() {
 				try {
@@ -327,8 +327,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	@Override
 	public void cleanupAfterRemoval() {
-		if (reparseTimer != null)
-			reparseTimer.cancel();
+		if (timer != null)
+			timer.cancel();
 		try {
 			if (structure().source() instanceof IFile) {
 				final IFile file = (IFile)structure().source();

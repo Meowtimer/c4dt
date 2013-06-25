@@ -408,9 +408,11 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		if (document == null)
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-		for (final ProblemReportingStrategy s : editor.state().problemReportingStrategies())
-			if ((s.capabilities() & Capabilities.TYPING) != 0)
-				collectProposals(marker, position, proposals, document, editor.script());
+		final ScriptEditingState state = editor.state();
+		if (state != null)
+			for (final ProblemReportingStrategy s : state.problemReportingStrategies())
+				if ((s.capabilities() & Capabilities.TYPING) != 0)
+					collectProposals(marker, position, proposals, document, editor.script());
 	}
 
 	public void collectProposals(

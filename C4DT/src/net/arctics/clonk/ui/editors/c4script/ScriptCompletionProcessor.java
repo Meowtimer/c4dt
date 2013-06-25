@@ -251,7 +251,10 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 
 	private boolean computeProposalsInsideFunction(ProposalsSite pl) {
 		pl.pos(pl.offset - (pl.function != null ? pl.function.bodyLocation().start() : 0));
-		final ScriptParser parser = pl.script != null ? editor().state().updateFunctionFragment(pl.function, pl, true) : null;
+		final ScriptEditingState state = editor().state();
+		final ScriptParser parser = pl.script != null && state != null
+			? state.updateFunctionFragment(pl.function, pl, true)
+			: null;
 
 		if (!checkProposalConditions(pl))
 			return false;
@@ -844,8 +847,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<C4Script
 		IContextInformation info = null;
 		try {
 			final Function cursorFunc = editor().functionAtCursor();
-			if (cursorFunc != null)
-				editor().state().updateFunctionFragment(cursorFunc, null, false);
+			final ScriptEditingState state = editor().state();
+			if (cursorFunc != null && state != null)
+				state.updateFunctionFragment(cursorFunc, null, false);
 			final FuncCallInfo funcCallInfo = editor.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
 				IIndexEntity entity = functionFromCall(funcCallInfo.callFunc);

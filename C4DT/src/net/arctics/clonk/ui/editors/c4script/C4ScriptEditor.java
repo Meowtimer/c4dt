@@ -82,7 +82,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	private static final String BRACKET_HIGHLIGHT_COLOR = Core.id("bracketHighlightColor"); //$NON-NLS-1$
 
 	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
-	private ScriptEditingState editingState;
+	private ScriptEditingState state;
 
 	public C4ScriptEditor() {
 		super();
@@ -130,7 +130,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	public void refreshOutline() {
-		state().invalidate();
+		final ScriptEditingState state = state();
+		if (state != null)
+			state.invalidate();
 		super.refreshOutline();
 	}
 
@@ -169,11 +171,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		if (editingState != null) {;
-			editingState.cancelReparsingTimer();
+		if (state != null) {;
+			state.cancelReparsingTimer();
 			final Function f = functionAtCursor();
 			if (f != null)
-				editingState.reportProblems(f);
+				state.reportProblems(f);
 		}
 		final ScriptContentAssistant a = as(contentAssistant(), ScriptContentAssistant.class);
 		if (a != null)
@@ -197,9 +199,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		final Script script = Script.get(Utilities.fileEditedBy(this), true);
-		if (script != null && script.isEditable())
-			editingState = ScriptEditingState.addTo(getDocumentProvider().getDocument(getEditorInput()), script, this);
+		state();
 		super.createPartControl(parent);
 		getSourceViewer().getTextWidget().addMouseListener(showContentAssistAtKeyUpListener);
 		getSourceViewer().getTextWidget().addKeyListener(showContentAssistAtKeyUpListener);
@@ -279,7 +279,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		try {
 			if (proposal.requiresDocumentReparse()) {
 				reparse(true);
-				state().scheduleReparsing(false);
+				final ScriptEditingState state = state();
+				if (state != null)
+					state.scheduleReparsing(false);
 			}
 		} catch (IOException | ProblemException e) {
 			e.printStackTrace();
@@ -294,7 +296,17 @@ public class C4ScriptEditor extends ClonkTextEditor {
 	}
 
 	@Override
-	public ScriptEditingState state() { return editingState; }
+	public ScriptEditingState state() {
+		try {
+			final Script script = Script.get(Utilities.fileEditedBy(this), true);
+			if (state == null && script != null && script.isEditable())
+				state = ScriptEditingState.request(getDocumentProvider().getDocument(getEditorInput()), script, this);
+			return state;
+		} catch (final Exception e) {
+			//e.printStackTrace();
+			return state = null;
+		}
+	}
 
 	public Function functionAt(int offset) {
 		final Script script = script();
@@ -318,9 +330,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		if (script() == null)
 			return null;
 		final IDocument document = getDocumentProvider().getDocument(getEditorInput());
-		if (editingState != null)
-			editingState.cancelReparsingTimer();
-		return editingState.reparseWithDocumentContents(document, new Runnable() {
+		if (state != null)
+			state.cancelReparsingTimer();
+		return state.reparseWithDocumentContents(document, new Runnable() {
 			@Override
 			public void run() {
 				refreshOutline();
@@ -350,7 +362,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		final Function f = this.functionAt(offset);
 		if (f == null)
 			return null;
-		state().updateFunctionFragment(f, null, false);
+		final ScriptEditingState state = state();
+		if (state != null)
+			state.updateFunctionFragment(f, null, false);
 		final EntityLocator locator = new EntityLocator(script(), getSourceViewer().getDocument(), new Region(offset, 0));
 		ASTNode expr;
 
