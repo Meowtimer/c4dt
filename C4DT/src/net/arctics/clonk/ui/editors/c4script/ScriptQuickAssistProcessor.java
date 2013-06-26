@@ -22,17 +22,17 @@ import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.FunctionFragmentParser;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.MutableRegion;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -60,6 +60,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
@@ -222,14 +223,14 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			int replacementLength, int cursorPosition, Image image,
 			String displayString, IContextInformation contextInformation,
 			String additionalProposalInfo, String postInfo,
-			ClonkTextEditor editor,
+			ScriptEditingState state,
 			Replacement replacement, int tabIndentation,
 			ScriptParser parser, Function func
 		) {
 			super(declaration, declaration, replacementString, replacementOffset,
 				replacementLength, cursorPosition, image, displayString,
 				contextInformation, additionalProposalInfo, postInfo,
-				editor);
+				state);
 			this.replacement = replacement;
 			this.tabIndentation = tabIndentation;
 			this.parser = parser;
@@ -296,7 +297,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				}
 			}
 
-			final ScriptEditingState listener = ScriptEditingState.state(parser.script());
+			final ScriptEditingState listener = StructureEditingState.existing(ScriptEditingState.class, parser.script());
 			if (listener != null)
 				listener.scheduleReparsing(false);
 		}
@@ -533,13 +534,13 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						function.setParameters(parms);
 					}
 
-					// gather proposals through ClonkCompletionProcessor and propose those with a similar name
+					// gather proposals through ScriptCompletionProcessor and propose those with a similar name
 					ASTNode expr;
 					if (offendingExpression.parent() instanceof Sequence) {
 						final Sequence sequence = (Sequence) offendingExpression.parent();
 						expr = sequence.subSequenceUpTo(offendingExpression);
 					} else
-						expr = null;
+						expr = offendingExpression;
 					final List<ICompletionProposal> possible = ScriptCompletionProcessor.computeProposalsForExpression
 						(expr, func, parser, document);
 					for (final ICompletionProposal p : possible)

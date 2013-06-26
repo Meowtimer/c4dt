@@ -10,7 +10,6 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.MutableRegion;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor.FuncCallInfo;
 import net.arctics.clonk.util.WeakListenerManager;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -86,14 +85,12 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 
 	private static final WeakListenerManagerPCL weakListenerManager = new WeakListenerManagerPCL();
 
-	private final ScriptSourceViewerConfiguration configuration;
+	private final ScriptEditingState state;
 	private final List<AutoInsertedRegion> overrideRegions = new ArrayList<AutoInsertedRegion>(3);
 	private boolean disabled;
 
-	public ScriptSourceViewerConfiguration configuration() { return configuration; }
-
-	public ScriptAutoEditStrategy(ScriptSourceViewerConfiguration configuration) {
-		this.configuration = configuration;
+	public ScriptAutoEditStrategy(ScriptEditingState state) {
+		this.state = state;
 		weakListenerManager.addListener(this);
 		disabled = ClonkPreferences.toggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);
 	}
@@ -154,7 +151,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 			} catch (final BadLocationException e) { return false; }
 		try {
 			if (c.text.equals("\t")) {
-				final FuncCallInfo call = configuration().editor().innermostFunctionCallParmAtOffset(c.offset);
+				final ScriptEditingState.Call call = state.innermostFunctionCallParmAtOffset(c.offset);
 				if (call != null && call.callFunc != null) {
 					final ASTNode[] params = call.callFunc.params();
 					if (call.parmIndex+1 < params.length) {

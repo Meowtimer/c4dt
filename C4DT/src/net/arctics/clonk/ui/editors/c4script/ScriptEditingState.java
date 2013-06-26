@@ -24,22 +24,37 @@ import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4GroupItem;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.FunctionFragmentParser;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
+import net.arctics.clonk.c4script.ast.EntityLocator;
+import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
+import net.arctics.clonk.c4script.ast.IFunctionCall;
+import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.TypeUtil;
+import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.ui.editors.CStylePartitionScanner;
+import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.ClonkHyperlink;
+import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
+import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -51,9 +66,31 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControl;
+import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextDoubleClickStrategy;
+import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
+import org.eclipse.jface.text.contentassist.IContentAssistant;
+import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
+import org.eclipse.jface.text.presentation.IPresentationReconciler;
+import org.eclipse.jface.text.presentation.PresentationReconciler;
+import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
+import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
+import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 
@@ -64,22 +101,133 @@ import org.eclipse.ui.IWorkbenchPart;
  */
 public final class ScriptEditingState extends StructureEditingState<C4ScriptEditor, Script> {
 
-	private static final List<ScriptEditingState> list = new ArrayList<>();
+	public final class Assistant extends ContentAssistant {
+		private ScriptCompletionProcessor processor;
+		public Assistant() {
+			processor = new ScriptCompletionProcessor(ScriptEditingState.this, this);
+			for (final String s : CStylePartitionScanner.PARTITIONS)
+				setContentAssistProcessor(processor, s);
+			setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
+			setRepeatedInvocationMode(true);
+			setStatusLineVisible(true);
+			setStatusMessage(Messages.C4ScriptSourceViewerConfiguration_StandardProposals);
+			enablePrefixCompletion(false);
+			enableAutoInsert(true);
+			enableAutoActivation(true);
+			setAutoActivationDelay(0);
+			enableColoredLabels(true);
+			setInformationControlCreator(new IInformationControlCreator() {
+				@Override
+				public IInformationControl createInformationControl(Shell parent) {
+					final DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_PressTabOrClick);
+					return def;
+				}
+			});
+		}
+		// make these public
+		@Override
+		public void hide() { super.hide(); }
+		@Override
+		public boolean isProposalPopupActive() { return super.isProposalPopupActive(); }
+		public ScriptCompletionProcessor processor() { return processor; }
+	}
+
+	class ScriptHyperlinkDetector implements IHyperlinkDetector {
+		@Override
+		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
+			try {
+				final EntityLocator locator = new EntityLocator(structure(), viewer.getDocument(),region);
+				if (locator.entity() != null)
+					return new IHyperlink[] {
+						new ClonkHyperlink(locator.expressionRegion(), locator.entity())
+					};
+				else if (locator.potentialEntities() != null)
+					return new IHyperlink[] {
+						new ClonkHyperlink(locator.expressionRegion(), locator.potentialEntities())
+					};
+				return null;
+			} catch (final Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+	}
+
+	public class ScriptTextHover extends ClonkTextHover {
+		private EntityLocator entityLocator;
+		@Override
+		public String getHoverInfo(ITextViewer viewer, IRegion region) {
+			final IFile scriptFile = structure().file();
+			final StringBuilder messageBuilder = new StringBuilder();
+			appendEntityInfo(viewer, region, messageBuilder);
+			appendMarkerInfo(region, scriptFile, messageBuilder);
+			return messageBuilder.toString();
+		}
+		private void appendEntityInfo(ITextViewer viewer, IRegion region, final StringBuilder messageBuilder) {
+			if (entityLocator != null && entityLocator.entity() != null) {
+				final ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessorInSequence() : null;
+				final Script context = pred == null ? structure() : as(TypeUtil.inferredType(pred), Script.class);
+				messageBuilder.append(entityLocator.entity().infoText(context));
+			}
+			else {
+				final String superInfo = super.getHoverInfo(viewer, region);
+				if (superInfo != null)
+					messageBuilder.append(superInfo);
+			}
+		}
+		private void appendMarkerInfo(IRegion region, final IFile scriptFile, final StringBuilder messageBuilder) {
+			try {
+				final IMarker[] markers = scriptFile.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE);
+				boolean foundSomeMarkers = false;
+				for (final IMarker m : markers) {
+					int charStart;
+					final IRegion markerRegion = new Region(
+						charStart = m.getAttribute(IMarker.CHAR_START, -1),
+						m.getAttribute(IMarker.CHAR_END, -1)-charStart
+					);
+					if (Utilities.regionContainsOtherRegion(markerRegion, region)) {
+						if (!foundSomeMarkers) {
+							if (messageBuilder.length() > 0)
+								messageBuilder.append("<br/><br/><b>"+Messages.C4ScriptTextHover_Markers1+"</b><br/>"); //$NON-NLS-1$
+							foundSomeMarkers = true;
+						}
+						String msg = m.getAttribute(IMarker.MESSAGE).toString();
+						msg = StringUtil.htmlerize(msg);
+						messageBuilder.append(msg);
+						messageBuilder.append("<br/>"); //$NON-NLS-1$
+					}
+				}
+			} catch (final Exception e) {
+				// whatever
+			}
+		}
+		@Override
+		public IRegion getHoverRegion(ITextViewer viewer, int offset) {
+			super.getHoverRegion(viewer, offset);
+			final IRegion region = new Region(offset, 0);
+			try {
+				entityLocator = new EntityLocator(structure(), viewer.getDocument(), region);
+			} catch (final Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+			return region;
+		}
+	}
+
+	@Override
+	protected ContentAssistant createAssistant() { return new Assistant(); }
+	@Override
+	public Assistant assistant() { return (Assistant) assistant; }
 
 	private final Timer timer = new Timer("ReparseTimer"); //$NON-NLS-1$
 	private TimerTask reparseTask, reportFunctionProblemsTask;
 	private final Object
 		structureModificationLock = new Object(),
 		obtainStructureLock = new Object();
+	private final ScriptAutoEditStrategy autoEditStrategy = new ScriptAutoEditStrategy(this);
 
-	public static ScriptEditingState request(IDocument document, Script script, C4ScriptEditor client)  {
-		try {
-			return request(list, ScriptEditingState.class, document, script, client);
-		} catch (final Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+	public ScriptAutoEditStrategy autoEditStrategy() { return autoEditStrategy; }
 
 	@Override
 	public void documentAboutToBeChanged(DocumentEvent event) {}
@@ -349,10 +497,6 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		super.cleanupAfterRemoval();
 	}
 
-	public static ScriptEditingState state(Script script) {
-		return stateFromList(list, script);
-	}
-
 	/**
 	 *  Created if there is no suitable script to get from somewhere else
 	 *  can be considered a hack to make viewing (svn) revisions of a file work
@@ -448,4 +592,191 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		super.partBroughtToTop(part);
 	}
 
+	public Function functionAt(int offset) {
+		final Script script = structure();
+		if (script != null) {
+			final Function f = script.funcAt(offset);
+			return f;
+		}
+		return null;
+	}
+
+	public static class Call {
+		public IFunctionCall callFunc;
+		public int parmIndex;
+		public int parmsStart, parmsEnd;
+		public EntityLocator locator;
+		public Call(Function func, IFunctionCall callFunc2, ASTNode parm, EntityLocator locator) {
+			this.callFunc = callFunc2;
+			this.parmIndex = parm != null ? callFunc2.indexOfParm(parm) : 0;
+			this.parmsStart = func.bodyLocation().start()+callFunc2.parmsStart();
+			this.parmsEnd = func.bodyLocation().start()+callFunc2.parmsEnd();
+			this.locator = locator;
+		}
+		public ASTNode callPredecessor() {
+			return callFunc instanceof ASTNode ? ((ASTNode)callFunc).predecessorInSequence() : null;
+		}
+	}
+
+	public Call innermostFunctionCallParmAtOffset(int offset) throws BadLocationException, ProblemException {
+		final Function f = functionAt(offset);
+		if (f == null)
+			return null;
+		updateFunctionFragment(f, null, false);
+		final EntityLocator locator = new EntityLocator(structure(), document, new Region(offset, 0));
+		ASTNode expr;
+
+		// cursor somewhere between parm expressions... locate CallFunc and search
+		final int bodyStart = f.bodyLocation().start();
+		for (
+			expr = locator.expressionAtRegion();
+			expr != null;
+			expr = expr.parent()
+		)
+			if (expr instanceof IFunctionCall && offset-bodyStart >= ((IFunctionCall)expr).parmsStart())
+				 break;
+		if (expr != null) {
+			final IFunctionCall callFunc = (IFunctionCall) expr;
+			ASTNode prev = null;
+			for (final ASTNode parm : callFunc.params()) {
+				if (bodyStart+parm.end() > offset) {
+					if (prev == null)
+						break;
+					final String docText = document.get(bodyStart+prev.end(), parm.start()-prev.end());
+					final CStyleScanner scanner = new CStyleScanner(docText);
+					scanner.eatWhitespace();
+					final boolean comma = scanner.read() == ',' && offset+1 > bodyStart+prev.end() + scanner.tell();
+					return new Call(f, callFunc, comma ? parm : prev, locator);
+				}
+				prev = parm;
+			}
+			return new Call(f, callFunc, prev, locator);
+		}
+		return null;
+	}
+
+	@Override
+	public void completionProposalApplied(ClonkCompletionProposal proposal) {
+		autoEditStrategy().completionProposalApplied(proposal);
+		try {
+			if (proposal.requiresDocumentReparse())
+				reparse();
+		} catch (final ProblemException e) {
+			e.printStackTrace();
+		}
+		Display.getCurrent().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				for (final C4ScriptEditor ed : editors)
+					ed.showContentAssistance();
+			}
+		});
+		super.completionProposalApplied(proposal);
+	}
+
+	protected Function functionFromEntity(IIndexEntity entity) {
+		Function function = null;
+		if (entity instanceof Function)
+			function = (Function)entity;
+		else if (entity instanceof Variable) {
+			final IType type = ((Variable)entity).type();
+			if (type instanceof FunctionType)
+				function = ((FunctionType)type).prototype();
+		}
+		return function;
+	}
+
+	public IIndexEntity mergeFunctions(int offset, final ScriptEditingState.Call funcCallInfo, final RegionDescription d) {
+		IIndexEntity entity = null;
+		if (funcCallInfo.locator.initializeRegionDescription(d, structure(), new Region(offset, 1))) {
+			funcCallInfo.locator.initializeProposedDeclarations(structure(), d, null, (ASTNode)funcCallInfo.callFunc);
+			Function commono = null;
+			final Set<? extends IIndexEntity> potentials = funcCallInfo.locator.potentialEntities();
+			if (potentials != null)
+				if (potentials.size() == 1)
+					entity = potentials.iterator().next();
+				else for (final IIndexEntity e : potentials) {
+					if (commono == null)
+						commono = new Function(Messages.C4ScriptCompletionProcessor_MultipleCandidates, FunctionScope.PRIVATE);
+					entity = commono;
+					final Function f = functionFromEntity(e);
+					if (f != null)
+						for (int i = 0; i < f.numParameters(); i++) {
+							final Variable fpar = f.parameter(i);
+							final Variable cpar = commono.numParameters() > i
+								? commono.parameter(i)
+									: commono.addParameter(new Variable(fpar.name(), fpar.type()));
+								cpar.forceType(structure().typing().unify(cpar.type(), fpar.type()));
+								if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name())) //$NON-NLS-1$
+									cpar.setName(cpar.name()+"/"+fpar.name()); //$NON-NLS-1$
+						}
+				}
+		}
+		return entity;
+	}
+
+	private static ScannerPerEngine<ScriptCodeScanner> SCANNERS = new ScannerPerEngine<ScriptCodeScanner>(ScriptCodeScanner.class);
+	private final ITextDoubleClickStrategy doubleClickStrategy = new ScriptDoubleClickStrategy(structure());
+	public ScriptEditingState(IPreferenceStore store) { super(store); }
+	@Override
+	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) { return CStylePartitionScanner.PARTITIONS; }
+	@Override
+	public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
+		return doubleClickStrategy;
+	}
+	@Override
+	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
+		final IQuickAssistAssistant assistant = new QuickAssistAssistant();
+		assistant.setQuickAssistProcessor(new ScriptQuickAssistProcessor());
+		return assistant;
+	}
+	@Override
+	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
+		final PresentationReconciler reconciler = new PresentationReconciler();
+		final ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT"); //$NON-NLS-1$
+		final ScriptCodeScanner scanner = SCANNERS.get(structure().engine());
+
+		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(scanner);
+		reconciler.setDamager(dr, CStylePartitionScanner.CODEBODY);
+		reconciler.setRepairer(dr, CStylePartitionScanner.CODEBODY);
+
+		dr = new DefaultDamagerRepairer(scanner);
+		reconciler.setDamager(dr, CStylePartitionScanner.STRING);
+		reconciler.setRepairer(dr, CStylePartitionScanner.STRING);
+
+		dr = new DefaultDamagerRepairer(scanner);
+		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
+		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
+
+		dr = new DefaultDamagerRepairer(new ScriptCommentScanner(getColorManager(), "JAVADOCCOMMENT"));
+		reconciler.setDamager(dr, CStylePartitionScanner.JAVADOC_COMMENT);
+		reconciler.setRepairer(dr, CStylePartitionScanner.JAVADOC_COMMENT);
+
+		dr = new DefaultDamagerRepairer(commentScanner);
+		reconciler.setDamager(dr, CStylePartitionScanner.COMMENT);
+		reconciler.setRepairer(dr, CStylePartitionScanner.COMMENT);
+
+		dr = new DefaultDamagerRepairer(commentScanner);
+		reconciler.setDamager(dr, CStylePartitionScanner.MULTI_LINE_COMMENT);
+		reconciler.setRepairer(dr, CStylePartitionScanner.MULTI_LINE_COMMENT);
+
+		return reconciler;
+	}
+	@Override
+	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+		return new IHyperlinkDetector[] {
+			new ScriptHyperlinkDetector(),
+			urlDetector
+		};
+	}
+	@Override
+	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
+		return new IAutoEditStrategy[] {autoEditStrategy};
+	}
+	@Override
+	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+	    if (hover == null)
+	    	hover = new ScriptTextHover();
+	    return hover;
+	}
 }

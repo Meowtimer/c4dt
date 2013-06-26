@@ -10,13 +10,14 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
-public class ColorManager {
+public enum ColorManager {
+	INSTANCE;
 
 	public class SyntaxElementStyle {
-		
+
 		public static final String RGB = "rgb";
 		public static final String STYLE = "style";
-		
+
 		public String name;
 		public RGB defaultRGB;
 		public int defaultStyle;
@@ -25,7 +26,7 @@ public class ColorManager {
 			return name+"."+forWhat;
 		}
 		public RGB rgb() {
-			String prefName = prefName(RGB);
+			final String prefName = prefName(RGB);
 			RGB result = PreferenceConverter.getColor(Core.instance().getPreferenceStore(), prefName);
 			if (result == PreferenceConverter.COLOR_DEFAULT_DEFAULT) {
 				result = defaultRGB;
@@ -34,10 +35,9 @@ public class ColorManager {
 			return result;
 		}
 		public int style() {
-			String prefName = prefName(STYLE);
-			if (Core.instance().getPreferenceStore().isDefault(prefName)) {
+			final String prefName = prefName(STYLE);
+			if (Core.instance().getPreferenceStore().isDefault(prefName))
 				Core.instance().getPreferenceStore().setValue(prefName, defaultStyle);
-			}
 			return Core.instance().getPreferenceStore().getInt(prefName);
 		}
 		public SyntaxElementStyle(String name, RGB rgb, int style) {
@@ -47,16 +47,16 @@ public class ColorManager {
 			this.defaultStyle = style;
 			try {
 				this.localizedName = (String)Messages.class.getField(ColorManager.class.getSimpleName()+"_"+name).get(null);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 			if (localizedName == null)
 				System.out.println("No localizedName for " + name);
-			
+
 			syntaxElementStyles.put(name, this);
 		}
 	}
-	
+
 	public final HashMap<String, SyntaxElementStyle> syntaxElementStyles = new HashMap<String, SyntaxElementStyle>();
 	{
 		new SyntaxElementStyle("COMMENT", new RGB(128, 0, 0), 0);
@@ -73,30 +73,27 @@ public class ColorManager {
 		new SyntaxElementStyle("DIRECTIVE", new RGB(0x33,0x33,0xAA), 0);
 		new SyntaxElementStyle("OBJ_CALLBACK", new RGB(0x5C,0xA,0x5C), 0);
 	}
-	
+
 	public RGB defaultColorForSyntaxElement(String elementName) {
 		try {
 			return syntaxElementStyles.get(elementName).defaultRGB;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return null;
 		}
 	}
-	
+
 	public RGB colorForSyntaxElement(String elementName) {
 		try {
 			return syntaxElementStyles.get(elementName).rgb();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return null;
 		}
 	}
-	
+
 	protected Map<RGB, Color> colorTable = new HashMap<RGB, Color>(10);
-	
-	public ColorManager() {
-	}
-	
+
 	public void dispose() {
-		for (Color c : colorTable.values())
+		for (final Color c : colorTable.values())
 			c.dispose();
 	}
 	public Color getColor(RGB rgb) {
@@ -107,7 +104,4 @@ public class ColorManager {
 		}
 		return color;
 	}
-	
-	private static final ColorManager instance = new ColorManager();
-	public static ColorManager instance() {return instance;}
 }

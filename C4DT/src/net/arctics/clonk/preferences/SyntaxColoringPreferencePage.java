@@ -23,10 +23,10 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 		super (GRID);
 		setPreferenceStore(Core.instance().getPreferenceStore());
 	}
-	
+
 	public static class StyleEditor extends ColorFieldEditor {
 		private Button boldButton, italicButton;
-		private SyntaxElementStyle element;
+		private final SyntaxElementStyle element;
 		public StyleEditor(SyntaxElementStyle element, Composite parent) {
 			super(element.prefName(SyntaxElementStyle.RGB), element.localizedName, parent);
 			this.element = element;
@@ -77,19 +77,19 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 			getPreferenceStore().setValue(stylePrefName(), v);
 		}
 	}
-	
+
 	@Override
 	protected void createFieldEditors() {
 		try {
-			ColorManager manager = ColorManager.instance();
-			for (SyntaxElementStyle syntaxElement : manager.syntaxElementStyles.values()) {
+			final ColorManager manager = ColorManager.INSTANCE;
+			for (final SyntaxElementStyle syntaxElement : manager.syntaxElementStyles.values()) {
 				PreferenceConverter.setDefault(getPreferenceStore(),
 					syntaxElement.prefName(SyntaxElementStyle.RGB),
 					syntaxElement.defaultRGB
 				);
 				addField(new StyleEditor(syntaxElement, getFieldEditorParent()));
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -97,12 +97,12 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 	@Override
 	public void init(IWorkbench workbench) {
 	}
-	
+
 	@Override
 	public boolean performOk() {
 		if (super.performOk()) {
 			ScannerPerEngine.refreshScanners();
-			for (ClonkTextEditor part : EditorUtil.clonkTextEditors(ClonkTextEditor.class, false))
+			for (final ClonkTextEditor part : EditorUtil.clonkTextEditors(ClonkTextEditor.class, false))
 				part.reconfigureSourceViewer();
 			return true;
 		} else

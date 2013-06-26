@@ -10,7 +10,6 @@ import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
-import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Utilities;
@@ -25,14 +24,11 @@ import org.eclipse.swt.widgets.Composite;
 
 public class IniTextEditor extends ClonkTextEditor {
 
-	public IniTextEditor() {
-		super();
-		setSourceViewerConfiguration(new IniSourceViewerConfiguration(getPreferenceStore(), new ColorManager(), this));
-	}
+	private IniUnitEditingState state;
 
 	@Override
 	public void refreshOutline() {
-		editingState.forgetUnitParsed();
+		state.forgetUnitParsed();
 		if (outlinePage != null)
 			outlinePage.setInput(unit());
 	}
@@ -43,24 +39,13 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	public IniUnit unit() {
-		IniUnit unit = null;
-		unit = (IniUnit) Structure.pinned(Utilities.fileEditedBy(this), true, false);
-		if (editingState == null && unit != null && unit.isEditable())
-			editingState = IniUnitEditingState.addTo(getDocumentProvider().getDocument(getEditorInput()), unit, this);
-		else if (editingState != null)
-			editingState.ensureIniUnitUpToDate(this);
-		return unit;
+		final IniUnitEditingState state = state();
+		if (state != null) {
+			state.ensureIniUnitUpToDate();
+			return state.structure();
+		}
+		return null;
 	}
-
-	public void lockUnit() {
-		editingState.unitLocked++;
-	}
-
-	public void unlockUnit() {
-		editingState.unitLocked--;
-	}
-
-	private IniUnitEditingState editingState;
 
 	private void collectAnnotationPositions(IniItem item, List<Position> positions) {
 		if (item.childCollection() != null)
@@ -99,11 +84,11 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	public boolean ensureIniUnitUpToDate() {
-		return editingState.ensureIniUnitUpToDate(this);
+		return state.ensureIniUnitUpToDate();
 	}
 
 	public void forgetUnitParsed() {
-		editingState.forgetUnitParsed();
+		state.forgetUnitParsed();
 	}
 
 	@Override
@@ -114,8 +99,13 @@ public class IniTextEditor extends ClonkTextEditor {
 	}
 
 	@Override
-	protected StructureEditingState<?, ?> state() {
-		return editingState;
+	protected IniUnitEditingState state() {
+		final IniUnit unit = (IniUnit) Structure.pinned(Utilities.fileEditedBy(this), true, false);
+		if (state == null && unit != null && unit.isEditable()) {
+			state = StructureEditingState.request(IniUnitEditingState.class, getDocumentProvider().getDocument(getEditorInput()), unit, this);
+			setSourceViewerConfiguration(state);
+		}
+		return state;
 	}
 
 	@Override

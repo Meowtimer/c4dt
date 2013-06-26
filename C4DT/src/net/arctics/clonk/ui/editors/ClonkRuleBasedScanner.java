@@ -17,7 +17,7 @@ import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 
 public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
-	
+
 	public static class ScannerPerEngine<T extends ClonkRuleBasedScanner> {
 		private static final Class<?>[] CTOR_SIGNATURE = new Class<?>[] {ColorManager.class, Engine.class};
 		private static final List<ScannerPerEngine<?>> INSTANCES = new ArrayList<ScannerPerEngine<?>>();
@@ -27,36 +27,36 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 			return Collections.unmodifiableList(INSTANCES);
 		}
 		public ScannerPerEngine(Class<T> cls) {
-			scannerClass = cls; 
+			scannerClass = cls;
 			INSTANCES.add(this);
 		}
 		public T get(Engine engine) {
 			T scanner = scanners.get(engine.name());
 			if (scanner == null)
 				try {
-					scanner = scannerClass.getConstructor(CTOR_SIGNATURE).newInstance(ColorManager.instance(), engine);
+					scanner = scannerClass.getConstructor(CTOR_SIGNATURE).newInstance(ColorManager.INSTANCE, engine);
 					scanners.put(engine.name(), scanner);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 					return null;
 				}
 			return scanner;
 		}
 		public static void refreshScanners() {
-			for (ScannerPerEngine<?> i : INSTANCES)
-				for (ClonkRuleBasedScanner s : i.scanners.values())
+			for (final ScannerPerEngine<?> i : INSTANCES)
+				for (final ClonkRuleBasedScanner s : i.scanners.values())
 					s.recommitRules();
 		}
 	}
-	
+
 	protected static final class NumberRule implements IRule {
 
 		private final IToken token;
-		
+
 		public NumberRule(IToken token) {
 			this.token = token;
 		}
-		
+
 		@Override
 		public IToken evaluate(ICharacterScanner scanner) {
 			int character = scanner.read();
@@ -87,9 +87,9 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 				return Token.UNDEFINED;
 			}
 		}
-		
+
 	}
-	
+
 	/**
 	 * Rule to detect java brackets.
 	 *
@@ -143,29 +143,29 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 			}
 		}
 	}
-	
+
 	protected ClonkRuleBasedScanner(ColorManager manager, Engine engine) {
 		this(manager, engine, "DEFAULT");
 	}
-	
+
 	private final ColorManager manager;
 	private final Engine engine;
-	
+
 	protected ClonkRuleBasedScanner(ColorManager manager, Engine engine, String returnTokenTag) {
 		this.manager = manager;
 		this.engine = engine;
 		commitRules(manager, engine);
 		setDefaultReturnToken(createToken(manager, returnTokenTag));
 	}
-	
+
 	public void recommitRules() {
 		this.commitRules(manager, engine);
 	}
-	
+
 	protected void commitRules(ColorManager manager, Engine engine) {}
-	
+
 	protected Token createToken(ColorManager manager, String colorPrefName) {
-		SyntaxElementStyle style = manager.syntaxElementStyles.get(colorPrefName);
+		final SyntaxElementStyle style = manager.syntaxElementStyles.get(colorPrefName);
 		return new Token(new TextAttribute(manager.getColor(style.rgb()), null, style.style()));
 	}
 }

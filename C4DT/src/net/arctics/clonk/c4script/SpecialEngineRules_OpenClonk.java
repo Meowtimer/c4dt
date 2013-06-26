@@ -374,7 +374,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 										if (pl.prefix != null && !comp.name().toLowerCase().contains(pl.prefix))
 											continue;
 										pl.addProposal(new ClonkCompletionProposal(comp, as(t, Declaration.class), "\""+comp.name()+"\"", pl.offset, pl.prefix != null ? pl.prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText(script), "", completions.editor()));
+											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText(script), "", completions.state()));
 									}
 								}
 					}

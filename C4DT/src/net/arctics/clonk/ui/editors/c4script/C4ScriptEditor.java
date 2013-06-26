@@ -13,14 +13,11 @@ import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.EntityLocator;
-import net.arctics.clonk.c4script.ast.IFunctionCall;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
 import net.arctics.clonk.ui.editors.ClonkTextEditor;
-import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
+import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.c4script.EvaluateC4Script;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicatesAction;
@@ -35,12 +32,10 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.PreferenceConverter;
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextOperationTarget;
-import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
@@ -51,7 +46,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
@@ -76,25 +70,20 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		public void mouseUp(MouseEvent e) { showContentAssistance(); }
 	}
 
-	private final ColorManager colorManager;
 	private static final String ENABLE_BRACKET_HIGHLIGHT = Core.id("enableBracketHighlighting"); //$NON-NLS-1$
 	private static final String BRACKET_HIGHLIGHT_COLOR = Core.id("bracketHighlightColor"); //$NON-NLS-1$
 
 	private final DefaultCharacterPairMatcher fBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '{', '}', '(', ')', '[', ']' });
 	private ScriptEditingState state;
 
-	public C4ScriptEditor() {
-		super();
-		colorManager = new ColorManager();
-		setSourceViewerConfiguration(new ScriptSourceViewerConfiguration(getPreferenceStore(), colorManager,this));
-	}
+	public C4ScriptEditor() { super(); }
 
 	public void showContentAssistance() {
 		// show parameter help
 		final ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
 		try {
 			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this) {
-				final ScriptContentAssistant a = as(contentAssistant(), ScriptContentAssistant.class);
+				final ScriptEditingState.Assistant a = as(contentAssistant(), ScriptEditingState.Assistant.class);
 				if (a != null && !a.isProposalPopupActive())
 					if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
 						opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
@@ -155,7 +144,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (info.entity() != null)
 				return info.entity();
 			else if (fallbackToCurrentFunction)
-				return functionAt(region.getOffset());
+				return state().functionAt(region.getOffset());
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -176,7 +165,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (f != null)
 				state.reportProblems(f);
 		}
-		final ScriptContentAssistant a = as(contentAssistant(), ScriptContentAssistant.class);
+		final ScriptEditingState.Assistant a = as(contentAssistant(), ScriptEditingState.Assistant.class);
 		if (a != null)
 			a.hide();
 		super.editorSaved();
@@ -198,16 +187,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		state();
 		super.createPartControl(parent);
 		getSourceViewer().getTextWidget().addMouseListener(showContentAssistAtKeyUpListener);
 		getSourceViewer().getTextWidget().addKeyListener(showContentAssistAtKeyUpListener);
-	}
-
-	@Override
-	public void dispose() {
-		colorManager.dispose();
-		super.dispose();
 	}
 
 	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.c4script.actionsBundle")); //$NON-NLS-1$
@@ -263,35 +245,9 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			this.resetHighlightRange();
 
 		// inform auto edit strategy about cursor position change so it can delete its override regions
-		sourceViewerConfiguration().autoEditStrategy().removeOverrideRegionsNotAtLine(
+		state().autoEditStrategy().removeOverrideRegionsNotAtLine(
 			cursorPos(), getDocumentProvider().getDocument(getEditorInput()));
 
-	}
-
-	private final ScriptSourceViewerConfiguration sourceViewerConfiguration() {
-		return (ScriptSourceViewerConfiguration)getSourceViewerConfiguration();
-	}
-
-	@Override
-	public void completionProposalApplied(ClonkCompletionProposal proposal) {
-		sourceViewerConfiguration().autoEditStrategy().completionProposalApplied(proposal);
-		try {
-			if (proposal.requiresDocumentReparse()) {
-				reparse(true);
-				final ScriptEditingState state = state();
-				if (state != null)
-					state.scheduleReparsing(false);
-			}
-		} catch (IOException | ProblemException e) {
-			e.printStackTrace();
-		}
-		Display.getCurrent().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				showContentAssistance();
-			}
-		});
-		super.completionProposalApplied(proposal);
 	}
 
 	@Override
@@ -299,24 +255,18 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		try {
 			final Script script = Script.get(Utilities.fileEditedBy(this), true);
 			if (state == null && script != null && script.isEditable())
-				state = ScriptEditingState.request(getDocumentProvider().getDocument(getEditorInput()), script, this);
+				state = StructureEditingState.request(
+					ScriptEditingState.class, getDocumentProvider().getDocument(getEditorInput()),
+					script, this
+				);
+			setSourceViewerConfiguration(state);
 			return state;
 		} catch (final Exception e) {
-			//e.printStackTrace();
 			return state = null;
 		}
 	}
 
-	public Function functionAt(int offset) {
-		final Script script = script();
-		if (script != null) {
-			final Function f = script.funcAt(offset);
-			return f;
-		}
-		return null;
-	}
-
-	public Function functionAtCursor() { return functionAt(cursorPos()); }
+	public Function functionAtCursor() { return state().functionAt(cursorPos()); }
 	@Override
 	public ASTNode section() { return functionAtCursor(); }
 
@@ -337,62 +287,6 @@ public class C4ScriptEditor extends ClonkTextEditor {
 				handleCursorPositionChanged();
 			}
 		});
-	}
-
-	public static class FuncCallInfo {
-		public IFunctionCall callFunc;
-		public int parmIndex;
-		public int parmsStart, parmsEnd;
-		public EntityLocator locator;
-		public FuncCallInfo(Function func, IFunctionCall callFunc2, ASTNode parm, EntityLocator locator) {
-			this.callFunc = callFunc2;
-			this.parmIndex = parm != null ? callFunc2.indexOfParm(parm) : 0;
-			this.parmsStart = func.bodyLocation().start()+callFunc2.parmsStart();
-			this.parmsEnd = func.bodyLocation().start()+callFunc2.parmsEnd();
-			this.locator = locator;
-		}
-		public ASTNode callPredecessor() {
-			return callFunc instanceof ASTNode ? ((ASTNode)callFunc).predecessorInSequence() : null;
-		}
-	}
-
-	public FuncCallInfo innermostFunctionCallParmAtOffset(int offset) throws BadLocationException, ProblemException {
-		final Function f = this.functionAt(offset);
-		if (f == null)
-			return null;
-		final ScriptEditingState state = state();
-		if (state != null)
-			state.updateFunctionFragment(f, null, false);
-		final EntityLocator locator = new EntityLocator(script(), getSourceViewer().getDocument(), new Region(offset, 0));
-		ASTNode expr;
-
-		// cursor somewhere between parm expressions... locate CallFunc and search
-		final int bodyStart = f.bodyLocation().start();
-		for (
-			expr = locator.expressionAtRegion();
-			expr != null;
-			expr = expr.parent()
-		)
-			if (expr instanceof IFunctionCall && offset-bodyStart >= ((IFunctionCall)expr).parmsStart())
-				 break;
-		if (expr != null) {
-			final IFunctionCall callFunc = (IFunctionCall) expr;
-			ASTNode prev = null;
-			for (final ASTNode parm : callFunc.params()) {
-				if (bodyStart+parm.end() > offset) {
-					if (prev == null)
-						break;
-					final String docText = getSourceViewer().getDocument().get(bodyStart+prev.end(), parm.start()-prev.end());
-					final CStyleScanner scanner = new CStyleScanner(docText);
-					scanner.eatWhitespace();
-					final boolean comma = scanner.read() == ',' && offset+1 > bodyStart+prev.end() + scanner.tell();
-					return new FuncCallInfo(f, callFunc, comma ? parm : prev, locator);
-				}
-				prev = parm;
-			}
-			return new FuncCallInfo(f, callFunc, prev, locator);
-		}
-		return null;
 	}
 
 	@Override

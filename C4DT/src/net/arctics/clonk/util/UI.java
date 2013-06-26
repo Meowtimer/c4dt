@@ -317,13 +317,6 @@ public enum UI {
 		return projects != null ? projects[0] : null;
 	}
 
-	public static IViewPart findViewInActivePage(IWorkbenchSite site, String id) {
-		if (site != null && site.getWorkbenchWindow() != null && site.getWorkbenchWindow().getActivePage() != null)
-			return site.getWorkbenchWindow().getActivePage().findView(id);
-		else
-			return null;
-	}
-
 	public static CommonNavigator projectExplorer() {
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		if (workbench != null)

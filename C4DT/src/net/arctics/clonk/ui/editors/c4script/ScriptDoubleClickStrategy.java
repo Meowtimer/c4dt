@@ -11,8 +11,6 @@ import net.arctics.clonk.c4script.ast.KeywordStatement;
 import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.StringLiteral;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultTextDoubleClickStrategy;
 import org.eclipse.jface.text.IDocument;
@@ -20,16 +18,10 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 public class ScriptDoubleClickStrategy extends DefaultTextDoubleClickStrategy {
-	
-	private final ScriptSourceViewerConfiguration configuration;
-	
-	public ScriptDoubleClickStrategy(ScriptSourceViewerConfiguration configuration) {
-		this.configuration = configuration;
-	}
-	
+	private final Script script;
+	public ScriptDoubleClickStrategy(Script script) { this.script = script; }
 	@Override
 	protected IRegion findExtendedDoubleClickSelection(IDocument document, int pos) {
-		final Script script = Utilities.scriptForEditor(configuration.editor());
 		final Function func = script.funcAt(pos);
 		if (func != null) {
 			final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(pos-func.bodyLocation().start());

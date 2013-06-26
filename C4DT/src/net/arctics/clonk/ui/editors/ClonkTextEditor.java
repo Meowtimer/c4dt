@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -27,7 +28,6 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
-import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.ISourceViewerExtension2;
@@ -296,33 +296,16 @@ public class ClonkTextEditor extends TextEditor {
 	}
 
 	/**
-	 * Create a {@link IHyperlink} at the given offset in the text document using the same mechanism that is being used to create hyperlinks when ctrl-hovering.
-	 * This hyperlink will be used for functionality like {@link OpenDeclarationAction} that will not directly operate on specific kinds of {@link Declaration}s and is thus dependent on the {@link ClonkTextEditor} class returning adequate hyperlinks.
-	 * @param offset The offset
-	 * @return
-	 */
-	public IHyperlink hyperlinkAtOffset(int offset) {
-		final IHyperlinkDetector[] detectors = getSourceViewerConfiguration().getHyperlinkDetectors(getSourceViewer());
-		// emulate
-		getSourceViewerConfiguration().getHyperlinkPresenter(getSourceViewer()).hideHyperlinks();
-		final IRegion r = new Region(offset, 0);
-		for (final IHyperlinkDetector d : detectors) {
-			final IHyperlink[] hyperlinks = d.detectHyperlinks(getSourceViewer(), r, false);
-			if (hyperlinks != null && hyperlinks.length > 0)
-				return hyperlinks[0];
-		}
-		return null;
-	}
-
-	/**
 	 * Invoke {@link #hyperlinkAtOffset(int)} using the current selection offset.
 	 * @return The hyperlink returned by {@link #hyperlinkAtOffset(int)}
 	 */
 	public IHyperlink hyperlinkAtCurrentSelection() {
 	    final ITextSelection selection = (ITextSelection) this.getSelectionProvider().getSelection();
-		final IHyperlink hyperlink = this.hyperlinkAtOffset(selection.getOffset());
+		final IHyperlink hyperlink = state().hyperlinkAtOffset(selection.getOffset());
 		return hyperlink;
 	}
+
+	public IPreferenceStore preferenceStore() { return getPreferenceStore(); }
 
 	@Override
 	protected void doSetInput(IEditorInput input) throws CoreException {
@@ -350,10 +333,6 @@ public class ClonkTextEditor extends TextEditor {
 	}
 
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {}
-
-	public void refreshSyntaxColoring() {
-		((ClonkSourceViewerConfiguration<?>) getSourceViewerConfiguration()).refreshSyntaxColoring();
-	}
 
 	/**
 	 * Given a {@link ISourceViewer}, look for the corresponding {@link ClonkTextEditor}.
@@ -447,6 +426,7 @@ public class ClonkTextEditor extends TextEditor {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		state();
 		super.createPartControl(parent);
 		initializeProjectionSupport();
 	}

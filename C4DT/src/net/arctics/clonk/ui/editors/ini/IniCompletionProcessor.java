@@ -20,11 +20,11 @@ import net.arctics.clonk.ini.DefinitionPack;
 import net.arctics.clonk.ini.FunctionEntry;
 import net.arctics.clonk.ini.IDArray;
 import net.arctics.clonk.ini.IconSpec;
-import net.arctics.clonk.ini.IniSection;
-import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniData.IniDataBase;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
+import net.arctics.clonk.ini.IniSection;
+import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
 import net.arctics.clonk.ui.editors.ProposalsSite;
@@ -51,11 +51,11 @@ import org.eclipse.jface.text.contentassist.IContextInformationValidator;
  * @author madeen
  *
  */
-public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEditor> implements ICompletionListener {
+public class IniCompletionProcessor extends ClonkCompletionProcessor<IniUnitEditingState> implements ICompletionListener {
 
 	private IniSection section;
 
-	public IniCompletionProcessor(IniTextEditor editor, ContentAssistant assistant) { super(editor, assistant); }
+	public IniCompletionProcessor(IniUnitEditingState state, ContentAssistant assistant) { super(state, assistant); }
 
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
@@ -78,22 +78,22 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 		String entryName = ""; //$NON-NLS-1$
 		boolean assignment = false;
 		int wordOffset = offset;
-		if ((m = IniSourceViewerConfiguration.ASSIGN_PATTERN.matcher(line)).matches()) {
+		if ((m = IniUnitEditingState.ASSIGN_PATTERN.matcher(line)).matches()) {
 			entryName = m.group(1);
 			prefix = m.group(2);
 			assignment = true;
 			wordOffset = lineStart + m.start(2);
 		}
-		else if ((m = IniSourceViewerConfiguration.NO_ASSIGN_PATTERN.matcher(line)).matches()) {
+		else if ((m = IniUnitEditingState.NO_ASSIGN_PATTERN.matcher(line)).matches()) {
 			prefix = m.group(1);
 			wordOffset = lineStart + m.start(1);
 		}
 		prefix = prefix.toLowerCase();
 
-		pl = new ProposalsSite(offset, wordOffset, doc, prefix, new LinkedList<ICompletionProposal>(), editor().structure().index(), null, null);
+		pl = new ProposalsSite(offset, wordOffset, doc, prefix, new LinkedList<ICompletionProposal>(), state().structure().index(), null, null);
 
-		editor().ensureIniUnitUpToDate();
-		section = editor().unit().sectionAtOffset(offset);
+		state().ensureIniUnitUpToDate();
+		section = state().structure().sectionAtOffset(offset);
 
 		if (!assignment) {
 			if (section != null) {
@@ -105,7 +105,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 					proposalsForIniDataEntries(pl, section.parentSection().definition().entries().values());
 				else if (section.parentDeclaration() instanceof IniUnit)
 					proposalsForIniDataEntries(pl, ((IniUnit)section.parentDeclaration()).configuration().sections().values());
-				final int indentation = new IniUnitParser(editor().unit()).indentationAt(offset);
+				final int indentation = new IniUnitParser(state().structure()).indentationAt(offset);
 				if (indentation == section.indentation()+1)
 					proposalsForIniDataEntries(pl, section.definition().entries().values());
 			}
@@ -143,20 +143,20 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 
 	private void proposalsForCategoriesValue(ProposalsSite pl, IniEntryDefinition entryDef) {
 		if (pl.prefix != null)
-			for (final Variable v : editor().unit().engine().variablesWithPrefix(entryDef.constantsPrefix()))
+			for (final Variable v : state().structure().engine().variablesWithPrefix(entryDef.constantsPrefix()))
 				if (v.scope() == Scope.CONST)
-					proposalForVar(pl, editor().unit(), v);
+					proposalForVar(pl, state().structure(), v);
 	}
 
 	private void proposalsForIndex(ProposalsSite pl) {
-		final Index index = ProjectIndex.fromResource(editor().unit().file());
+		final Index index = ProjectIndex.fromResource(state().structure().file());
 		if (index != null)
 			for (final Index i : index.relevantIndexes())
 				proposalsForIndexedDefinitions(pl, i);
 	}
 
 	private void proposalsForDefinitionPackEntry(ProposalsSite pl) {
-		final ClonkProjectNature nature = ClonkProjectNature.get(this.editor.structure().resource().getProject());
+		final ClonkProjectNature nature = ClonkProjectNature.get(state().structure().resource().getProject());
 		final List<Index> indexes = nature.index().relevantIndexes();
 		for (final Index index : indexes)
 			if (index instanceof ProjectIndex)
@@ -192,7 +192,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	}
 
 	private void proposalsForFunctionEntry(ProposalsSite pl) {
-		final Definition obj = Definition.definitionCorrespondingToFolder(Utilities.fileEditedBy(editor).getParent());
+		final Definition obj = Definition.definitionCorrespondingToFolder(state().structure().file().getParent());
 		if (obj != null)
 			for (final Script include : obj.conglomerate()) {
 				final Script script = Utilities.as(include, Script.class);
@@ -218,13 +218,13 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniTextEdit
 	@Override
 	public IContextInformationValidator getContextInformationValidator() { return null; }
 	@Override
-	public void assistSessionEnded(ContentAssistEvent event) { editor().unlockUnit(); }
+	public void assistSessionEnded(ContentAssistEvent event) { state().unlockUnit(); }
 
 	@Override
 	public void assistSessionStarted(ContentAssistEvent event) {
 		try {
-			editor().forgetUnitParsed();
-			editor().lockUnit();
+			state().forgetUnitParsed();
+			state().lockUnit();
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}

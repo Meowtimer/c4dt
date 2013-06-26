@@ -46,15 +46,13 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	/** The additional info of this proposal. */
 	private String additionalProposalInfo;
 
-	/** Editor the proposal was created for */
-	private ClonkTextEditor editor;
+	private final StructureEditingState<?, ?> state;
 
 	/** Category for sorting */
 	private int category;
 
 	private boolean displayStringRecomputationNecessary;
 
-	public void setEditor(ClonkTextEditor editor) { this.editor = editor; }
 	public String replacementString() { return replacementString; }
 	public int replacementOffset() { return replacementOffset; }
 	public int replacementLength() { return replacementLength; }
@@ -98,7 +96,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		String displayString,
 		IContextInformation contextInformation,
 		String additionalProposalInfo, String postInfo,
-		ClonkTextEditor editor
+		StructureEditingState<?, ?> state
 	) {
 		this.declaration = declaration;
 		this.context = context;
@@ -111,7 +109,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		this.contextInformation= contextInformation;
 		this.additionalProposalInfo= additionalProposalInfo;
 		this.postInfo = postInfo;
-		this.setEditor(editor);
+		this.state = state;
 	}
 
 	public ClonkCompletionProposal(
@@ -122,11 +120,11 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		Image image,
 		IContextInformation contextInformation,
 		String additionalProposalInfo, String postInfo,
-		ClonkTextEditor editor
+		StructureEditingState<?, ?> state
 	) {
 		this(
 			declaration, context, replacementString, replacementOffset, replacementLength,
-			declaration.name().length(), image, null, contextInformation, additionalProposalInfo, postInfo, editor
+			declaration.name().length(), image, null, contextInformation, additionalProposalInfo, postInfo, state
 		);
 		displayStringRecomputationNecessary = true;
 	}
@@ -143,8 +141,8 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		try {
 			if (replacementString != null)
 				document.replace(replacementOffset, replacementLength, replacementString);
-			if (editor != null)
-				editor.completionProposalApplied(this);
+			if (state != null)
+				state.completionProposalApplied(this);
 		} catch (final BadLocationException x) {
 			// ignore
 		}
@@ -215,7 +213,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	}
 
 	private Declaration context() {
-		return context != null ? context : editor != null ? editor.structure() : declaration;
+		return context != null ? context : state != null ? state.structure() : declaration;
 	}
 
 	@Override

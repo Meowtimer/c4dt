@@ -21,87 +21,87 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 
-public class LandscapeScriptCompletionProcessor extends ClonkCompletionProcessor<LandscapeScriptEditor> {
+public class LandscapeScriptCompletionProcessor extends ClonkCompletionProcessor<LandscapeScriptEditingState> {
 
 	private static final Pattern startedOverlay = Pattern.compile(".*\\s+overlay\\s+([A-Za-z_0-9]*)"); //$NON-NLS-1$
 	private static final Pattern startedMap     = Pattern.compile(".*\\s+map\\s+([A-Za-z_0-9]*)"); //$NON-NLS-1$
 	private static final Pattern startedAttr    = Pattern.compile(".*\\s+([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 	private static final Pattern startedAttrVal = Pattern.compile(".*\\s+([A-Za-z_0-9]*)\\s*=\\s*([A-Za-z_0-9]*).*"); //$NON-NLS-1$
-	
-	public LandscapeScriptCompletionProcessor(LandscapeScriptEditor editor, ContentAssistant assistant) {
-		super(editor, assistant);
+
+	public LandscapeScriptCompletionProcessor(LandscapeScriptEditingState state, ContentAssistant assistant) {
+		super(state, assistant);
 	}
 
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-		
+
 		try {
-			editor().silentReparse();
-		} catch (Exception e) {
+			state().silentReparse();
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
-		
-		IDocument doc = viewer.getDocument();
+
+		final IDocument doc = viewer.getDocument();
 		String line;
 		int lineStart;
 		try {
-			IRegion lineRegion = doc.getLineInformationOfOffset(offset);
+			final IRegion lineRegion = doc.getLineInformationOfOffset(offset);
 			line = doc.get(lineRegion.getOffset(), lineRegion.getLength());
 			lineStart = lineRegion.getOffset();
-			String seps = ";{}"; //$NON-NLS-1$
+			final String seps = ";{}"; //$NON-NLS-1$
 			for (int i = seps.length()-1; i>=0; i--) {
-				int sepIndex = line.lastIndexOf(seps.charAt(i), offset-lineStart-1);
+				final int sepIndex = line.lastIndexOf(seps.charAt(i), offset-lineStart-1);
 				if (sepIndex != -1) {
 					line = line.substring(sepIndex+1);
 					lineStart += sepIndex+1;
 					break;
 				}
 			}
-		} catch (BadLocationException e) {
+		} catch (final BadLocationException e) {
 			line = ""; //$NON-NLS-1$
 			lineStart = offset;
 		}
-		
-		List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
+
+		final List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		Matcher m;
-		OverlayBase overlay = editor().script().overlayAt(offset);
-		if (overlay == editor().script())
+		OverlayBase overlay = state().structure().overlayAt(offset);
+		if (overlay == state().structure())
 			overlay = null;
 		if ((m = startedOverlay.matcher(line)).matches() || (m = startedMap.matcher(line)).matches()) {
 
 		}
 		else if (overlay != null && (m = startedAttrVal.matcher(line)).matches()) {
-			String attrName = m.group(1);
-			String attrValStart = m.group(2);
+			final String attrName = m.group(1);
+			final String attrValStart = m.group(2);
 			try {
-				Field attr = overlay.getClass().getField(attrName);
+				final Field attr = overlay.getClass().getField(attrName);
 				// enum recommendations
 				if (attr.getType().getSuperclass() == Enum.class) {
-					Enum<?>[] values = Utilities.enumValues(attr.getType());
-					for (Enum<?> v : values)
+					final Enum<?>[] values = Utilities.enumValues(attr.getType());
+					for (final Enum<?> v : values)
 						if (v.name().toLowerCase().startsWith(attrValStart))
 							proposals.add(new CompletionProposal(v.name(), lineStart+m.start(2), attrValStart.length(), v.name().length()));
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}
 		else if ((m = startedAttr.matcher(line)).matches() && offset-lineStart >= m.start(1) && offset-lineStart <= m.end(1)) {
-			String prefix = m.group(1).toLowerCase();
+			final String prefix = m.group(1).toLowerCase();
 			if (overlay != null) {
-				Field[] fields = overlay.getClass().getFields();
-				for (Field f : fields)
+				final Field[] fields = overlay.getClass().getFields();
+				for (final Field f : fields)
 					if (Modifier.isPublic(f.getModifiers()) && !Modifier.isStatic(f.getModifiers()))
 						if (f.getName().toLowerCase().startsWith(prefix))
 							proposals.add(new CompletionProposal(f.getName(), lineStart+m.start(1), prefix.length(), f.getName().length()));
 			}
-			
-			for (String keyword : OverlayBase.DEFAULT_CLASS.keySet())
+
+			for (final String keyword : OverlayBase.DEFAULT_CLASS.keySet())
 				if (keyword.toLowerCase().startsWith(prefix))
 					proposals.add(new CompletionProposal(keyword, lineStart+m.start(1), prefix.length(), keyword.length()));
 		}
-		
-		return proposals.toArray(new ICompletionProposal[proposals.size()]); 
+
+		return proposals.toArray(new ICompletionProposal[proposals.size()]);
 	}
 
 	@Override
