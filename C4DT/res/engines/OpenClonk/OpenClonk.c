@@ -520,6 +520,7 @@ global func bool Incinerate();
 global func any inherited();
 global func bool InLiquid();
 global func bool InsertMaterial(int material_index, int x, int y, int xdir, int ydir, proplist out_insertpos);
+global func bool CanInsertMaterial(int mat, int x, int y, proplist insert_position);
 global func bool Inside(int value, int lower_bound, int upper_bound);
 global func bool IsNetwork();
 global func bool Jump();
