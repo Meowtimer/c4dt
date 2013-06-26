@@ -96,7 +96,7 @@ public abstract class ClonkCompletionProcessor<EditorType extends ClonkTextEdito
 			final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
 
 			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def, def.id().stringValue(), pl.offset, replacementLength, def.id().stringValue().length(),
-				defIcon, displayString.trim(), null, null, "", editor()); //$NON-NLS-1$
+				defIcon, displayString.trim(), null, null, String.format(": %s", PrimitiveType.ID.typeName(true)), editor()); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
 			pl.addProposal(prop);
 		} catch (final Exception e) {}
