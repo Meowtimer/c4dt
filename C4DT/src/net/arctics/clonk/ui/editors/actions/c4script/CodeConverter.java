@@ -13,7 +13,6 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IHasCode;
@@ -52,7 +51,6 @@ public abstract class CodeConverter {
 
 	public void runOnDocument(
 		Script script,
-		ScriptParser parser,
 		final IDocument document
 	) {
 		synchronized (document) {
@@ -82,7 +80,7 @@ public abstract class CodeConverter {
 						textChange.addEdit(new ReplaceEdit(f.header().start(), f.header().getLength(), header.toString()));
 						f.setOldStyle(false);
 					}
-					replaceExpression(d, document, elms, parser, textChange);
+					replaceExpression(d, document, elms, textChange);
 				} catch (final CloneNotSupportedException e1) {
 					e1.printStackTrace();
 				} catch (final BadLocationException e) {
@@ -98,13 +96,13 @@ public abstract class CodeConverter {
 		}
 	}
 
-	protected abstract ASTNode performConversion(ScriptParser parser, ASTNode expression, Declaration declaration, CodeConverter.ICodeConverterContext cookie);
+	protected abstract ASTNode performConversion(ASTNode expression, Declaration declaration, CodeConverter.ICodeConverterContext cookie);
 
 	private static boolean superflousBetweenFuncHeaderAndBody(char c) {
 		return c == '\t' || c == ' ' || c == '\n' || c == '\r';
 	}
 
-	private void replaceExpression(Declaration d, IDocument document, ASTNode e, ScriptParser parser, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
+	private void replaceExpression(Declaration d, IDocument document, ASTNode e, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
 		final IRegion region = e.absolute();
 		int oldStart = region.getOffset();
 		int oldLength = region.getLength();
@@ -141,7 +139,7 @@ public abstract class CodeConverter {
 			}
 		}
 		final CodeConverterContext cookie = new CodeConverterContext();
-		ASTNode conv = performConversion(parser, e, d, cookie);
+		ASTNode conv = performConversion(e, d, cookie);
 		conv = cookie.postProcess(conv);
 		conv.print(newStringWriter, 0);
 		final String newString = newStringWriter.toString();

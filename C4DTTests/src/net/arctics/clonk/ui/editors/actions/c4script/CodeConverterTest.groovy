@@ -10,6 +10,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.ScriptParser
 import net.arctics.clonk.c4script.ScriptParserTest.Setup
+import net.arctics.clonk.c4script.ast.Tidy
 import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter.ICodeConverterContext;
 
@@ -26,17 +27,13 @@ Initialize:
 		setup.index.refresh()
 		setup.scripts.each { it.deriveInformation() }
 
-		try {
-			def converter = new CodeConverter() {
-				@Override
-				protected ASTNode performConversion(ScriptParser parser, ASTNode node, Declaration owner, ICodeConverterContext context) {
-					node.exhaustiveOptimize(TypeUtil.problemReportingContext(parser.script()))
-				}
+		def converter = new CodeConverter() {
+			@Override
+			protected ASTNode performConversion(ASTNode node, Declaration owner, ICodeConverterContext context) {
+				return new Tidy().tidyExhaustive(node);
 			}
-
-			converter.runOnDocument(setup.script, setup.parser, documentMock(source))
-		} catch (e) {
-			e.printStackTrace()
 		}
+
+		converter.runOnDocument(setup.script, documentMock(source))
 	}
 }

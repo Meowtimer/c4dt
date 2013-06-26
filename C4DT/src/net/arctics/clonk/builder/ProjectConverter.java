@@ -124,7 +124,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	}
 	private final CodeConverter codeConverter = new CodeConverter() {
 		@Override
-		protected ASTNode performConversion(ScriptParser parser, ASTNode expression, Declaration declaration, final ICodeConverterContext context) {
+		protected ASTNode performConversion(ASTNode expression, Declaration declaration, final ICodeConverterContext context) {
 			if (configuration == null)
 				return expression;
 			ASTNode node = (ASTNode)(new ITransformer() {
@@ -179,7 +179,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					}
 					for (final Directive d : script.directives())
 						if (d.type() == DirectiveType.STRICT)
-					codeConverter.runOnDocument(script, parser, document);
+					codeConverter.runOnDocument(script, document);
 					/*if (script instanceof Definition) {
 						Definition def = (Definition) script;
 						//ActMapUnit unit = (ActMapUnit) Structure.pinned(def.definitionFolder().findMember("ActMap.txt"), true, false);

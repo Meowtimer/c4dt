@@ -440,18 +440,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private transient int _lastIncludesOptions;
 
 	@Override
-	public Collection<Script> includes(Index index, Script origin, int options) {
-		synchronized (this) {
-			final int indexHash = index != null ? index.hashCode() : 0;
-			final int originHash = origin != null ? origin.hashCode() : 0;
-			if (includes != null && indexHash == _lastIncludesIndex && originHash == _lastIncludesOrigin && options == _lastIncludesOptions)
-				return includes;
-			//System.out.println(this.name() + ": reget");
-			_lastIncludesIndex = indexHash;
-			_lastIncludesOrigin = originHash;
-			_lastIncludesOptions = options;
-			return includes = IHasIncludes.Default.includes(index, this, origin, options);
-		}
+	public synchronized Collection<Script> includes(Index index, Script origin, int options) {
+		final int indexHash = index != null ? index.hashCode() : 0;
+		final int originHash = origin != null ? origin.hashCode() : 0;
+		if (includes != null && indexHash == _lastIncludesIndex && originHash == _lastIncludesOrigin && options == _lastIncludesOptions)
+			return includes;
+		//System.out.println(this.name() + ": reget");
+		_lastIncludesIndex = indexHash;
+		_lastIncludesOrigin = originHash;
+		_lastIncludesOptions = options;
+		return includes = IHasIncludes.Default.includes(index, this, origin, options);
 	}
 
 	public boolean directlyIncludes(Definition other) {
@@ -1206,7 +1204,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 *  <li>{@link Effect} objects are created by applying some camel-case finding strategy on functions named Fx.* ({@link #effects()})
 	 * </ol>
 	 */
-	public void deriveInformation() {
+	public synchronized void deriveInformation() {
 		if (file() != null)
 			pinTo(file());
 		findScenario();

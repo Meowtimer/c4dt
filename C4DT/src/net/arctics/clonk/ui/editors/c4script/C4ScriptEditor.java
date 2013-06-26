@@ -10,7 +10,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.EntityLocator;
@@ -326,13 +325,12 @@ public class C4ScriptEditor extends ClonkTextEditor {
 		return state != null ? state.structure() : null;
 	}
 
-	public ScriptParser reparse(boolean onlyDeclarations) throws IOException, ProblemException {
+	public void reparse(boolean onlyDeclarations) throws IOException, ProblemException {
 		if (script() == null)
-			return null;
-		final IDocument document = getDocumentProvider().getDocument(getEditorInput());
+			return;
 		if (state != null)
 			state.cancelReparsingTimer();
-		return state.reparseWithDocumentContents(document, new Runnable() {
+		state.reparseWithDocumentContents(new Runnable() {
 			@Override
 			public void run() {
 				refreshOutline();

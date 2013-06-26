@@ -68,6 +68,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private final Timer timer = new Timer("ReparseTimer"); //$NON-NLS-1$
 	private TimerTask reparseTask, reportFunctionProblemsTask;
+	private final Object
+		structureModificationLock = new Object(),
+		obtainStructureLock = new Object();
 
 	public static ScriptEditingState request(IDocument document, Script script, C4ScriptEditor client)  {
 		try {
@@ -103,9 +106,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			adjustDec(v, offset, add);
 	}
 
-	private ScriptParser reparse() throws ProblemException {
+	private void reparse() throws ProblemException {
 		cancelReparsingTimer();
-		return reparseWithDocumentContents(document, refreshEditorsRunnable());
+		reparseWithDocumentContents(refreshEditorsRunnable());
 	}
 
 	private Runnable refreshEditorsRunnable() {
@@ -120,29 +123,32 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		};
 	}
 
-	synchronized ScriptParser reparseWithDocumentContents(
-		Object scriptSource, Runnable uiRefreshRunnable
-	) throws ProblemException {
-		final Markers markers = new StructureMarkers(false);
+	void reparseWithDocumentContents(Runnable uiRefreshRunnable) throws ProblemException {
 		structure().requireLoaded();
-		final ScriptParser parser = new ScriptParser(scriptSource, structure(), null) {{
-			setMarkers(markers);
-			script().clearDeclarations();
-			parseDeclarations();
-			script().deriveInformation();
-			validate();
-		}};
-		structure().traverse(Comment.TODO_EXTRACTOR, markers);
-		reportProblems(markers);
+
+		final Markers markers = new StructureMarkers(false);
+		final String source = document.get();
+		synchronized (structureModificationLock) {
+			new ScriptParser(source, structure(), null) {{
+				setMarkers(markers);
+				script().clearDeclarations();
+				parseDeclarations();
+				script().deriveInformation();
+				validate();
+			}};
+			structure().traverse(Comment.TODO_EXTRACTOR, markers);
+			reportProblems(markers);
+		}
 		markers.deploy();
 		if (uiRefreshRunnable != null)
 			Display.getDefault().asyncExec(uiRefreshRunnable);
-		return parser;
 	}
 
-	private synchronized void reportProblems() {
+	private void reportProblems() {
 		final Markers markers = new StructureMarkers(true);
-		reportProblems(markers);
+		synchronized (structureModificationLock) {
+			reportProblems(markers);
+		}
 		markers.deploy();
 	}
 
@@ -168,7 +174,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					return;
 				try {
 					try {
-						reparseWithDocumentContents(document, new Runnable() {
+						reparseWithDocumentContents(new Runnable() {
 							@Override
 							public void run() {
 								for (final C4ScriptEditor ed : editors) {
@@ -270,7 +276,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}, 1000);
 	}
 
-	public synchronized Markers reportProblems(final Function function) {
+	public Markers reportProblems(final Function function) {
 		// ignore this request when errors while typing disabled
 		if (errorsWhileTypingDisabled())
 			return new Markers();
@@ -278,13 +284,14 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		final Markers markers = new Markers(new MarkerConfines(function));
 		markers.applyProjectSettings(structure().index());
 
-		// main visit - this will also branch out to called functions so their parameter types will be adjusted taking into account
-		// concrete parameters passed from here
+		// visit the function
 		structure().deriveInformation();
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies()) {
 			strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
 			strategy.run();
 		}
+
+		// visit directly called functions
 		final Function.Typing typing = structure().typings().get(function);
 		if (typing != null) {
 			final Set<Pair<Script, Function>> callees = new HashSet<Pair<Script, Function>>();
@@ -334,7 +341,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				final IFile file = (IFile)structure().source();
 				// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
 				if (file.exists())
-					reparseWithDocumentContents(file, null);
+					reparseWithDocumentContents(null);
 			}
 		} catch (final ProblemException e) {
 			e.printStackTrace();
@@ -353,49 +360,51 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	private WeakReference<Script> cachedScript = new WeakReference<Script>(null);
 
 	@Override
-	public synchronized Script structure() {
-		Script result = cachedScript.get();
-		Cases: if (result == null) {
-			if (editors.isEmpty()) {
-				result = structure;
-				break Cases;
-			}
-
-			final IEditorInput input = editors.get(0).getEditorInput();
-			if (input instanceof ScriptWithStorageEditorInput) {
-				result = ((ScriptWithStorageEditorInput)input).script();
-				break Cases;
-			}
-
-			final IFile f = Utilities.fileFromEditorInput(input);
-			if (f != null) {
-				final Script script = Script.get(f, true);
-				if (script != null) {
-					result = script;
+	public Script structure() {
+		synchronized (obtainStructureLock) {
+			Script result = cachedScript.get();
+			Cases: if (result == null) {
+				if (editors.isEmpty()) {
+					result = structure;
 					break Cases;
+				}
+
+				final IEditorInput input = editors.get(0).getEditorInput();
+				if (input instanceof ScriptWithStorageEditorInput) {
+					result = ((ScriptWithStorageEditorInput)input).script();
+					break Cases;
+				}
+
+				final IFile f = Utilities.fileFromEditorInput(input);
+				if (f != null) {
+					final Script script = Script.get(f, true);
+					if (script != null) {
+						result = script;
+						break Cases;
+					}
+				}
+
+				result = new ScratchScript(editors.get(0));
+				cachedScript = new WeakReference<Script>(result);
+				try {
+					reparse();
+					result.traverse(new IASTVisitor<Script>() {
+						@Override
+						public TraversalContinuation visitNode(ASTNode node, Script parser) {
+							final AccessDeclaration ad = as(node, AccessDeclaration.class);
+							if (ad != null && ad.declaration() != null)
+								ad.setDeclaration(ad.declaration().latestVersion());
+							return TraversalContinuation.Continue;
+						}
+					}, result);
+				} catch (final Exception e) {
+					e.printStackTrace();
 				}
 			}
 
-			result = new ScratchScript(editors.get(0));
 			cachedScript = new WeakReference<Script>(result);
-			try {
-				reparse();
-				result.traverse(new IASTVisitor<Script>() {
-					@Override
-					public TraversalContinuation visitNode(ASTNode node, Script parser) {
-						final AccessDeclaration ad = as(node, AccessDeclaration.class);
-						if (ad != null && ad.declaration() != null)
-							ad.setDeclaration(ad.declaration().latestVersion());
-						return TraversalContinuation.Continue;
-					}
-				}, result);
-			} catch (final Exception e) {
-				e.printStackTrace();
-			}
+			return this.structure = result;
 		}
-
-		cachedScript = new WeakReference<Script>(result);
-		return this.structure = result;
 	}
 
 	@Override
@@ -405,21 +414,23 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		super.invalidate();
 	}
 
-	public synchronized FunctionFragmentParser updateFunctionFragment(
+	public FunctionFragmentParser updateFunctionFragment(
 		Function function,
 		IASTVisitor<ProblemReporter> observer,
 		boolean typingContextVisitInAnyCase
 	) {
-		final FunctionFragmentParser fparser = new FunctionFragmentParser(document, structure(), function, null);
-		final boolean change = fparser.update();
-		if (change || (observer != null && typingContextVisitInAnyCase))
-			for (final ProblemReportingStrategy s : problemReportingStrategies())
-				if ((s.capabilities() & Capabilities.TYPING) != 0) {
-					s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
-					s.setObserver(observer);
-					s.run();
-				}
-		return fparser;
+		synchronized (structureModificationLock) {
+			final FunctionFragmentParser fparser = new FunctionFragmentParser(document, structure(), function, null);
+			final boolean change = fparser.update();
+			if (change || (observer != null && typingContextVisitInAnyCase))
+				for (final ProblemReportingStrategy s : problemReportingStrategies())
+					if ((s.capabilities() & Capabilities.TYPING) != 0) {
+						s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
+						s.setObserver(observer);
+						s.run();
+					}
+			return fparser;
+		}
 	}
 
 	@Override
