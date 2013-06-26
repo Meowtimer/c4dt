@@ -246,7 +246,7 @@ public class Command {
 		public static void CountNodes(Object context, String projectName) {
 			class Counter {
 				int result;
-				public int count(ASTNode node) { 
+				public int count(ASTNode node) {
 					if (node != null) {
 						result++;
 						for (final ASTNode sn : node.subElements())
@@ -258,9 +258,9 @@ public class Command {
 			System.out.println(String.format("%d", new Counter().count(ClonkProjectNature.get(projectName).index())));
 		}
 		@CommandFunction
-		public static void ToggleDebug(Object context) {
-			Flags.DEBUG = !Flags.DEBUG;
-		}
+		public static void ToggleDebug(Object context) { Flags.DEBUG = !Flags.DEBUG; }
+		@CommandFunction
+		public static void ToggleOutputDabbleGraph(Object context) { Flags.OUTPUTDABBLEGRAPH = !Flags.OUTPUTDABBLEGRAPH; }
 	}
 
 }

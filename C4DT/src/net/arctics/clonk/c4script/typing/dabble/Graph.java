@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.Flags.OUTPUTDABBLEGRAPH;
 import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.multiply;
@@ -293,7 +294,8 @@ class Graph extends LinkedList<Runnable> {
 		populateVisitsMap();
 		determineRequirements();
 		populate();
-		//output();
+		if (OUTPUTDABBLEGRAPH)
+			output();
 	}
 
 	void run() {
