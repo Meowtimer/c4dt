@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,7 +25,6 @@ import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
@@ -32,17 +32,18 @@ import net.arctics.clonk.c4script.IHasIncludes;
 import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
+import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.ast.VarInitialization;
-import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
 import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
@@ -78,7 +79,6 @@ import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
-import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
 import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
@@ -100,20 +100,9 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
  */
 public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEditingState> implements ICompletionListener, ICompletionListenerExtension {
 
-	private final ContentAssistant assistant;
 	private ProposalCycle proposalCycle = null;
 
-	public ScriptCompletionProcessor(Script script) {
-		super(null, null);
-		assistant = null;
-	}
-
-	public ScriptCompletionProcessor(ScriptEditingState state, ContentAssistant assistant) {
-		super(state, assistant);
-		this.assistant = assistant;
-		if (assistant != null)
-			assistant.addCompletionListener(this);
-	}
+	public ScriptCompletionProcessor(ScriptEditingState state) { super(state); }
 
 	@Override
 	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
@@ -216,7 +205,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 			? computeProposalsOutsideFunction(viewer, pl)
 			: computeProposalsInsideFunction(pl)))
 			return null;
-		assistant.setStatusMessage(proposalCycleMessage());
+		state().assistant().setStatusMessage(proposalCycleMessage());
 		ICompletionProposal[] proposals = pl.finish(proposalCycle);
 		if (proposals != null && pl.prefix == null || pl.prefix.length() == 0)
 			proposals = appendWhitespaceLocalGlobalDelimiter(proposals);
@@ -241,7 +230,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 
 	@SuppressWarnings("unused")
 	private void setStatusMessage(final Function activeFunc) {
-		assistant.setStatusMessage(proposalCycleMessage());
+		state().assistant().setStatusMessage(proposalCycleMessage());
 	}
 
 	private boolean computeProposalsInsideFunction(ProposalsSite pl) {
@@ -587,7 +576,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 	public static List<ICompletionProposal> computeProposalsForExpression
 		(ASTNode expression, Function function, ScriptParser parser, IDocument document) {
 		final List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
-		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(parser.script());
+		final ScriptEditingState state = new ScriptEditingState(Core.instance().getPreferenceStore());
+		state.set(null, parser.script(), document);
+		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(state);
 		final ProposalsSite pl = new ProposalsSite(
 			expression != null ? expression.end() : 0,
 			0, document, "", result, function.index(), function, parser.script()

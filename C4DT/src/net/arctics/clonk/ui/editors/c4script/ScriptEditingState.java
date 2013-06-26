@@ -104,7 +104,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	public final class Assistant extends ContentAssistant {
 		private ScriptCompletionProcessor processor;
 		public Assistant() {
-			processor = new ScriptCompletionProcessor(ScriptEditingState.this, this);
+			processor = new ScriptCompletionProcessor(ScriptEditingState.this);
 			for (final String s : CStylePartitionScanner.PARTITIONS)
 				setContentAssistProcessor(processor, s);
 			setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
@@ -123,6 +123,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					return def;
 				}
 			});
+			setSorter(processor);
+			addCompletionListener(processor);
 		}
 		// make these public
 		@Override

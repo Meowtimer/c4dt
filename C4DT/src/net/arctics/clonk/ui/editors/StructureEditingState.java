@@ -178,7 +178,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 		return r;
 	}
 
-	void set(List<? extends StructureEditingState<EditorType, StructureType>> list, StructureType structure, IDocument document) {
+	public void set(List<? extends StructureEditingState<EditorType, StructureType>> list, StructureType structure, IDocument document) {
 		this.list = list;
 		this.structure = structure;
 		this.document = document;

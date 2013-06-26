@@ -16,7 +16,6 @@ import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposalSorter;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
@@ -64,11 +63,7 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 	protected final CategoryOrdering cats = new CategoryOrdering();
 
 	public StateClass state() { return state; }
-	public ClonkCompletionProcessor(StateClass state, ContentAssistant assistant) {
-		this.state = state;
-		if (assistant != null)
-			assistant.setSorter(this);
-	}
+	public ClonkCompletionProcessor(StateClass state) { this.state = state; }
 
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
