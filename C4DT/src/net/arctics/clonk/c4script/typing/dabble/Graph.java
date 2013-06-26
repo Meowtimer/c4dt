@@ -123,16 +123,22 @@ class Graph extends LinkedList<Runnable> {
 	};
 
 	void determineRequirements() {
+
+		// callee -> caller if callee's result used
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.plan.values())
 				v.function.traverse(resultUsedRequirementsDetector, v);
 
+		// caller -> callee
 		for (final Input i : inference.input.values())
-			for (final Visit v : i.plan.values())
+			for (final Visit v : i.plan.values()) {
+				final int numParameters = v.function().numParameters();
 				if (i.shouldTypeFromCalls(v.function)) {
 					final List<CallDeclaration> calls = inference.index().callsTo(v.function.name());
 					if (calls != null)
 						for (final CallDeclaration call : calls) {
+							if (call.params().length != numParameters)
+								continue;
 							final Function caller = call.parentOfType(Function.class);
 							final List<Visit> callerVisits = visits.get(caller.name());
 							if (callerVisits != null)
@@ -141,7 +147,9 @@ class Graph extends LinkedList<Runnable> {
 										addRequirement(v, callerVisit);
 						}
 				}
+			}
 
+		// functions containing initialization of used variable -> variable user
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.plan.values())
 				v.function.traverse(variableInitializationsRequirementsVisitor, v);

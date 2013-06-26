@@ -564,6 +564,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Function base = (Function) function.baseFunction().latestVersion();
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final CallDeclaration call = calls.get(ci);
+					if (call.params().length < function.numParameters())
+						continue;
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.script();
 					final Script ds = call.predecessorInSequence() == null && conglomerate.contains(other) ? script : other;
