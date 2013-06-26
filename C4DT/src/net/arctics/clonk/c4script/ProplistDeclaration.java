@@ -60,7 +60,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 			else
 				list = components;
 			variable.setParent(this);
-			list.add(variable);
+			synchronized (components) { list.add(variable); }
 			return variable;
 		}
 	}
