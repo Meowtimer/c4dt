@@ -34,7 +34,7 @@ import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visit;
 import net.arctics.clonk.util.TaskExecution;
 
 @SuppressWarnings("serial")
-class Graph extends LinkedList<Runnable> {
+class Plan extends LinkedList<Runnable> {
 
 	class VisitsByName extends LinkedList<Visit> implements Runnable {
 		@Override
@@ -50,7 +50,7 @@ class Graph extends LinkedList<Runnable> {
 
 	void populateVisitsMap() {
 		for (final Input i : inference.input.values())
-			for (final Visit v : i.plan.values()) {
+			for (final Visit v : i.visits.values()) {
 				VisitsByName list = visits.get(v.function.name());
 				if (list == null) {
 					list = new VisitsByName();
@@ -102,7 +102,7 @@ class Graph extends LinkedList<Runnable> {
 							for (ASTNode p = ref.parent(); p != null; p = p.parent())
 								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
 									final Function fun = ref.parentOfType(Function.class);
-									final Visit other = v.input().plan.get(fun);
+									final Visit other = v.input().visits.get(fun);
 									if (other != null)
 										addRequirement(v, other);
 									/*	final List<CallDeclaration> calls = s.callMap().get(fun.name());
@@ -133,12 +133,12 @@ class Graph extends LinkedList<Runnable> {
 
 		// callee -> caller if callee's result used
 		for (final Input i : inference.input.values())
-			for (final Visit v : i.plan.values())
+			for (final Visit v : i.visits.values())
 				v.function.traverse(resultUsedRequirementsDetector, v);
 
 		// caller -> callee
 		for (final Input i : inference.input.values())
-			for (final Visit v : i.plan.values()) {
+			for (final Visit v : i.visits.values()) {
 				final int numParameters = v.function().numParameters();
 				if (i.shouldTypeFromCalls(v.function)) {
 					final List<CallDeclaration> calls = inference.index().callsTo(v.function.name());
@@ -158,7 +158,7 @@ class Graph extends LinkedList<Runnable> {
 
 		// functions containing initialization of used variable -> variable user
 		for (final Input i : inference.input.values())
-			for (final Visit v : i.plan.values())
+			for (final Visit v : i.visits.values())
 				v.function.traverse(variableInitializationsRequirementsVisitor, v);
 	}
 
@@ -238,7 +238,7 @@ class Graph extends LinkedList<Runnable> {
 	void populate() {
 		final List<Visit> roots = new LinkedList<>();
 		for (final Input i : inference.input.values())
-			for (final Visit v : i.plan.values())
+			for (final Visit v : i.visits.values())
 				if (v.requirements.size() == 0)
 					if (v.dependents.size() == 0)
 						this.add(v);
@@ -266,7 +266,7 @@ class Graph extends LinkedList<Runnable> {
 			};
 			void run() {
 				int x = 0;
-				for (final Runnable r : Graph.this) {
+				for (final Runnable r : Plan.this) {
 					final Cluster c = as(r, Cluster.class);
 					if (c == null)
 						continue;
@@ -293,7 +293,7 @@ class Graph extends LinkedList<Runnable> {
 		new Output().run();
 	}
 
-	Graph(DabbleInference inference) {
+	Plan(DabbleInference inference) {
 		this.inference = inference;
 		populateVisitsMap();
 		determineRequirements();

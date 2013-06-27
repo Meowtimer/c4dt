@@ -140,7 +140,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		if (function.body() == null)
 			return null;
 		final Input input = DabbleInference.this.input.get(script);
-		return input != null ? input.plan.get(function) : null;
+		return input != null ? input.visits.get(function) : null;
 	}
 
 	private boolean noticeParameterCountMismatch;
@@ -253,9 +253,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 	final void work() {
 		subTask(Messages.ComputingGraph);
 		parameterValidations.clear();
-		final Graph graph = new Graph(this);
+		final Plan plan = new Plan(this);
 		subTask(Messages.RunInference);
-		graph.run();
+		plan.run();
 		subTask(Messages.ValidateParameters);
 		validateParameters();
 		subTask(Messages.Apply);
@@ -923,7 +923,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final CachedEngineDeclarations cachedEngineDeclarations;
 		final int strictLevel;
 		final boolean hasAppendTo;
-		final Map<Function, Visit> plan;
+		final Map<Function, Visit> visits;
 		final IType thisType;
 		final SpecialEngineRules rules;
 		final int fragmentOffset;
@@ -932,7 +932,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		public Script script() { return script; }
 
-		private HashMap<Function, Visit> makePlan(Function[] restrict) {
+		private HashMap<Function, Visit> makeVisits(Function[] restrict) {
 			final HashMap<Function, Visit> result = new LinkedHashMap<>();
 			if (restrict != null && restrict.length > 0)
 				for (final Function f : restrict) {
@@ -1004,7 +1004,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.fragmentOffset = sourceFragmentOffset;
 			this.hasAppendTo = script.hasAppendTo();
 			this.typeEnvironment = TypeEnvironment.newSynchronized(typing);
-			this.plan = Collections.synchronizedMap(makePlan(restrict));
+			this.visits = Collections.synchronizedMap(makeVisits(restrict));
 			this.partial = restrict != null && restrict.length > 0;
 		}
 
@@ -1030,7 +1030,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (tyVar != null)
 								variableTypes.put(v.name(), tyVar.get());
 						}
-			for (final Visit entry : plan.values())
+			for (final Visit entry : visits.values())
 				putFunctionTyping(functionTypings, entry);
 		}
 
