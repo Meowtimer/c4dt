@@ -556,8 +556,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 						for (final IType t : predTy) {
 							if (t == script)
 								break RelevanceCheck;
-							if (t instanceof Script && script.doesInclude(index, (Script)t))
-								break RelevanceCheck;
+							if (t instanceof Script) {
+								final Script s = (Script)t;
+								if (script.doesInclude(index, s))
+									break RelevanceCheck;
+								if (s.doesInclude(index, script) && s.seesFunction(function))
+									break RelevanceCheck;
+							}
 						}
 						continue;
 					}
