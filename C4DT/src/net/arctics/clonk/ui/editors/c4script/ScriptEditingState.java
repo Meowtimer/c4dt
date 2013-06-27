@@ -18,6 +18,7 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
@@ -34,11 +35,16 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
+import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.EntityLocator;
 import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
+import net.arctics.clonk.c4script.ast.KeywordStatement;
+import net.arctics.clonk.c4script.ast.Literal;
+import net.arctics.clonk.c4script.ast.PropListExpression;
+import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.TypeUtil;
@@ -69,6 +75,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
+import org.eclipse.jface.text.DefaultTextDoubleClickStrategy;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
@@ -214,6 +221,39 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				return null;
 			}
 			return region;
+		}
+	}
+
+	class DoubleClickStrategy extends DefaultTextDoubleClickStrategy {
+		@Override
+		protected IRegion findExtendedDoubleClickSelection(IDocument document, int pos) {
+			final Function func = structure().funcAt(pos);
+			if (func != null) {
+				final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(pos-func.bodyLocation().start());
+				func.traverse(locator, null);
+				ASTNode expr = locator.expressionAtRegion();
+				if (expr == null)
+					return new Region(func.wholeBody().getOffset(), func.wholeBody().getLength());
+				else for (; expr != null; expr = expr.parent())
+					if (expr instanceof KeywordStatement || expr instanceof Comment || expr instanceof StringLiteral) {
+						final IRegion word = findWord(document, pos);
+						try {
+							if (word != null && !document.get(word.getOffset(), word.getLength()).equals("\t"))
+								return word;
+							else
+								continue;
+						} catch (final BadLocationException e) {
+							continue;
+						}
+					} else if (expr instanceof Literal)
+						return new Region(func.bodyLocation().getOffset()+expr.start(), expr.getLength());
+					else if (expr instanceof AccessDeclaration) {
+						final AccessDeclaration accessDec = (AccessDeclaration) expr;
+						return new Region(func.bodyLocation().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
+					} else if (expr instanceof PropListExpression || expr instanceof Block)
+						return new Region(expr.start()+func.bodyLocation().getOffset(), expr.getLength());
+			}
+			return null;
 		}
 	}
 
@@ -718,14 +758,12 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	private static ScannerPerEngine<ScriptCodeScanner> SCANNERS = new ScannerPerEngine<ScriptCodeScanner>(ScriptCodeScanner.class);
-	private final ITextDoubleClickStrategy doubleClickStrategy = new ScriptDoubleClickStrategy(structure());
+	private final ITextDoubleClickStrategy doubleClickStrategy = new DoubleClickStrategy();
 	public ScriptEditingState(IPreferenceStore store) { super(store); }
 	@Override
 	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) { return CStylePartitionScanner.PARTITIONS; }
 	@Override
-	public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
-		return doubleClickStrategy;
-	}
+	public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) { return doubleClickStrategy; }
 	@Override
 	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
 		final IQuickAssistAssistant assistant = new QuickAssistAssistant();
