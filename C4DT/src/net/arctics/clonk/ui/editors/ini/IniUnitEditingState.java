@@ -31,9 +31,9 @@ import net.arctics.clonk.ini.IniUnitWithNamedSections;
 import net.arctics.clonk.ini.IntegerArray;
 import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.ui.editors.EntityHyperlink;
-import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.HyperlinkToResource;
 import net.arctics.clonk.ui.editors.StructureEditingState;
+import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -61,6 +61,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 public final class IniUnitEditingState extends StructureEditingState<IniTextEditor, IniUnit> {
+
 	private boolean unitParsed;
 	public int unitLocked;
 
