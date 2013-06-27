@@ -9,7 +9,7 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.MutableRegion;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.util.WeakListenerManager;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -289,7 +289,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 			}
 	}
 
-	public void completionProposalApplied(ClonkCompletionProposal proposal) {
+	public void completionProposalApplied(DeclarationProposal proposal) {
 		AutoInsertedRegion newOne = null;
 		if (proposal.replacementString().endsWith(")") && proposal.cursorPosition() < proposal.replacementString().length())
 			overrideRegions.add(newOne = new AutoInsertedRegion(

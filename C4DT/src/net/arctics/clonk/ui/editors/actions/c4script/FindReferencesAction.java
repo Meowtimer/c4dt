@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.index.Definition.ProxyVar;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.search.ReferencesSearchQuery;
@@ -20,7 +20,7 @@ public class FindReferencesAction extends ClonkTextEditorAction {
 	public void run() {
 		try {
 			Declaration declaration = declarationAtSelection(false);
-			final Declaration structure = ((ClonkTextEditor)getTextEditor()).structure();
+			final Declaration structure = ((StructureTextEditor)getTextEditor()).structure();
 			if (declaration == null)
 				declaration = structure;
 			if (declaration != null) {

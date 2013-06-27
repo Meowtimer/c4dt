@@ -15,7 +15,7 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.EntityLocator;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
@@ -54,7 +54,7 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
  * @author madeen
  *
  */
-public class C4ScriptEditor extends ClonkTextEditor {
+public class C4ScriptEditor extends StructureTextEditor {
 
 	private final class ShowContentAssistAtKeyUpListener implements MouseListener, KeyListener {
 		@Override

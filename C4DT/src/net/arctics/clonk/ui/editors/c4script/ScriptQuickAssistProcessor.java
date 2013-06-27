@@ -58,8 +58,8 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.DeclarationProposal;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StringUtil;
@@ -159,7 +159,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			if (canFix(annotation)) {
 				final Position pos = model.getPosition(annotation);
 				if (isAtPosition(offset, pos))
-					collectProposals(((MarkerAnnotation) annotation).getMarker(), pos, proposals, null, ClonkTextEditor.getEditorForSourceViewer(context.getSourceViewer(), C4ScriptEditor.class));
+					collectProposals(((MarkerAnnotation) annotation).getMarker(), pos, proposals, null, StructureTextEditor.getEditorForSourceViewer(context.getSourceViewer(), C4ScriptEditor.class));
 			}
 		}
 		return proposals.toArray(new ICompletionProposal[proposals.size()]);
@@ -212,7 +212,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 	}
 
-	public final class ParameterizedProposal extends ClonkCompletionProposal {
+	public final class ParameterizedProposal extends DeclarationProposal {
 		private final Replacement replacement;
 		private final int tabIndentation;
 		private final ScriptParser parser;
@@ -544,8 +544,8 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					final List<ICompletionProposal> possible = ScriptCompletionProcessor.computeProposalsForExpression
 						(expr, func, parser, document);
 					for (final ICompletionProposal p : possible)
-						if (p instanceof ClonkCompletionProposal) {
-							final ClonkCompletionProposal clonkProposal = (ClonkCompletionProposal) p;
+						if (p instanceof DeclarationProposal) {
+							final DeclarationProposal clonkProposal = (DeclarationProposal) p;
 							final Declaration dec = clonkProposal.declaration();
 							if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
 								continue;

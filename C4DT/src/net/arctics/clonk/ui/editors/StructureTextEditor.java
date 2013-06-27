@@ -63,9 +63,9 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  * @author madeen
  *
  */
-public class ClonkTextEditor extends TextEditor {
+public class StructureTextEditor extends TextEditor {
 
-	protected ClonkContentOutlinePage outlinePage;
+	protected StructureOutlinePage outlinePage;
 	private ShowInAdapter showInAdapter;
 
 	/**
@@ -108,9 +108,9 @@ public class ClonkTextEditor extends TextEditor {
 	 * Return the outline page of this text editor.
 	 * @return
 	 */
-	public ClonkContentOutlinePage outlinePage() {
+	public StructureOutlinePage outlinePage() {
 		if (outlinePage == null) {
-			outlinePage = new ClonkContentOutlinePage();
+			outlinePage = new StructureOutlinePage();
 			outlinePage.setEditor(this);
 		}
 		return outlinePage;
@@ -202,8 +202,8 @@ public class ClonkTextEditor extends TextEditor {
 				if (def != null)
 					ed = openDeclaration(def);
 			}
-			if (ed instanceof ClonkTextEditor)
-				((ClonkTextEditor) ed).selectAndReveal(location.location());
+			if (ed instanceof StructureTextEditor)
+				((StructureTextEditor) ed).selectAndReveal(location.location());
 			return ed;
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -223,11 +223,11 @@ public class ClonkTextEditor extends TextEditor {
 	 * Reveal a {@link Declaration} in an editor.
 	 * @param target The {@link Declaration} to reveal
 	 * @param structure The {@link Structure} the {@link Declaration} is contained in.
-	 * @param editor The editor to reveal the {@link Declaration} in. Special treatment for {@link ClonkTextEditor}, fallback for {@link AbstractTextEditor}.
+	 * @param editor The editor to reveal the {@link Declaration} in. Special treatment for {@link StructureTextEditor}, fallback for {@link AbstractTextEditor}.
 	 */
 	private static void revealInEditor(Declaration target, Structure structure, IEditorPart editor) {
-		if (editor instanceof ClonkTextEditor) {
-			final ClonkTextEditor clonkTextEditor = (ClonkTextEditor) editor;
+		if (editor instanceof StructureTextEditor) {
+			final StructureTextEditor clonkTextEditor = (StructureTextEditor) editor;
 			if (target != structure) {
 				final Declaration old = target;
 				target = target.latestVersion();
@@ -330,23 +330,23 @@ public class ClonkTextEditor extends TextEditor {
 
 	public ContentAssistant contentAssistant() { return state().getContentAssistant(getSourceViewer()); }
 
-	public void completionProposalApplied(ClonkCompletionProposal proposal) {}
+	public void completionProposalApplied(DeclarationProposal proposal) {}
 
 	/**
-	 * Given a {@link ISourceViewer}, look for the corresponding {@link ClonkTextEditor}.
+	 * Given a {@link ISourceViewer}, look for the corresponding {@link StructureTextEditor}.
 	 * @param <T> Return type specified by the passed cls.
 	 * @param sourceViewer The {@link ISourceViewer}
-	 * @param cls The class of {@link ClonkTextEditor} to return an instance of.
-	 * @return The {@link ClonkTextEditor} corresponding to the source viewer and being of the required class or null.
+	 * @param cls The class of {@link StructureTextEditor} to return an instance of.
+	 * @return The {@link StructureTextEditor} corresponding to the source viewer and being of the required class or null.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends ClonkTextEditor> T getEditorForSourceViewer(ISourceViewer sourceViewer, Class<T> cls) {
+	public static <T extends StructureTextEditor> T getEditorForSourceViewer(ISourceViewer sourceViewer, Class<T> cls) {
 		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
 			for (final IWorkbenchPage page : window.getPages())
 				for (final IEditorReference reference : page.getEditorReferences()) {
 					final IEditorPart editor = reference.getEditor(false);
 					if (editor != null && cls.isAssignableFrom(editor.getClass()))
-						if (((ClonkTextEditor) editor).getSourceViewer().equals(sourceViewer))
+						if (((StructureTextEditor) editor).getSourceViewer().equals(sourceViewer))
 							return (T) editor;
 				}
 		return null;
@@ -356,11 +356,11 @@ public class ClonkTextEditor extends TextEditor {
 	 * Return an existing editor for the specified {@link IResource}.
 	 * @param <T> Return type specified by the passed cls.
 	 * @param resource The {@link IResource} to obtain a matching existing editor for.
-	 * @param cls The class of {@link ClonkTextEditor} to return an instance of.
-	 * @return The {@link ClonkTextEditor} being opened for the passed resource and being of the required class or null.
+	 * @param cls The class of {@link StructureTextEditor} to return an instance of.
+	 * @return The {@link StructureTextEditor} being opened for the passed resource and being of the required class or null.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends ClonkTextEditor> T getEditorForResource(IResource resource, Class<T> cls) {
+	public static <T extends StructureTextEditor> T getEditorForResource(IResource resource, Class<T> cls) {
 		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
 			for (final IWorkbenchPage page : window.getPages())
 				for (final IEditorReference reference : page.getEditorReferences()) {

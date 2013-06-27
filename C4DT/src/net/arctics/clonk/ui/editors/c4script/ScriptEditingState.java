@@ -54,9 +54,9 @@ import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
-import net.arctics.clonk.ui.editors.ClonkHyperlink;
-import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
+import net.arctics.clonk.ui.editors.DeclarationProposal;
+import net.arctics.clonk.ui.editors.EntityHyperlink;
+import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.util.Pair;
@@ -153,11 +153,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				final EntityLocator locator = new EntityLocator(structure(), viewer.getDocument(),region);
 				if (locator.entity() != null)
 					return new IHyperlink[] {
-						new ClonkHyperlink(locator.expressionRegion(), locator.entity())
+						new EntityHyperlink(locator.expressionRegion(), locator.entity())
 					};
 				else if (locator.potentialEntities() != null)
 					return new IHyperlink[] {
-						new ClonkHyperlink(locator.expressionRegion(), locator.potentialEntities())
+						new EntityHyperlink(locator.expressionRegion(), locator.potentialEntities())
 					};
 				return null;
 			} catch (final Exception e) {
@@ -703,7 +703,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	@Override
-	public void completionProposalApplied(ClonkCompletionProposal proposal) {
+	public void completionProposalApplied(DeclarationProposal proposal) {
 		autoEditStrategy().completionProposalApplied(proposal);
 		try {
 			if (proposal.requiresDocumentReparse())

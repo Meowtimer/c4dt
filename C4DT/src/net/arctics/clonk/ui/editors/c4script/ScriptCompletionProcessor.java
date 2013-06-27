@@ -58,10 +58,9 @@ import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.stringtbl.StringTbl;
-import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
+import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.PrecedingExpression;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.util.UI;
@@ -73,7 +72,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.bindings.TriggerSequence;
 import org.eclipse.jface.bindings.keys.KeySequence;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -86,8 +84,6 @@ import org.eclipse.jface.text.contentassist.IContentAssistantExtension2;
 import org.eclipse.jface.text.contentassist.IContentAssistantExtension3;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
@@ -98,7 +94,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
  * @author madeen
  *
  */
-public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEditingState> implements ICompletionListener, ICompletionListenerExtension {
+public class ScriptCompletionProcessor extends StructureCompletionProcessor<ScriptEditingState> implements ICompletionListener, ICompletionListenerExtension {
 
 	private ProposalCycle proposalCycle = null;
 
@@ -184,7 +180,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 				offset = wordOffset;
 			} else
 				prefix = "";
-			if (prefix.length() > 0 && !ClonkCompletionProposal.validPrefix(prefix))
+			if (prefix.length() > 0 && !DeclarationProposal.validPrefix(prefix))
 				return null;
 		} catch (final BadLocationException e) { }
 
@@ -216,8 +212,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 		if (proposals == null)
 			return null;
 		for (final ICompletionProposal p : proposals)
-			if (p instanceof ClonkCompletionProposal && ((ClonkCompletionProposal)p).category() < cats.LocalGlobalDelimiter) {
-				final ClonkCompletionProposal[] w = new ClonkCompletionProposal[5];
+			if (p instanceof DeclarationProposal && ((DeclarationProposal)p).category() < cats.LocalGlobalDelimiter) {
+				final DeclarationProposal[] w = new DeclarationProposal[5];
 				for (int i = 0; i < w.length; i++) {
 					w[i] = proposalForText(pl, WHITESPACE);
 					w[i].setCategory(cats.LocalGlobalDelimiter);
@@ -386,7 +382,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 	}
 
 	public void proposeAllTheThings(ProposalsSite pl) {
-		final List<ClonkCompletionProposal> old = Arrays.asList(filter(pl.proposals, ClonkCompletionProposal.class));
+		final List<DeclarationProposal> old = Arrays.asList(filter(pl.proposals, DeclarationProposal.class));
 		final List<Index> relevantIndexes = pl.index.relevantIndexes();
 		final int declarationMask = pl.declarationsMask();
 		for (final Index x : relevantIndexes)
@@ -398,7 +394,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 					proposalForVar(pl, as(pl.precedingType, Script.class), (Variable)d);
 			}
 		for (final ICompletionProposal p : pl.proposals) {
-			final ClonkCompletionProposal ccp = as(p, ClonkCompletionProposal.class);
+			final DeclarationProposal ccp = as(p, DeclarationProposal.class);
 			if (ccp != null && !old.contains(ccp))
 				ccp.setImage(UI.halfTransparent(ccp.getImage()));
 		}
@@ -449,7 +445,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 			for(final String keyword : BuiltInDefinitions.KEYWORDS) {
 				if (pl.prefix != null && !stringMatchesPrefix(keyword, pl.prefix))
 					continue;
-				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, null, keyword, pl.offset, pl.prefix != null ? pl.prefix.length() : 0, keyword.length(), keywordImg ,
+				final DeclarationProposal prop = new DeclarationProposal(null, null, keyword, pl.offset, pl.prefix != null ? pl.prefix.length() : 0, keyword.length(), keywordImg ,
 					keyword, null ,null, ": keyword", state());
 				prop.setCategory(cats.Keywords);
 				pl.addProposal(prop);
@@ -471,7 +467,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 					final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 					for (final PrimitiveType t : PrimitiveType.values())
 						if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ERRONEOUS && pl.index.engine().supportsPrimitiveType(t)) {
-							final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
+							final DeclarationProposal prop = new DeclarationProposal(null, null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
 								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, state());
 							prop.setCategory(cats.Keywords);
 							pl.addProposal(prop);
@@ -553,7 +549,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 			for (final String loc : availableLocalizationStrings) {
 				if (pl.prefix != null && !stringMatchesPrefix(loc, pl.prefix))
 					continue;
-				final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, null, loc, pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , loc.length(),
+				final DeclarationProposal prop = new DeclarationProposal(null, null, loc, pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , loc.length(),
 					keywordImg , loc, null, null, Messages.C4ScriptCompletionProcessor_Engine, state());
 				prop.setCategory(cats.Keywords);
 				pl.addProposal(prop);
@@ -587,7 +583,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 		return result;
 	}
 
-	private ClonkCompletionProposal callbackProposal(
+	private DeclarationProposal callbackProposal(
 		ProposalsSite pl,
 		final String callback,
 		final String nameFormat,
@@ -599,7 +595,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 		int replacementLength = 0;
 		if (pl.prefix != null)
 			replacementLength = pl.prefix.length();
-		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
+		final DeclarationProposal prop = new DeclarationProposal(
 			null, null, "", pl.wordOffset, replacementLength,  //$NON-NLS-1$
 			0, img, callback != null ? callback : displayString,
 			null, null, Messages.C4ScriptCompletionProcessor_Callback, state()
@@ -698,7 +694,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 			int replacementLength = 0;
 			if (pl.prefix != null) replacementLength = pl.prefix.length();
 			txt = "#"+txt+" "; //$NON-NLS-1$ //$NON-NLS-2$
-			final ClonkCompletionProposal prop = new ClonkCompletionProposal(
+			final DeclarationProposal prop = new DeclarationProposal(
 				directive, directive, txt, pl.offset, replacementLength, txt.length(),
 				directiveIcon, directive.type().toString(), null, null,
 				Messages.C4ScriptCompletionProcessor_Engine, state()
@@ -717,7 +713,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 			final Image declaratorImg = UI.imageForPath("icons/declarator.png"); //$NON-NLS-1$
 			int replacementLength = 0;
 			if (pl.prefix != null) replacementLength = pl.prefix.length();
-			final ClonkCompletionProposal prop = new ClonkCompletionProposal(null, null, declarator,pl.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, state()); //$NON-NLS-1$
+			final DeclarationProposal prop = new DeclarationProposal(null, null, declarator,pl.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, state()); //$NON-NLS-1$
 			prop.setCategory(cats.Keywords);
 			pl.addProposal(prop);
 		}
@@ -796,7 +792,7 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 			if (func != null && func.visibility() != FunctionScope.GLOBAL) {
 				if (target instanceof Script && !((Script)target).seesFunction(func))
 					continue;
-				final ClonkCompletionProposal prop = proposalForFunc(pl, target, func, true);
+				final DeclarationProposal prop = proposalForFunc(pl, target, func, true);
 				if (prop != null)
 					prop.setCategory(cats.LocalFunction);
 			}
@@ -807,8 +803,8 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 		}
 	}
 
-	private ClonkCompletionProposal proposalForText(ProposalsSite pl, Text text) {
-		final ClonkCompletionProposal prop = new ClonkCompletionProposal(text, pl.script, "", pl.offset, 0, 0);
+	private DeclarationProposal proposalForText(ProposalsSite pl, Text text) {
+		final DeclarationProposal prop = new DeclarationProposal(text, pl.script, "", pl.offset, 0, 0);
 		pl.addProposal(prop);
 		return prop;
 	}
@@ -873,39 +869,9 @@ public class ScriptCompletionProcessor extends ClonkCompletionProcessor<ScriptEd
 		}
 	}
 
-	private final static char[][] proposalAutoActivationCharacters = new char[2][];
-	private static char[] contextInformationAutoActivationCharacters;
-
-	private static void configureActivation() {
-		proposalAutoActivationCharacters[1] = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
-			? "~:_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz$".toCharArray() //$NON-NLS-1$
-			: new char[0];
-		proposalAutoActivationCharacters[0] = new char[0];
-		contextInformationAutoActivationCharacters = new char[] {'('};
-	}
-
-	static {
-		final IPreferenceStore prefStore = Core.instance().getPreferenceStore();
-		if (prefStore != null)
-			prefStore.addPropertyChangeListener(new IPropertyChangeListener() {
-				@Override
-				public void propertyChange(PropertyChangeEvent event) {
-					if (event.getProperty().equals(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS))
-						configureActivation();
-				}
-			});
-		configureActivation();
-	}
-
-	@Override
-	public char[] getCompletionProposalAutoActivationCharacters() {
-		final ASTNode section = state().activeEditor().section();
-		return proposalAutoActivationCharacters[section != null ? 1 : 0];
-	}
-	@Override
-	public char[] getContextInformationAutoActivationCharacters() { return contextInformationAutoActivationCharacters; }
 	@Override
 	public IContextInformationValidator getContextInformationValidator() { return contextInformationValidator; }
+
 	@Override
 	public String getErrorMessage() { return null; }
 

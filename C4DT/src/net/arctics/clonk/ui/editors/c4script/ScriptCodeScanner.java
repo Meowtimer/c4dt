@@ -11,8 +11,8 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
-import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
+import net.arctics.clonk.ui.editors.StructureTextScanner;
+import net.arctics.clonk.ui.editors.WhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.PragmaRule;
@@ -25,7 +25,7 @@ import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class ScriptCodeScanner extends ClonkRuleBasedScanner {
+public class ScriptCodeScanner extends StructureTextScanner {
 
 	private static final class OperatorRule implements IRule {
 
@@ -114,7 +114,7 @@ public class ScriptCodeScanner extends ClonkRuleBasedScanner {
 		rules.add(new SingleLineRule("\"", "\"", string, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
 		
 		// Add generic whitespace rule.
-		rules.add(new WhitespaceRule(new ClonkWhitespaceDetector()));
+		rules.add(new WhitespaceRule(new WhitespaceDetector()));
 
 		// Add rule for operators
 		rules.add(new OperatorRule(operator));

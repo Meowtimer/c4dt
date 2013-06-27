@@ -2,6 +2,8 @@ package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
@@ -12,16 +14,20 @@ import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposalSorter;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 
-public abstract class ClonkCompletionProcessor<StateClass extends StructureEditingState<?, ?>> implements IContentAssistProcessor, ICompletionProposalSorter {
+public abstract class StructureCompletionProcessor<StateClass extends StructureEditingState<?, ?>> implements IContentAssistProcessor, ICompletionProposalSorter {
 
 	protected Image defIcon;
 	protected ProposalsSite pl;
@@ -63,7 +69,7 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 	protected final CategoryOrdering cats = new CategoryOrdering();
 
 	public StateClass state() { return state; }
-	public ClonkCompletionProcessor(StateClass state) { this.state = state; }
+	public StructureCompletionProcessor(StateClass state) { this.state = state; }
 
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
@@ -89,7 +95,7 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 			final String displayString = definitionDisplayString(def);
 			final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
 
-			final ClonkCompletionProposal prop = new ClonkCompletionProposal(def, def, def.id().stringValue(), pl.offset, replacementLength, def.id().stringValue().length(),
+			final DeclarationProposal prop = new DeclarationProposal(def, def, def.id().stringValue(), pl.offset, replacementLength, def.id().stringValue().length(),
 				defIcon, displayString.trim(), null, null, String.format(": %s", PrimitiveType.ID.typeName(true)), state()); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
 			pl.addProposal(prop);
@@ -114,7 +120,7 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
 
-	protected ClonkCompletionProposal proposalForFunc(ProposalsSite pl, Declaration target, Function func, boolean brackets) {
+	protected DeclarationProposal proposalForFunc(ProposalsSite pl, Declaration target, Function func, boolean brackets) {
 		if (func instanceof InitializationFunction)
 			return null;
 		if (pl.prefix != null)
@@ -124,7 +130,7 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 		final String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
 		final IType returnType = func.returnType(target.script());
 		final String postInfo = returnType == PrimitiveType.UNKNOWN ? "" : ": " + returnType.typeName(true);
-		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
+		final DeclarationProposal prop = new DeclarationProposal(
 			func, target, replacement, pl.offset, replacementLength,
 			UI.functionIcon(func), null/*contextInformation*/, null, postInfo, state() //$NON-NLS-1$
 		);
@@ -133,14 +139,14 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 		return prop;
 	}
 
-	protected ClonkCompletionProposal proposalForVar(ProposalsSite pl, Declaration target, Variable var) {
+	protected DeclarationProposal proposalForVar(ProposalsSite pl, Declaration target, Variable var) {
 		if (pl.prefix != null && !stringMatchesPrefix(var.name(), pl.prefix))
 			return null;
 		final String displayString = var.name();
 		int replacementLength = 0;
 		if (pl.prefix != null)
 			replacementLength = pl.prefix.length();
-		final ClonkCompletionProposal prop = new ClonkCompletionProposal(
+		final DeclarationProposal prop = new DeclarationProposal(
 			var, target,
 			var.name(), pl.offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
 			null, null, ": " + var.type(defaulting(as(target, Script.class), pl.script)).typeName(true), //$NON-NLS-1$
@@ -151,7 +157,7 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 		return prop;
 	}
 
-	private void setVariableCategory(Variable var, final ClonkCompletionProposal prop) {
+	private void setVariableCategory(Variable var, final DeclarationProposal prop) {
 		switch (var.scope()) {
 		case CONST:
 			prop.setCategory(cats.Constants);
@@ -182,8 +188,8 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 
 	@Override
 	public int compare(ICompletionProposal a, ICompletionProposal b) {
-		final ClonkCompletionProposal ca = as(a, ClonkCompletionProposal.class);
-		final ClonkCompletionProposal cb = as(b, ClonkCompletionProposal.class);
+		final DeclarationProposal ca = as(a, DeclarationProposal.class);
+		final DeclarationProposal cb = as(b, DeclarationProposal.class);
 		if (ca != null && cb != null) {
 			if ((ca.declaration() instanceof Text || cb.declaration() instanceof Text) && ca.category() != cb.category()) {
 				final int diff = Math.abs(cb.category()-ca.category()) * 10000;
@@ -194,7 +200,7 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 			if (pfx != null) {
 				class Match {
 					boolean startsWith, match, local;
-					Match(ClonkCompletionProposal proposal) {
+					Match(DeclarationProposal proposal) {
 						for (final String s : proposal.identifiers())
 							if (s.length() > 0 && s.startsWith(pfx)) {
 								startsWith = true;
@@ -232,6 +238,38 @@ public abstract class ClonkCompletionProcessor<StateClass extends StructureEditi
 			return bonus + result;
 		}
 		return 1;
+	}
+
+	static class AutoActivationCharacters implements IPropertyChangeListener {
+		char[][] forProposals = new char[2][];
+		char[] forContextInformation;
+		private void configureActivation() {
+			forProposals[1] = ClonkPreferences.toggle(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, false)
+				? "~:_.>ABCDEFGHIJKLMNOPQRSTVUWXYZabcdefghijklmnopqrstvuwxyz$".toCharArray() //$NON-NLS-1$
+				: new char[0];
+			forProposals[0] = new char[0];
+			forContextInformation = new char[] {'('};
+		}
+		@Override
+		public void propertyChange(PropertyChangeEvent event) {
+			if (event.getProperty().equals(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS))
+				configureActivation();
+		}
+		{ configureActivation(); }
+	}
+	static AutoActivationCharacters autoActivationCharacters;
+	static {
+		final IPreferenceStore prefStore = Core.instance().getPreferenceStore();
+		if (prefStore != null)
+			prefStore.addPropertyChangeListener(autoActivationCharacters = new AutoActivationCharacters());
+	}
+
+	@Override
+	public char[] getContextInformationAutoActivationCharacters() { return autoActivationCharacters.forContextInformation; }
+	@Override
+	public char[] getCompletionProposalAutoActivationCharacters() {
+		final ASTNode section = state().activeEditor().section();
+		return autoActivationCharacters.forProposals[section != null ? 1 : 0];
 	}
 
 }

@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.OpenEvent;
@@ -16,13 +16,13 @@ public class FindDuplicatesSearchResultPage extends SearchResultPage {
 	@Override
 	protected void showMatch(Match match, int currentOffset, int currentLength, boolean activate) throws PartInitException {
 		FindDuplicatesMatch m = (FindDuplicatesMatch) match;
-		ClonkTextEditor.openDeclaration(m.getDupe());
+		StructureTextEditor.openDeclaration(m.getDupe());
 	}
 	@Override
 	protected void handleOpen(OpenEvent event) {
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 		if (selection.getFirstElement() instanceof Function)
-			ClonkTextEditor.openDeclaration((Function) selection.getFirstElement());
+			StructureTextEditor.openDeclaration((Function) selection.getFirstElement());
 		else
 			super.handleOpen(event);
 	}

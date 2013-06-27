@@ -26,7 +26,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.ui.editors.ClonkHyperlink;
+import net.arctics.clonk.ui.editors.EntityHyperlink;
 import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.util.Sink;
 
@@ -137,7 +137,7 @@ public class Command {
 		@CommandFunction
 		public static void OpenDoc(Object context, String funcName) {
 			try {
-				ClonkHyperlink.openDocumentationForFunction(funcName, Core.instance().activeEngine());
+				EntityHyperlink.openDocumentationForFunction(funcName, Core.instance().activeEngine());
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}

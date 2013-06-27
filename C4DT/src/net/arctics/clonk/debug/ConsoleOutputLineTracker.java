@@ -8,7 +8,7 @@ import java.util.List;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 
@@ -82,8 +82,8 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		public void linkActivated() {
 			try {
 				final IEditorPart part = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), file);
-				if (part instanceof ClonkTextEditor)
-					((ClonkTextEditor)part).selectAndRevealLine(line-1);
+				if (part instanceof StructureTextEditor)
+					((StructureTextEditor)part).selectAndRevealLine(line-1);
 			} catch (final PartInitException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

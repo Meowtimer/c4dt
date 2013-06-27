@@ -5,8 +5,8 @@ import java.util.List;
 
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.landscapescript.OverlayBase;
-import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
-import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
+import net.arctics.clonk.ui.editors.StructureTextScanner;
+import net.arctics.clonk.ui.editors.WhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.WordScanner;
@@ -19,7 +19,7 @@ import org.eclipse.jface.text.rules.MultiLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class LandscapeScriptCodeScanner extends ClonkRuleBasedScanner {
+public class LandscapeScriptCodeScanner extends StructureTextScanner {
 
 
 	private static final class OperatorRule implements IRule {
@@ -96,7 +96,7 @@ public class LandscapeScriptCodeScanner extends ClonkRuleBasedScanner {
 		rules.add(new MultiLineRule("/*", "*/", comment)); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// Add generic whitespace rule.
-		rules.add(new WhitespaceRule(new ClonkWhitespaceDetector()));
+		rules.add(new WhitespaceRule(new WhitespaceDetector()));
 
 		rules.add(new NumberRule(number));
 

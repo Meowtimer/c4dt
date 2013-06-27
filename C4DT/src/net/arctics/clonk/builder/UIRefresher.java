@@ -1,7 +1,7 @@
 package net.arctics.clonk.builder;
 
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.ui.IEditorPart;
@@ -28,8 +28,8 @@ final class UIRefresher implements Runnable {
 			for (IWorkbenchPage page : window.getPages())
 				for (IEditorReference ref : page.getEditorReferences()) {
 					IEditorPart part = ref.getEditor(false);
-					if (part != null && part instanceof ClonkTextEditor)
-						((ClonkTextEditor)part).refreshOutline();
+					if (part != null && part instanceof StructureTextEditor)
+						((StructureTextEditor)part).refreshOutline();
 				}
 			CommonNavigator projectExplorer = UI.projectExplorer(window);
 			if (projectExplorer != null)

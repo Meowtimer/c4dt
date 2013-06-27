@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.search;
 
 import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -52,8 +52,8 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 	@Override
 	protected void showMatch(Match match, int currentOffset, int currentLength, boolean activate) throws PartInitException {
 		SearchMatch clonkMatch = (SearchMatch) match;
-		ClonkTextEditor editor;
-		editor = (ClonkTextEditor) ClonkTextEditor.openDeclaration(clonkMatch.structure(), activate);
+		StructureTextEditor editor;
+		editor = (StructureTextEditor) StructureTextEditor.openDeclaration(clonkMatch.structure(), activate);
 		editor.selectAndReveal(currentOffset, currentLength);
 	}
 

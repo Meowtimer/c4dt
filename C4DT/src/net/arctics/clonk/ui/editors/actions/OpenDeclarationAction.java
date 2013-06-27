@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.editors.actions;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 
 import org.eclipse.jface.text.hyperlink.IHyperlink;
@@ -18,7 +18,7 @@ public class OpenDeclarationAction extends ClonkTextEditorAction {
 	@Override
 	public void run() {
 		// OpenDeclarationAction is for all text editors in the plugin so it opens declarations by querying for hyperlinks instead of relying on a script being edited
-		IHyperlink hyperlink = ((ClonkTextEditor)getTextEditor()).hyperlinkAtCurrentSelection();
+		IHyperlink hyperlink = ((StructureTextEditor)getTextEditor()).hyperlinkAtCurrentSelection();
 		if (hyperlink != null)
 			hyperlink.open();
 	}

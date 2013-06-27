@@ -26,7 +26,7 @@ import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniUnitParser;
-import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
+import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.c4script.ProposalCycle;
 import net.arctics.clonk.util.Utilities;
@@ -50,7 +50,7 @@ import org.eclipse.jface.text.contentassist.IContextInformationValidator;
  * @author madeen
  *
  */
-public class IniCompletionProcessor extends ClonkCompletionProcessor<IniUnitEditingState> implements ICompletionListener {
+public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnitEditingState> implements ICompletionListener {
 
 	private IniSection section;
 

@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.navigator.actions;
 
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -18,7 +18,7 @@ public class OpenDefinitionHandler extends AbstractHandler {
 		case Window.OK:
 			for (Definition o : dialog.selectedDefinitions())
 				try {
-					ClonkTextEditor.openDeclaration(o);
+					StructureTextEditor.openDeclaration(o);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

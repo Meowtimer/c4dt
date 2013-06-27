@@ -42,18 +42,18 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * A hyperlink that stores a reference to the hyperlinked Clonk declaration
  */
 @SuppressWarnings("restriction")
-public class ClonkHyperlink implements IHyperlink {
+public class EntityHyperlink implements IHyperlink {
 
 	private final IRegion region;
 	protected Collection<? extends IIndexEntity> targets;
 
-	public ClonkHyperlink(IRegion region, IIndexEntity target) {
+	public EntityHyperlink(IRegion region, IIndexEntity target) {
 		super();
 		this.region = region;
 		this.targets = ArrayUtil.list(target);
 	}
 	
-	public ClonkHyperlink(IRegion region, Collection<? extends IIndexEntity> targets) {
+	public EntityHyperlink(IRegion region, Collection<? extends IIndexEntity> targets) {
 		this.region = region;
 		this.targets = targets;
 	}
@@ -107,7 +107,7 @@ public class ClonkHyperlink implements IHyperlink {
 			}
 			else if (target instanceof Declaration) {
 				Declaration dec = (Declaration)target;
-				if (ClonkTextEditor.openDeclaration(dec, activateEditor) == null)
+				if (StructureTextEditor.openDeclaration(dec, activateEditor) == null)
 					// can't open editor so try something else like opening up a documentation page in the browser
 					if (dec.isEngineDeclaration())
 						openDocumentationForFunction(dec.name(), dec.engine());

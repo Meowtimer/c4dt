@@ -6,7 +6,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.EditorUtil;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
@@ -27,7 +27,7 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 	@Override
 	public void run() {
 		try {
-			final Declaration structure = ((ClonkTextEditor)getTextEditor()).structure();
+			final Declaration structure = ((StructureTextEditor)getTextEditor()).structure();
 			IIndexEntity entity = entityAtSelection(false);
 			if (entity == null)
 				entity = structure;

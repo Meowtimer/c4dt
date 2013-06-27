@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicatesAction;
@@ -41,7 +41,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	@SuppressWarnings("unchecked")
 	public EditorActionContributor() {
 		add(C4ScriptEditor.MESSAGES_BUNDLE, null, ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
-		add(ClonkTextEditor.MESSAGES_BUNDLE, OpenDeclarationAction.class);
+		add(StructureTextEditor.MESSAGES_BUNDLE, OpenDeclarationAction.class);
 		add(C4ScriptEditor.MESSAGES_BUNDLE, TidyUpCodeAction.class, FindReferencesAction.class, RenameDeclarationAction.class, FindDuplicatesAction.class);
 	}
 

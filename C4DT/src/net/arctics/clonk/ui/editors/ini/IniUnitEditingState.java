@@ -30,8 +30,8 @@ import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.ini.IniUnitWithNamedSections;
 import net.arctics.clonk.ini.IntegerArray;
 import net.arctics.clonk.stringtbl.StringTbl;
-import net.arctics.clonk.ui.editors.ClonkHyperlink;
-import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner.ScannerPerEngine;
+import net.arctics.clonk.ui.editors.EntityHyperlink;
+import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.HyperlinkToResource;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 
@@ -225,7 +225,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 
 								if (declaration != null)
 									return new IHyperlink[] {
-										new ClonkHyperlink(new Region(linkStart, linkLen), declaration)
+										new EntityHyperlink(new Region(linkStart, linkLen), declaration)
 									};
 							}
 						}
@@ -282,6 +282,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 		assistant.enableAutoInsert(true);
 		assistant.enableAutoActivation(true);
 		assistant.enableColoredLabels(true);
+		assistant.setAutoActivationDelay(0);
 		return assistant;
 	}
 }

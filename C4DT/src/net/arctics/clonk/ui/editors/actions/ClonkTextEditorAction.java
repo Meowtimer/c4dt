@@ -9,7 +9,7 @@ import java.util.ResourceBundle;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
@@ -69,7 +69,7 @@ public abstract class ClonkTextEditorAction extends TextEditorAction {
 	protected IIndexEntity entityAtSelection(boolean fallbackToCurrentFunction) {
 		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
 		IRegion r = new Region(selection.getOffset(), selection.getLength());
-		return ((ClonkTextEditor)getTextEditor()).entityAtRegion(fallbackToCurrentFunction, r);
+		return ((StructureTextEditor)getTextEditor()).entityAtRegion(fallbackToCurrentFunction, r);
 	}
 
 	/**

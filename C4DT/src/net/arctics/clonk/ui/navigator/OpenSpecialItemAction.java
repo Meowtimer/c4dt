@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -36,7 +36,7 @@ public class OpenSpecialItemAction extends Action {
 	public void run() {
 		for (Object o : ((IStructuredSelection)provider.getSelection()).toArray()) {
 			try {
-				ClonkTextEditor.openDeclaration((Declaration)o);
+				StructureTextEditor.openDeclaration((Declaration)o);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -9,7 +9,7 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Utilities;
@@ -22,7 +22,7 @@ import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
 
-public class IniTextEditor extends ClonkTextEditor {
+public class IniTextEditor extends StructureTextEditor {
 
 	private IniUnitEditingState state;
 

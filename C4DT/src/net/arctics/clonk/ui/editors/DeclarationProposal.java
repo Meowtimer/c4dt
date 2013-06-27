@@ -20,7 +20,7 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
-public class ClonkCompletionProposal implements ICompletionProposal, ICompletionProposalExtension6, ICompletionProposalExtension2 {
+public class DeclarationProposal implements ICompletionProposal, ICompletionProposalExtension6, ICompletionProposalExtension2 {
 
 	/** Associated declaration */
 	private final Declaration declaration;
@@ -70,7 +70,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param replacementLength the length of the text to be replaced
 	 * @param cursorPosition the position of the cursor following the insert relative to replacementOffset
 	 */
-	public ClonkCompletionProposal(Declaration declaration, Declaration context, String replacementString, int replacementOffset, int replacementLength, int cursorPosition) {
+	public DeclarationProposal(Declaration declaration, Declaration context, String replacementString, int replacementOffset, int replacementLength, int cursorPosition) {
 		this(declaration, context, replacementString, replacementOffset, replacementLength, cursorPosition, null, declaration.toString(), null, null, null, null);
 	}
 
@@ -87,7 +87,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	 * @param additionalProposalInfo the additional information associated with this proposal
 	 * @param postInfo information that is appended to displayString
 	 */
-	public ClonkCompletionProposal(
+	public DeclarationProposal(
 		Declaration declaration,
 		Declaration context,
 		String replacementString,
@@ -112,7 +112,7 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 		this.state = state;
 	}
 
-	public ClonkCompletionProposal(
+	public DeclarationProposal(
 		Declaration declaration,
 		Declaration context,
 		String replacementString,
@@ -268,12 +268,9 @@ public class ClonkCompletionProposal implements ICompletionProposal, ICompletion
 	}
 
 	@Override
-	public void selected(ITextViewer viewer, boolean smartToggle) {
-	}
-
+	public void selected(ITextViewer viewer, boolean smartToggle) {}
 	@Override
-	public void unselected(ITextViewer viewer) {
-	}
+	public void unselected(ITextViewer viewer) {}
 
 	public String[] identifiers() {
 		if (declaration != null) {

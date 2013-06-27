@@ -38,15 +38,15 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
-public class ClonkContentOutlinePage extends ContentOutlinePage {
+public class StructureOutlinePage extends ContentOutlinePage {
 
 	private Composite composite;
-	private ClonkTextEditor editor;
+	private StructureTextEditor editor;
 	private Text filterBox;
 
 	@Override
 	public Control getControl() { return composite; }
-	public ClonkTextEditor editor() { return editor; }
+	public StructureTextEditor editor() { return editor; }
 
 	private void openForeignDeclarations() {
 		final IStructuredSelection sel = (IStructuredSelection)getTreeViewer().getSelection();
@@ -74,7 +74,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 						entities = ArrayUtil.list(entity);
 				} else
 					entities = ArrayUtil.list(entity);
-				new ClonkHyperlink(null, entities).open();
+				new EntityHyperlink(null, entities).open();
 			}
 	}
 
@@ -181,7 +181,7 @@ public class ClonkContentOutlinePage extends ContentOutlinePage {
 	/**
 	 * @param editor the editor to set
 	 */
-	public void setEditor(ClonkTextEditor editor) {
+	public void setEditor(StructureTextEditor editor) {
 		this.editor = editor;
 	}
 

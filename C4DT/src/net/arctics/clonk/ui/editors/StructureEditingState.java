@@ -46,11 +46,11 @@ import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
  * Editing state on a specific {@link Structure}. Shared among all editors editing the file the {@link Structure} was read from.
  * @author madeen
  *
- * @param <EditorType> The type of {@link ClonkTextEditor} the state is shared among.
+ * @param <EditorType> The type of {@link StructureTextEditor} the state is shared among.
  * @param <StructureType> Type of {@link Structure}.
  */
 @SuppressWarnings("restriction")
-public abstract class StructureEditingState<EditorType extends ClonkTextEditor, StructureType extends Structure>
+public abstract class StructureEditingState<EditorType extends StructureTextEditor, StructureType extends Structure>
 	extends TextSourceViewerConfiguration
 	implements IDocumentListener, IPartListener {
 
@@ -59,8 +59,8 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 		public ClonkTextHover() { super(); }
 		@Override
 		public String getHoverInfo(ITextViewer viewer, IRegion region) {
-			if (hyperlink instanceof ClonkHyperlink) {
-				final ClonkHyperlink clonkHyperlink = (ClonkHyperlink) hyperlink;
+			if (hyperlink instanceof EntityHyperlink) {
+				final EntityHyperlink clonkHyperlink = (EntityHyperlink) hyperlink;
 				final IIndexEntity entity = clonkHyperlink.target();
 				if (entity != null)
 					return entity.infoText(structure());
@@ -138,7 +138,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 	 * @param structure The {@link Structure} corresponding to the document
 	 * @param editor One editor editing the document.
 	 * @param list The listeners map
-	 * @param <E> The type of {@link ClonkTextEditor} the listener needs to apply for.
+	 * @param <E> The type of {@link StructureTextEditor} the listener needs to apply for.
 	 * @param <S> The type of {@link Structure} the listener needs to apply for.
 	 * @param <T> The type of {@link StructureEditingState} to add.
 	 * @return The listener that has been either created and added to the map or was already found in the map.
@@ -146,7 +146,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 	 * @throws IllegalAccessException
 	 */
 	@SuppressWarnings("unchecked")
-	public static <E extends ClonkTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T request(
+	public static <E extends StructureTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T request(
 		Class<T> type,
 		IDocument document,
 		S structure,
@@ -183,7 +183,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 		this.document = document;
 	}
 
-	protected static <E extends ClonkTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(List<T> list, S structure) {
+	protected static <E extends StructureTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(List<T> list, S structure) {
 		T result = null;
 		for (final T s : list)
 			if (Utilities.eq(s.structure(), structure)) {
@@ -341,7 +341,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 	public void partDeactivated(IWorkbenchPart part) {}
 	@Override
 	public void partOpened(IWorkbenchPart part) {}
-	public void completionProposalApplied(ClonkCompletionProposal proposal) {}
+	public void completionProposalApplied(DeclarationProposal proposal) {}
 
 	@SuppressWarnings("unchecked")
 	public EditorType activeEditor() {
@@ -371,7 +371,7 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 	public IReconciler getReconciler(ISourceViewer sourceViewer) { return null; }
 	/**
 	 * Create a {@link IHyperlink} at the given offset in the text document using the same mechanism that is being used to create hyperlinks when ctrl-hovering.
-	 * This hyperlink will be used for functionality like {@link OpenDeclarationAction} that will not directly operate on specific kinds of {@link Declaration}s and is thus dependent on the {@link ClonkTextEditor} class returning adequate hyperlinks.
+	 * This hyperlink will be used for functionality like {@link OpenDeclarationAction} that will not directly operate on specific kinds of {@link Declaration}s and is thus dependent on the {@link StructureTextEditor} class returning adequate hyperlinks.
 	 * @param offset The offset
 	 * @return
 	 */

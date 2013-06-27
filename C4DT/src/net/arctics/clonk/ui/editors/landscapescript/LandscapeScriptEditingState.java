@@ -7,7 +7,7 @@ import net.arctics.clonk.landscapescript.LandscapeScriptParser;
 import net.arctics.clonk.landscapescript.Overlay;
 import net.arctics.clonk.landscapescript.OverlayBase;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
-import net.arctics.clonk.ui.editors.ClonkHyperlink;
+import net.arctics.clonk.ui.editors.EntityHyperlink;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.ui.editors.StructureEditingState;
@@ -85,7 +85,7 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 			final OverlayBase overlay = structure().overlayAt(region.getOffset());
 			// link to template (linking other things does not seem to make much sense)
 			if (overlay instanceof Overlay && ((Overlay)overlay).template() != null && region.getOffset()-overlay.start() < ((Overlay) overlay).template().name().length())
-				return new IHyperlink[] {new ClonkHyperlink(new Region(overlay.start(), ((Overlay) overlay).template().name().length()), ((Overlay) overlay).template())};
+				return new IHyperlink[] {new EntityHyperlink(new Region(overlay.start(), ((Overlay) overlay).template().name().length()), ((Overlay) overlay).template())};
 			return null;
 		}
 	}

@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ui.editors.ClonkTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 import net.arctics.clonk.util.ITreeNode;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -23,7 +23,7 @@ public class LinkHelper implements ILinkHelper {
 				IWorkbenchPage wpage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				IEditorInput input = dec.topLevelStructure() != null ? dec.topLevelStructure().makeEditorInput() : null;
 				if (input != null && wpage.findEditor(input) != null)
-					ClonkTextEditor.openDeclaration(dec, false);
+					StructureTextEditor.openDeclaration(dec, false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

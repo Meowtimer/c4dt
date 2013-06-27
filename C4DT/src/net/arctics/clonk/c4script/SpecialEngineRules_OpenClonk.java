@@ -55,7 +55,7 @@ import net.arctics.clonk.ini.PlayerControlsUnit;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.ui.editors.ClonkCompletionProposal;
+import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.util.ArrayUtil;
@@ -373,7 +373,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 									for (final Variable comp : proplDecl.components(true)) {
 										if (pl.prefix != null && !comp.name().toLowerCase().contains(pl.prefix))
 											continue;
-										pl.addProposal(new ClonkCompletionProposal(comp, as(t, Declaration.class), "\""+comp.name()+"\"", pl.offset, pl.prefix != null ? pl.prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
+										pl.addProposal(new DeclarationProposal(comp, as(t, Declaration.class), "\""+comp.name()+"\"", pl.offset, pl.prefix != null ? pl.prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
 											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText(script), "", completions.state()));
 									}
 								}

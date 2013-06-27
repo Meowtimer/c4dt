@@ -6,8 +6,8 @@ import java.util.List;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.ui.editors.ClonkRuleBasedScanner;
-import net.arctics.clonk.ui.editors.ClonkWhitespaceDetector;
+import net.arctics.clonk.ui.editors.StructureTextScanner;
+import net.arctics.clonk.ui.editors.WhitespaceDetector;
 import net.arctics.clonk.ui.editors.ColorManager;
 import net.arctics.clonk.ui.editors.CombinedWordRule;
 import net.arctics.clonk.ui.editors.WordScanner;
@@ -20,7 +20,7 @@ import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 
-public class IniScanner extends ClonkRuleBasedScanner {
+public class IniScanner extends StructureTextScanner {
 	
 	private static final class OperatorRule implements IRule {
 
@@ -96,7 +96,7 @@ public class IniScanner extends ClonkRuleBasedScanner {
 		rules.add(new OperatorRule(operator));
 		
 		// Add generic whitespace rule.
-		rules.add(new WhitespaceRule(new ClonkWhitespaceDetector()));
+		rules.add(new WhitespaceRule(new WhitespaceDetector()));
 		
 		WordScanner wordDetector = new WordScanner();
 		CombinedWordRule combinedWordRule = new CombinedWordRule(wordDetector, defaultToken);

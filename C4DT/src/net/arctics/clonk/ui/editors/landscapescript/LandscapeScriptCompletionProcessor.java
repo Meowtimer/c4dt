@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.landscapescript.OverlayBase;
-import net.arctics.clonk.ui.editors.ClonkCompletionProcessor;
+import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -20,7 +20,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 
-public class LandscapeScriptCompletionProcessor extends ClonkCompletionProcessor<LandscapeScriptEditingState> {
+public class LandscapeScriptCompletionProcessor extends StructureCompletionProcessor<LandscapeScriptEditingState> {
 
 	private static final Pattern startedOverlay = Pattern.compile(".*\\s+overlay\\s+([A-Za-z_0-9]*)"); //$NON-NLS-1$
 	private static final Pattern startedMap     = Pattern.compile(".*\\s+map\\s+([A-Za-z_0-9]*)"); //$NON-NLS-1$

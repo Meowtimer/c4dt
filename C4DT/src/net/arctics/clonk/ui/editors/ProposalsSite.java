@@ -24,18 +24,18 @@ public class ProposalsSite extends PrecedingExpression {
 	public final int wordOffset;
 	public final IDocument document;
 	public final String untamperedPrefix, prefix;
-	public final Map<Class<? extends Declaration>, Map<String, ClonkCompletionProposal>> declarationProposals;
+	public final Map<Class<? extends Declaration>, Map<String, DeclarationProposal>> declarationProposals;
 	public final Index index;
 	public final Script script;
 	public void addProposal(ICompletionProposal proposal) {
-		final ClonkCompletionProposal ccp = as(proposal, ClonkCompletionProposal.class);
+		final DeclarationProposal ccp = as(proposal, DeclarationProposal.class);
 		if (ccp != null && (ccp.declaration() instanceof Variable || ccp.declaration() instanceof Function)) {
-			Map<String, ClonkCompletionProposal> decs = declarationProposals.get(ccp.declaration().getClass());
-			final ClonkCompletionProposal existing = decs != null ? decs.get(ccp.declaration().name()) : null;
+			Map<String, DeclarationProposal> decs = declarationProposals.get(ccp.declaration().getClass());
+			final DeclarationProposal existing = decs != null ? decs.get(ccp.declaration().name()) : null;
 			if (existing != null)
 				return;
 			if (decs == null) {
-				decs = new HashMap<String, ClonkCompletionProposal>();
+				decs = new HashMap<String, DeclarationProposal>();
 				declarationProposals.put(ccp.declaration().getClass(), decs);
 			}
 			decs.put(ccp.declaration().name(), ccp);
@@ -43,9 +43,9 @@ public class ProposalsSite extends PrecedingExpression {
 		proposals.add(proposal);
 	}
 	public void removeProposalForDeclaration(Declaration declaration) {
-		final Map<String, ClonkCompletionProposal> props = declarationProposals.get(declaration.getClass());
+		final Map<String, DeclarationProposal> props = declarationProposals.get(declaration.getClass());
 		if (props != null) {
-			final ClonkCompletionProposal proposal = props.get(declaration.name());
+			final DeclarationProposal proposal = props.get(declaration.name());
 			if (proposal != null && proposal.declaration() == declaration) {
 				props.remove(declaration.name());
 				proposals.remove(proposal);
@@ -91,9 +91,9 @@ public class ProposalsSite extends PrecedingExpression {
 			return null;
 	}
 	private void outcycle(ProposalCycle cycle) {
-		final Collection<ClonkCompletionProposal> outcycled = new ArrayList<ClonkCompletionProposal>(proposals.size());
+		final Collection<DeclarationProposal> outcycled = new ArrayList<DeclarationProposal>(proposals.size());
 		for (final ICompletionProposal cp : proposals) {
-			final ClonkCompletionProposal ccp = as(cp, ClonkCompletionProposal.class);
+			final DeclarationProposal ccp = as(cp, DeclarationProposal.class);
 			if (ccp != null)
 				switch (cycle) {
 				case OBJECT:

@@ -17,7 +17,7 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
-import net.arctics.clonk.ui.editors.ClonkHyperlink;
+import net.arctics.clonk.ui.editors.EntityHyperlink;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
@@ -224,7 +224,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	public boolean openSelection() {
 		boolean b = true;
 		for (final IIndexEntity e : selectedEntities()) {
-			ClonkHyperlink.openTarget(e, b);
+			EntityHyperlink.openTarget(e, b);
 			b = false;
 		}
 		return !b;

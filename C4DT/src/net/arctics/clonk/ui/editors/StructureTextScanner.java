@@ -16,9 +16,9 @@ import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 
-public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
+public abstract class StructureTextScanner extends RuleBasedScanner {
 
-	public static class ScannerPerEngine<T extends ClonkRuleBasedScanner> {
+	public static class ScannerPerEngine<T extends StructureTextScanner> {
 		private static final Class<?>[] CTOR_SIGNATURE = new Class<?>[] {ColorManager.class, Engine.class};
 		private static final List<ScannerPerEngine<?>> INSTANCES = new ArrayList<ScannerPerEngine<?>>();
 		private final Map<String, T> scanners = new HashMap<String, T>();
@@ -44,7 +44,7 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 		}
 		public static void refreshScanners() {
 			for (final ScannerPerEngine<?> i : INSTANCES)
-				for (final ClonkRuleBasedScanner s : i.scanners.values())
+				for (final StructureTextScanner s : i.scanners.values())
 					s.recommitRules();
 		}
 	}
@@ -144,14 +144,14 @@ public abstract class ClonkRuleBasedScanner extends RuleBasedScanner {
 		}
 	}
 
-	protected ClonkRuleBasedScanner(ColorManager manager, Engine engine) {
+	protected StructureTextScanner(ColorManager manager, Engine engine) {
 		this(manager, engine, "DEFAULT");
 	}
 
 	private final ColorManager manager;
 	private final Engine engine;
 
-	protected ClonkRuleBasedScanner(ColorManager manager, Engine engine, String returnTokenTag) {
+	protected StructureTextScanner(ColorManager manager, Engine engine, String returnTokenTag) {
 		this.manager = manager;
 		this.engine = engine;
 		commitRules(manager, engine);
