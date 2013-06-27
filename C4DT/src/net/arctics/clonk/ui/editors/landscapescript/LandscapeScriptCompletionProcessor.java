@@ -16,7 +16,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
-import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
@@ -28,9 +27,7 @@ public class LandscapeScriptCompletionProcessor extends ClonkCompletionProcessor
 	private static final Pattern startedAttr    = Pattern.compile(".*\\s+([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 	private static final Pattern startedAttrVal = Pattern.compile(".*\\s+([A-Za-z_0-9]*)\\s*=\\s*([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 
-	public LandscapeScriptCompletionProcessor(LandscapeScriptEditingState state, ContentAssistant assistant) {
-		super(state, assistant);
-	}
+	public LandscapeScriptCompletionProcessor(LandscapeScriptEditingState state) { super(state); }
 
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {

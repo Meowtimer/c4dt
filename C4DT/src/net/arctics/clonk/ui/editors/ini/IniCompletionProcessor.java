@@ -40,7 +40,6 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
-import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -55,7 +54,7 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniUnitEdit
 
 	private IniSection section;
 
-	public IniCompletionProcessor(IniUnitEditingState state, ContentAssistant assistant) { super(state, assistant); }
+	public IniCompletionProcessor(IniUnitEditingState state) { super(state); }
 
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
@@ -219,6 +218,8 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniUnitEdit
 	public IContextInformationValidator getContextInformationValidator() { return null; }
 	@Override
 	public void assistSessionEnded(ContentAssistEvent event) { state().unlockUnit(); }
+	@Override
+	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
 
 	@Override
 	public void assistSessionStarted(ContentAssistEvent event) {
@@ -229,8 +230,5 @@ public class IniCompletionProcessor extends ClonkCompletionProcessor<IniUnitEdit
 			e.printStackTrace();
 		}
 	}
-
-	@Override
-	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
 
 }

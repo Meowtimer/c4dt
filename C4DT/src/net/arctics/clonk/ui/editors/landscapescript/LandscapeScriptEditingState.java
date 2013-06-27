@@ -129,7 +129,7 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 	@Override
 	public ContentAssistant createAssistant() {
 		final ContentAssistant assistant = new ContentAssistant();
-		final LandscapeScriptCompletionProcessor processor = new LandscapeScriptCompletionProcessor(this, assistant);
+		final LandscapeScriptCompletionProcessor processor = new LandscapeScriptCompletionProcessor(this);
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 		assistant.setStatusLineVisible(true);

@@ -1,5 +1,6 @@
 package net.arctics.clonk.ini;
 
+import static net.arctics.clonk.util.Utilities.defaulting;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -169,7 +170,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 			valEnd -= value.length()-commentStart;
 			value = value.substring(0, commentStart);
 		}
-		final IniEntry entry = new IniEntry(keyStart, valEnd, key, value);
+		final IniEntry entry = new IniEntry(keyStart, valEnd, key, defaulting(value, ""));
 		entry.setParent(section);
 		try {
 			unit.validateEntry(entry, section, modifyMarkers);

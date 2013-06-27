@@ -64,15 +64,22 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 	private boolean unitParsed;
 	public int unitLocked;
 
-	private final Timer reparseTimer = new Timer("Reparse Timer");
+	private final Timer timer = new Timer("Reparse Timer");
 	private TimerTask reparseTask;
+
+	@Override
+	public void cleanupAfterRemoval() {
+		if (timer != null)
+			timer.cancel();
+		super.cleanupAfterRemoval();
+	}
 
 	@Override
 	public void documentChanged(DocumentEvent event) {
 		super.documentChanged(event);
 		forgetUnitParsed();
 		reparseTask = cancelTimerTask(reparseTask);
-		reparseTimer.schedule(reparseTask = new TimerTask() {
+		timer.schedule(reparseTask = new TimerTask() {
 			@Override
 			public void run() {
 				boolean foundClient = false;
@@ -265,7 +272,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 	@Override
 	protected ContentAssistant createAssistant() {
 		assistant = new ContentAssistant();
-		final IniCompletionProcessor processor = new IniCompletionProcessor(this, assistant);
+		final IniCompletionProcessor processor = new IniCompletionProcessor(this);
 		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
 		assistant.addCompletionListener(processor);
 		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
