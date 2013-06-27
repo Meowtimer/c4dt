@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTVisitor;
@@ -32,21 +31,29 @@ import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visit;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 
 @SuppressWarnings("serial")
 class Graph extends LinkedList<Runnable> {
+
+	class VisitsByName extends LinkedList<Visit> implements Runnable {
+		@Override
+		public void run() {
+			for (final Visit v : this)
+				v.prepare();
+		}
+	}
+
 	private final DabbleInference inference;
-	private final Map<String, List<Visit>> visits = new HashMap<>();
+	private final Map<String, VisitsByName> visits = new HashMap<>();
 	private final Set<Visit> doubleTakes = new HashSet<>();
 
 	void populateVisitsMap() {
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.plan.values()) {
-				List<Visit> list = visits.get(v.function.name());
+				VisitsByName list = visits.get(v.function.name());
 				if (list == null) {
-					list = new LinkedList<>();
+					list = new VisitsByName();
 					visits.put(v.function.name(), list);
 				}
 				list.add(v);
@@ -155,7 +162,7 @@ class Graph extends LinkedList<Runnable> {
 				v.function.traverse(variableInitializationsRequirementsVisitor, v);
 	}
 
-	public class ResultUsedRequirementsDetector implements IASTVisitor<Visit> {
+	class ResultUsedRequirementsDetector implements IASTVisitor<Visit> {
 		@Override
 		public TraversalContinuation visitNode(ASTNode node, Visit v) {
 			if (node instanceof CallDeclaration && resultNeeded(node)) {
@@ -202,26 +209,15 @@ class Graph extends LinkedList<Runnable> {
 			for (final Visit v : this)
 				run(v, 0);
 		}
-		void bottom(Set<Visit> into, Visit start, Set<Visit> catcher) {
-			if (!catcher.add(start))
-				return;
-			if (start.dependents.size() == 0)
-				into.add(start);
-			else
-				for (final Visit d : start.dependents)
-					bottom(into, d, catcher);
-		}
-		void top(Collection<Visit> layer, Set<Visit> catcher) {
-			for (final Visit v : layer)
-				if (v.requirements.size() == 0)
-					this.add(v);
-				else if (catcher.add(v))
-					top(v.requirements, catcher);
-		}
 		void find(Set<Visit> catcher, Visit start) {
-			final Set<Visit> bottom = new HashSet<>();
-			bottom(bottom, start, new HashSet<Visit>());
-			top(bottom, new HashSet<Visit>());
+			if (catcher.add(start)) {
+				if (start.requirements.size() == 0)
+					this.add(start);
+				for (final Visit v : start.requirements)
+					find(catcher, v);
+				for (final Visit v : start.dependents)
+					find(catcher, v);
+			}
 		}
 		@Override
 		public String toString() {
@@ -239,12 +235,6 @@ class Graph extends LinkedList<Runnable> {
 		}
 	}
 
-	Cluster findCluster(Visit root) {
-		final Cluster c = new Cluster();
-		c.find(new HashSet<Visit>(), root);
-		return c;
-	}
-
 	void populate() {
 		final List<Visit> roots = new LinkedList<>();
 		for (final Input i : inference.input.values())
@@ -256,45 +246,51 @@ class Graph extends LinkedList<Runnable> {
 						roots.add(v);
 		while (roots.size() > 0) {
 			final Visit root = roots.get(0);
-			final Cluster c = findCluster(root);
+			final Cluster c = new Cluster();
+			c.find(new HashSet<Visit>(), root);
 			roots.removeAll(c);
 			this.add(c);
 		}
 	}
 
-	static String randomColor() {
-		final Random random = new Random();
-		final char[] hex = "0123456789ABCDEF".toCharArray();
-		final char[] chars = new char[6];
-		for (int i = 0; i < 6; i++)
-			chars[i] = hex[random.nextInt(hex.length)];
-		return new String(chars);
-	};
-
 	void output() {
-		int x = 0;
-		for (final Runnable r : this) {
-			final Cluster c = as(r, Cluster.class);
-			if (c == null)
-				continue;
-			try (FileWriter writer = new FileWriter(new File(String.format("/Users/madeen/Desktop/DabbleInference/output%d.dot", ++x)))) {
-				writer.append("digraph G {bgcolor=white\n");
-				final Set<Visit> f = c.flatten();
-				for (final Visit v : f)
-					if (!v.requirements.isEmpty() || !v.dependents.isEmpty())
-						writer.append(String.format("\tnode [ style=filled,shape=\"box\",fillcolor=\"antiquewhite:aquamarine\" ] \"%s\";\n", v.toString()));
+		class Output {
+			{ new File("/Users/madeen/Desktop/DabbleInference").mkdirs(); }
+			String randomColor() {
+				final Random random = new Random();
+				final char[] hex = "0123456789ABCDEF".toCharArray();
+				final char[] chars = new char[6];
+				for (int i = 0; i < 6; i++)
+					chars[i] = hex[random.nextInt(hex.length)];
+				return new String(chars);
+			};
+			void run() {
+				int x = 0;
+				for (final Runnable r : Graph.this) {
+					final Cluster c = as(r, Cluster.class);
+					if (c == null)
+						continue;
+					try (FileWriter writer = new FileWriter(new File(String.format("/Users/madeen/Desktop/DabbleInference/output%d.dot", ++x)))) {
+						writer.append("digraph G {bgcolor=white\n");
+						final Set<Visit> f = c.flatten();
+						for (final Visit v : f)
+							if (!v.requirements.isEmpty() || !v.dependents.isEmpty())
+								writer.append(String.format("\tnode [ style=filled,shape=\"box\",fillcolor=\"antiquewhite:aquamarine\" ] \"%s\";\n", v.toString()));
 
-				for (final Visit v : f)
-					for (final Visit d : v.dependents) {
-						final String col = randomColor();
-						writer.append(String.format("\t\"%s\" -> \"%s\" [color=\"#%s\"];\n", v, d, col));
+						for (final Visit v : f)
+							for (final Visit d : v.dependents) {
+								final String col = randomColor();
+								writer.append(String.format("\t\"%s\" -> \"%s\" [color=\"#%s\"];\n", v, d, col));
+							}
+
+						writer.append("}");
+					} catch (final IOException e) {
+						e.printStackTrace();
 					}
-
-				writer.append("}");
-			} catch (final IOException e) {
-				e.printStackTrace();
+				}
 			}
 		}
+		new Output().run();
 	}
 
 	Graph(DabbleInference inference) {
@@ -307,27 +303,13 @@ class Graph extends LinkedList<Runnable> {
 	}
 
 	void run() {
-		if (DEBUG)
-			for (final Runnable r : this)
-				if (r instanceof Cluster) {
-					System.out.println("-----------");
-					((Cluster)r).print();
-					System.out.println("-----------");
-				}
-		if (this.size() < 20)
-			for (final Runnable r : this)
-				r.run();
-		else
-			TaskExecution.threadPool(new Sink<ExecutorService>() {
-				@Override
-				public void receivedObject(ExecutorService pool) {
-					for (final Runnable runnable : Graph.this)
-						pool.execute(runnable);
-				}
-			}, 20);
-		for (final Visit v : doubleTakes) {
+		// prepare
+		TaskExecution.threadPool(visits.values(), 3);
+		// actual inference
+		TaskExecution.threadPool(this, 3);
+		// double takes
+		for (final Visit v : doubleTakes)
 			v.doubleTake = false;
-			v.run();
-		}
+		TaskExecution.threadPool(doubleTakes, 3);
 	}
 }

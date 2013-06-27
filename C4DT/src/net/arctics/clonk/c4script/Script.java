@@ -1362,6 +1362,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public void setScriptFile(IFile f) {}
 	@Override
 	public boolean isGlobal() { return true; }
+	public boolean hasAppendTo() {
+		for (final Directive d : directives())
+			if (d.type() == DirectiveType.APPENDTO)
+				return true;
+		return false;
+	}
 
 	@Override
 	public ASTNode[] subElements() {

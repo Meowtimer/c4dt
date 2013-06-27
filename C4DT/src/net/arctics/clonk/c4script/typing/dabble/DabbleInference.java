@@ -33,8 +33,6 @@ import net.arctics.clonk.ast.Placeholder;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.c4script.Directive;
-import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
@@ -263,21 +261,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		subTask(Messages.Apply);
 		for (final Input input : this.input.values())
 			input.apply();
-
-		/*
-		for (final Input i : input.values())
-			for (final Visit v : i.plan.values()) {
-				final Function.Typing typing = i.script().typings().get(v.function());
-				if (typing == null)
-					System.out.println(String.format("Missing typing in %s for %s", i.script(), v.function()));
-				else
-					System.out.println(String.format("%s: (%s) -> %s",
-						v.toString(),
-						v.function().parameterString(new PrintParametersOptions(i.script(), false, false, false)),
-						typing.returnType.typeName(true)
-					));
-			}
-		*/
 	}
 
 	private void validateParameters() {
@@ -323,46 +306,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 */
 		final class Visit extends FunctionReturnTypeVariable implements Runnable {
 
-			@Override
-			public void run() { input().new Visitor().visit(this); }
-
 			Visitor visitor;
 			IType[] inferredTypes;
 			Expert<?>[] experts;
-			Set<Visit> dependents = new HashSet<>();
-			Set<Visit> requirements = new HashSet<>();
-			int hash;
 			boolean doubleTake;
+
+			final Set<Visit> dependents = new HashSet<>();
+			final Set<Visit> requirements = new HashSet<>();
+			final int hash;
 
 			@Override
 			public int hashCode() { return super.hashCode(); }
-
 			public Input input() { return Input.this; }
-
-			class Delayed {
-				final Function function;
-				final Script script;
-				Delayed next;
-				public Delayed(Function function, Script script) {
-					super();
-					this.function = function;
-					this.script = script;
-				}
-				@Override
-				public String toString() {
-					return function.qualifiedName(script) + next != null ? (" " + next.toString()) : ""; //$NON-NLS-1$ //$NON-NLS-2$
-				}
-			}
-
 			@Override
-			public String toString() {
-				return function.qualifiedName(script);
-			};
+			public String toString() { return function.qualifiedName(script); }
+			@Override
+			public void run() { visitor.visit(); }
 
 			public Visit(Function function) {
 				super(function);
 				hash = function.qualifiedName(script).hashCode();
-				prepare();
 			}
 
 			@SuppressWarnings("unchecked")
@@ -371,6 +334,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			void prepare() {
+				visitor = new Visitor(this);
 				inferredTypes = new IType[function.totalNumASTNodes()];
 				experts = new Expert<?>[function.totalNumASTNodes()];
 				function.body().traverse(new IASTVisitor<Void>() {
@@ -379,7 +343,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					public TraversalContinuation visitNode(ASTNode node, Void nothing) {
 						if (owns && node instanceof AccessDeclaration)
 							((AccessDeclaration)node).setDeclaration(null);
-						experts[node.localIdentifier()] = findExpert(node);
+						final Expert<? super ASTNode> e = findExpert(node);
+						final int nid = node.localIdentifier();
+						experts[nid] = e;
+						if (e.providesInherentType)
+							inferredTypes[nid] = e.type(node, visitor);
 						return TraversalContinuation.Continue;
 					}
 				}, null);
@@ -397,8 +365,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			ControlFlow controlFlow;
 			TypeEnvironment environment;
-			Visit visit;
+			final Visit visit;
 			int roaming;
+
+			public Visitor(Visit visit) { this.visit = visit; }
 
 			@SuppressWarnings("unchecked")
 			private final <T extends ASTNode> Expert<? super T> expert(T node) {
@@ -569,10 +539,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Function f = call.parentOfType(Function.class);
 					final Script other = f.script();
 					final Script ds = call.predecessorInSequence() == null && conglomerate.contains(other) ? script : other;
-					final Visit fVisit = visitFor(f, ds);
-					final Visitor visitor = fVisit != null ? fVisit.visitor : null;
+					final Visit v = visitFor(f, ds);
+					final Visitor vtor = v != null ? v.visitor : null;
 
-					visitors[ci] = visitor;
+					visitors[ci] = vtor;
 
 					Function ref = as(call.declaration(), Function.class);
 					// not related - short circuit skip
@@ -580,7 +550,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						continue;
 					ref = (Function)ref.latestVersion();
 					RelevanceCheck: if (call.predecessorInSequence() != null) {
-						final IType predTy = nodeType(f, other, fVisit, visitor, call.predecessorInSequence());
+						final IType predTy = nodeType(f, other, v, vtor, call.predecessorInSequence());
 						if (predTy == null)
 							continue;
 						for (final IType t : predTy) {
@@ -597,7 +567,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							final ASTNode concretePar = call.params()[pa];
 							if (concretePar != null) {
 								script().addUsedScript(other);
-								types[pa][ci] = nodeType(f, other, fVisit, visitor, concretePar);
+								types[pa][ci] = nodeType(f, other, v, vtor, concretePar);
 							}
 						}
 				}
@@ -617,8 +587,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return null;
 				}
 				IType ty = containingVisit != null ? containingVisit.inferredTypes[node.localIdentifier()] : null;
-				if (ty == null && visitor != null)
-					ty = visitor.typeOf(node);
 				if (ty == null) {
 					final Function.Typing typing = other.typings().get(containing);
 					if (typing != null)
@@ -627,9 +595,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return ty;
 			}
 
-			public Visit visit(Visit visit) {
-				this.visit = visit;
-				visit.visitor = this;
+			public Visit visit() {
 				try {
 					innerVisit();
 				} catch (final Exception e) {
@@ -645,7 +611,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Script funScript = function.script();
 				if (DEBUG)
 					log("Visiting %s", function.qualifiedName(script())); //$NON-NLS-1$
-				final Visit oldVisitee = visit;
 				final boolean ownedFunction = funScript == script();
 				final ASTNode[] statements = function.body().statements();
 				final List<Variable> parameters = function.parameters();
@@ -684,7 +649,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				catch (final ProblemException e) {}
 				finally {
-					visit = oldVisitee;
 					if (!ownedFunction)
 						endRoaming();
 				}
@@ -963,7 +927,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final IType thisType;
 		final SpecialEngineRules rules;
 		final int fragmentOffset;
-		final TypeEnvironment typeEnvironment = TypeEnvironment.newSynchronized(typing);
+		final TypeEnvironment typeEnvironment;
 		final boolean partial;
 
 		public Script script() { return script; }
@@ -1038,13 +1002,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.strictLevel = script.strictLevel();
 			this.thisType = script instanceof Definition ? script : typing.unify(filteredIterable(script.includes(0), Definition.class));
 			this.fragmentOffset = sourceFragmentOffset;
-			boolean hasAppendTo = false;
-			for (final Directive d : script.directives())
-				if (d.type() == DirectiveType.APPENDTO) {
-					hasAppendTo = true;
-					break;
-				}
-			this.hasAppendTo = hasAppendTo;
+			this.hasAppendTo = script.hasAppendTo();
+			this.typeEnvironment = TypeEnvironment.newSynchronized(typing);
 			this.plan = Collections.synchronizedMap(makePlan(restrict));
 			this.partial = restrict != null && restrict.length > 0;
 		}
@@ -1128,6 +1087,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 	 * @param <T> Type of node the class has expertise for
 	 */
 	class Expert<T extends ASTNode> extends PerClass<ASTNode, T, Expert<? super T>> {
+		boolean providesInherentType = false;
+
 		public Expert(Class<T> cls) { super(cls); }
 		public void findSuper() {
 			for (Class<? super T> s = cls.getSuperclass(); s != null; s = s.getSuperclass()) {
@@ -1569,6 +1530,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		class LiteralExpert<T extends Literal<?>> extends Expert<T> {
+			{ providesInherentType = true; }
 			public LiteralExpert(Class<T> cls) { super(cls); }
 			@Override
 			public boolean judgment(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
@@ -2344,6 +2306,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new LiteralExpert<FloatLiteral>(FloatLiteral.class) {
 				@Override
+				public IType type(FloatLiteral node, Visitor visitor) { return PrimitiveType.FLOAT; }
+				@Override
 				public void visit(FloatLiteral node, Visitor visitor) throws ProblemException {
 					if (!visitor.script().engine().settings().supportsFloats)
 						visitor.markers().error(visitor, Problem.FloatNumbersNotSupported, node, node, Markers.NO_THROW);
@@ -2361,9 +2325,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new LiteralExpert<BoolLiteral>(BoolLiteral.class) {
 				@Override
-				public IType type(BoolLiteral node, Visitor visitor) {
-					return PrimitiveType.BOOL;
-				}
+				public IType type(BoolLiteral node, Visitor visitor) { return PrimitiveType.BOOL; }
 			},
 
 			new Expert<CallExpr>(CallExpr.class) {
