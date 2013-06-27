@@ -665,7 +665,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 							env.add(pt);
 						env = newTypeEnvironment();
 						{
-							if (!setParameterTypesBasedOnRules(function, parTypes) && shouldTypeFromCalls(function)) {
+							if (
+								!assignParameterTypesOfInheritedEngineFunction(function, parTypes) &&
+								!setParameterTypesBasedOnRules(function, parTypes) &&
+								shouldTypeFromCalls(function)
+							) {
 								preliminaryVisit(function, statements);
 								typeParametersFromCalls(function, baseFunction, parTypes);
 								env.clear();
@@ -994,6 +998,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 				for (final SpecialFuncRule funcRule : rules.defaultParmTypeAssignerRules())
 					if (funcRule.assignDefaultParmTypes(script, function, parameterTypeVariables))
 						return true;
+			return false;
+		}
+
+		boolean assignParameterTypesOfInheritedEngineFunction(Function function, TypeVariable[] parameterTypeVariables) {
+			if (function.isGlobal()) {
+				final Function ef = function.engine().findFunction(function.name());
+				if (ef != null) {
+					for (int i = 0; i < parameterTypeVariables.length && i < ef.numParameters(); i++)
+						parameterTypeVariables[i].set(ef.parameter(i).type());
+					return true;
+				}
+			}
 			return false;
 		}
 
