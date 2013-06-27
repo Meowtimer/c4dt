@@ -328,9 +328,7 @@ public class ClonkTextEditor extends TextEditor {
 		setPreferenceStore(EditorsUI.getPreferenceStore());
 	}
 
-	public ContentAssistant contentAssistant() {
-		return (ContentAssistant) getSourceViewerConfiguration().getContentAssistant(getSourceViewer());
-	}
+	public ContentAssistant contentAssistant() { return state().getContentAssistant(getSourceViewer()); }
 
 	public void completionProposalApplied(ClonkCompletionProposal proposal) {}
 

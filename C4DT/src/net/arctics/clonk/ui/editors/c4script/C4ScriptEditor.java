@@ -39,7 +39,6 @@ import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
-import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseEvent;
@@ -80,13 +79,11 @@ public class C4ScriptEditor extends ClonkTextEditor {
 
 	public void showContentAssistance() {
 		// show parameter help
-		final ITextOperationTarget opTarget = (ITextOperationTarget) getSourceViewer();
 		try {
 			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this) {
 				final ScriptEditingState.Assistant a = as(contentAssistant(), ScriptEditingState.Assistant.class);
 				if (a != null && !a.isProposalPopupActive())
-					if (opTarget.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
-						opTarget.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+					a.showParameters((ITextOperationTarget)getSourceViewer());
 			}
 		} catch (final NullPointerException nullP) {
 			// might just be not that much of an issue
@@ -165,9 +162,7 @@ public class C4ScriptEditor extends ClonkTextEditor {
 			if (f != null)
 				state.reportProblems(f);
 		}
-		final ScriptEditingState.Assistant a = as(contentAssistant(), ScriptEditingState.Assistant.class);
-		if (a != null)
-			a.hide();
+		state().assistant().hide();
 		super.editorSaved();
 	}
 

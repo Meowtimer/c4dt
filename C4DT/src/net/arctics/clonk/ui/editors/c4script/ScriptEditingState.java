@@ -84,6 +84,7 @@ import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
@@ -139,6 +140,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		@Override
 		public boolean isProposalPopupActive() { return super.isProposalPopupActive(); }
 		public ScriptCompletionProcessor processor() { return processor; }
+		public void showParameters(ITextOperationTarget target) {
+			if (target.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
+				target.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+		}
 	}
 
 	class ScriptHyperlinkDetector implements IHyperlinkDetector {

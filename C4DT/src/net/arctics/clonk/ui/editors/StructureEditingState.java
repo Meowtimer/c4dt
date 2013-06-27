@@ -30,7 +30,6 @@ import org.eclipse.jface.text.ITextHoverExtension;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
-import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.URLHyperlinkDetector;
@@ -390,5 +389,5 @@ public abstract class StructureEditingState<EditorType extends ClonkTextEditor, 
 		return null;
 	}
 	@Override
-	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) { return installAssistant(sourceViewer); }
+	public ContentAssistant getContentAssistant(ISourceViewer sourceViewer) { return installAssistant(sourceViewer); }
 }
