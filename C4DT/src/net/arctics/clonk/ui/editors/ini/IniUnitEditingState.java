@@ -62,83 +62,17 @@ import org.eclipse.ui.PlatformUI;
 
 public final class IniUnitEditingState extends StructureEditingState<IniTextEditor, IniUnit> {
 
-	private boolean unitParsed;
-	public int unitLocked;
-
-	private final Timer timer = new Timer("Reparse Timer");
-	private TimerTask reparseTask;
-
-	@Override
-	public void cleanupAfterRemoval() {
-		if (timer != null)
-			timer.cancel();
-		super.cleanupAfterRemoval();
-	}
-
-	@Override
-	public void documentChanged(DocumentEvent event) {
-		super.documentChanged(event);
-		forgetUnitParsed();
-		reparseTask = cancelTimerTask(reparseTask);
-		timer.schedule(reparseTask = new TimerTask() {
-			@Override
-			public void run() {
-				boolean foundClient = false;
-				for (final IniTextEditor ed : editors) {
-					if (!foundClient) {
-						foundClient = true;
-						ensureIniUnitUpToDate();
-					}
-					Display.getDefault().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							ed.updateFoldingStructure();
-						}
-					});
-				}
-			}
-		}, 700);
-	}
-	public void forgetUnitParsed() {
-		if (unitLocked == 0)
-			unitParsed = false;
-	}
-	public boolean ensureIniUnitUpToDate() {
-		if (!unitParsed) {
-			unitParsed = true;
-			final String newDocumentString = document.get();
-			final IniUnitParser parser = new IniUnitParser(structure);
-			parser.reset(newDocumentString);
-			try {
-				parser.parseBuffer(false);
-			} catch (final ProblemException e) {
-				e.printStackTrace();
-			}
-		}
-		return true;
-	}
-
-	public void lockUnit() {
-		unitLocked++;
-	}
-
-	public void unlockUnit() {
-		unitLocked--;
-	}
-
 	public static Pattern NO_ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)"); //$NON-NLS-1$
 	public static Pattern ASSIGN_PATTERN = Pattern.compile("\\s*([A-Za-z_0-9]*)\\s*=\\s*(.*)\\s*"); //$NON-NLS-1$
 	private static final ScannerPerEngine<IniScanner> SCANNERS = new ScannerPerEngine<IniScanner>(IniScanner.class);
-	private ContentAssistant assistant;
-	private static class IniSourceHyperlinkPresenter extends DefaultHyperlinkPresenter {
-		public IniSourceHyperlinkPresenter(IPreferenceStore store) { super(store); }
-		public IniSourceHyperlinkPresenter(RGB color) { super(color); }
+
+	private class HyperlinkDetector extends DefaultHyperlinkPresenter implements IHyperlinkDetector {
+		public HyperlinkDetector(IPreferenceStore store) { super(store); }
+		public HyperlinkDetector(RGB color) { super(color); }
 		@Override
 		public void hideHyperlinks() { super.hideHyperlinks(); }
 		@Override
 		public void documentChanged(DocumentEvent event) { super.documentChanged(event); }
-	}
-	private class IniSourceHyperlinkDetector implements IHyperlinkDetector {
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			if (!ensureIniUnitUpToDate())
@@ -242,24 +176,82 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 			}
 		}
 	}
+
+	private boolean unitParsed;
+	public int unitLocked;
+
+	private final Timer timer = new Timer("Reparse Timer");
+	private TimerTask reparseTask;
+
 	@Override
-	public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
-		if (fPreferenceStore == null)
-			return new IniSourceHyperlinkPresenter(new RGB(0, 0, 255));
-		return new IniSourceHyperlinkPresenter(fPreferenceStore);
+	public void cleanupAfterRemoval() {
+		if (timer != null)
+			timer.cancel();
+		super.cleanupAfterRemoval();
 	}
+
 	@Override
-	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
-		try {
-			return new IHyperlinkDetector[] {
-				new IniSourceHyperlinkDetector()
-			};
-		} catch (final Exception e) {
-			e.printStackTrace();
-			return null;
+	public void documentChanged(DocumentEvent event) {
+		super.documentChanged(event);
+		forgetUnitParsed();
+		reparseTask = cancelTimerTask(reparseTask);
+		timer.schedule(reparseTask = new TimerTask() {
+			@Override
+			public void run() {
+				boolean foundClient = false;
+				for (final IniTextEditor ed : editors) {
+					if (!foundClient) {
+						foundClient = true;
+						ensureIniUnitUpToDate();
+					}
+					Display.getDefault().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							ed.updateFoldingStructure();
+						}
+					});
+				}
+			}
+		}, 700);
+	}
+	public void forgetUnitParsed() {
+		if (unitLocked == 0)
+			unitParsed = false;
+	}
+	public boolean ensureIniUnitUpToDate() {
+		if (!unitParsed) {
+			unitParsed = true;
+			final String newDocumentString = document.get();
+			final IniUnitParser parser = new IniUnitParser(structure);
+			parser.reset(newDocumentString);
+			try {
+				parser.parseBuffer(false);
+			} catch (final ProblemException e) {
+				e.printStackTrace();
+			}
 		}
+		return true;
 	}
-	public IniUnitEditingState(IPreferenceStore store) { super(store); }
+
+	public void lockUnit() {
+		unitLocked++;
+	}
+
+	public void unlockUnit() {
+		unitLocked--;
+	}
+
+	private ContentAssistant assistant;
+	private final HyperlinkDetector hyperlinkDetector;
+
+	@Override
+	public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) { return hyperlinkDetector; }
+	@Override
+	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) { return new IHyperlinkDetector[] { hyperlinkDetector }; }
+	public IniUnitEditingState(IPreferenceStore store) {
+		super(store);
+		hyperlinkDetector = store == null ? new HyperlinkDetector(new RGB(0, 0, 255)) : new HyperlinkDetector(fPreferenceStore);
+	}
 	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		final PresentationReconciler reconciler = new PresentationReconciler();

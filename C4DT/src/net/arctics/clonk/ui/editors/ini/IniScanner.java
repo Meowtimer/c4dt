@@ -1,8 +1,5 @@
 package net.arctics.clonk.ui.editors.ini;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.index.Engine;
@@ -22,7 +19,7 @@ import org.eclipse.jface.text.rules.WhitespaceRule;
 
 public class IniScanner extends StructureTextScanner {
 	private static final class OperatorRule implements IRule {
-		private final char[] OPERATORS= { '=', '[', ']', ',', '|', ';' };
+		private final char[] OPERATORS = { '=', '[', ']', ',', '|', ';' };
 		private final IToken token;
 		public OperatorRule(IToken token) { this.token = token; }
 		public boolean isOperator(char character) {
@@ -55,12 +52,6 @@ public class IniScanner extends StructureTextScanner {
 		final IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
 		final IToken constant = createToken(manager, "ENGINE_FUNCTION"); //$NON-NLS-1$
 		final IToken comment = createToken(manager, "COMMENT"); //$NON-NLS-1$
-		final List<IRule> rules = new ArrayList<IRule>();
-		rules.add(new SingleLineRule("[", "]", section, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
-		rules.add(new EndOfLineRule("#", comment)); //$NON-NLS-1$
-		rules.add(new EndOfLineRule("//", comment)); //$NON-NLS-1$
-		rules.add(new OperatorRule(operator));
-		rules.add(new WhitespaceRule(new WhitespaceDetector()));
 		final WordScanner wordDetector = new WordScanner();
 		final CombinedWordRule combinedWordRule = new CombinedWordRule(wordDetector, defaultToken);
 		final CombinedWordRule.WordMatcher wordRule = new CombinedWordRule.WordMatcher();
@@ -68,10 +59,16 @@ public class IniScanner extends StructureTextScanner {
 			for (final Variable var : engine.variables())
 				if (var.scope() == Scope.CONST)
 					wordRule.addWord(var.name(), constant);
-
 		combinedWordRule.addWordMatcher(wordRule);
-		rules.add(combinedWordRule);
-		rules.add(new NumberRule(number));
-		setRules(rules.toArray(new IRule[rules.size()]));
+
+		setRules(new IRule[] {
+			new SingleLineRule("[", "]", section, '\\'), //$NON-NLS-1$ //$NON-NLS-2$
+			new EndOfLineRule("#", comment), //$NON-NLS-1$
+			new EndOfLineRule("//", comment), //$NON-NLS-1$
+			new OperatorRule(operator),
+			new WhitespaceRule(new WhitespaceDetector()),
+			combinedWordRule,
+			new NumberRule(number)
+		});
 	}
 }
