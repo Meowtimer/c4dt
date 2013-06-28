@@ -14,53 +14,19 @@ import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.Position;
-import org.eclipse.jface.text.rules.EndOfLineRule;
-import org.eclipse.jface.text.rules.FastPartitioner;
-import org.eclipse.jface.text.rules.IPredicateRule;
-import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.RuleBasedPartitionScanner;
-import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.editors.text.FileDocumentProvider;
 
 public class IniTextEditor extends StructureTextEditor {
 
 	private IniUnitEditingState state;
 
-	static final FileDocumentProvider DOCUMENT_PROVIDER = new FileDocumentProvider() {
-		final String C4INI_COMMENT = "__c4ini_comment"; //$NON-NLS-1$
-		final String[] C4INI_PARTITIONS = {C4INI_COMMENT, IDocument.DEFAULT_CONTENT_TYPE};
-		class IniPartitionScanner extends RuleBasedPartitionScanner {
-			public IniPartitionScanner() {
-				final IToken singleLineComment = new Token(C4INI_COMMENT);
-				setPredicateRules(new IPredicateRule[] {
-					new EndOfLineRule(";", singleLineComment), //$NON-NLS-1$
-					new EndOfLineRule("#", singleLineComment) //$NON-NLS-1$
-				});
-			}
-		}
-		@Override
-		protected IDocument createDocument(Object element) throws CoreException {
-			final IDocument document = super.createDocument(element);
-			if (document != null) {
-				final IDocumentPartitioner partitioner = new FastPartitioner(new IniPartitionScanner(), C4INI_PARTITIONS);
-				partitioner.connect(document);
-				document.setDocumentPartitioner(partitioner);
-			}
-			return document;
-		}
-	};
-
-	public IniTextEditor() { setDocumentProvider(DOCUMENT_PROVIDER); }
+	public IniTextEditor() { }
 
 	@Override
 	public void refreshOutline() {
