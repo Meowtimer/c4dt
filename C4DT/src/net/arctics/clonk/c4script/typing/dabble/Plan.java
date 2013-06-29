@@ -190,6 +190,9 @@ class Plan extends LinkedList<Runnable> {
 	}
 
 	class Cluster extends HashSet<Visit> implements Runnable {
+
+		StringBuilder log = DEBUG ? new StringBuilder() : null;
+
 		void print(int depth, Collection<Visit> layer, Set<Visit> catcher) {
 			for (final Visit v : layer) {
 				System.out.println(String.format("%s-> %s", multiply("\t", depth), v.toString()));
@@ -199,6 +202,8 @@ class Plan extends LinkedList<Runnable> {
 		}
 		void print() { print(0, this, new HashSet<Visit>()); }
 		void run(Visit v, int depth) {
+			if (log != null)
+				log.append(String.format("%sVisiting %s\n", multiply("\t", depth), v.toString()));
 			v.run();
 			for (final Visit d : v.dependents)
 				if (d.requirements.remove(v) && d.requirements.size() == 0)
@@ -307,6 +312,12 @@ class Plan extends LinkedList<Runnable> {
 		TaskExecution.threadPool(visits.values(), 3);
 		// actual inference
 		TaskExecution.threadPool(this, 3);
+		if (DEBUG)
+			for (final Runnable r : this)
+				if (r instanceof Cluster) {
+					final Cluster c = (Cluster)r;
+					System.out.println(c.log.toString());
+				}
 		// double takes
 		for (final Visit v : doubleTakes)
 			v.doubleTake = false;

@@ -587,10 +587,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Visitor visitor,
 				final ASTNode node
 			) {
-				if (containingVisit != null && containingVisit.inferredTypes == null) {
-					System.out.println(toString() + " expected to get result of " + containingVisit.toString() + " but no"); //$NON-NLS-1$ //$NON-NLS-2$
-					return null;
-				}
 				IType ty = containingVisit != null ? containingVisit.inferredTypes[node.localIdentifier()] : null;
 				if (ty == null) {
 					final Function.Typing typing = other.typings().get(containing);
