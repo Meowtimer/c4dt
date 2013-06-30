@@ -3,6 +3,7 @@ package net.arctics.clonk.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.c4script.Conf;
 
 /**
  * Call the sequence
@@ -17,7 +18,7 @@ public class CallExpr extends Tuple implements IFunctionCall {
 	@Override
 	public boolean isValidInSequence(ASTNode predecessor) { return predecessor != null; }
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) { CallDeclaration.printParmString(output, subElements(), depth); }
+	public void doPrint(ASTNodePrinter output, int depth) { Conf.printNodeList(output, subElements(), depth, "(", ")"); }
 	@Override
 	public boolean hasSideEffects() { return true; }
 	@Override

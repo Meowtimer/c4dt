@@ -1,5 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
+import static net.arctics.clonk.c4script.Conf.printNodeList;
+
 import java.util.ArrayList;
 
 import net.arctics.clonk.Core;
@@ -19,14 +21,7 @@ public class ArrayExpression extends ASTNodeWithSubElementsArray {
 
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
-		output.append("["); //$NON-NLS-1$
-		for (int i = 0; i < elements.length; i++) {
-			if (elements[i] != null)
-				elements[i].print(output, depth+1);
-			if (i < elements.length-1)
-				output.append(", "); //$NON-NLS-1$
-		}
-		output.append("]"); //$NON-NLS-1$
+		printNodeList(output, elements, depth, "[", "]");
 	}
 
 	@Override
@@ -36,7 +31,7 @@ public class ArrayExpression extends ASTNodeWithSubElementsArray {
 
 	@Override
 	public boolean isConstant() {
-		for (ASTNode e : subElements())
+		for (final ASTNode e : subElements())
 			if (e != null && !e.isConstant())
 				return false;
 		return true;
@@ -44,8 +39,8 @@ public class ArrayExpression extends ASTNodeWithSubElementsArray {
 
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
-		ArrayList<Object> elm = new ArrayList<Object>(elements.length);
-		for (ASTNode e : elements)
+		final ArrayList<Object> elm = new ArrayList<Object>(elements.length);
+		for (final ASTNode e : elements)
 			elm.add(e != null ? e.evaluate(context) : null);
 		return elm;
 	}

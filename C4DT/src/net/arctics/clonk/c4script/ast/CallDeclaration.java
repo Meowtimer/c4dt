@@ -1,7 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
-import static net.arctics.clonk.util.ArrayUtil.iterable;
-import static net.arctics.clonk.util.ArrayUtil.map;
+import static net.arctics.clonk.c4script.Conf.alwaysConvertObjectCalls;
+import static net.arctics.clonk.c4script.Conf.printNodeList;
 import static net.arctics.clonk.util.ArrayUtil.set;
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.Core;
@@ -14,7 +14,6 @@ import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.Sequence;
-import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Operator;
@@ -25,8 +24,6 @@ import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.EngineFunction;
-import net.arctics.clonk.util.IConverter;
-import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.text.Region;
 
@@ -105,39 +102,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		super.doPrint(output, depth);
-		printParmString(output, params, depth);
-	}
-
-	/**
-	 * Print a parameter string.
-	 * @param output Output to print to
-	 * @param depth Indentation level of parameter expressions.
-	 */
-	public static void printParmString(ASTNodePrinter output, ASTNode[] params, final int depth) {
-		final Iterable<String> parmStrings = map(iterable(params), new IConverter<ASTNode, String>() {
-			@Override
-			public String convert(ASTNode from) { return from.printed(depth+(Conf.braceStyle==BraceStyleType.NewLine?1:0)).trim(); }
-		});
-		int len = 0;
-		for (final String ps : parmStrings)
-			len += ps.length();
-		if (len < 80)
-			StringUtil.writeBlock(output, "(", ")", ", ", parmStrings);
-		else {
-			final String indent = "\n"+StringUtil.multiply(Conf.indentString, depth+1);
-			String startBlock, endBlock;
-			switch (Conf.braceStyle) {
-			case NewLine:
-				startBlock = "\n"+StringUtil.multiply(Conf.indentString, depth)+"("+indent;
-				endBlock = "\n"+StringUtil.multiply(Conf.indentString, depth)+")";
-				break;
-			default:
-				startBlock = "(";
-				endBlock = ")";
-				break;
-			}
-			StringUtil.writeBlock(output, startBlock, endBlock, ","+indent, parmStrings);
-		}
+		printNodeList(output, params, depth, "(", ")");
 	}
 
 	@Override
@@ -196,13 +161,13 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 			return applyOperatorTo(tidy, params, replOperator);
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
-		if (params.length >= 2 && isEngineFunction("ObjectCall") && params[1] instanceof StringLiteral && (Conf.alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
+		if (params.length >= 2 && isEngineFunction("ObjectCall") && params[1] instanceof StringLiteral && (alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 			final ASTNode[] parmsWithoutObject = new ASTNode[params.length-2];
 			for (int i = 0; i < parmsWithoutObject.length; i++)
 				parmsWithoutObject[i] = tidy.tidy(params[i+2]);
 			final String lit = ((StringLiteral)params[1]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~')
-				return Conf.alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
+				return alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
 					? new Sequence(new ASTNode[] {
 						tidy.tidy(params[0]),
 						new MemberOperator(false, true, null, 0),

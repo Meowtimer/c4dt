@@ -147,7 +147,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	protected void setCurrentFunction(Function func) {
 		if (func != currentFunction) {
 			currentFunction = func;
-			setCurrentDeclaration(func);
+			this.currentDeclaration = func;
 		}
 	}
 
@@ -165,13 +165,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	public Declaration currentDeclaration() {
 		return currentDeclaration;
-	}
-
-	/**
-	 * @param currentDeclaration the currentDeclaration to set
-	 */
-	private final void setCurrentDeclaration(Declaration currentDeclaration) {
-		this.currentDeclaration = currentDeclaration;
 	}
 
 	/**
@@ -322,7 +315,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @throws ProblemException
 	 */
 	public void validate() throws ProblemException {
-		setCurrentDeclaration(null);
+		this.currentDeclaration = null;
 		for (final Directive directive : script.directives())
 			directive.validate(this);
 		distillAdditionalInformation();
@@ -721,7 +714,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				var.assignType(staticType, true);
 			if (parsedTypeAnnotation != null)
 				parsedTypeAnnotation.setTarget(var);
-			setCurrentDeclaration(var);
+			this.currentDeclaration = var;
 			VarInitialization varInitialization;
 			ASTNode initializationExpression = null;
 			{
@@ -742,7 +735,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			varInitialization.type = staticType;
 			return varInitialization;
 		} finally {
-			setCurrentDeclaration(outerDec);
+			this.currentDeclaration = outerDec;
 		}
 	}
 
@@ -859,8 +852,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 	/**
 	 * Parse a function declaration.
-	 * @param firstWord The first word that led to the conclusion that a function declaration is up next
-	 * @return Whether parsing of the function declaration succeeded
+	 * @param header Description of the alread-parsed function header as {@link FunctionHeader}
+	 * @return The parse function or null if something went wrong
 	 * @throws ProblemException
 	 */
 	private Function parseFunctionDeclaration(FunctionHeader header) throws ProblemException {
@@ -874,44 +867,18 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		header.apply(func);
 		func.setParent(script);
 		eatWhitespace();
-		final int shouldBeBracket = read();
-		if (shouldBeBracket != '(') {
-			if (header.isOldStyle && shouldBeBracket == ':')
-				{} // old style funcs have no named parameters
-			else
-				tokenExpectedError("("); //$NON-NLS-1$
-		} else {
-			// get parameters
-			boolean parmExpected = false;
-			do {
-				eat(WHITESPACE_CHARS);
-				final Comment parameterCommentPre = parseComment();
-				eat(WHITESPACE_CHARS);
-				final Variable parm = parseParameter(func);
-				eat(WHITESPACE_CHARS);
-				final Comment parameterCommentPost = parseComment();
-				eat(WHITESPACE_CHARS);
-				if (parm != null) {
-					final StringBuilder commentBuilder = new StringBuilder(30);
-					if (parameterCommentPre != null)
-						commentBuilder.append(parameterCommentPre.text());
-					if (parameterCommentPost != null) {
-						if (parameterCommentPre != null)
-							commentBuilder.append("\n"); //$NON-NLS-1$
-						commentBuilder.append(parameterCommentPost.text());
-					}
-					parm.setUserDescription(commentBuilder.toString());
-				} else if (parmExpected)
-					error(Problem.NameExpected, this.offset, offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
-				parmExpected = false;
-				final int readByte = read();
-				if (readByte == ')')
-					break; // all parameters parsed
-				else if (readByte == ',')
-					parmExpected = true;
-				else
-					error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, (char)readByte);  //$NON-NLS-1$//$NON-NLS-2$
-			} while(!reachedEOF());
+		final int parameterIndicator = read();
+		switch (parameterIndicator) {
+		case '(':
+			parseParameters(func);
+			break;
+		case ':':
+			if (header.isOldStyle) 
+				break; // old-style funcs have no named parameters
+			//$FALL-THROUGH$
+		default:
+			tokenExpectedError("("); //$NON-NLS-1$
+			break;
 		}
 		endOfHeader = this.offset;
 		lastComment = null;
@@ -958,6 +925,40 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		script.addDeclaration(func);
 		setCurrentFunction(null); // to not suppress errors in-between functions
 		return func;
+	}
+	
+	private void parseParameters(Function func) throws ProblemException {
+		// get parameters
+		boolean parmExpected = false;
+		do {
+			eat(WHITESPACE_CHARS);
+			final Comment parameterCommentPre = parseComment();
+			eat(WHITESPACE_CHARS);
+			final Variable parm = parseParameter(func);
+			eat(WHITESPACE_CHARS);
+			final Comment parameterCommentPost = parseComment();
+			eat(WHITESPACE_CHARS);
+			if (parm != null) {
+				final StringBuilder commentBuilder = new StringBuilder(30);
+				if (parameterCommentPre != null)
+					commentBuilder.append(parameterCommentPre.text());
+				if (parameterCommentPost != null) {
+					if (parameterCommentPre != null)
+						commentBuilder.append("\n"); //$NON-NLS-1$
+					commentBuilder.append(parameterCommentPost.text());
+				}
+				parm.setUserDescription(commentBuilder.toString());
+			} else if (parmExpected)
+				error(Problem.NameExpected, this.offset, offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
+			parmExpected = false;
+			final int readByte = read();
+			if (readByte == ')')
+				break; // all parameters parsed
+			else if (readByte == ',')
+				parmExpected = true;
+			else
+				error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, (char)readByte);  //$NON-NLS-1$//$NON-NLS-2$
+		} while(!reachedEOF());
 	}
 
 	/**
@@ -1503,7 +1504,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			final ProplistDeclaration pl = new ProplistDeclaration((String)null);
 			pl.setParent(script);
 			final Declaration oldDec = currentDeclaration();
-			setCurrentDeclaration(pl);
+			this.currentDeclaration = pl;
 			try {
 				boolean properlyClosed = false;
 				boolean expectingComma = false;
@@ -1533,7 +1534,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 								final Variable v = new Variable(name, currentFunction != null ? Scope.VAR : Scope.LOCAL);
 								v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
 								final Declaration outerDec = currentDeclaration();
-								setCurrentDeclaration(v);
+								this.currentDeclaration = v;
 								ASTNode value = null;
 								try {
 									v.setParent(outerDec);
@@ -1545,7 +1546,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 									v.setInitializationExpression(value);
 									//v.forceType(value.type(this));
 								} finally {
-									setCurrentDeclaration(outerDec);
+									this.currentDeclaration = outerDec;
 								}
 								pl.addComponent(v, false);
 								expectingComma = true;
@@ -1562,7 +1563,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				pl.setLocation(absoluteSourceLocation(propListStart, offset));
 				script.addDeclaration(pl);
 				return pl;
-			} finally { setCurrentDeclaration(oldDec); }
+			} finally { this.currentDeclaration = oldDec; }
 		}
 		else
 			unread();
@@ -1705,7 +1706,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		ASTNode current = null;
 		BinaryOp lastOp = null;
 
-		// magical thingie to pass all parameters to inherited
 		int exprStart = offset;
 		if (parseEllipsis())
 			root = new Ellipsis();
@@ -1991,7 +1991,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				}
 			}
 			else if (!options.contains(ParseStatementOption.InitializationStatement))
-				result = parseKeyword(readWord);
+				result = parseKeywordStatement(readWord);
 			else
 				result = null;
 		}
@@ -2131,9 +2131,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private boolean parseSemicolonOrReturnFalse() {
 		final int old = offset;
 		eatWhitespace();
-		if (read() == ';')
+		switch (read()) {
+		case ';':
 			return true;
-		else {
+		default:
 			seek(old);
 			return false;
 		}
@@ -2152,26 +2153,25 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return The parsed KeywordStatement or null if the keyword was not recognized
 	 * @throws ProblemException
 	 */
-	private Statement parseKeyword(String keyWord) throws ProblemException {
-		Statement result = null;
-		if (keyWord.equals(Keywords.If))
-			result = parseIf();
-		else if (keyWord.equals(Keywords.While))
-			result = parseWhile();
-		else if (keyWord.equals(Keywords.Do))
-			result = parseDoWhile();
-		else if (keyWord.equals(Keywords.For))
-			result = parseFor();
-		else if (keyWord.equals(Keywords.Continue))
-			result = needsSemicolon(new ContinueStatement());
-		else if (keyWord.equals(Keywords.Break))
-			result = needsSemicolon(new BreakStatement());
-		else if (keyWord.equals(Keywords.Return))
-			result = parseReturn();
-		else
-			result = null;
-
-		return result;
+	private Statement parseKeywordStatement(String keyWord) throws ProblemException {
+		switch (keyWord) {
+		case Keywords.If:
+			return parseIf();
+		case Keywords.While:
+			return parseWhile();
+		case Keywords.Do:
+			return parseDoWhile();
+		case Keywords.For:
+			return parseFor();
+		case Keywords.Continue:
+			return needsSemicolon(new ContinueStatement());
+		case Keywords.Break:
+			return needsSemicolon(new BreakStatement());
+		case Keywords.Return:
+			return parseReturn();
+		default:
+			return null;
+		}
 	}
 
 	/**

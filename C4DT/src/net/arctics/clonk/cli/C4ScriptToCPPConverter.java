@@ -20,6 +20,7 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.Sequence;
+import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
@@ -103,7 +104,7 @@ public class C4ScriptToCPPConverter {
 								if (f.parentDeclaration() instanceof Engine) {
 									globalFunctionsUsed.add(f);
 									Sequence sequenceStart = sequence.subSequenceUpTo(op);
-									append(String.format("engine%s->Exec(C4Value(", f.name())); sequenceStart.print(this, depth); append(").getPropList(), &C4AulParSet"); CallDeclaration.printParmString(this, callFunc.params(), 0); append(", true)");
+									append(String.format("engine%s->Exec(C4Value(", f.name())); sequenceStart.print(this, depth); append(").getPropList(), &C4AulParSet"); Conf.printNodeList(this, callFunc.params(), 0, "(", ")"); append(", true)");
 									return true;
 								}
 							}
@@ -116,7 +117,7 @@ public class C4ScriptToCPPConverter {
 						if (f.parentDeclaration() instanceof Engine) {
 							globalFunctionsUsed.add(f);
 							append(String.format("engine%s->Exec(ctx->Obj, &C4AulParSet", f.name()));
-							CallDeclaration.printParmString(this, callFunc.params(), 0);
+							Conf.printNodeList(this, callFunc.params(), 0, "(", ")");
 							append(", true)");
 							return true;
 						}

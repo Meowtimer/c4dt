@@ -1,9 +1,13 @@
 package net.arctics.clonk.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.ArrayUtil.map;
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.ast.BraceStyleType;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -15,6 +19,7 @@ import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
  * Container class containing some global configuration values affecting
  * pretty-printing of C4Script syntax trees. Listens on global preferences to synchronize
  * static field values with preference values.
+ * Also provides some utility functions which print things based on field configuration in here.
  * @author madeen
  *
  */
@@ -89,6 +94,38 @@ public abstract class Conf {
 			EditorsUI.getPreferenceStore().addPropertyChangeListener(listener);
 			Core.instance().getPreferenceStore().addPropertyChangeListener(listener);
 			configureByEditorPreferences();
+		}
+	}
+
+	/**
+	 * Print a list of nodes, spreading the output over multiple lines
+	 * if the length of the nodes when printed exceeds some threshold (currently hardcoded to 80).
+	 * @param output Output to print to
+	 * @param depth Indentation level of the list, taken into account when spreading over multiple lines.
+	 * @param blockStart Start of block ("(", "[", ...)
+	 * @param blockEnd End of block (")", "]", ...)
+	 */
+	public static void printNodeList(ASTNodePrinter output, ASTNode[] params, final int depth, String blockStart, String blockEnd) {
+		final Iterable<String> parmStrings = map(iterable(params), new IConverter<ASTNode, String>() {
+			@Override
+			public String convert(ASTNode from) { return from.printed(depth+(braceStyle==BraceStyleType.NewLine?1:0)).trim(); }
+		});
+		int len = 0;
+		for (final String ps : parmStrings)
+			len += ps.length();
+		if (len < 80)
+			StringUtil.writeBlock(output, blockStart, blockEnd, ", ", parmStrings);
+		else {
+			final String indent = "\n"+StringUtil.multiply(indentString, depth+1);
+			switch (braceStyle) {
+			case NewLine:
+				blockStart = "\n"+StringUtil.multiply(indentString, depth)+blockStart+indent;
+				blockEnd = "\n"+StringUtil.multiply(indentString, depth)+blockEnd;
+				break;
+			default:
+				break;
+			}
+			StringUtil.writeBlock(output, blockStart, blockEnd, ","+indent, parmStrings);
 		}
 	}
 

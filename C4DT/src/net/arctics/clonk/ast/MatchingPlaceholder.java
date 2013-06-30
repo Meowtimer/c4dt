@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -378,7 +379,7 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		output.append('$');
 		if (subElements != null)
-			CallDeclaration.printParmString(output, subElements, depth);
+			Conf.printNodeList(output, subElements, depth, "(", ")");
 	}
 
 	protected MatchingPlaceholder() { super(""); }
