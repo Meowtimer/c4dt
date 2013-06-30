@@ -7,8 +7,8 @@ import net.arctics.clonk.landscapescript.LandscapeScriptParser;
 import net.arctics.clonk.landscapescript.Overlay;
 import net.arctics.clonk.landscapescript.OverlayBase;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
-import net.arctics.clonk.ui.editors.EntityHyperlink;
 import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.EntityHyperlink;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.ui.navigator.ClonkPreviewView;
@@ -36,19 +36,15 @@ import org.eclipse.ui.PlatformUI;
 
 public class LandscapeScriptEditingState extends StructureEditingState<LandscapeScriptEditor, LandscapeScript> {
 	public LandscapeScriptEditingState(IPreferenceStore store) { super(store); }
-	private boolean parsed;
+	private final Object monitor = new Object();
 	public void silentReparse() {
 		final IFile file = structure().file();
 		structure().setFile(null);
-		try {
-			reparse();
-		}
-		finally {
-			structure().setFile(file);
-		}
+		try { reparse(); }
+		finally { structure().setFile(file); }
 	}
 	public void reparse() {
-		if (!parsed) {
+		synchronized (monitor) {
 			final LandscapeScript script = structure();
 			if (script == null)
 				return;
@@ -60,23 +56,27 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 			final LandscapeScriptParser parser = new LandscapeScriptParser(structure(), tokenStream);
 			structure().clear();
 			parser.parse();
-			parsed = true;
-			final IFile file = script.file();
-			try {
-				for (final IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows()) {
-					final ClonkPreviewView view = (ClonkPreviewView) w.getActivePage().findView(ClonkPreviewView.ID);
-					if (view != null) {
-						final IStructuredSelection sel = as(view.getSelectionOfInterest(), IStructuredSelection.class);
-						if (
-							script.engine() != null && script.engine().settings().supportsEmbeddedUtilities &&
-							sel != null && sel.getFirstElement().equals(file)
-						)
-							view.schedulePreviewUpdaterJob();
-					}
+			for (final LandscapeScriptEditor ed : editors)
+				ed.refreshOutline();
+			updatePreview(script);
+		}
+	}
+	private void updatePreview(final LandscapeScript script) {
+		final IFile file = script.file();
+		try {
+			for (final IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+				final ClonkPreviewView view = (ClonkPreviewView) w.getActivePage().findView(ClonkPreviewView.ID);
+				if (view != null) {
+					final IStructuredSelection sel = as(view.getSelectionOfInterest(), IStructuredSelection.class);
+					if (
+						script.engine() != null && script.engine().settings().supportsEmbeddedUtilities &&
+						sel != null && sel.getFirstElement().equals(file)
+					)
+						view.schedulePreviewUpdaterJob();
 				}
-			} catch (final Exception e) {
-				e.printStackTrace();
 			}
+		} catch (final Exception e) {
+			e.printStackTrace();
 		}
 	}
 	public class LandscapeHyperlinkDetector implements IHyperlinkDetector {
@@ -93,7 +93,6 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
 		final PresentationReconciler reconciler = new PresentationReconciler();
-
 		final ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT");
 
 		DefaultDamagerRepairer dr =

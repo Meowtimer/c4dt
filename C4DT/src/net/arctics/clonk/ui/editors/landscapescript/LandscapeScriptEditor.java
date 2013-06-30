@@ -2,9 +2,9 @@ package net.arctics.clonk.ui.editors.landscapescript;
 
 import static net.arctics.clonk.util.Utilities.fileEditedBy;
 import net.arctics.clonk.landscapescript.LandscapeScript;
+import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.ui.editors.StructureOutlinePage;
 import net.arctics.clonk.ui.editors.StructureTextEditor;
-import net.arctics.clonk.ui.editors.StructureEditingState;
 
 public class LandscapeScriptEditor extends StructureTextEditor {
 	private LandscapeScriptEditingState state;
@@ -31,5 +31,10 @@ public class LandscapeScriptEditor extends StructureTextEditor {
 			outlinePage.setEditor(this);
 		}
 		return super.outlinePage();
+	}
+	@Override
+	protected void editorSaved() {
+		super.editorSaved();
+		state().reparse();
 	}
 }
