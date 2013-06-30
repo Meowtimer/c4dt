@@ -198,7 +198,7 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 				if (script == null)
 					continue;
 				for (final Function f : script.functions())
-					proposalForFunc(pl, script, f, false);
+					proposalForFunc(pl, script, f);
 			}
 	}
 

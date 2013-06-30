@@ -120,14 +120,14 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
 
-	protected DeclarationProposal proposalForFunc(ProposalsSite pl, Declaration target, Function func, boolean brackets) {
+	protected DeclarationProposal proposalForFunc(ProposalsSite pl, Declaration target, Function func) {
 		if (func instanceof InitializationFunction)
 			return null;
 		if (pl.prefix != null)
 			if (!stringMatchesPrefix(func.name(), pl.prefix))
 				return null;
 		final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
-		final String replacement = func.name() + (brackets ? "()" : ""); //$NON-NLS-1$ //$NON-NLS-2$
+		final String replacement = func.name(); //$NON-NLS-1$ //$NON-NLS-2$
 		final IType returnType = func.returnType(target.script());
 		final String postInfo = returnType == PrimitiveType.UNKNOWN ? "" : ": " + returnType.typeName(true);
 		final DeclarationProposal prop = new DeclarationProposal(

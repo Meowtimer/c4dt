@@ -59,10 +59,10 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.stringtbl.StringTbl;
-import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.PrecedingExpression;
 import net.arctics.clonk.ui.editors.ProposalsSite;
+import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -144,7 +144,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 					final Scenario fScen = func.scenario();
 					if (fScen != null && fScen != s2)
 						continue;
-					proposalForFunc(pl, state().structure(), func, true);
+					proposalForFunc(pl, state().structure(), func);
 				}
 			if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0)
 				for (final Variable var : index.staticVariables()) {
@@ -330,7 +330,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		if (pl.script.index().engine() != null) {
 			if ((pl.declarationsMask() & DeclMask.FUNCTIONS) != 0)
 				for (final Function func : pl.script.index().engine().functions())
-					proposalForFunc(pl, state().structure(), func, true);
+					proposalForFunc(pl, state().structure(), func);
 			if ((pl.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
 				for (final Variable var : pl.script.index().engine().variables())
 					proposalForVar(pl, pl.script.engine(), var);
@@ -389,7 +389,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
 				final Declaration d = decs.getValue().get(0);
 				if ((declarationMask & DeclMask.FUNCTIONS) != 0 && d instanceof Function && !((Function)d).isGlobal())
-					proposalForFunc(pl, defaulting(as(pl.precedingType, Script.class), pl.function.engine()), (Function) d, true);
+					proposalForFunc(pl, defaulting(as(pl.precedingType, Script.class), pl.function.engine()), (Function) d);
 				else if ((declarationMask & DeclMask.VARIABLES) != 0 && d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
 					proposalForVar(pl, as(pl.precedingType, Script.class), (Variable)d);
 			}
@@ -792,7 +792,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			if (func != null && func.visibility() != FunctionScope.GLOBAL) {
 				if (target instanceof Script && !((Script)target).seesFunction(func))
 					continue;
-				final DeclarationProposal prop = proposalForFunc(pl, target, func, true);
+				final DeclarationProposal prop = proposalForFunc(pl, target, func);
 				if (prop != null)
 					prop.setCategory(cats.LocalFunction);
 			}

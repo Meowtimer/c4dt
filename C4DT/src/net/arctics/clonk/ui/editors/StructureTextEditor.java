@@ -249,8 +249,8 @@ public class StructureTextEditor extends TextEditor {
 	 * @return the declaration
 	 */
 	public Declaration structure() {
-		final StructureEditingState<?, ?> listener = state();
-		return listener != null ? listener.structure() : null;
+		final StructureEditingState<?, ?> state = state();
+		return state != null ? state.structure() : null;
 	}
 
 	public int cursorPos() {
