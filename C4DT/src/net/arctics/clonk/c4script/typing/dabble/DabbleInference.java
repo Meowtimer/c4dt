@@ -345,9 +345,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 							((AccessDeclaration)node).setDeclaration(null);
 						final Expert<? super ASTNode> e = findExpert(node);
 						final int nid = node.localIdentifier();
-						experts[nid] = e;
-						if (e.providesInherentType)
-							inferredTypes[nid] = e.type(node, visitor);
+						if (nid >= 0) {
+							experts[nid] = e;
+							if (e.providesInherentType)
+								inferredTypes[nid] = e.type(node, visitor);
+						}
 						return TraversalContinuation.Continue;
 					}
 				}, null);
