@@ -6,8 +6,6 @@ import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.core.resources.IMarker;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -17,14 +15,16 @@ import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.StringUtil;
+
+import org.eclipse.core.resources.IMarker;
 
 /**
  * A comment in the code. Instances of this class can be used as regular {@link ASTNode} objects or
@@ -310,5 +310,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 
 	@Override
 	public String patternMatchingText() { return text(); }
-
+	
+	@Override
+	public Comment clone() { return (Comment)super.clone(); }
 }

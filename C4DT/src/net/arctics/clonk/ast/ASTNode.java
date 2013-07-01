@@ -66,7 +66,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public ASTNode clone() {
 		ASTNode clone;
 		clone = (ASTNode) super.clone();
-		final ASTNode[] clonedElms = ArrayUtil.map(traversalSubElements(), ASTNode.class, new IConverter<ASTNode, ASTNode>() {
+		final ASTNode[] clonedElms = ArrayUtil.map(subElements(), ASTNode.class, new IConverter<ASTNode, ASTNode>() {
 			@Override
 			public ASTNode convert(ASTNode from) {
 				if (from == null)
@@ -178,11 +178,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public boolean allowsSequenceSuccessor(ASTNode successor) { return true; }
 
 	public boolean hasSideEffects() {
-		final ASTNode[] subElms = traversalSubElements();
-		if (subElms != null)
-			for (final ASTNode e : subElms)
-				if (e != null && e.hasSideEffects())
-					return true;
+		for (final ASTNode e : subElements())
+			if (e != null && e.hasSideEffects())
+				return true;
 		return false;
 	}
 
@@ -224,7 +222,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param elms The array of elements to assign to this element as sub elements
 	 */
 	public void setSubElements(ASTNode[] elms) {
-		if (traversalSubElements().length > 0)
+		if (subElements().length > 0)
 			System.out.println("setSubElements should be implemented when subElements() is implemented ("+getClass().getName()+")"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
@@ -477,7 +475,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		assert(element != null);
 		assert(with != null);
 
-		final ASTNode[] subElms = traversalSubElements();
+		final ASTNode[] subElms = subElements();
 		final ASTNode[] newSubElms = new ASTNode[subElms.length];
 		boolean differentSubElms = false;
 		for (int i = 0; i < subElms.length; i++)

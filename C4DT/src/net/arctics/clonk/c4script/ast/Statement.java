@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.filter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,12 +22,13 @@ public class Statement extends ASTNode implements Cloneable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public interface Attachment extends Serializable {
+	public interface Attachment extends Serializable, Cloneable {
 		public enum Position {
 			Pre,
 			Post
 		}
 		void applyAttachment(Attachment.Position position, ASTNodePrinter builder, int depth);
+		Attachment clone() throws CloneNotSupportedException;
 	}
 
 	public static class EmptyLinesAttachment implements Attachment {
@@ -54,6 +56,8 @@ public class Statement extends ASTNode implements Cloneable {
 				break;
 			}
 		}
+		@Override
+		public EmptyLinesAttachment clone() throws CloneNotSupportedException { return (EmptyLinesAttachment) super.clone(); }
 	}
 
 	private List<Attachment> attachments;
@@ -125,6 +129,22 @@ public class Statement extends ASTNode implements Cloneable {
 			return concat(super.traversalSubElements(), filter(attachments.toArray(), ASTNode.class));
 		else
 			return super.traversalSubElements();
+	}
+	
+	@Override
+	public ASTNode clone() {
+		final Statement clone = (Statement)super.clone();
+		if (this.attachments != null) {
+			clone.attachments = new ArrayList<Attachment>(this.attachments);
+			for (int i = 0; i < clone.attachments.size(); i++)
+				try {
+					clone.attachments.set(i, clone.attachments.get(i).clone());
+				} catch (final CloneNotSupportedException e) {
+					clone.attachments.remove(i);
+					i--;
+				}
+		}
+		return clone;
 	}
 
 }

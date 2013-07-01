@@ -50,7 +50,10 @@ public class VarDeclarationStatement extends KeywordStatement {
 	}
 	@Override
 	public void setSubElements(ASTNode[] elms) {
-		VarInitialization[] newElms = new VarInitialization[elms.length];
+		for (final ASTNode n : elms)
+			if (!(n instanceof VarInitialization))
+				System.out.println(n.printed());
+		final VarInitialization[] newElms = new VarInitialization[elms.length];
 		System.arraycopy(elms, 0, newElms, 0, elms.length);
 		varInitializations = newElms;
 	}
@@ -62,7 +65,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		builder.append(keyword());
 		builder.append(" "); //$NON-NLS-1$
 		int counter = 0;
-		for (VarInitialization var : varInitializations) {
+		for (final VarInitialization var : varInitializations) {
 			var.print(builder, depth);
 			if (++counter < varInitializations.length)
 				builder.append(", "); //$NON-NLS-1$
@@ -72,13 +75,13 @@ public class VarDeclarationStatement extends KeywordStatement {
 	}
 	@Override
 	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
-		Function activeFunc = this.parentOfType(Function.class);
+		final Function activeFunc = this.parentOfType(Function.class);
 		if (activeFunc != null) {
-			int addToMakeAbsolute = activeFunc.bodyLocation().start() + this.start();
+			final int addToMakeAbsolute = activeFunc.bodyLocation().start() + this.start();
 			offset += addToMakeAbsolute;
-			for (VarInitialization pair : varInitializations) {
-				String varName = pair.name;
-				Variable var = activeFunc.findVariable(varName);
+			for (final VarInitialization pair : varInitializations) {
+				final String varName = pair.name;
+				final Variable var = activeFunc.findVariable(varName);
 				if (var != null && var.isAt(offset))
 					return new EntityRegion(var, new Region(var.start()-activeFunc.bodyLocation().start(), var.getLength()));
 			}
