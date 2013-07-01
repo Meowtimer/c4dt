@@ -174,7 +174,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 				dec = dec.latestVersion();
 			if (dec != null)
 				if (dec.containedIn(editor.structure()))
-					editor.selectAndReveal(dec);
+					editor.selectAndReveal(dec.regionToSelect());
 		}
 	}
 

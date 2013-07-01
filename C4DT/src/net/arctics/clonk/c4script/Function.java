@@ -833,9 +833,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public Object[] arguments() {
-		synchronized (parameters) { return parameters.toArray(); }
-	}
+	public Object[] arguments() { synchronized (parameters) { return parameters.toArray(); } }
 	@Override
 	public int absoluteExpressionsOffset() { return bodyLocation().getOffset(); }
 	/**
@@ -863,6 +861,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public int absoluteOffset() { return bodyLocation().start(); }
 	@Override
 	public IRegion selectionRegion() { return wholeBody(); }
+	@Override
+	public IRegion regionToSelect() { return new SourceLocation(nameStart, nameStart+name().length()); }
 
 	public static String scaffoldTextRepresentation(String functionName, FunctionScope scope, final Script context, Variable... parameters) {
 		final StringBuilder builder = new StringBuilder();
