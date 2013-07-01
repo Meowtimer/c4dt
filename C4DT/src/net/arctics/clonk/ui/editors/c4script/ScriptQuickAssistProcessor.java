@@ -59,8 +59,8 @@ import net.arctics.clonk.index.ID;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.DeclarationProposal;
-import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.StructureEditingState;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
@@ -717,7 +717,8 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			try {
 				replacements.add(
 					Messages.ClonkQuickAssistProcessor_TidyUp,
-					new Tidy().tidyExhaustive(topLevel)
+					new Tidy().tidyExhaustive(topLevel),
+					false, true
 				);
 			} catch (final CloneNotSupportedException e) {
 				e.printStackTrace();
