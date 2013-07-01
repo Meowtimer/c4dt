@@ -204,3 +204,8 @@ are then taken into account in various places
 -C4Script Search Page
 -Instant completions
 -Internal refactorings which make everything even more broken than it was before
+1.7.8
+-Dabble Dabble
+-Refactoring
+-No progress whatsoever when it comes to actual features
+-Inserted completions for functions do not have brackets!
