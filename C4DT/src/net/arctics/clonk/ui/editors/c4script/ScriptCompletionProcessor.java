@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.Utilities.as;
@@ -49,6 +48,7 @@ import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.Typing;
+import net.arctics.clonk.c4script.typing.dabble.Maybe;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IDocumentedDeclaration;
 import net.arctics.clonk.index.IIndexEntity;
@@ -525,12 +525,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			parm = ((Function)innermostCallFunc.declaration()).parameter(0);
 		else
 			parm = null;
-		if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN)
-			if (pl.index.typing().unifyNoChoice(parm.type(), PrimitiveType.ID) != null) {
-				if (DEBUG)
-					System.out.println("Elevate definitions");
-				cats.Definitions = -1;
-			}
+		if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN &&
+			(eq(parm.type(), PrimitiveType.ID) || Maybe.contained(parm.type(), MetaDefinition.class) != null))
+				cats.Definitions = cats.SelfField-cats.SUBPAGE;
 	}
 
 	private boolean computeStringProposals(ProposalsSite pl) {

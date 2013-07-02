@@ -54,6 +54,7 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 			Directives;
 		public void defaultOrdering() {
 			int i = -PAGE;
+			Directives             = i += PAGE;
 			FunctionLocalVariables = i += PAGE;
 			SelfField              = i += PAGE;
 			LocalFunction          = i += PAGE;
@@ -66,7 +67,6 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 			NewFunction            = i += PAGE;
 			Callbacks              = i += PAGE;
 			EffectCallbacks        = i += PAGE;
-			Directives             = i += PAGE;
 			Keywords               = i += PAGE;
 		}
 		{ defaultOrdering(); }
@@ -231,9 +231,9 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 					// match wins
 					return ma.match ? -1 : +1;
 				else if (ma.startsWith != mb.startsWith)
-					bonus += cats.BONUS * 4 * (ma.startsWith ? -1 : +1);
+					bonus += cats.BONUS * 3 * (ma.startsWith ? -1 : +1);
 				else if (ma.matchNoCase != mb.matchNoCase)
-					bonus += ma.matchNoCase ? -1 : +1;
+					return ma.matchNoCase ? -1 : +1;
 				else if (ma.startsWithNonCase != mb.startsWithNonCase)
 					bonus += cats.BONUS * 2 * (ma.startsWithNonCase ? -1 : +1);
 				else if (ma.local != mb.local)
