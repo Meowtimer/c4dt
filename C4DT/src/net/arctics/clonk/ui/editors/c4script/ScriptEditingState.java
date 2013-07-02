@@ -41,10 +41,8 @@ import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.EntityLocator;
 import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
-import net.arctics.clonk.c4script.ast.KeywordStatement;
 import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.PropListExpression;
-import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.TypeUtil;
@@ -232,6 +230,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	class DoubleClickStrategy extends DefaultTextDoubleClickStrategy {
 		@Override
 		protected IRegion findExtendedDoubleClickSelection(IDocument document, int pos) {
+			final IRegion word = findWord(document, pos);
+			try {
+				if (word != null && document.get(word.getOffset(), word.getLength()).matches("\\w|\\|d"))
+					return word;
+			} catch (final BadLocationException e) {
+				return word;
+			}
 			final Function func = structure().funcAt(pos);
 			if (func != null) {
 				final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(pos-func.bodyLocation().start());
@@ -240,17 +245,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				if (expr == null)
 					return new Region(func.wholeBody().getOffset(), func.wholeBody().getLength());
 				else for (; expr != null; expr = expr.parent())
-					if (expr instanceof KeywordStatement || expr instanceof Comment || expr instanceof StringLiteral) {
-						final IRegion word = findWord(document, pos);
-						try {
-							if (word != null && !document.get(word.getOffset(), word.getLength()).equals("\t"))
-								return word;
-							else
-								continue;
-						} catch (final BadLocationException e) {
-							continue;
-						}
-					} else if (expr instanceof Literal)
+					if (expr instanceof Literal)
 						return new Region(func.bodyLocation().getOffset()+expr.start(), expr.getLength());
 					else if (expr instanceof AccessDeclaration) {
 						final AccessDeclaration accessDec = (AccessDeclaration) expr;
