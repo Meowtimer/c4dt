@@ -985,7 +985,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	public Object saveReplacementForEntityDeclaration(Declaration obj, IndexEntity entity) {
 		final Index objIndex = obj.index();
-		final IndexEntity objOwner = obj.parentOfType(IndexEntity.class);
+		final IndexEntity objOwner = obj.parent(IndexEntity.class);
 		if (objIndex == null || (objIndex == this && entity == objOwner))
 			return obj;
 		else {

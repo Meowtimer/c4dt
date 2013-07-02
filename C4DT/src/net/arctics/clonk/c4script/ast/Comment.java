@@ -40,7 +40,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 			final Comment node = as(node_, Comment.class);
 			if (node == null)
 				return TraversalContinuation.Continue;
-			final Script script = node.parentOfType(Script.class);
+			final Script script = node.parent(Script.class);
 			if (script == null || script.file() == null)
 				return TraversalContinuation.Continue;
 			final String s = node.text();
@@ -186,7 +186,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	public EntityRegion entityAt(int offset, ExpressionLocator<?> l) {
 		// parse comment as expression and see what goes
 		try {
-			final Script script = parentOfType(Script.class);
+			final Script script = parent(Script.class);
 			if (script == null)
 				return null;
 			final ScriptParser commentParser = new ScriptParser(comment, script, script.file()) {
@@ -199,7 +199,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 				public int sectionOffset() { return 0; }
 			};
 			final ExpressionLocator<Comment> locator = new ExpressionLocator<Comment>(offset-2-this.sectionOffset()); // make up for '//' or /*'
-			commentParser.parseStandaloneStatement(comment, parentOfType(Function.class)).traverse(locator, this);
+			commentParser.parseStandaloneStatement(comment, parent(Function.class)).traverse(locator, this);
 			if (locator.expressionAtRegion() != null) {
 				final EntityRegion reg = locator.expressionAtRegion().entityAt(offset, locator);
 				if (reg != null)

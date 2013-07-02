@@ -90,14 +90,14 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return The first parent of the given class or null if such parent does not exist
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T parentOfType(Class<T> cls) {
+	public <T> T parent(Class<T> cls) {
 		ASTNode e;
 		for (e = parent(); e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;
 	}
 
 	/**
-	 * Same as {@link #parentOfType(Class)}, but will return the last parent declaration matching the type instead of the first one.
+	 * Same as {@link #parent(Class)}, but will return the last parent declaration matching the type instead of the first one.
 	 * @param type
 	 * @return
 	 */
@@ -677,7 +677,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		final IASTSection f = section();
 		return f != null ? f.absoluteOffset() : 0;
 	}
-	public IASTSection section() { return parentOfType(IASTSection.class); }
+	public IASTSection section() { return parent(IASTSection.class); }
 	public IRegion absolute() { return this.region(sectionOffset()); }
 
 	public void shift(int localInsertionOffset, int amount) {

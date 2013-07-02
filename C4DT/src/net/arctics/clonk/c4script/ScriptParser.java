@@ -156,7 +156,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return
 	 */
 	public Variable currentVariable() {
-		return currentDeclaration() != null ? currentDeclaration().parentOfType(Variable.class) : null;
+		return currentDeclaration() != null ? currentDeclaration().parent(Variable.class) : null;
 	}
 
 	/**
@@ -333,7 +333,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			if (nameLocal != null) {
 				final ASTNode expr = nameLocal.initializationExpression();
 				if (expr != null)
-					obj.setName(expr.evaluateStatic(nameLocal.initializationExpression().parentOfType(Function.class)).toString());
+					obj.setName(expr.evaluateStatic(nameLocal.initializationExpression().parent(Function.class)).toString());
 			}
 		}
 	}

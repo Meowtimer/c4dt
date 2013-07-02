@@ -448,7 +448,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		func.traverse(locator, this);
 		final FunctionFragmentParser parser = new FunctionFragmentParser(document, script, func, null);
 		final ASTNode offendingExpression = locator.expressionAtRegion();
-		final Statement topLevel = offendingExpression != null ? offendingExpression.parentOfType(Statement.class) : null;
+		final Statement topLevel = offendingExpression != null ? offendingExpression.parent(Statement.class) : null;
 
 		if (offendingExpression != null && topLevel != null) {
 			expressionRegion = offendingExpression.absolute();

@@ -58,7 +58,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 				if (from instanceof IIndexEntity)
 					return (IIndexEntity)from;
 				else if (from instanceof Declaration)
-					return ((Declaration)from).parentOfType(IIndexEntity.class);
+					return ((Declaration)from).parent(IIndexEntity.class);
 				else
 					return null;
 			}

@@ -25,7 +25,7 @@ public class Marker {
 		this.severity = severity;
 		this.args = args;
 
-		this.cf = node != null ? node.parentOfType(Declaration.class) : null;
+		this.cf = node != null ? node.parent(Declaration.class) : null;
 		this.reporter = node;
 		this.scriptFile = positionProvider.file();
 		this.container = positionProvider.container();

@@ -74,7 +74,7 @@ public class AccessVar extends AccessDeclaration {
 				// report that to the original context as the origin of the AccessVar expression
 				// evaluate in the context of the var by proxy
 				Object val = var.evaluateInitializationExpression(new EvaluationContextProxy(
-					var.initializationExpression().parentOfType(Function.class)) {
+					var.initializationExpression().parent(Function.class)) {
 					@Override
 					public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
 						if (expression == var.initializationExpression())

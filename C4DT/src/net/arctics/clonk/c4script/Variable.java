@@ -120,7 +120,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			break;
 		case PARAMETER:
 			if (script != null) {
-				final Function f = parentOfType(Function.class);
+				final Function f = parent(Function.class);
 				final Function.Typing t = script.typings().functionTypings.get(f.name());
 				final int ndx = this.parameterIndex();
 				if (t != null && t.parameterTypes.length > ndx)

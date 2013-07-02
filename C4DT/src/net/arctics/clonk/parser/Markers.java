@@ -193,7 +193,7 @@ public class Markers implements Iterable<Marker> {
 		}
 
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0 && node != null) {
-			final Function f = node.parentOfType(Function.class);
+			final Function f = node.parent(Function.class);
 			if (f != null) {
 				final int offs = f.bodyLocation().start();
 				markerStart += offs;
@@ -249,7 +249,7 @@ public class Markers implements Iterable<Marker> {
 	public IMarker todo(IFile file, ASTNode node, String todoText, int markerStart, int markerEnd, int priority) {
 		if (file != null)
 			try {
-				final Declaration declaration = node.parentOfType(Declaration.class);
+				final Declaration declaration = node.parent(Declaration.class);
 				final Function f = as(declaration, Function.class);
 				final int bodyOffset = f != null ? f.bodyLocation().start() : 0;
 				final IMarker marker = file.createMarker(IMarker.TASK);

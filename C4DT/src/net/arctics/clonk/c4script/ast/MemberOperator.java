@@ -95,7 +95,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	@Override
 	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
-			return new EntityRegion(parentOfType(Script.class).nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
+			return new EntityRegion(parent(Script.class).nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
 		return null;
 	}
 
@@ -118,7 +118,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
-		if (!dotNotation && !parentOfType(Script.class).engine().settings().supportsProplists) {
+		if (!dotNotation && !parent(Script.class).engine().settings().supportsProplists) {
 			final ASTNode succ = successorInSequence();
 			if (succ instanceof AccessVar)
 				return makeDotOperator();

@@ -39,7 +39,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		if (contents == null)
 			return null;
 		final String[] parts = contents.split("\\|"); //$NON-NLS-1$
-		final Script script = parentOfType(Script.class);
+		final Script script = parent(Script.class);
 		int off = 1;
 		for (final String part : parts) {
 			if (offset >= off && offset < off+part.length()) {

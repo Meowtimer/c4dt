@@ -75,7 +75,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 	}
 	@Override
 	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
-		final Function activeFunc = this.parentOfType(Function.class);
+		final Function activeFunc = this.parent(Function.class);
 		if (activeFunc != null) {
 			final int addToMakeAbsolute = activeFunc.bodyLocation().start() + this.start();
 			offset += addToMakeAbsolute;

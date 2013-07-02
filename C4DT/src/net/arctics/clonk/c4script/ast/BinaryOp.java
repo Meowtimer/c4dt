@@ -21,7 +21,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
-		final Script s = parentOfType(Script.class);
+		final Script s = parent(Script.class);
 		if (s == null)
 			return this;
 		if (s.strictLevel() >= 2) {

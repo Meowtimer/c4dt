@@ -41,7 +41,7 @@ public final class StringLiteral extends Literal<String> {
 	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 
 		// first check if a string tbl entry is referenced
-		final EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), parentOfType(Script.class), true);
+		final EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), parent(Script.class), true);
 		if (result != null)
 			return result;
 
@@ -50,9 +50,9 @@ public final class StringLiteral extends Literal<String> {
 			final CallDeclaration parentFunc = (CallDeclaration) parent();
 			final int myIndex = parentFunc.indexOfParm(this);
 			// delegate finding a link to special function rules
-			final SpecialFuncRule funcRule = parentOfType(Declaration.class).engine().specialRules().funcRuleFor(parentFunc.name(), SpecialEngineRules.DECLARATION_LOCATOR);
+			final SpecialFuncRule funcRule = parent(Declaration.class).engine().specialRules().funcRuleFor(parentFunc.name(), SpecialEngineRules.DECLARATION_LOCATOR);
 			if (funcRule != null) {
-				final EntityRegion region = funcRule.locateEntityInParameter(parentFunc, parentOfType(Script.class), myIndex, offset, this);
+				final EntityRegion region = funcRule.locateEntityInParameter(parentFunc, parent(Script.class), myIndex, offset, this);
 				if (region != null)
 					return region;
 			}

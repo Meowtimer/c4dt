@@ -184,7 +184,7 @@ public class Overlay extends OverlayBase {
 	}
 	
 	public Overlay OwnerOverlay() {
-		return parentOfType(Overlay.class);
+		return parent(Overlay.class);
 	}
 	
 	public void defaults() {

@@ -482,7 +482,7 @@ public abstract class SpecialEngineRules {
 			if (declarationName.equals("Find_ID"))
 				return typeByID(processor, node);
 			if (declarationName.equals("Find_Func") && node.params().length >= 1) {
-				final Object ev = node.params()[0].evaluateStatic(node.parentOfType(Function.class));
+				final Object ev = node.params()[0].evaluateStatic(node.parent(Function.class));
 				if (ev instanceof String)
 					return typeByFunction(processor.script(), ev);
 			}
@@ -570,7 +570,7 @@ public abstract class SpecialEngineRules {
 			final Object scriptExpr = arguments[0].evaluateStatic(script);
 			if (scriptExpr instanceof String)
 				try {
-					ScriptsHelper.parseStandaloneNode((String)scriptExpr, node.parentOfType(Function.class), null, new IMarkerListener() {
+					ScriptsHelper.parseStandaloneNode((String)scriptExpr, node.parent(Function.class), null, new IMarkerListener() {
 						@Override
 						public Decision markerEncountered(
 							Markers markers, IASTPositionProvider positionProvider,
@@ -603,7 +603,7 @@ public abstract class SpecialEngineRules {
 				final StringLiteral lit = (StringLiteral) parmExpression;
 				final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(offsetInExpression-1); // make up for '"'
 				try {
-					ScriptsHelper.parseStandaloneNode(lit.literal(), node.parentOfType(Function.class), locator, null, script.engine(), null);
+					ScriptsHelper.parseStandaloneNode(lit.literal(), node.parent(Function.class), locator, null, script.engine(), null);
 				} catch (final ProblemException e) {}
 				if (locator.expressionAtRegion() != null) {
 					final EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, locator);
@@ -641,7 +641,7 @@ public abstract class SpecialEngineRules {
 			final Function f = node.declaration() instanceof Function ? (Function)node.declaration() : null;
 			if (f != null && arguments.length >= 3) {
 				// look if command is "Call"; if so treat parms 2, 3, 4 as any
-				final Object command = arguments[1].evaluateStatic(node.parentOfType(Function.class));
+				final Object command = arguments[1].evaluateStatic(node.parent(Function.class));
 				if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
 					int givenParam = 0;
 					for (final Variable parm : f.parameters()) {
@@ -783,7 +783,7 @@ public abstract class SpecialEngineRules {
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			Object parmEv;
-			if (index == 0 && (parmEv = parmExpression.evaluateStatic(node.parentOfType(Function.class))) instanceof String) {
+			if (index == 0 && (parmEv = parmExpression.evaluateStatic(node.parent(Function.class))) instanceof String) {
 				final String resourceName = (String)parmEv;
 				final ProjectIndex pi = (ProjectIndex)script.index();
 				final Set<IIndexEntity> e = locateEntitiesByName(node, resourceName, pi, script);
@@ -816,7 +816,7 @@ public abstract class SpecialEngineRules {
 		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration formatCall, String name, ProjectIndex pi, Script script) {
 			final CallDeclaration containingCall = as(formatCall.parent(), CallDeclaration.class);
 			if (containingCall != null && containingCall.indexOfParm(formatCall) == 0) {
-				final SpecialFuncRule rule = formatCall.parentOfType(Declaration.class).engine().specialRules().funcRuleFor(containingCall.name(), DECLARATION_LOCATOR);
+				final SpecialFuncRule rule = formatCall.parent(Declaration.class).engine().specialRules().funcRuleFor(containingCall.name(), DECLARATION_LOCATOR);
 				if (rule instanceof LocateResourceByNameRule)
 					return ((LocateResourceByNameRule)rule).locateEntitiesByName(formatCall, name, pi, script);
 			}
@@ -875,7 +875,7 @@ public abstract class SpecialEngineRules {
 	protected class SetActionLinkRule extends SpecialFuncRule {
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
-			return actionLinkForDefinition(node.parentOfType(Function.class), as(script, Definition.class), parmExpression);
+			return actionLinkForDefinition(node.parent(Function.class), as(script, Definition.class), parmExpression);
 		}
 		protected EntityRegion actionLinkForDefinition(Function currentFunction, Definition definition, ASTNode actionNameExpression) {
 			Object parmEv;

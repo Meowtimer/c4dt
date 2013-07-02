@@ -113,7 +113,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		@Override
 		public IType returnType(ProblemReporter processor, CallDeclaration node) {
 			Object parmEv;
-			if (!node.name().equals("RemoveEffect") && node.params().length >= 1 && (parmEv = node.params()[0].evaluateStatic(node.parentOfType(Function.class))) instanceof String) {
+			if (!node.name().equals("RemoveEffect") && node.params().length >= 1 && (parmEv = node.params()[0].evaluateStatic(node.parent(Function.class))) instanceof String) {
 				final String effectName = (String) parmEv;
 				return processor.script().effects().get(effectName);
 			}
@@ -160,15 +160,15 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		};
 		@Override
 		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReporter processor) {
-			if (arguments.length >= 2 && node.parentOfType(Function.class) instanceof DefinitionFunction) {
-				final Object nameEv = arguments[0].evaluateStatic(node.parentOfType(Function.class));
+			if (arguments.length >= 2 && node.parent(Function.class) instanceof DefinitionFunction) {
+				final Object nameEv = arguments[0].evaluateStatic(node.parent(Function.class));
 				if (nameEv instanceof String) {
 					final SourceLocation loc = processor.absoluteSourceLocationFromExpr(arguments[0]);
-					final Script script = node.parentOfType(Script.class);
+					final Script script = node.parent(Script.class);
 					if (script.findLocalVariable((String)nameEv, true) == null) {
 						final Variable var = script.createVarInScope(
 							Variable.DEFAULT_VARIABLE_FACTORY,
-							node.parentOfType(Function.class),
+							node.parent(Function.class),
 							(String) nameEv, Scope.LOCAL, loc.start(), loc.end(), null
 							);
 						var.setLocation(processor.absoluteSourceLocationFromExpr(arguments[0]));
@@ -181,7 +181,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 						var.forceType(processor.typeOf(arguments[1]));
 						final AccessVar av = new AccessVar(var);
 						processor.judgment(av, processor.typeOf(arguments[1]), TypingJudgementMode.OVERWRITE);
-						var.setParent(node.parentOfType(Function.class));
+						var.setParent(node.parent(Function.class));
 					}
 					//parser.getContainer().addDeclaration(var);
 				}
@@ -191,7 +191,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		@Override
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			String property;
-			if (index == 0 && (property = as(parmExpression.evaluateStatic(callFunc.parentOfType(Function.class)), String.class)) != null) {
+			if (index == 0 && (property = as(parmExpression.evaluateStatic(callFunc.parent(Function.class)), String.class)) != null) {
 				final IType ty = callFunc.predecessorInSequence() != null ? script.typings().get(callFunc.predecessorInSequence()) : script.script();
 				final Set<Variable> vars = new HashSet<Variable>();
 				for (final IType t : ty)
@@ -278,7 +278,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReporter processor) throws ProblemException {
 			EvaluationTracer evTracer;
 			int parmIndex = 0;
-			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], node.parentOfType(Function.class))).evaluation instanceof String) {
+			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], node.parent(Function.class))).evaluation instanceof String) {
 				final String formatString = (String)evTracer.evaluation;
 				boolean separateIssuesMarker = false;
 				for (int i = 0; i < formatString.length(); i++)
@@ -350,7 +350,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				final IType t = node.predecessorInSequence() != null ? script.typings().get(node.predecessorInSequence()) : null;
 				if (t != null) for (final IType ty : t)
 					if (ty instanceof Definition) {
-						final EntityRegion result = actionLinkForDefinition(node.parentOfType(Function.class), (Definition)ty, parmExpression);
+						final EntityRegion result = actionLinkForDefinition(node.parent(Function.class), (Definition)ty, parmExpression);
 						if (result != null)
 							return result;
 					}
@@ -360,7 +360,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			public void contributeAdditionalProposals(CallDeclaration node, int index, ASTNode parmExpression, ScriptCompletionProcessor completions, ProposalsSite pl) {
 				if (index != 0)
 					return;
-				final Script script = node.parentOfType(Script.class);
+				final Script script = node.parent(Script.class);
 				final IType t = node.predecessorInSequence() != null ? script.typings().get(node.predecessorInSequence()) : script;
 				if (t != null) for (final IType ty : t)
 					if (ty instanceof Definition) {

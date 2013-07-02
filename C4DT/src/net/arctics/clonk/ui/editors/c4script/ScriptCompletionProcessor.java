@@ -274,7 +274,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 					targetCall = true;
 					break Loop;
 				case ':':
-					if (pl.contextExpression != null && pl.contextExpression.parentOfType(PropListExpression.class) != null)
+					if (pl.contextExpression != null && pl.contextExpression.parent(PropListExpression.class) != null)
 						return true;
 					if (pl.document.getChar(arrowOffset-1) != ':')
 						return false;
@@ -311,7 +311,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 
 	private void removeProposalForVariableBeingDeclared(ProposalsSite pl) {
 		if (pl.contextExpression != null) {
-			final VarInitialization init = pl.contextExpression.parentOfType(VarInitialization.class);
+			final VarInitialization init = pl.contextExpression.parent(VarInitialization.class);
 			if (init != null && init.variable != null)
 				pl.removeProposalForDeclaration(init.variable);
 		}
@@ -509,7 +509,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		cats.defaultOrdering();
 		if (pl.contextExpression == null)
 			return;
-		CallDeclaration innermostCallFunc = pl.contextExpression.parentOfType(CallDeclaration.class);
+		CallDeclaration innermostCallFunc = pl.contextExpression.parent(CallDeclaration.class);
 		// elevate definition proposals for parameters of id type
 		Variable parm;
 		if (innermostCallFunc != null && pl.contextExpression.parent() == innermostCallFunc)
@@ -585,7 +585,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		final ProposalsSite pl = new ProposalsSite(
 			expression != null ? expression.end() : 0,
 			0, document, "", result, function.index(), function, parser.script()
-		).setPreceding(new PrecedingExpression(expression, expression.parentOfType(Sequence.class), PrimitiveType.UNKNOWN));
+		).setPreceding(new PrecedingExpression(expression, expression.parent(Sequence.class), PrimitiveType.UNKNOWN));
 		processor.innerProposalsInFunction(pl, parser);
 		return result;
 	}

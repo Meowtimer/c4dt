@@ -118,7 +118,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			return variableTypes != null ? variableTypes.get(variable.name()) : null;
 		}
 		public IType get(ASTNode node) {
-			final Function f = node.parentOfType(Function.class);
+			final Function f = node.parent(Function.class);
 			if (f == null)
 				return null;
 			final Function.Typing typing = get(f);

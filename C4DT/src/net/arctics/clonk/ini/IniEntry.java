@@ -37,7 +37,7 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 	}
 	public void setDefinition(IniEntryDefinition entryConfig) { this.definition = entryConfig; }
 	public IniEntryDefinition definition() { return definition; }
-	public IniUnit unit() { return parentOfType(IniUnit.class); }
+	public IniUnit unit() { return parent(IniUnit.class); }
 	@Override
 	public Object context() { return this; }
 	@Override

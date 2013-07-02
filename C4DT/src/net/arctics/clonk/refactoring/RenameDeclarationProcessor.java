@@ -155,7 +155,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.name()));
 
 		Declaration existingDec;
-		final Structure parentStructure = decl.parentOfType(Structure.class);
+		final Structure parentStructure = decl.parent(Structure.class);
 		if (parentStructure != null) {
 			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
 			if (existingDec != null)

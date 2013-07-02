@@ -101,7 +101,7 @@ class Plan extends LinkedList<Runnable> {
 						for (final AccessVar ref : references)
 							for (ASTNode p = ref.parent(); p != null; p = p.parent())
 								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
-									final Function fun = ref.parentOfType(Function.class);
+									final Function fun = ref.parent(Function.class);
 									final Visit other = v.input().visits.get(fun);
 									if (other != null)
 										addRequirement(v, other);
@@ -146,7 +146,7 @@ class Plan extends LinkedList<Runnable> {
 						for (final CallDeclaration call : calls) {
 							if (call.params().length != numParameters)
 								continue;
-							final Function caller = call.parentOfType(Function.class);
+							final Function caller = call.parent(Function.class);
 							final List<Visit> callerVisits = visits.get(caller.name());
 							if (callerVisits != null)
 								for (final Visit callerVisit : callerVisits)

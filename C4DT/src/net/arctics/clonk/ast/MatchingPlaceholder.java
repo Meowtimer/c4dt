@@ -256,7 +256,7 @@ public class MatchingPlaceholder extends Placeholder {
 			throw new ProblemException(String.format("AST class not found: %s", className));
 	}
 	private void setCode(Placeholder original, final String entry, String codeString) {
-		final Index index = original.parentOfType(Declaration.class).index();
+		final Index index = original.parent(Declaration.class).index();
 		final Script transformations = new Transformations(index);
 		code = new SelfContainedScript(
 			entry, String.format("func Transform(value) { %s }", codeString),

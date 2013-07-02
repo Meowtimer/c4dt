@@ -69,7 +69,7 @@ public class IniSection
 	public void setIndentation(int indentation) { this.indentation = indentation; }
 	@Override
 	public int sortCategory() { return 1; }
-	public IniUnit iniUnit() { return parentOfType(IniUnit.class); }
+	public IniUnit iniUnit() { return parent(IniUnit.class); }
 	@Override
 	public boolean isTransient() { return false; }
 	@Override

@@ -122,7 +122,7 @@ public class PropListExpression extends ASTNode {
 	public <T> T valueEvaluated(String key, Class<T> cls) {
 		final ASTNode e = value(key);
 		if (e != null) {
-			final Object eval = e.evaluateStatic(definedDeclaration.parentOfType(IEvaluationContext.class));
+			final Object eval = e.evaluateStatic(definedDeclaration.parent(IEvaluationContext.class));
 			return eval != null && cls.isAssignableFrom(eval.getClass()) ? (T)eval : null;
 		} else
 			return null;

@@ -69,8 +69,8 @@ public class TypeUtil {
 		return !Boolean.FALSE.equals(PrimitiveType.BOOL.convert(value));
 	}
 	public static IType inferredType(ASTNode node) {
-		final Function function = node.parentOfType(Function.class);
-		final Script script = function.parentOfType(Script.class);
+		final Function function = node.parent(Function.class);
+		final Script script = function.parent(Script.class);
 		final Function.Typing typing = script.typings().get(function);
 		return typing != null ? typing.nodeTypes[node.localIdentifier()] : PrimitiveType.UNKNOWN;
 	}

@@ -82,7 +82,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	 * @return
 	 */
 	public VarInitialization precedingInitialization() {
-		VarInitialization[] brothers = parentOfType(VarDeclarationStatement.class).variableInitializations();
+		VarInitialization[] brothers = parent(VarDeclarationStatement.class).variableInitializations();
 		return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)-1);
 	}
 	/**
@@ -90,7 +90,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	 * @return
 	 */
 	public VarInitialization succeedingInitialization() {
-		VarInitialization[] sisters = parentOfType(VarDeclarationStatement.class).variableInitializations();
+		VarInitialization[] sisters = parent(VarDeclarationStatement.class).variableInitializations();
 		return ArrayUtil.boundChecked(sisters, ArrayUtil.indexOf(this, sisters)+1);
 	}
 

@@ -189,7 +189,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable)
-			if (!parentOfType(Script.class).engine().settings().supportsProplists && predecessorInSequence() != null)
+			if (!parent(Script.class).engine().settings().supportsProplists && predecessorInSequence() != null)
 				return new CallDeclaration("LocalN", new StringLiteral(declarationName)); //$NON-NLS-1$
 			else
 				return new AccessVar(declarationName);
@@ -199,10 +199,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		// Par(5) -> nameOfParm6
 		if (params.length <= 1 && declaration != null && isEngineFunction("Par") && (params.length == 0 || params[0] instanceof IntegerLiteral)) {
 			final IntegerLiteral number = params.length > 0 ? (IntegerLiteral) params[0] : IntegerLiteral.ZERO;
-			final Function func = this.parentOfType(Function.class);
+			final Function func = this.parent(Function.class);
 			if (func != null)
 				if (number.intValue() >= 0 && number.intValue() < func.numParameters() && func.parameter(number.intValue()).isActualParm())
-					return new AccessVar(parentOfType(Function.class).parameter(number.intValue()).name());
+					return new AccessVar(parent(Function.class).parameter(number.intValue()).name());
 		}
 
 		// SetVar(5, "ugh") -> Var(5) = "ugh"

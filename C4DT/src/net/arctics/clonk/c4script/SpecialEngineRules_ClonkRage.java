@@ -26,7 +26,7 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 					if (t != null) for (final IType ty : t)
 						if (ty instanceof Definition) {
 							final Definition def = (Definition)ty;
-							final EntityRegion result = actionLinkForDefinition(node.parentOfType(Function.class), def, parmExpression);
+							final EntityRegion result = actionLinkForDefinition(node.parent(Function.class), def, parmExpression);
 							if (result != null)
 								return result;
 						}
