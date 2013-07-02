@@ -29,7 +29,6 @@ import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IHasIncludes;
-import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
@@ -364,19 +363,27 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	};
 
+	private void recursiveProposalsForStructure(
+		ProposalsSite pl,
+		Declaration target, Declaration structure, int distanceToTarget
+	) {
+		for (final DeclarationProposal p : proposalsForStructure(pl, target, structure))
+			if (p != null)
+				p.setCategory(p.category()+distanceToTarget*cats.SUBPAGE);
+		if (structure instanceof IHasIncludes) {
+			@SuppressWarnings("unchecked")
+			final Iterable<? extends IHasIncludes<?>> includes =
+				((IHasIncludes<IHasIncludes<?>>)structure).includes(pl.index, (IHasIncludes<?>) structure, 0);
+			for (final IHasIncludes<?> inc : includes)
+				recursiveProposalsForStructure(pl, target, (Declaration) inc, distanceToTarget+1);
+		}
+	}
+
 	private void structureProposals(ProposalsSite pl) {
 		final Set<Declaration> proposalTypes = determineProposalTypes(pl);
 		if (proposalTypes.size() > 0)
-			for (final Declaration s : proposalTypes) {
-				proposalsForStructure(s, pl, s);
-				if (s instanceof IHasIncludes) {
-					@SuppressWarnings("unchecked")
-					final Iterable<? extends IHasIncludes<?>> includes =
-						((IHasIncludes<IHasIncludes<?>>)s).includes(pl.index, (IHasIncludes<?>) s, GatherIncludesOptions.Recursive);
-					for (final IHasIncludes<?> inc : includes)
-						proposalsForStructure((Declaration) inc, pl, s);
-				}
-			}
+			for (final Declaration s : proposalTypes)
+				recursiveProposalsForStructure(pl, s, s, 0);
 		else
 			proposeAllTheThings(pl);
 	}
@@ -782,7 +789,8 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			return "";
 	}
 
-	private void proposalsForStructure(Declaration structure, ProposalsSite pl, Declaration target) {
+	private List<DeclarationProposal> proposalsForStructure(ProposalsSite pl, Declaration target, Declaration structure) {
+		final List<DeclarationProposal> result = new LinkedList<>();
 		for (final Declaration dec : structure.subDeclarations(pl.index, pl.declarationsMask())) {
 			if (!target.seesSubDeclaration(dec))
 				continue;
@@ -792,15 +800,23 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			if (func != null && func.visibility() != FunctionScope.GLOBAL) {
 				if (target instanceof Script && !((Script)target).seesFunction(func))
 					continue;
-				final DeclarationProposal prop = proposalForFunc(pl, target, func);
-				if (prop != null)
-					prop.setCategory(cats.LocalFunction);
+				final DeclarationProposal pf = proposalForFunc(pl, target, func);
+				if (pf != null) {
+					pf.setCategory(cats.LocalFunction);
+					result.add(pf);
+				}
 			}
-			else if (var != null)
-				proposalForVar(pl, target, var);
-			else if (text != null)
-				proposalForText(pl, text);
+			else if (var != null) {
+				final DeclarationProposal pv = proposalForVar(pl, target, var);
+				if (pv != null)
+					result.add(pv);
+			} else if (text != null) {
+				final DeclarationProposal pt = proposalForText(pl, text);
+				if (pt != null)
+					result.add(pt);
+			}
 		}
+		return result;
 	}
 
 	private DeclarationProposal proposalForText(ProposalsSite pl, Text text) {

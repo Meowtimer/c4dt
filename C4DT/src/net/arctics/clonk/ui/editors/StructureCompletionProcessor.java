@@ -34,6 +34,9 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 	protected StateClass state;
 
 	protected static class CategoryOrdering {
+		public final int PAGE = 20000;
+		public final int SUBPAGE = 300;
+		public final int BONUS = 10;
 		public int
 			FunctionLocalVariables,
 			Constants,
@@ -49,20 +52,20 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 			EffectCallbacks,
 			Directives;
 		public void defaultOrdering() {
-			int i = 0;
-			FunctionLocalVariables = ++i;
-			LocalFunction = ++i;
-			LocalGlobalDelimiter = ++i;
-			Functions = ++i;
-			Definitions = ++i;
-			Fields = ++i;
-			StaticVariables = ++i;
-			Constants = ++i;
-			NewFunction = ++i;
-			Callbacks = ++i;
-			EffectCallbacks = ++i;
-			Directives = ++i;
-			Keywords = ++i;
+			int i = -PAGE;
+			FunctionLocalVariables = i += PAGE;
+			LocalFunction          = i += PAGE;
+			LocalGlobalDelimiter   = i += PAGE;
+			Functions              = i += PAGE;
+			Definitions            = i += PAGE;
+			Fields                 = i += PAGE;
+			StaticVariables        = i += PAGE;
+			Constants              = i += PAGE;
+			NewFunction            = i += PAGE;
+			Callbacks              = i += PAGE;
+			EffectCallbacks        = i += PAGE;
+			Directives             = i += PAGE;
+			Keywords               = i += PAGE;
 		}
 		{ defaultOrdering(); }
 	}
@@ -192,23 +195,32 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 		final DeclarationProposal cb = as(b, DeclarationProposal.class);
 		if (ca != null && cb != null) {
 			if ((ca.declaration() instanceof Text || cb.declaration() instanceof Text) && ca.category() != cb.category()) {
-				final int diff = Math.abs(cb.category()-ca.category()) * 10000;
+				final int diff = cats.BONUS * Math.abs(cb.category()-ca.category());
 				return cb.category() > ca.category() ? -diff : +diff;
 			}
 			int bonus = 0;
 			final String pfx = pl != null ? pl.untamperedPrefix : "";
+			final String pfxlo = pfx.toLowerCase();
 			if (pfx != null) {
 				class Match {
-					boolean startsWith, match, local;
+					boolean startsWith, startsWithNonCase, match, matchNoCase, local;
 					Match(DeclarationProposal proposal) {
 						for (final String s : proposal.identifiers())
-							if (s.length() > 0 && s.startsWith(pfx)) {
-								startsWith = true;
-								if (s.length() == pfx.length()) {
-									match = true;
-									break;
+							if (s.length() > 0)
+								if (s.startsWith(pfx)) {
+									startsWith = true;
+									if (s.length() == pfx.length()) {
+										match = true;
+										break;
+									}
 								}
-							}
+								else if (s.toLowerCase().startsWith(pfxlo)) {
+									startsWithNonCase = true;
+									if (s.length() == pfxlo.length()) {
+										matchNoCase = true;
+										break;
+									}
+								}
 						local = proposal.declaration() != null && !proposal.declaration().isGlobal();
 					}
 				}
@@ -217,15 +229,18 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 					// match wins
 					return ma.match ? -1 : +1;
 				else if (ma.startsWith != mb.startsWith)
-					bonus += (ma.startsWith ? -1 : +1) * 1000000;
+					bonus += cats.BONUS * 4 * (ma.startsWith ? -1 : +1);
+				else if (ma.matchNoCase != mb.matchNoCase)
+					bonus += ma.matchNoCase ? -1 : +1;
+				else if (ma.startsWithNonCase != mb.startsWithNonCase)
+					bonus += cats.BONUS * 2 * (ma.startsWithNonCase ? -1 : +1);
 				else if (ma.local != mb.local)
-					bonus += (ma.local ? -1 : +1) * 1000000;
+					bonus += cats.BONUS * 1 * (ma.local ? -1 : +1);
 			}
 			int result;
-			if (cb.category() != ca.category()) {
-				final int diff = Math.abs(cb.category()-ca.category()) * 10000;
-				result = cb.category() > ca.category() ? -diff : +diff;
-			} else {
+			if (cb.category() != ca.category())
+				result = ca.category()-cb.category();
+			else {
 				final String idA = ca.primaryComparisonIdentifier();
 				final String idB = cb.primaryComparisonIdentifier();
 				final boolean bracketStartA = idA.startsWith("["); //$NON-NLS-1$
