@@ -1214,6 +1214,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * </ol>
 	 */
 	public synchronized void deriveInformation() {
+		_lastIncludesIndex = -5;
 		if (file() != null)
 			pinTo(file());
 		findScenario();
