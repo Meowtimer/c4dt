@@ -365,8 +365,11 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 
 	private void recursiveProposalsForStructure(
 		ProposalsSite pl,
-		Declaration target, Declaration structure, int distanceToTarget
+		Declaration target, Declaration structure, int distanceToTarget,
+		Set<Declaration> catcher
 	) {
+		if (!catcher.add(structure))
+			return;
 		final List<DeclarationProposal> props = proposalsForStructure(pl, target, structure);
 		for (final DeclarationProposal p : props) {
 			p.setCategory(p.category()+distanceToTarget*cats.SUBPAGE);
@@ -378,7 +381,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			final Iterable<? extends IHasIncludes<?>> includes =
 				((IHasIncludes<IHasIncludes<?>>)structure).includes(pl.index, (IHasIncludes<?>) structure, 0);
 			for (final IHasIncludes<?> inc : includes)
-				recursiveProposalsForStructure(pl, target, (Declaration) inc, distanceToTarget+1);
+				recursiveProposalsForStructure(pl, target, (Declaration) inc, distanceToTarget+1, catcher);
 		}
 	}
 
@@ -386,7 +389,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		final Set<Declaration> proposalTypes = determineProposalTypes(pl);
 		if (proposalTypes.size() > 0)
 			for (final Declaration s : proposalTypes)
-				recursiveProposalsForStructure(pl, s, s, 0);
+				recursiveProposalsForStructure(pl, s, s, 0, new HashSet<Declaration>());
 		else
 			proposeAllTheThings(pl);
 	}
