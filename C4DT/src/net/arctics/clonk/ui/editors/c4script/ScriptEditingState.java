@@ -488,7 +488,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 		// visit directly called functions
 		final Function.Typing typing = structure().typings().get(function);
-		if (typing != null) {
+		if (typing != null) try {
 			final Set<Pair<Script, Function>> callees = new HashSet<Pair<Script, Function>>();
 			function.traverse(new IASTVisitor<Void>() {
 				@Override
@@ -512,6 +512,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					strategy.initialize(markers, new NullProgressMonitor(), callees);
 					strategy.run();
 				}
+		} catch (final Exception e) {
+			e.printStackTrace();
 		}
 		return markers;
 	}

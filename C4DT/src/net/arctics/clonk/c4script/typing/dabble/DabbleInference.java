@@ -156,6 +156,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				noticeParameterCountMismatch = true;
 				break;
 			}
+		findProjectName();
 		return this;
 	}
 
@@ -166,16 +167,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Override
 	public DabbleInference initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
-		super.initialize(defaulting(markers, NULL_MARKERS), progressMonitor, scripts);
-		gatherInput(scripts);
-		return this;
+		synchronized (projectName) {
+			super.initialize(defaulting(markers, NULL_MARKERS), progressMonitor, scripts);
+			gatherInput(scripts);
+			return this;
+		}
 	}
 
 	@Override
 	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Collection<Pair<Script, Function>> functions) {
-		super.initialize(markers, progressMonitor, functions);
-		gatherInputFromRestrictedFunctionSet(functions);
-		return this;
+		synchronized (projectName) {
+			super.initialize(markers, progressMonitor, functions);
+			gatherInputFromRestrictedFunctionSet(functions);
+			return this;
+		}
 	}
 
 	private void gatherInputFromRestrictedFunctionSet(Collection<Pair<Script, Function>> functions_) {
@@ -202,7 +207,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Override
 	public void run() {
-		findProjectName();
 		synchronized (projectName) { work(); }
 	}
 
@@ -275,7 +279,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	private void findProjectName() {
 		String name = Messages.UnknownProject;
 		if (index != null && index.nature() != null)
-				name = index.nature().getProject().getName();
+			name = index.nature().getProject().getName();
 		projectName = name.intern();
 	}
 
