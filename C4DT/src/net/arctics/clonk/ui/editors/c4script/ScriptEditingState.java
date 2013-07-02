@@ -56,9 +56,9 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.CStylePartitionScanner;
 import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.EntityHyperlink;
-import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.ui.editors.StructureEditingState;
+import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
@@ -625,7 +625,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	@Override
-	public void partBroughtToTop(IWorkbenchPart part) {
+	public void partActivated(IWorkbenchPart part) {
 		if (editors.contains(part) && structure() != null)
 			new Job("Refreshing problem markers") {
 				@Override
