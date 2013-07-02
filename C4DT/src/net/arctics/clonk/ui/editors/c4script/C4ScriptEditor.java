@@ -223,6 +223,9 @@ public class C4ScriptEditor extends StructureTextEditor {
 	@Override
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
+		final ScriptEditingState state = state();
+		if (state == null)
+			return;
 		// highlight active function
 		final Function f = functionAtCursor();
 		boolean noHighlight = true;
@@ -233,7 +236,7 @@ public class C4ScriptEditor extends StructureTextEditor {
 		if (noHighlight)
 			this.resetHighlightRange();
 		// inform auto edit strategy about cursor position change so it can delete its override regions
-		state().autoEditStrategy().removeOverrideRegionsNotAtLine(
+		state.autoEditStrategy().removeOverrideRegionsNotAtLine(
 			cursorPos(), getDocumentProvider().getDocument(getEditorInput()));
 	}
 
@@ -253,7 +256,14 @@ public class C4ScriptEditor extends StructureTextEditor {
 		}
 	}
 
-	public Function functionAtCursor() { return state().functionAt(cursorPos()); }
+	public Function functionAtCursor() {
+		try {
+			return state().functionAt(cursorPos());
+		} catch (final NullPointerException np) {
+			return null;
+		}
+	}
+
 	@Override
 	public ASTNode section() { return functionAtCursor(); }
 
