@@ -1,5 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
+import static net.arctics.clonk.util.Utilities.eq;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -202,6 +204,10 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
         case StringEqual:
         case Equal:
         	return leftSide.equals(rightSide);
+        case And:
+        	return eq(leftSide, Boolean.TRUE) && eq(rightSide, Boolean.TRUE);
+        case Or:
+        	return eq(leftSide, Boolean.TRUE) || eq(rightSide, Boolean.TRUE);
         default:
         	return null;
         }

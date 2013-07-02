@@ -2,6 +2,7 @@ package net.arctics.clonk.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,10 +85,39 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		@CommandFunction
 		public static String var(IEvaluationContext context, String name) {
-			if (context.cookie() instanceof CodeConverter.ICodeConverterContext)
-				return ((CodeConverter.ICodeConverterContext)context.cookie()).var(name);
+			if (context.self() instanceof CodeConverter.ICodeConverterContext)
+				return ((CodeConverter.ICodeConverterContext)context.self()).var(name);
 			else
 				return null;
+		}
+		@Override
+		public Object valueForVariable(AccessVar access, Object obj) {
+			final Class<? extends ASTNode> cls = findClass(access.name());
+			return cls;
+		}
+		@SuppressWarnings("unchecked")
+		public static Class<? extends ASTNode> findClass(String className) {
+			final String[] packageFormats = new String[] {
+				"%s.ast.%s",
+				"%s.c4script.ast.%s",
+				"%s.parser.%s",
+				"%s.c4script.%s",
+				"%s.c4script.ast.%sLiteral",
+				"%s.c4script.ast.%sStatement",
+				"%s.c4script.ast.%sDeclaration",
+				"%s.c4script.ast.Access%s",
+				"%s.index.%s"
+			};
+			Class<?extends ASTNode> result = null;
+			for (final String pkgFormat : packageFormats)
+				try {
+					result = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
+					if (ASTNode.class.isAssignableFrom(result))
+						break;
+				} catch (final ClassNotFoundException e) {
+					continue;
+				}
+			return result;
 		}
 	}
 
@@ -220,26 +250,8 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		this.entryName = entry;
 	}
-	@SuppressWarnings("unchecked")
 	private void setRequiredClass(final String className) throws ProblemException {
-		final String[] packageFormats = new String[] {
-			"%s.ast.%s",
-			"%s.c4script.ast.%s",
-			"%s.parser.%s",
-			"%s.c4script.%s",
-			"%s.c4script.ast.%sLiteral",
-			"%s.c4script.ast.%sStatement",
-			"%s.c4script.ast.%sDeclaration",
-			"%s.c4script.ast.Access%s"
-		};
-		for (final String pkgFormat : packageFormats)
-			try {
-				requiredClass = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
-				if (ASTNode.class.isAssignableFrom(requiredClass))
-					break;
-			} catch (final ClassNotFoundException e) {
-				continue;
-			}
+		requiredClass = Transformations.findClass(className);
 		if (requiredClass == null)
 			throw new ProblemException(String.format("AST class not found: %s", className));
 	}
@@ -278,7 +290,7 @@ public class MatchingPlaceholder extends Placeholder {
 
 		if (code != null)
 			for (int i = 0; i < n.length; i++) try {
-				n[i] = code.invoke(code.new FunctionInvocation(new Object[] {n[i]}, null, context));
+				n[i] = code.invoke(code.new FunctionInvocation(new Object[] {n[i]}, code.script(), context));
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
@@ -310,6 +322,8 @@ public class MatchingPlaceholder extends Placeholder {
 		return r;
 	}
 	private boolean internalSatisfied(ASTNode element) {
+		if (element == null)
+			System.out.println("here");
 		RequiredClass: if (requiredClass != null) {
 			// OC: references to definitions are not IDLiterals but AccessVars referring to proxy variables
 			final AccessVar av = as(element, AccessVar.class);
@@ -334,6 +348,9 @@ public class MatchingPlaceholder extends Placeholder {
 				return true;
 			return false;
 		}
+		if (code != null)
+			if (!eq(Boolean.TRUE, code.invoke(code.new FunctionInvocation(new Object[] {element}, code.script(), this))))
+				return false;
 		return true;
 	}
 

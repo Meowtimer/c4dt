@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.Serializable;
 import java.util.List;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -340,9 +341,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public boolean staticallyTyped() { return staticallyTyped || isEngineDeclaration(); }
 	@Override
-	public Object cookie() { return null; }
+	public Object self() { return null; }
 	@Override
-	public Object valueForVariable(AccessVar access) { return script().valueForVariable(access); }
+	public Object valueForVariable(AccessVar access, Object obj) { return script().valueForVariable(access, null); }
 	@Override
 	public Object[] arguments() { return new Object[0]; }
 	@Override

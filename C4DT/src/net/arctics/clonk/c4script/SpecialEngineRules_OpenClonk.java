@@ -227,7 +227,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		@Override
 		public int codeFragmentOffset() { return function != null ? function.codeFragmentOffset() : 0; }
 		@Override
-		public Object valueForVariable(AccessVar access) { return function != null ? function.valueForVariable(access) : null; }
+		public Object valueForVariable(AccessVar access, Object obj) { return function != null ? function.valueForVariable(access, null) : null; }
 		@Override
 		public Function function() { return function; }
 		@Override
@@ -238,7 +238,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			}
 		}
 		@Override
-		public Object cookie() { return null; }
+		public Object self() { return null; }
 		public static EvaluationTracer evaluate(ASTNode expression, Object[] arguments, Script script, Function function) {
 			final EvaluationTracer tracer = new EvaluationTracer(expression, arguments, function, script);
 			tracer.evaluation = expression.evaluateStatic(tracer);

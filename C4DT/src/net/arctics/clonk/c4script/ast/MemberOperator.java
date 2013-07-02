@@ -4,8 +4,10 @@ import static net.arctics.clonk.util.Utilities.eq;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
+import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.ID;
@@ -126,6 +128,11 @@ public class MemberOperator extends ASTNode implements ITidyable {
 
 	public static boolean unforgiving(ASTNode p) {
 		return p instanceof MemberOperator && !((MemberOperator)p).hasTilde();
+	}
+
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		return predecessorInSequence().evaluate(context);
 	}
 
 }

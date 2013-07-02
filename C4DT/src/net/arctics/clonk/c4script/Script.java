@@ -1131,16 +1131,23 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public Object[] arguments() { return new Object[0]; }
 	@Override
-	public Object valueForVariable(AccessVar access) {
-		if (access.predecessorInSequence() == null)
-			return findLocalVariable(access.name(), true);
-		else
-			return null;
+	public Object valueForVariable(AccessVar access, Object obj) {
+		if (access.predecessorInSequence() == null) {
+			final Variable v = findLocalVariable(access.name(), true);
+			if (v != null)
+				return v;
+			for (final Script s : includes(0)) {
+				final Object vv = s.valueForVariable(access, obj);
+				if (vv != null)
+					return vv;
+			}
+		}
+		return null;
 	}
 	@Override
 	public int codeFragmentOffset() { return 0; }
 	@Override
-	public Object cookie() { return null; }
+	public Object self() { return null; }
 
 	/**
 	 * Return whether this function is accessible from this script - that is, it belongs to this script or one included by it and is

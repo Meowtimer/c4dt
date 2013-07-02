@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.ast.evaluate;
 
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
@@ -13,7 +14,7 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	private final IEvaluationContext base;
 	public EvaluationContextProxy(IEvaluationContext base) { this.base = base; }
 	@Override
-	public Object valueForVariable(AccessVar access) { return base.valueForVariable(access); }
+	public Object valueForVariable(AccessVar access, Object obj) throws ControlFlowException { return base.valueForVariable(access, null); }
 	@Override
 	public Object[] arguments() { return base.arguments(); }
 	@Override
@@ -25,5 +26,5 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	@Override
 	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) { base.reportOriginForExpression(expression, location, file); }
 	@Override
-	public Object cookie() { return null; }
+	public Object self() { return null; }
 }

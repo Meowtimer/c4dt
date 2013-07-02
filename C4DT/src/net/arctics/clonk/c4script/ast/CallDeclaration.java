@@ -4,6 +4,10 @@ import static net.arctics.clonk.c4script.Conf.alwaysConvertObjectCalls;
 import static net.arctics.clonk.c4script.Conf.printNodeList;
 import static net.arctics.clonk.util.ArrayUtil.set;
 import static net.arctics.clonk.util.Utilities.as;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -279,21 +283,30 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) {
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		final Object self = predecessorInSequence() != null ? predecessorInSequence().evaluate(context) : context.self();
+		final Object[] args = new Object[params().length];
+    	for (int i = 0; i < args.length; i++)
+			try {
+				args[i] = params()[i] != null ? params()[i].evaluate(context) : null;
+			} catch (final ControlFlowException e) {
+				args[i] = null;
+				e.printStackTrace();
+			}
 	    if (declaration instanceof Function) {
-	    	final Object[] args = new Object[params().length];
-	    	for (int i = 0; i < args.length; i++)
-				try {
-					args[i] = params()[i] != null ? params()[i].evaluate(context) : null;
-				} catch (final ControlFlowException e) {
-					args[i] = null;
-					e.printStackTrace();
-				}
 	    	final Function f = (Function)declaration;
-			return f.invoke(f.new FunctionInvocation(args, context, context != null ? context.cookie() : null));
+			return f.invoke(f.new FunctionInvocation(args, context, self));
 	    }
-	    else
-	    	return null;
+	    for (final Method m : self.getClass().getMethods())
+			if (m.getName().equals(declarationName))
+				try {
+	    			return m.invoke(self, args);
+	    		} catch (final IllegalArgumentException a) {
+	    			// continue search
+	    		} catch (final IllegalAccessException | InvocationTargetException e) {
+					throw new ReturnException(e);
+				}
+	    return null;
 	}
 
 	@Override

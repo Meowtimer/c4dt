@@ -908,7 +908,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public void setGlobalMarkers(Markers markers) { DabbleInference.this.markers = markers; }
 			@Override
-			public Object valueForVariable(AccessVar access) { return null; }
+			public Object valueForVariable(AccessVar access, Object obj) { return null; }
 			@Override
 			public Object[] arguments() { return null; }
 			@Override
@@ -918,7 +918,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
 			@Override
-			public Object cookie() { return null; }
+			public Object self() { return null; }
 		}
 
 		final Script script;

@@ -44,5 +44,5 @@ public interface IEvaluationContext extends IVariableValueProvider {
 	 * Arbitrary context object.
 	 * @return The context
 	 */
-	Object cookie();
+	Object self();
 }

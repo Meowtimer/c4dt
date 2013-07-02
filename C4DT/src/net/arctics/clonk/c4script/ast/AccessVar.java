@@ -31,7 +31,7 @@ public class AccessVar extends AccessDeclaration {
 		this(declaration.name());
 		this.declaration = declaration;
 	}
-	
+
 	public static AccessVar temp(Declaration declaration, ASTNode parent) {
 		final AccessVar r = new AccessVar(declaration);
 		r.setParent(parent);
@@ -98,7 +98,8 @@ public class AccessVar extends AccessDeclaration {
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		if (context != null)
-			return context.valueForVariable(this);
+			return context.valueForVariable(this,
+				predecessorInSequence() != null ? predecessorInSequence().evaluate(context) : context.self());
 		else
 			return super.evaluate(context);
 	}

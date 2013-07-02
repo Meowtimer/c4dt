@@ -254,7 +254,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			this.context = context;
 		}
 		@Override
-		public Object valueForVariable(AccessVar access) {
+		public Object valueForVariable(AccessVar access, Object obj) throws ControlFlowException {
 			int i = 0;
 			if (access.predecessorInSequence() == null)
 				for (final Variable v : parameters) {
@@ -262,7 +262,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 						return args[i];
 					i++;
 				}
-			return up != null ? up.valueForVariable(access) : null;
+			else {
+				final Object self = access.predecessorInSequence().evaluate(this);
+				try {
+					return self.getClass().getMethod(access.name()).invoke(self);
+				} catch (final Exception e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+			return up != null ? up.valueForVariable(access, obj) : null;
 		}
 		@Override
 		public Script script() { return Function.this.script(); }
@@ -277,7 +286,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		@Override
 		public Object[] arguments() { return args; }
 		@Override
-		public Object cookie() { return context; }
+		public Object self() { return context; }
 	}
 
 	/**
@@ -828,7 +837,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return null;
 	}
 	@Override
-	public Object valueForVariable(AccessVar access) {
+	public Object valueForVariable(AccessVar access, Object obj) {
 		return access.predecessorInSequence() == null ? findVariable(access.name()) : null;
 	}
 
@@ -842,7 +851,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public FunctionBody body() { return bodyMatchingSource(null); }
 	@Override
-	public Object cookie() { return null; }
+	public Object self() { return null; }
 	@Override
 	public Function function() { return this; }
 	@Override
