@@ -39,6 +39,7 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 		public final int BONUS = 10;
 		public int
 			FunctionLocalVariables,
+			SelfField,
 			Constants,
 			StaticVariables,
 			Keywords,
@@ -54,6 +55,7 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 		public void defaultOrdering() {
 			int i = -PAGE;
 			FunctionLocalVariables = i += PAGE;
+			SelfField              = i += PAGE;
 			LocalFunction          = i += PAGE;
 			LocalGlobalDelimiter   = i += PAGE;
 			Functions              = i += PAGE;

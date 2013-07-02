@@ -367,9 +367,12 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		ProposalsSite pl,
 		Declaration target, Declaration structure, int distanceToTarget
 	) {
-		for (final DeclarationProposal p : proposalsForStructure(pl, target, structure))
-			if (p != null)
-				p.setCategory(p.category()+distanceToTarget*cats.SUBPAGE);
+		final List<DeclarationProposal> props = proposalsForStructure(pl, target, structure);
+		for (final DeclarationProposal p : props) {
+			p.setCategory(p.category()+distanceToTarget*cats.SUBPAGE);
+			if (p.declaration() instanceof Variable && distanceToTarget == 0)
+				p.setCategory(cats.SelfField);
+		}
 		if (structure instanceof IHasIncludes) {
 			@SuppressWarnings("unchecked")
 			final Iterable<? extends IHasIncludes<?>> includes =
