@@ -35,6 +35,7 @@ import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.IType;
@@ -227,7 +228,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		@Override
 		public int codeFragmentOffset() { return function != null ? function.codeFragmentOffset() : 0; }
 		@Override
-		public Object valueForVariable(AccessVar access, Object obj) { return function != null ? function.valueForVariable(access, null) : null; }
+		public IVariable variable(AccessVar access, Object obj) { return function != null ? function.variable(access, null) : null; }
 		@Override
 		public Function function() { return function; }
 		@Override

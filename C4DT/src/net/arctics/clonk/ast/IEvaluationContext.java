@@ -2,7 +2,7 @@ package net.arctics.clonk.ast;
 
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.ast.evaluate.IVariableValueProvider;
+import net.arctics.clonk.c4script.ast.evaluate.IVariableProvider;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.IRegion;
@@ -12,7 +12,7 @@ import org.eclipse.jface.text.IRegion;
  * @author madeen
  *
  */
-public interface IEvaluationContext extends IVariableValueProvider {
+public interface IEvaluationContext extends IVariableProvider {
 	/**
 	 * Get arguments supplied to the call of the containing function
 	 * @return The arguments

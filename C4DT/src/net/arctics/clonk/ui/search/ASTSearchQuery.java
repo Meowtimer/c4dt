@@ -10,8 +10,8 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.Statement.Attachment;
 import net.arctics.clonk.index.Engine;
@@ -78,7 +78,7 @@ public class ASTSearchQuery extends SearchQuery {
 	}
 
 	@Override
-	protected IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException {
+	protected IStatus doRun(final IProgressMonitor monitor) throws OperationCanceledException {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService item) {
@@ -96,10 +96,14 @@ public class ASTSearchQuery extends SearchQuery {
 					}
 					@Override
 					public void run() {
-						if (parser == null)
+						if (parser == null || monitor.isCanceled())
 							return;
-						parser.script().traverse(this, parser);
-						commitMatches();
+						try {
+							parser.script().traverse(this, parser);
+							commitMatches();
+						} catch (final Exception e) {
+							e.printStackTrace();
+						}
 					}
 					private void commitMatches() {
 						for (final Match m : matches.values())
@@ -108,6 +112,8 @@ public class ASTSearchQuery extends SearchQuery {
 					}
 					@Override
 					public TraversalContinuation visitNode(ASTNode expression, ScriptParser parser) {
+						if (monitor.isCanceled())
+							return TraversalContinuation.Cancel;
 						final Map<String, Object> subst = template.match(expression);
 						if (subst != null) {
 							final IRegion r = expression.absolute();
@@ -119,7 +125,7 @@ public class ASTSearchQuery extends SearchQuery {
 								if (stmt.attachments() != null)
 									for (final Attachment a : stmt.attachments())
 										if (a instanceof ASTNode)
-											visitNode((ASTNode)a, parser);	
+											visitNode((ASTNode)a, parser);
 							}
 							return TraversalContinuation.Continue;
 						}

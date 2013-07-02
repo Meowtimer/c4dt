@@ -12,6 +12,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.PropListExpression;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
@@ -343,7 +344,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public Object self() { return null; }
 	@Override
-	public Object valueForVariable(AccessVar access, Object obj) { return script().valueForVariable(access, null); }
+	public IVariable variable(AccessVar access, Object obj) { return script().variable(access, null); }
 	@Override
 	public Object[] arguments() { return new Object[0]; }
 	@Override

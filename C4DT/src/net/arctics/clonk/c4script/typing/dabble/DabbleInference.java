@@ -93,6 +93,7 @@ import net.arctics.clonk.c4script.ast.Unfinished;
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.ast.WhileStatement;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.typing.ArrayType;
 import net.arctics.clonk.c4script.typing.CallTargetType;
 import net.arctics.clonk.c4script.typing.FunctionType;
@@ -908,7 +909,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public void setGlobalMarkers(Markers markers) { DabbleInference.this.markers = markers; }
 			@Override
-			public Object valueForVariable(AccessVar access, Object obj) { return null; }
+			public IVariable variable(AccessVar access, Object obj) { return null; }
 			@Override
 			public Object[] arguments() { return null; }
 			@Override

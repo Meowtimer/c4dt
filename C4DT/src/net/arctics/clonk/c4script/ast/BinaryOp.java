@@ -13,6 +13,7 @@ import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 
 public class BinaryOp extends OperatorExpression implements ITidyable {
 
@@ -179,6 +180,57 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 	}
 
 	private Object evaluateOn(Object leftSide, Object rightSide) {
+		rightSide = value(rightSide);
+		switch (operator()) {
+		case Assign: {
+        	final IVariable lv = (IVariable)leftSide;
+        	lv.set(value(rightSide));
+        	return lv.get();
+		}
+		case AssignAdd: {
+			final IVariable lv = (IVariable)leftSide;
+			lv.set(((Number)lv.get()).doubleValue() + ((Number)rightSide).doubleValue());
+			return lv.get();
+		}
+		case AssignSubtract: {
+			final IVariable lv = (IVariable)leftSide;
+			lv.set(((Number)lv.get()).doubleValue() - ((Number)rightSide).doubleValue());
+			return lv.get();
+		}
+		case AssignDivide: {
+			final IVariable lv = (IVariable)leftSide;
+			lv.set(((Number)lv.get()).doubleValue() / ((Number)rightSide).doubleValue());
+			return lv.get();
+		}
+		case AssignMultiply: {
+			final IVariable lv = (IVariable)leftSide;
+			lv.set(((Number)lv.get()).doubleValue() * ((Number)rightSide).doubleValue());
+			return lv.get();
+		}
+		case AssignModulo: {
+			final IVariable lv = (IVariable)leftSide;
+			lv.set(((Number)lv.get()).doubleValue() % ((Number)rightSide).doubleValue());
+			return lv.get();
+		}
+		case AssignAnd: {
+			final IVariable lv = (IVariable)leftSide;
+			lv.set(eq(Boolean.TRUE, lv.get()) && eq(Boolean.TRUE, rightSide));
+			return lv.get();
+		}
+		case AssignOr: {
+			final IVariable lv = (IVariable)leftSide;
+			lv.set(eq(Boolean.TRUE, lv.get()) && eq(Boolean.TRUE, rightSide));
+			return lv.get();
+		}
+		case AssignXOr: {
+			final IVariable lv = (IVariable)leftSide;
+			lv.set(((Number)lv.get()).longValue() & ((Number)rightSide).longValue());
+			return lv.get();
+		}
+        default:
+        	break;
+		}
+		leftSide = value(leftSide);
         switch (operator()) {
         case Add:
         	if (leftSide instanceof String || rightSide instanceof String)
@@ -203,7 +255,9 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
         	return ((Number)leftSide).doubleValue() <= ((Number)rightSide).doubleValue();
         case StringEqual:
         case Equal:
-        	return leftSide.equals(rightSide);
+        	return eq(leftSide, rightSide);
+        case NotEqual:
+        	return !eq(leftSide, rightSide);
         case And:
         	return eq(leftSide, Boolean.TRUE) && eq(rightSide, Boolean.TRUE);
         case Or:
@@ -215,12 +269,22 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
-	    final Object left = leftSide().evaluate(context);
-	    final Object right = rightSide().evaluate(context);
-	    if (left != null && right != null)
-	    	return evaluateOn(left, right);
-	    else
-	    	return null;
+		switch (operator()) {
+		case Or:
+			if (eq(Boolean.TRUE, value(leftSide().evaluate(context))))
+				return true;
+			if (eq(Boolean.TRUE, value(rightSide().evaluate(context))))
+				return true;
+			return false;
+		case And:
+			if (!eq(Boolean.TRUE, value(leftSide().evaluate(context))))
+				return false;
+			if (!eq(Boolean.TRUE, value(rightSide().evaluate(context))))
+				return false;
+			return true;
+		default:
+			return evaluateOn(leftSide().evaluate(context), rightSide().evaluate(context));
+		}
 	}
 
 	@Override

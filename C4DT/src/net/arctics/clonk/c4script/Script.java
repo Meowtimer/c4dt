@@ -44,6 +44,8 @@ import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.FunctionBody;
+import net.arctics.clonk.c4script.ast.evaluate.Constant;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
@@ -1131,13 +1133,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public Object[] arguments() { return new Object[0]; }
 	@Override
-	public Object valueForVariable(AccessVar access, Object obj) {
+	public IVariable variable(AccessVar access, Object obj) {
 		if (access.predecessorInSequence() == null) {
 			final Variable v = findLocalVariable(access.name(), true);
 			if (v != null)
-				return v;
+				return new Constant(v);
 			for (final Script s : includes(0)) {
-				final Object vv = s.valueForVariable(access, obj);
+				final IVariable vv = s.variable(access, obj);
 				if (vv != null)
 					return vv;
 			}
@@ -1353,7 +1355,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			break;
 		case VAR:
 			result.setParent(function);
-			function.locals().add(result);
+			function.addLocal(result);
 			break;
 		case CONST: case STATIC: case LOCAL:
 			result.setParent(this);

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPrintable;
@@ -94,6 +95,10 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		ASTNode e;
 		for (e = parent(); e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;
+	}
+
+	public final boolean is(Class<? extends ASTNode> cls) {
+		return cls.isInstance(this);
 	}
 
 	/**
@@ -418,6 +423,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		return null;
 	}
+
+	protected static Object value(Object obj) { return obj instanceof IVariable ? ((IVariable)obj).get() : obj; }
 
 	/**
 	 * Evaluate the expression without a context. Same calling {@link #evaluate(IEvaluationContext)} with null.

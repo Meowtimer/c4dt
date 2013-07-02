@@ -125,7 +125,7 @@ public abstract class CodeConverter {
 			public String var(String name) {
 				if (function != null && function.findVariable(name) == null) {
 					final Variable var = new Variable(name, PrimitiveType.ANY);
-					function.locals().add(var);
+					function.addLocal(var);
 					addedVars.add(new VarInitialization(name, null, 0, 0, var));
 				}
 				return name;

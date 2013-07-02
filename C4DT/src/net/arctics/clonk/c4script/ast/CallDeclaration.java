@@ -284,11 +284,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
-		final Object self = predecessorInSequence() != null ? predecessorInSequence().evaluate(context) : context.self();
+		final Object self = value(predecessorInSequence() != null ? predecessorInSequence().evaluate(context) : context.self());
 		final Object[] args = new Object[params().length];
     	for (int i = 0; i < args.length; i++)
 			try {
-				args[i] = params()[i] != null ? params()[i].evaluate(context) : null;
+				args[i] = value(params()[i] != null ? params()[i].evaluate(context) : null);
 			} catch (final ControlFlowException e) {
 				args[i] = null;
 				e.printStackTrace();
@@ -297,6 +297,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	    	final Function f = (Function)declaration;
 			return f.invoke(f.new FunctionInvocation(args, context, self));
 	    }
+	    if (self == null)
+	    	return null;
 	    for (final Method m : self.getClass().getMethods())
 			if (m.getName().equals(declarationName))
 				try {

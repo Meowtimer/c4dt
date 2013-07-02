@@ -7,9 +7,11 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +36,8 @@ import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.ReturnException;
+import net.arctics.clonk.c4script.ast.evaluate.Constant;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
@@ -83,7 +87,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private FunctionScope visibility;
-	private List<Variable> localVars;
+	private List<Variable> locals;
 	protected List<Variable> parameters;
 	private IType returnType;
 	private String description;
@@ -127,32 +131,41 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public Function() {
-		visibility = FunctionScope.GLOBAL;
-		name = ""; //$NON-NLS-1$
-		clearParameters();
-		localVars = new ArrayList<Variable>();
+		this.visibility = FunctionScope.GLOBAL;
+		this.name = ""; //$NON-NLS-1$
+		this.clearParameters();
+		this.locals = null;
 	}
 
-	public Function(String name, Script parent, FunctionScope scope) {
+	public Function(Script parent, FunctionScope scope, String name) {
 		this.name = name;
-		visibility = scope;
-		clearParameters();
-		localVars = new ArrayList<Variable>();
-		setParent(parent);
+		this.visibility = scope;
+		this.locals = null;
+		this.clearParameters();
+		this.setParent(parent);
 	}
 
 	public Function(String name, Definition parent, String scope) {
-		this(name,parent,FunctionScope.makeScope(scope));
+		this(parent,FunctionScope.makeScope(scope),name);
 	}
 
 	public Function(String name, FunctionScope scope) {
-		this(name, null, scope);
+		this(null, scope, name);
 	}
 
 	/**
 	 * @return the localVars
 	 */
-	public List<Variable> locals() { return localVars; }
+	public List<Variable> locals() { return defaulting(locals, Collections.<Variable>emptyList()); }
+
+	public Variable addLocal(Variable local) {
+		synchronized (parameters) {
+			if (locals == null)
+				locals = new ArrayList<>();
+			locals.add(local);
+		}
+		return local;
+	}
 
 	/**
 	 * @return the parameter
@@ -248,30 +261,49 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		private final Object[] args;
 		private final IEvaluationContext up;
 		private final Object context;
+		private final Object[] locals;
 		public FunctionInvocation(Object[] args, IEvaluationContext up, Object context) {
 			this.args = args;
 			this.up = up;
 			this.context = context;
+			this.locals = new Object[locals().size()];
 		}
 		@Override
-		public Object valueForVariable(AccessVar access, Object obj) throws ControlFlowException {
-			int i = 0;
-			if (access.predecessorInSequence() == null)
+		public IVariable variable(AccessVar access, Object obj) throws ControlFlowException {
+			if (access.predecessorInSequence() == null) {
+				int i = 0;
 				for (final Variable v : parameters) {
 					if (v.name().equals(access.name()))
-						return args[i];
+						return new Constant(args[i]);
 					i++;
 				}
-			else {
-				final Object self = access.predecessorInSequence().evaluate(this);
+				i = 0;
+				for (final Variable l : locals()) {
+					if (l.name().equals(access.name()))
+						return new Constant(locals[i]);
+					i++;
+				}
+			} else {
+				final Object self = value(access.predecessorInSequence().evaluate(this));
 				try {
-					return self.getClass().getMethod(access.name()).invoke(self);
-				} catch (final Exception e) {
+					return new Constant(self.getClass().getMethod(access.name()).invoke(self));
+				} catch (final NoSuchMethodException n) {
+					try {
+						return new Constant(self.getClass().getField(access.name()).get(self));
+					} catch (final NoSuchFieldException nf) {
+						if (self instanceof Object[] && access.name().equals("length"))
+							return new Constant(Array.getLength(self));
+					} catch (final Exception e) {
+						e.printStackTrace();
+						return null;
+					}
+				}
+				catch (final Exception e) {
 					e.printStackTrace();
 					return null;
 				}
 			}
-			return up != null ? up.valueForVariable(access, obj) : null;
+			return up != null ? up.variable(access, obj) : null;
 		}
 		@Override
 		public Script script() { return Function.this.script(); }
@@ -491,9 +523,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (declarationClass.isAssignableFrom(Variable.class)) {
 			if (declarationName.equals(Variable.THIS.name()))
 				return Variable.THIS;
-			for (final Variable v : localVars)
-				if (v.name().equals(declarationName))
-					return v;
+			if (locals != null)
+				for (final Variable v : locals)
+					if (v.name().equals(declarationName))
+						return v;
 			for (final Variable p : parameters)
 				if (p.name().equals(declarationName))
 					return p;
@@ -728,7 +761,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public List<Declaration> subDeclarations(Index contextIndex, int mask) {
 		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & DeclMask.VARIABLES) != 0) {
-			decs.addAll(localVars);
+			if (locals != null)
+				decs.addAll(locals);
 			decs.addAll(parameters);
 		}
 		return decs;
@@ -772,7 +806,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Remove local variables.
 	 */
 	public void clearLocalVars() {
-		localVars.clear();
+		locals = null;
 	}
 
 	@Override
@@ -837,8 +871,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return null;
 	}
 	@Override
-	public Object valueForVariable(AccessVar access, Object obj) {
-		return access.predecessorInSequence() == null ? findVariable(access.name()) : null;
+	public IVariable variable(AccessVar access, Object obj) {
+		if (access.predecessorInSequence() == null) {
+			final Variable v = findVariable(access.name());
+			if (v != null)
+				return new Constant(v);
+		}
+		return null;
 	}
 
 	@Override

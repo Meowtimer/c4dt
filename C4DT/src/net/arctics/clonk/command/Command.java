@@ -94,7 +94,7 @@ public class Command {
 		}
 
 		public NativeCommandFunction(Script parent, Method method) {
-			super(method.getName(), parent, FunctionScope.PUBLIC);
+			super(parent, FunctionScope.PUBLIC, method.getName());
 			this.method = method;
 		}
 

@@ -14,7 +14,7 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	private final IEvaluationContext base;
 	public EvaluationContextProxy(IEvaluationContext base) { this.base = base; }
 	@Override
-	public Object valueForVariable(AccessVar access, Object obj) throws ControlFlowException { return base.valueForVariable(access, null); }
+	public IVariable variable(AccessVar access, Object obj) throws ControlFlowException { return base.variable(access, null); }
 	@Override
 	public Object[] arguments() { return base.arguments(); }
 	@Override

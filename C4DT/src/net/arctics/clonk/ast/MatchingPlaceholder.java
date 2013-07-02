@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
@@ -22,6 +24,8 @@ import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.GarbageStatement;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
+import net.arctics.clonk.c4script.ast.evaluate.Constant;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.SelfContainedScript;
@@ -91,10 +95,11 @@ public class MatchingPlaceholder extends Placeholder {
 				return null;
 		}
 		@Override
-		public Object valueForVariable(AccessVar access, Object obj) {
+		public IVariable variable(AccessVar access, Object obj) {
 			final Class<? extends ASTNode> cls = findClass(access.name());
-			return cls;
+			return new Constant(cls);
 		}
+		private static Map<String, Class<?extends ASTNode>> classCache = new HashMap<>();
 		@SuppressWarnings("unchecked")
 		public static Class<? extends ASTNode> findClass(String className) {
 			final String[] packageFormats = new String[] {
@@ -108,6 +113,11 @@ public class MatchingPlaceholder extends Placeholder {
 				"%s.c4script.ast.Access%s",
 				"%s.index.%s"
 			};
+			synchronized (classCache) {
+				final Class<? extends ASTNode> existing = classCache.get(className);
+				if (existing != null)
+					return existing;
+			}
 			Class<?extends ASTNode> result = null;
 			for (final String pkgFormat : packageFormats)
 				try {
@@ -117,7 +127,10 @@ public class MatchingPlaceholder extends Placeholder {
 				} catch (final ClassNotFoundException e) {
 					continue;
 				}
-			return result;
+			synchronized (classCache) {
+				classCache.put(className, result);
+				return result;
+			}
 		}
 	}
 

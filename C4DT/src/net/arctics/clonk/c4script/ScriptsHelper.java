@@ -30,7 +30,7 @@ public class ScriptsHelper {
 	) throws ProblemException {
 		if (function == null) {
 			final Script tempScript = new TempScript(source, engine);
-			function = new Function("<temp>", null, FunctionScope.GLOBAL); //$NON-NLS-1$
+			function = new Function(null, FunctionScope.GLOBAL, "<temp>"); //$NON-NLS-1$
 			function.setParent(tempScript);
 			function.setBodyLocation(new SourceLocation(0, source.length()));
 		}
