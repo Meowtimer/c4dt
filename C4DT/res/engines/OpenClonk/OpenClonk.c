@@ -389,7 +389,6 @@ global func string Format(string text);
 global func int FrameCounter();
 global func any FreeRect(int x, int y, int width, int height, int density);
 global func bool GainMissionAccess(string password);
-global func any GameCall(string function);
 global func any GameCallEx(string function);
 global func bool GameOver();
 global func bool GBackLiquid(int x, int y);
