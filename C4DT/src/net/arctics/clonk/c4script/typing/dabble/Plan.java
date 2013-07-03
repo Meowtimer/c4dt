@@ -91,7 +91,7 @@ class Plan extends LinkedList<Runnable> {
 		@Override
 		public TraversalContinuation visitNode(ASTNode node, Visit v) {
 			if (
-				node instanceof AccessVar && node.predecessorInSequence() == null &&
+				node instanceof AccessVar && node.predecessor() == null &&
 				!(isLocal((AccessVar) node, v) || containedInAssignment(node))
 			) {
 				final AccessVar av = (AccessVar) node;

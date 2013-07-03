@@ -216,7 +216,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		Visit visit;
 		void regularParameterValidation(DabbleInference inference, boolean judgeConcrete) {
 			final ASTNode[] params = node.params();
-			final IType pred = node.predecessorInSequence() != null ? visit.inferredTypes[node.predecessorInSequence().localIdentifier()] : visit.input().script();
+			final IType pred = node.predecessor() != null ? visit.inferredTypes[node.predecessor().localIdentifier()] : visit.input().script();
 			for (int p = 0; p < params.length; p++) {
 				final ASTNode given = params[p];
 				if (given == null)
@@ -545,7 +545,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						continue;
 					final Function f = call.parent(Function.class);
 					final Script other = f.script();
-					final Script ds = call.predecessorInSequence() == null && conglomerate.contains(other) ? script : other;
+					final Script ds = call.predecessor() == null && conglomerate.contains(other) ? script : other;
 					final Visit v = visitFor(f, ds);
 					final Visitor vtor = v != null ? v.visitor : null;
 
@@ -556,8 +556,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (ref == null || ref.baseFunction().latestVersion() != base)
 						continue;
 					ref = (Function)ref.latestVersion();
-					RelevanceCheck: if (call.predecessorInSequence() != null) {
-						final IType predTy = nodeType(f, other, v, vtor, call.predecessorInSequence());
+					RelevanceCheck: if (call.predecessor() != null) {
+						final IType predTy = nodeType(f, other, v, vtor, call.predecessor());
 						if (predTy == null)
 							continue;
 						for (final IType t : predTy) {
@@ -1126,7 +1126,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public String toString() { return String.format("Expert<%s>", cls.getSimpleName()); } //$NON-NLS-1$
 
 		public final IType predecessorType(ASTNode node, Visitor visitor) {
-			final ASTNode p = node.predecessorInSequence();
+			final ASTNode p = node.predecessor();
 			return p != null ? visitor.ty(p) : null;
 		}
 
@@ -1335,7 +1335,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			@Override
 			protected Declaration obtainDeclaration(AccessVar node, Visitor visitor) {
-				final ASTNode p = node.predecessorInSequence();
+				final ASTNode p = node.predecessor();
 				if (p == null && node.name().equals(Variable.THIS.name()))
 					return Variable.THIS;
 				if (p == null) {
@@ -1378,8 +1378,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 			private IType unifyVariableTypesForAllPredecessorTypes(T node, Visitor visitor, final Declaration d) {
 				IType t = PrimitiveType.UNKNOWN;
-				if (node.predecessorInSequence() != null) {
-					final IType predTy = visitor.ty(node.predecessorInSequence());
+				if (node.predecessor() != null) {
+					final IType predTy = visitor.ty(node.predecessor());
 					if (predTy != null)
 						for (final IType _t : predTy)
 							if (_t instanceof Script) {
@@ -1393,7 +1393,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public void visit(T node, Visitor visitor) throws ProblemException {
 				super.visit(node, visitor);
-				final ASTNode pred = node.predecessorInSequence();
+				final ASTNode pred = node.predecessor();
 				final Declaration declaration = internalObtainDeclaration(node, visitor);
 				if (declaration == null && pred == null)
 					visitor.markers().error(visitor, Problem.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.name());
@@ -1505,7 +1505,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				var.setLocation(node.absolute());
 				node.setDeclaration(var);
 				initializeFromAssignment(node, type, origin, visitor, var);
-				visitor.judgment(node.predecessorInSequence(), proplDecl, TypingJudgementMode.UNIFY);
+				visitor.judgment(node.predecessor(), proplDecl, TypingJudgementMode.UNIFY);
 				visitor.script().addDeclaration(proplDecl);
 			}
 
@@ -1529,7 +1529,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public boolean isModifiable(AccessVar node, Visitor visitor) {
 				final Declaration declaration = node.declaration();
-				final ASTNode pred = node.predecessorInSequence();
+				final ASTNode pred = node.predecessor();
 				if (pred == null)
 					return declaration == null || ((Variable)declaration).scope() != Scope.CONST;
 				else
@@ -1626,7 +1626,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final IType t = supr.type(node, visitor);
 					if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ANY)
 						return t;
-					final ASTNode pred = node.predecessorInSequence();
+					final ASTNode pred = node.predecessor();
 					if (pred != null) {
 						final IType predTy = visitor.ty(pred);
 						if (predTy != null)
@@ -1641,7 +1641,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public boolean judgment(ArrayElementExpression leftSide, IType rightSideType, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
 					final IType predType_ = predecessorType(leftSide, visitor);
-					final ASTNode pred = leftSide.predecessorInSequence();
+					final ASTNode pred = leftSide.predecessor();
 					if (predType_ == null)
 						return false;
 					if (origin != null) {
@@ -1664,7 +1664,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().warning(visitor, Problem.MissingExpression, node, node, 0);
 					else {
 						final IType _argType = visitor.ty(arg);
-						final ASTNode pred = node.predecessorInSequence();
+						final ASTNode pred = node.predecessor();
 						for (final IType argType : _argType)
 							if (eq(argType, PrimitiveType.STRING)) {
 								if (typing.unifyNoChoice(PrimitiveType.PROPLIST, type) == null)
@@ -1699,7 +1699,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public void visit(ArraySliceExpression node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					final IType type = predecessorType(node, visitor);
-					warnIfNotArray(node.predecessorInSequence(), visitor, type);
+					warnIfNotArray(node.predecessor(), visitor, type);
 				}
 				@Override
 				public boolean isModifiable(ArraySliceExpression node, Visitor visitor) { return false; }
@@ -1923,7 +1923,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ASTNode#type(ProblemReporter)} of the {@link ASTNode} preceding this {@link CallDeclaration} in the {@link Sequence}.
 				 * @param input Context to use for searching
 				 * @param functionName Name of the function to look for. Would correspond to the hypothetical {@link CallDeclaration}'s {@link #name()}
-				 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ASTNode#predecessorInSequence()})
+				 * @param pred The predecessor of the hypothetical {@link CallDeclaration} ({@link ASTNode#predecessor()})
 				 * @param listToAddPotentialDeclarationsTo When supplying a non-null value to this parameter, potential declarations will be added to the collection. Such potential declarations would be obtained by querying the {@link Index}'s {@link Index#declarationMap()}.
 				 * @return The {@link Function} that is very likely to be the one actually intended to be referenced by the hypothetical {@link CallDeclaration}.
 				 */
@@ -1980,7 +1980,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final String declarationName = node.name();
 					if (declarationName.equals(Keywords.Return))
 						return null;
-					final ASTNode p = node.predecessorInSequence();
+					final ASTNode p = node.predecessor();
 					return findUsingType(visitor, node, declarationName, p != null ? visitor.ty(p) : visitor.script());
 				}
 				private IType declarationType(CallDeclaration node, Visitor visitor) {
@@ -2010,7 +2010,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final Variable v = (Variable)d;
 						switch (v.scope()) {
 						case LOCAL:
-							final IType t = node.predecessorInSequence() == null
+							final IType t = node.predecessor() == null
 								? visitor.script().typings().variableTypes.get(v.name())
 								: null;
 							return t != null ? t : v.type();
@@ -2022,8 +2022,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				private IType returnTypeFromPredecessorType(CallDeclaration node, Visitor visitor, final Function fn) {
 					IType t = PrimitiveType.UNKNOWN;
-					if (node.predecessorInSequence() != null) {
-						final IType predTy = visitor.ty(node.predecessorInSequence());
+					if (node.predecessor() != null) {
+						final IType predTy = visitor.ty(node.predecessor());
 						if (predTy != null)
 							for (final IType _t : predTy)
 								if (_t instanceof Script) {
@@ -2039,7 +2039,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return t != PrimitiveType.UNKNOWN ? t : fn.returnType(visitor.script());
 				}
 				private IType unknownFunctionShouldBeError(CallDeclaration node, Visitor visitor) {
-					ASTNode pred = node.predecessorInSequence();
+					ASTNode pred = node.predecessor();
 					// stand-alone function? always bark!
 					if (pred == null)
 						return visitor.script();
@@ -2052,7 +2052,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (((MemberOperator)pred).hasTilde())
 							return null;
 						else
-							pred = pred.predecessorInSequence();
+							pred = pred.predecessor();
 					// allow this->Unknown()
 					final AccessDeclaration ad = as(pred, AccessDeclaration.class);
 					if (ad != null && (ad.declaration() == Variable.THIS || ad.declaration() == visitor.cachedEngineDeclarations().This))
@@ -2089,7 +2089,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final String declarationName = node.name();
 					final Declaration declaration = internalObtainDeclaration(node, visitor);
 					final ASTNode[] params = node.params();
-					final ASTNode predecessor = node.predecessorInSequence();
+					final ASTNode predecessor = node.predecessor();
 
 					if (declarationName.equals(Keywords.Return))
 						returnsAsFunctionWarning(node, visitor);
@@ -2339,7 +2339,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<CallExpr>(CallExpr.class) {
 				@Override
 				public IType type(CallExpr node, Visitor visitor) {
-					final ASTNode pred = node.predecessorInSequence();
+					final ASTNode pred = node.predecessor();
 					final IType type = visitor.ty(pred);
 					if (type instanceof FunctionType)
 						return ((FunctionType)type).prototype().returnType();
@@ -2351,7 +2351,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (!visitor.script().engine().settings().supportsFunctionRefs)
 						visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
 					else {
-						final IType type = visitor.expert(node.predecessorInSequence()).type(node.predecessorInSequence(), visitor);
+						final IType type = visitor.expert(node.predecessor()).type(node.predecessor(), visitor);
 						if (!typing.compatible(PrimitiveType.FUNCTION, type))
 							visitor.markers().error(visitor, Problem.CallingExpression, node, node, Markers.NO_THROW);
 					}
@@ -2451,18 +2451,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (node.id() != null)
 						return visitor.script().nearestDefinitionWithId(node.id());
 					// stuff before -> decides
-					final ASTNode pred = node.predecessorInSequence();
+					final ASTNode pred = node.predecessor();
 					return pred != null ? visitor.ty(pred) : supr.type(node, visitor);
 				}
 				@Override
 				public boolean judgment(MemberOperator node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
-					final ASTNode p = node.predecessorInSequence();
+					final ASTNode p = node.predecessor();
 					return p != null ? visitor.expert(p).judgment(p, type, origin, visitor, mode) : false;
 				}
 				@Override
 				public void visit(MemberOperator node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
-					final ASTNode pred = node.predecessorInSequence();
+					final ASTNode pred = node.predecessor();
 					final EngineSettings settings = visitor.script().engine().settings();
 					if (pred != null) {
 						final IType requiredType = node.dotNotation() ? PrimitiveType.PROPLIST : PrimitiveType.OBJECT;

@@ -61,7 +61,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 
 	private class Visitor extends ExpressionLocator<Structure> implements IResourceVisitor {
 		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
-			if (expression instanceof CallDeclaration && expression.predecessorInSequence() instanceof MemberOperator) {
+			if (expression instanceof CallDeclaration && expression.predecessor() instanceof MemberOperator) {
 				final CallDeclaration callFunc = (CallDeclaration) expression;
 				return callFunc.declaration() == null && callFunc.name().equals(declaration.name());
 			}

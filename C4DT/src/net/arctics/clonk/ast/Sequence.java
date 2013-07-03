@@ -17,7 +17,7 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 		ASTNode prev = null;
 		for (final ASTNode e : elements) {
 			if (e != null)
-				e.setPredecessorInSequence(prev);
+				e.setPredecessor(prev);
 			prev = e;
 		}
 	}
@@ -73,7 +73,7 @@ public class Sequence extends ASTNodeWithSubElementsArray {
 		ASTNode prev = null;
 		for (final ASTNode e : subElements()) {
 			if (e != null)
-				e.setPredecessorInSequence(prev);
+				e.setPredecessor(prev);
 			prev = e;
 		}
 	}

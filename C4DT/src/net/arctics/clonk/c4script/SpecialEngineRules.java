@@ -444,8 +444,8 @@ public abstract class SpecialEngineRules {
 			IType t;
 			if (callFunc.params().length > 0)
 				t = processor.typeOf(callFunc.params()[0]);
-			else if (callFunc.predecessorInSequence() != null)
-				t = processor.typeOf(callFunc.predecessorInSequence());
+			else if (callFunc.predecessor() != null)
+				t = processor.typeOf(callFunc.predecessor());
 			else
 				t = processor.script();
 			if (t instanceof Definition)
@@ -726,8 +726,8 @@ public abstract class SpecialEngineRules {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				Definition def = as(script.typings().get(callFunc.params()[0]), Definition.class);
-				if (def == null && callFunc.predecessorInSequence() != null)
-					def = as(script.typings().get(callFunc.predecessorInSequence()), Definition.class);
+				if (def == null && callFunc.predecessor() != null)
+					def = as(script.typings().get(callFunc.predecessor()), Definition.class);
 				if (def == null)
 					def = as(script, Definition.class);
 				if (def != null) {
@@ -750,8 +750,8 @@ public abstract class SpecialEngineRules {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				Definition def = callFunc.params().length > 1 ? as(script.typings().get(callFunc.params()[1]), Definition.class) : null;
-				if (def == null && callFunc.predecessorInSequence() != null)
-					def = as(script.typings().get(callFunc.predecessorInSequence()), Definition.class);
+				if (def == null && callFunc.predecessor() != null)
+					def = as(script.typings().get(callFunc.predecessor()), Definition.class);
 				if (def == null)
 					def = as(script, Definition.class);
 				if (def != null) {

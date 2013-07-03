@@ -193,7 +193,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 			String property;
 			if (index == 0 && (property = as(parmExpression.evaluateStatic(callFunc.parent(Function.class)), String.class)) != null) {
-				final IType ty = callFunc.predecessorInSequence() != null ? script.typings().get(callFunc.predecessorInSequence()) : script.script();
+				final IType ty = callFunc.predecessor() != null ? script.typings().get(callFunc.predecessor()) : script.script();
 				final Set<Variable> vars = new HashSet<Variable>();
 				for (final IType t : ty)
 					if (t instanceof IProplistDeclaration) {
@@ -348,7 +348,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
 				if (index != 0)
 					return null;
-				final IType t = node.predecessorInSequence() != null ? script.typings().get(node.predecessorInSequence()) : null;
+				final IType t = node.predecessor() != null ? script.typings().get(node.predecessor()) : null;
 				if (t != null) for (final IType ty : t)
 					if (ty instanceof Definition) {
 						final EntityRegion result = actionLinkForDefinition(node.parent(Function.class), (Definition)ty, parmExpression);
@@ -362,7 +362,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				if (index != 0)
 					return;
 				final Script script = node.parent(Script.class);
-				final IType t = node.predecessorInSequence() != null ? script.typings().get(node.predecessorInSequence()) : script;
+				final IType t = node.predecessor() != null ? script.typings().get(node.predecessor()) : script;
 				if (t != null) for (final IType ty : t)
 					if (ty instanceof Definition) {
 						final Definition def = (Definition) ty;

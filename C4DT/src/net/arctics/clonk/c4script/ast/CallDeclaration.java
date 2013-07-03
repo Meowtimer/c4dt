@@ -189,7 +189,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 
 		// OCF_Awesome() -> OCF_Awesome
 		if (params.length == 0 && declaration instanceof Variable)
-			if (!parent(Script.class).engine().settings().supportsProplists && predecessorInSequence() != null)
+			if (!parent(Script.class).engine().settings().supportsProplists && predecessor() != null)
 				return new CallDeclaration("LocalN", new StringLiteral(declarationName)); //$NON-NLS-1$
 			else
 				return new AccessVar(declarationName);
@@ -284,7 +284,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
-		final Object self = value(predecessorInSequence() != null ? predecessorInSequence().evaluate(context) : context.self());
+		final Object self = value(predecessor() != null ? predecessor().evaluate(context) : context.self());
 		final Object[] args = new Object[params().length];
     	for (int i = 0; i < args.length; i++)
 			try {

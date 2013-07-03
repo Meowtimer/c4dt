@@ -177,7 +177,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 		private void appendEntityInfo(ITextViewer viewer, IRegion region, final StringBuilder messageBuilder) {
 			if (entityLocator != null && entityLocator.entity() != null) {
-				final ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessorInSequence() : null;
+				final ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessor() : null;
 				final Script context = pred == null ? structure() : as(TypeUtil.inferredType(pred), Script.class);
 				messageBuilder.append(entityLocator.entity().infoText(context));
 			}
@@ -492,7 +492,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 						final CallDeclaration cd = (CallDeclaration) node;
 						final Function f = as(cd.declaration(), Function.class);
 						if (f != null && f.body() != null) {
-							final IType pred = cd.predecessorInSequence() != null ? typing.nodeTypes[cd.predecessorInSequence().localIdentifier()] : structure();
+							final IType pred = cd.predecessor() != null ? typing.nodeTypes[cd.predecessor().localIdentifier()] : structure();
 							if (pred != null)
 								for (final IType t : pred)
 									if (t instanceof Script)
@@ -658,7 +658,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			this.locator = locator;
 		}
 		public ASTNode callPredecessor() {
-			return callFunc instanceof ASTNode ? ((ASTNode)callFunc).predecessorInSequence() : null;
+			return callFunc instanceof ASTNode ? ((ASTNode)callFunc).predecessor() : null;
 		}
 	}
 

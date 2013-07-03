@@ -132,7 +132,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
-		return predecessorInSequence().evaluate(context);
+		return predecessor().evaluate(context);
 	}
 
 }

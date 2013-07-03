@@ -270,7 +270,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		@Override
 		public IVariable variable(AccessVar access, Object obj) throws ControlFlowException {
-			if (access.predecessorInSequence() == null) {
+			if (access.predecessor() == null) {
 				int i = 0;
 				for (final Variable v : parameters) {
 					if (v.name().equals(access.name()))
@@ -284,7 +284,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					i++;
 				}
 			} else {
-				final Object self = value(access.predecessorInSequence().evaluate(this));
+				final Object self = value(access.predecessor().evaluate(this));
 				try {
 					return new Constant(self.getClass().getMethod(access.name()).invoke(self));
 				} catch (final NoSuchMethodException n) {
@@ -872,7 +872,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	@Override
 	public IVariable variable(AccessVar access, Object obj) {
-		if (access.predecessorInSequence() == null) {
+		if (access.predecessor() == null) {
 			final Variable v = findVariable(access.name());
 			if (v != null)
 				return new Constant(v);

@@ -44,7 +44,7 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 				 Utilities.regionContainsOffset(contextExpression.identifierRegion(), exprRegion.getOffset()))
 			) {
 				// we only care about sequences
-				final ASTNode pred = contextExpression.predecessorInSequence();
+				final ASTNode pred = contextExpression.predecessor();
 				contextSequence = pred != null ? Utilities.as(contextExpression.parent(), Sequence.class) : null;
 				if (contextSequence != null)
 					contextSequence = contextSequence.subSequenceIncluding(contextExpression);
@@ -73,7 +73,7 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 		if (contextExpression instanceof MemberOperator)
 			return (MemberOperator)contextExpression;
 		else if (contextExpression != null)
-			return as(contextExpression.predecessorInSequence(), MemberOperator.class);
+			return as(contextExpression.predecessor(), MemberOperator.class);
 		else
 			return null;
 	}

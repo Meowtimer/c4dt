@@ -506,12 +506,12 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						);
 				}
 				if (offendingExpression instanceof CallDeclaration)
-					if (offendingExpression.predecessorInSequence() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessorInSequence()).hasTilde()) {
-						final MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessorInSequence()).id(), 3);
-						opWithTilde.setLocation(offendingExpression.predecessorInSequence());
+					if (offendingExpression.predecessor() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessor()).hasTilde()) {
+						final MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessor()).id(), 3);
+						opWithTilde.setLocation(offendingExpression.predecessor());
 						replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
 					}
-				if (offendingExpression instanceof AccessDeclaration && offendingExpression.predecessorInSequence() == null) {
+				if (offendingExpression instanceof AccessDeclaration && offendingExpression.predecessor() == null) {
 					final AccessDeclaration accessDec = (AccessDeclaration) offendingExpression;
 
 					// create new variable or function

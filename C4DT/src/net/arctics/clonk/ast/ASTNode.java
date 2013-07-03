@@ -39,7 +39,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		};
 	};
 
-	protected transient ASTNode parent, predecessorInSequence;
+	protected transient ASTNode parent, predecessor;
 
 	/**
 	 * Assign 'this' as the parent element of all elements returned by {@link #subElements()}.
@@ -212,8 +212,8 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public final IRegion identifierRegion() { return new Region(identifierStart(), identifierLength()); }
 	public void setLocation(int start, int end) { this.start = start; this.end = end; }
 	public void setLocation(IRegion r) { this.setLocation(r.getOffset(), r.getOffset()+r.getLength()); }
-	public void setPredecessorInSequence(ASTNode p) { predecessorInSequence = p; }
-	public ASTNode predecessorInSequence() { return predecessorInSequence; }
+	public void setPredecessor(ASTNode p) { predecessor = p; }
+	public ASTNode predecessor() { return predecessor; }
 
 	/**
 	 * Return the sub elements of this {@link ASTNode}.

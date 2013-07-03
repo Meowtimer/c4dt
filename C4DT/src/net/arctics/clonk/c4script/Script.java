@@ -1134,7 +1134,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public Object[] arguments() { return new Object[0]; }
 	@Override
 	public IVariable variable(AccessVar access, Object obj) {
-		if (access.predecessorInSequence() == null) {
+		if (access.predecessor() == null) {
 			final Variable v = findLocalVariable(access.name(), true);
 			if (v != null)
 				return new Constant(v);
