@@ -100,7 +100,7 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 			final String displayString = definitionDisplayString(def);
 			final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
 
-			final DeclarationProposal prop = new DeclarationProposal(def, def, def.id().stringValue(), pl.offset, replacementLength, def.id().stringValue().length(),
+			final DeclarationProposal prop = new DeclarationProposal(def, def, def.id().stringValue(), pl.wordOffset, replacementLength, def.id().stringValue().length(),
 				defIcon, displayString.trim(), null, null, String.format(": %s", PrimitiveType.ID.typeName(true)), state()); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
 			pl.addProposal(prop);
@@ -254,7 +254,8 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 			}
 			return bonus + result;
 		}
-		return 1;
+		else
+			return a.getDisplayString().compareTo(b.getDisplayString());
 	}
 
 	static class AutoActivationCharacters implements IPropertyChangeListener {

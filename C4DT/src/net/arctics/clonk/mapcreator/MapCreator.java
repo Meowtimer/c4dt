@@ -4,8 +4,8 @@ import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.ini.IniData;
 import net.arctics.clonk.ini.IniSection;
-import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.util.Utilities;
 
@@ -20,7 +20,7 @@ public abstract class MapCreator {
 	public ImageData create(ScenarioUnit scenarioConfiguration, boolean layers, int numPlayers) {
 		LandscapeSection section = new LandscapeSection();
 		section.Default();
-		IniSection landscapeIniSection = scenarioConfiguration.sectionWithName(IniUnitParser.defaultSection(LandscapeSection.class), false);
+		IniSection landscapeIniSection = scenarioConfiguration.sectionWithName(IniData.defaultSection(LandscapeSection.class), false);
 		landscapeIniSection.commit(section, false);
 		int[] size = section.GetMapSize(numPlayers);
 		IContainer materialsContainer = null;

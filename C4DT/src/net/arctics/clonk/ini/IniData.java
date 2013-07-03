@@ -46,12 +46,12 @@ public class IniData {
 			for (final Field f : clazz.getFields()) {
 				IniField annotation;
 				if ((annotation = f.getAnnotation(IniField.class)) != null) {
-					IniSectionDefinition section = result.sections().get(IniUnitParser.category(annotation, clazz));
+					IniSectionDefinition section = result.sections().get(IniData.category(annotation, clazz));
 					if (section == null) {
 						section = new IniSectionDefinition();
 						section.sectionName = annotation.category();
 						if (section.sectionName.equals(""))
-							section.sectionName = IniUnitParser.defaultSection(clazz);
+							section.sectionName = IniData.defaultSection(clazz);
 						result.sections.put(section.sectionName, section);
 					}
 					section.entries.put(f.getName(), new IniEntryDefinition(f.getName(), f.getType()));
@@ -204,12 +204,10 @@ public class IniData {
 
 	}
 
-	private final InputStream xmlFile;
+	private final InputStream xmlStream;
 	private final Map<String, IniConfiguration> configurations = new HashMap<String, IniConfiguration>(4);
 
-	public IniData(InputStream stream) {
-		xmlFile = stream;
-	}
+	public IniData(InputStream stream) { xmlStream = stream; }
 
 	/**
 	 * Returns the configuration that is declared for files with name of <tt>filename</tt>.
@@ -224,7 +222,7 @@ public class IniData {
 		try {
 			final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			final DocumentBuilder db = dbf.newDocumentBuilder();
-			final Document doc = db.parse(xmlFile);
+			final Document doc = db.parse(xmlStream);
 			doc.getDocumentElement().normalize();
 			if (!doc.getDocumentElement().getNodeName().equals("clonkiniconfig"))
 				throw new ParserConfigurationException("Invalid xml document. Wrong root node '" + doc.getDocumentElement().getNodeName() + "'."); //$NON-NLS-1$ //$NON-NLS-2$
@@ -237,13 +235,21 @@ public class IniData {
 				catch (final InvalidIniConfigurationException e) {
 					e.printStackTrace();
 				}
-		} catch (final ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (final SAXException e) {
-			e.printStackTrace();
-		} catch (final IOException e) {
+		} catch (ParserConfigurationException | SAXException | IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static String category(IniField annot, Class<?> cls) {
+		if (annot.category().equals(""))
+			return defaultSection(cls);
+		else
+			return annot.category();
+	}
+
+	public static String defaultSection(Class<?> cls) {
+		final IniDefaultSection defSec = cls.getAnnotation(IniDefaultSection.class);
+		return defSec != null ? defSec.name() : IniDefaultSection.DEFAULT;
 	}
 
 }

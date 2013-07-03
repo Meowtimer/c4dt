@@ -277,8 +277,6 @@ public class StructureTextEditor extends TextEditor {
 			};
 			final SectionFinder finder = new SectionFinder();
 			structure.traverse(finder, null);
-			if (finder.section != null)
-				System.out.println(finder.section.toString());
 			return finder.section;
 		} else
 			return null;

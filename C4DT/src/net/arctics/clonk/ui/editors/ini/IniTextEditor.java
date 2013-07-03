@@ -55,7 +55,7 @@ public class IniTextEditor extends StructureTextEditor {
 				if (i instanceof IniItem) {
 					if (i instanceof IniSection) {
 						final IniSection sec = (IniSection) i;
-						positions.add(new Position(sec.absolute().getOffset(), sec.sectionEnd()-sec.start()));
+						positions.add(new Position(sec.absolute().getOffset(), sec.end()-sec.start()));
 					}
 					collectAnnotationPositions((IniItem) i, positions);
 				}

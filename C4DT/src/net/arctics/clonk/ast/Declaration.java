@@ -75,7 +75,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * Return the region to be selected when using editor navigation commands such as jump to definition. By default, this method returns this object since it already is a location.
 	 * @return The region to select when using editor navigation commands
 	 */
-	public IRegion regionToSelect() { return this; }
+	public IRegion regionToSelect() { return absolute(); }
 
 	/**
 	 * Returns an integer that is supposed to be different for different types of declarations (functions, variables)

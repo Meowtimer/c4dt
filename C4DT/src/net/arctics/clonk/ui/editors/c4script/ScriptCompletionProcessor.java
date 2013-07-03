@@ -527,7 +527,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			parm = null;
 		if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN &&
 			(eq(parm.type(), PrimitiveType.ID) || Maybe.contained(parm.type(), MetaDefinition.class) != null))
-				cats.Definitions = cats.SelfField-cats.SUBPAGE;
+				cats.Definitions = cats.SelfField-cats.PAGE/2;
 	}
 
 	private boolean computeStringProposals(ProposalsSite pl) {

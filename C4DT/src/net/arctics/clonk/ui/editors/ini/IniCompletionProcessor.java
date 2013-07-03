@@ -26,8 +26,8 @@ import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniUnitParser;
-import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.ui.editors.ProposalsSite;
+import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ProposalCycle;
 import net.arctics.clonk.util.Utilities;
 
@@ -52,8 +52,6 @@ import org.eclipse.jface.text.contentassist.IContextInformationValidator;
  */
 public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnitEditingState> implements ICompletionListener {
 
-	private IniSection section;
-
 	public IniCompletionProcessor(IniUnitEditingState state) { super(state); }
 
 	@Override
@@ -73,10 +71,10 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 		}
 
 		Matcher m;
-		String prefix = ""; //$NON-NLS-1$
-		String entryName = ""; //$NON-NLS-1$
+		String prefix;
+		String entryName = null;
 		boolean assignment = false;
-		int wordOffset = offset;
+		int wordOffset;
 		if ((m = IniUnitEditingState.ASSIGN_PATTERN.matcher(line)).matches()) {
 			entryName = m.group(1);
 			prefix = m.group(2);
@@ -86,19 +84,19 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 		else if ((m = IniUnitEditingState.NO_ASSIGN_PATTERN.matcher(line)).matches()) {
 			prefix = m.group(1);
 			wordOffset = lineStart + m.start(1);
-		}
+		} else
+			return new ICompletionProposal[0];
 		prefix = prefix.toLowerCase();
 
 		pl = new ProposalsSite(offset, wordOffset, doc, prefix, new LinkedList<ICompletionProposal>(), state().structure().index(), null, null);
 
 		state().ensureIniUnitUpToDate();
-		section = state().structure().sectionAtOffset(offset);
+		final IniSection section = state().structure().sectionAtOffset(offset);
 
 		if (!assignment) {
 			if (section != null) {
-				final IniSectionDefinition d = section.definition();
-				if (d != null)
-					proposalsForSection(pl, d);
+				if (section.definition() != null)
+					proposalsForSection(pl, section);
 				if (section.parentSection() != null && section.parentSection().definition() != null)
 					// also propose new sections
 					proposalsForIniDataEntries(pl, section.parentSection().definition().entries().values());
@@ -177,11 +175,11 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 			}
 	}
 
-	private void proposalsForSection(ProposalsSite pl, IniSectionDefinition sectionData) {
-		for (final IniDataBase entry : sectionData.entries().values())
+	private void proposalsForSection(ProposalsSite pl, IniSection section) {
+		for (final IniDataBase entry : section.definition().entries().values())
 			if (entry instanceof IniEntryDefinition) {
 				final IniEntryDefinition e = (IniEntryDefinition) entry;
-				if (!e.name().toLowerCase().contains(pl.prefix))
+				if (!e.name().toLowerCase().contains(pl.prefix) || section.itemByKey(e.name()) != null)
 					continue;
 				pl.addProposal(new CompletionProposal(e.name(), pl.wordOffset, pl.prefix.length(), e.name().length(), null, e.name(), null, e.description()));
 			}

@@ -70,7 +70,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 				section.addDeclaration((Declaration)item);
 			// include single line ending following the entries so that editor region collapse management works properly
 			skipSingleLineEnding();
-			section.setSectionEnd(tell()+1);
+			section.setEnd(tell()-psoff);
 			return section;
 		}
 		else {
@@ -194,18 +194,6 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 			return sec;
 
 		return null;
-	}
-
-	public static String category(IniField annot, Class<?> cls) {
-		if (annot.category().equals(""))
-			return defaultSection(cls);
-		else
-			return annot.category();
-	}
-
-	public static String defaultSection(Class<?> cls) {
-		final IniDefaultSection defSec = cls.getAnnotation(IniDefaultSection.class);
-		return defSec != null ? defSec.name() : IniDefaultSection.DEFAULT;
 	}
 
 	@Override

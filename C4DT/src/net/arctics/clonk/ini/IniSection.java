@@ -38,10 +38,7 @@ public class IniSection
 	private final List<IniItem> list = new LinkedList<>();
 	private IniSectionDefinition definition;
 	private int indentation;
-	private int sectionEnd;
 
-	public int sectionEnd() { return sectionEnd; }
-	public void setSectionEnd(int sectionEnd) { this.sectionEnd = sectionEnd; }
 	public IniSectionDefinition definition() { return definition; }
 	public void setDefinition(IniSectionDefinition sectionData) { this.definition = sectionData; }
 	public Map<String, IniItem> map() { return map; }
@@ -198,7 +195,7 @@ public class IniSection
 					continue;
 				}
 				IniField annot;
-				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || IniUnitParser.category(annot, object.getClass()).equals(name()))) {
+				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || IniData.category(annot, object.getClass()).equals(name()))) {
 					Object val = entry.value();
 					if (val instanceof IConvertibleToPrimitive)
 						val = ((IConvertibleToPrimitive)val).convertToPrimitive();
