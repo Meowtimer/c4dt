@@ -53,11 +53,11 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ini.CategoriesValue;
-import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IDArray;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
+import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniUnitWithNamedSections;
@@ -416,7 +416,7 @@ public abstract class SpecialEngineRules {
 	/**
 	 * CreateObject and similar functions that will return an object of the specified type
 	 */
-	@AppliedTo(functions={"CreateObject", "CreateContents", "CreateConstruction", "PlaceAnimal", "FindContents"})
+	@AppliedTo(functions={"CreateObject", "CreateContents", "CreateConstruction", "PlaceAnimal", "FindContents", "PlaceVegetation"})
 	public final SpecialFuncRule objectCreationRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(ProblemReporter processor, CallDeclaration callFunc) {
