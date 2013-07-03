@@ -90,7 +90,8 @@ public enum Problem {
 	UnexpectedBlock(Messages.UnexpectedBlock),
 	ConcreteArgumentMismatch(Messages.ConcreteArgumentMismatch,
 		Messages.CAM_Arg, Messages.CAM_Par, Messages.CAM_Callee, Messages.CAM_Expected, Messages.CAM_Got),
-	DeclarationNotFound(Messages.DeclarationNotFound, Messages.DNF_DeclarationName, Messages.DNF_Container);
+	DeclarationNotFound(Messages.DeclarationNotFound, Messages.DNF_DeclarationName, Messages.DNF_Container),
+	LoopVariableUsedInMultipleLoops(Messages.LoopVariableUsedInMultipleLoops, Messages.LoopVariableName);
 
 	private String message;
 	private String[] formatArgumentDescriptions;

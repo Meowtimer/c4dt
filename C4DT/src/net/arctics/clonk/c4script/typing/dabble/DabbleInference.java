@@ -2604,13 +2604,39 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new ConditionalStatementExpert<ForStatement>(ForStatement.class) {
+				IASTVisitor<List<VarInitialization>> variableGatherer = new IASTVisitor<List<VarInitialization>>() {
+					@Override
+					public TraversalContinuation visitNode(ASTNode node, List<VarInitialization> context) {
+						if (node instanceof VarInitialization && ((VarInitialization) node).variable != null)
+							context.add((VarInitialization) node);
+						return TraversalContinuation.Continue;
+					}
+				};
+				List<VarInitialization> gatherVariables(ForStatement fs) {
+					final List<VarInitialization> result = new ArrayList<>(3);
+					if (fs.initializer() != null)
+						fs.initializer().traverse(variableGatherer, result);
+					return result;
+				}
 				@Override
 				public void visit(ForStatement node, Visitor visitor) throws ProblemException {
+					detectVariablesUsedInMultipleLoops(visitor, node);
 					if (node.initializer() != null)
 						visitor.visit(node.initializer(), true);
 					super.visit(node, visitor);
 					if (node.increment() != null)
 						visitor.visit(node.increment(), true);
+				}
+				private void detectVariablesUsedInMultipleLoops(Visitor visitor, ForStatement node) {
+					final List<VarInitialization> own = gatherVariables(node);
+					for (ForStatement p = node.parent(ForStatement.class); p != null; p = p.parent(ForStatement.class)) {
+						final List<VarInitialization> others = gatherVariables(p);
+						for (final VarInitialization ot : others)
+							for (final VarInitialization ow : own)
+								if (ot.variable != null && ot.variable == ow.variable)
+									visitor.warning(visitor, Problem.LoopVariableUsedInMultipleLoops, ow, ow, Markers.NO_THROW,
+										ot.variable.name());
+					}
 				}
 			},
 

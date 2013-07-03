@@ -8,7 +8,7 @@ public class Messages extends NLS {
 	public static String ErrorWhileSavingSettings;
 	public static String HumanReadableName;
 	public static String UpdateNotes_1_5_9;
-	
+
 	public static String TokenExpected;
 	public static String NotAllowedHere;
 	public static String NotAnArrayOrProplist;
@@ -139,7 +139,9 @@ public class Messages extends NLS {
 	public static String ParserErrorCode_Parameter_Name;
 	public static String PrimitiveTypeNotSupported;
 	public static String ParameterCountMismatch;
-	
+	public static String LoopVariableUsedInMultipleLoops;
+	public static String LoopVariableName;
+
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
