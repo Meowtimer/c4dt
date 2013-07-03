@@ -232,7 +232,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		protected IRegion findExtendedDoubleClickSelection(IDocument document, int pos) {
 			final IRegion word = findWord(document, pos);
 			try {
-				if (word != null && document.get(word.getOffset(), word.getLength()).matches("\\w|\\|d"))
+				if (word != null && document.get(word.getOffset(), word.getLength()).matches("(\\w|\\|d)+"))
 					return word;
 			} catch (final BadLocationException e) {
 				return word;
