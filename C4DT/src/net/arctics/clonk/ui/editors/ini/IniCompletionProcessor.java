@@ -135,7 +135,9 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 			}
 		}
 
-		return pl.finish(ProposalCycle.ALL);
+		final ICompletionProposal[] proposals = pl.finish(ProposalCycle.ALL);
+		guardedSort(proposals);
+		return proposals;
 	}
 
 	private void proposalsForCategoriesValue(ProposalsSite pl, IniEntryDefinition entryDef) {

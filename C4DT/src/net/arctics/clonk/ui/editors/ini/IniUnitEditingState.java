@@ -276,7 +276,6 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 		assistant.enableAutoActivation(true);
 		assistant.enableColoredLabels(true);
 		assistant.setAutoActivationDelay(0);
-		assistant.setSorter(processor);
 		return assistant;
 	}
 }

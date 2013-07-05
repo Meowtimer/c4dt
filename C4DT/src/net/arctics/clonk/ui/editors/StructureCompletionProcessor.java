@@ -2,6 +2,10 @@ package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+
+import java.util.Arrays;
+import java.util.Comparator;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
@@ -27,7 +31,9 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 
-public abstract class StructureCompletionProcessor<StateClass extends StructureEditingState<?, ?>> implements IContentAssistProcessor, ICompletionProposalSorter {
+public abstract class StructureCompletionProcessor<StateClass
+	extends StructureEditingState<?, ?>>
+	implements IContentAssistProcessor, ICompletionProposalSorter, Comparator<ICompletionProposal> {
 
 	protected Image defIcon;
 	protected ProposalsSite pl;
@@ -189,6 +195,28 @@ public abstract class StructureCompletionProcessor<StateClass extends StructureE
 		public Text(String value) { setName(value); }
 		@Override
 		public int hashCode() { return name.hashCode(); }
+	}
+
+	protected void guardedSort(ICompletionProposal[] proposals) {
+		if (proposals == null)
+			return;
+		class GuardedComparator implements Comparator<ICompletionProposal> {
+			ICompletionProposal a, b;
+			@Override
+			public int compare(ICompletionProposal a, ICompletionProposal b) {
+				this.a = a;
+				this.b = b;
+				return StructureCompletionProcessor.this.compare(a, b);
+			}
+		}
+		final GuardedComparator gc = new GuardedComparator();
+		try {
+			Arrays.sort(proposals, gc);
+		} catch (final Exception e) {
+			e.printStackTrace();
+			if (gc.a != null && gc.b != null)
+				System.out.println(String.format("Last comparison: %s <-> %s", gc.a.toString(), gc.b.toString()));
+		}
 	}
 
 	@Override

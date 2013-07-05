@@ -129,7 +129,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					return def;
 				}
 			});
-			setSorter(processor);
+			//setSorter(processor);
 			addCompletionListener(processor);
 		}
 		// make these public

@@ -204,6 +204,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		ICompletionProposal[] proposals = pl.finish(proposalCycle);
 		if (proposals != null && pl.prefix == null || pl.prefix.length() == 0)
 			proposals = appendWhitespaceLocalGlobalDelimiter(proposals);
+		guardedSort(proposals);
 		return proposals;
 	}
 
@@ -212,7 +213,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			return null;
 		for (final ICompletionProposal p : proposals)
 			if (p instanceof DeclarationProposal && ((DeclarationProposal)p).category() < cats.LocalGlobalDelimiter) {
-				final DeclarationProposal[] w = new DeclarationProposal[5];
+				final DeclarationProposal[] w = new DeclarationProposal[3];
 				for (int i = 0; i < w.length; i++) {
 					w[i] = proposalForText(pl, WHITESPACE);
 					w[i].setCategory(cats.LocalGlobalDelimiter);
