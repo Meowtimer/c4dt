@@ -316,6 +316,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return look above and feel relieved that redundancy is lifted from you
 	 */
 	public boolean isActualParm() { return !name().equals("..."); } //$NON-NLS-1$
+	@Override
+	public IRegion absolute() { return this; /* variables are always absolute because of the reasons */ }
 
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
