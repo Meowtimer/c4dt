@@ -670,6 +670,10 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	@Override
 	public void contribute(Engine engine) {
+		contributeMapScriptDeclarations(engine);
+	}
+
+	private void contributeMapScriptDeclarations(Engine engine) {
 		final String[] algos = new String[] {
 			"MAPALGO_Layer",
 			"MAPALGO_RndChecker",
