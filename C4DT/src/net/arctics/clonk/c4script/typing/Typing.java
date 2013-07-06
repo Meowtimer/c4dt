@@ -1,6 +1,5 @@
 package net.arctics.clonk.c4script.typing;
 
-import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
@@ -12,7 +11,6 @@ import java.util.Set;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
-import net.arctics.clonk.c4script.ast.ThisType;
 import net.arctics.clonk.c4script.typing.dabble.Maybe;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.MetaDefinition;
@@ -93,18 +91,6 @@ public enum Typing {
 			default:
 				break;
 			}
-
-		if (a instanceof ThisType) {
-			final Script sa = ((ThisType)a).script();
-			if (b instanceof Script)
-				return defaulting(unifyNoChoice(sa, b), PrimitiveType.OBJECT);
-			else if (b instanceof ThisType) {
-				final Script sb = ((ThisType)b).script();
-				final Script u = as(unifyNoChoice(sa, sb), Script.class);
-				if (u != null)
-					return new ThisType(u);
-			}
-		}
 
 		if (a instanceof Maybe && b instanceof Maybe)
 			return new Maybe(unify(((Maybe)a).maybe(), ((Maybe)b).maybe()));
