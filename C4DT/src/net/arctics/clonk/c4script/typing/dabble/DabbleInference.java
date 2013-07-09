@@ -552,11 +552,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 					visitors[ci] = vtor;
 
 					Function ref = as(call.declaration(), Function.class);
-					// not related - short circuit skip
-					if (ref == null || ref.baseFunction().latestVersion() != base)
-						continue;
-					ref = (Function)ref.latestVersion();
-					RelevanceCheck: if (call.predecessor() != null) {
+					if (ref != null) {
+						// not related - short circuit skip
+						ref = (Function)ref.latestVersion();
+						if (ref.baseFunction().latestVersion() != base)
+							continue;
+					}
+					RelevanceCheck: if (ref != null && call.predecessor() != null) {
 						final IType predTy = nodeType(f, other, v, vtor, call.predecessor());
 						if (predTy == null)
 							continue;
