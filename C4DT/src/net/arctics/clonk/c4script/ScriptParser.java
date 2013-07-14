@@ -873,7 +873,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			parseParameters(func);
 			break;
 		case ':':
-			if (header.isOldStyle) 
+			if (header.isOldStyle)
 				break; // old-style funcs have no named parameters
 			//$FALL-THROUGH$
 		default:
@@ -926,7 +926,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		setCurrentFunction(null); // to not suppress errors in-between functions
 		return func;
 	}
-	
+
 	private void parseParameters(Function func) throws ProblemException {
 		// get parameters
 		boolean parmExpected = false;
@@ -2467,7 +2467,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			var.forceType(type, true);
 		}
 		var.setName(parmName);
-		var.setLocation(new SourceLocation(nameStart, this.offset));
+		var.setLocation(new SourceLocation(nameStart-function.start(), this.offset-function.start()));
 		var.setParent(function);
 		if (parsedTypeAnnotation != null)
 			parsedTypeAnnotation.setTarget(var);

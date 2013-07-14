@@ -41,8 +41,6 @@ public class Effect extends ProplistDeclaration {
 	}
 
 	public void addFunction(EffectFunction function) {
-		setStart(Math.min(function.start(), this.start()));
-		setEnd(Math.max(function.end(), this.end()));
 		function.setEffect(this);
 		functions.put(function.callbackName(), function);
 	}

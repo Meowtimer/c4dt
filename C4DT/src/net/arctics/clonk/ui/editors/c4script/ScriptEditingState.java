@@ -39,7 +39,6 @@ import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.EntityLocator;
-import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
 import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.PropListExpression;
@@ -730,32 +729,30 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return function;
 	}
 
-	public IIndexEntity mergeFunctions(int offset, final ScriptEditingState.Call funcCallInfo, final RegionDescription d) {
+	public IIndexEntity mergeFunctions(int offset, final ScriptEditingState.Call funcCallInfo) {
 		IIndexEntity entity = null;
-		if (funcCallInfo.locator.initializeRegionDescription(d, structure(), new Region(offset, 1))) {
-			funcCallInfo.locator.initializeProposedDeclarations(structure(), d, null, (ASTNode)funcCallInfo.callFunc);
-			Function commono = null;
-			final Set<? extends IIndexEntity> potentials = funcCallInfo.locator.potentialEntities();
-			if (potentials != null)
-				if (potentials.size() == 1)
-					entity = potentials.iterator().next();
-				else for (final IIndexEntity e : potentials) {
-					if (commono == null)
-						commono = new Function(Messages.C4ScriptCompletionProcessor_MultipleCandidates, FunctionScope.PRIVATE);
-					entity = commono;
-					final Function f = functionFromEntity(e);
-					if (f != null)
-						for (int i = 0; i < f.numParameters(); i++) {
-							final Variable fpar = f.parameter(i);
-							final Variable cpar = commono.numParameters() > i
-								? commono.parameter(i)
-									: commono.addParameter(new Variable(fpar.name(), fpar.type()));
-								cpar.forceType(structure().typing().unify(cpar.type(), fpar.type()));
-								if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name())) //$NON-NLS-1$
-									cpar.setName(cpar.name()+"/"+fpar.name()); //$NON-NLS-1$
-						}
-				}
-		}
+		funcCallInfo.locator.initializeProposedDeclarations(structure(), null, (ASTNode)funcCallInfo.callFunc);
+		Function commono = null;
+		final Set<? extends IIndexEntity> potentials = funcCallInfo.locator.potentialEntities();
+		if (potentials != null)
+			if (potentials.size() == 1)
+				entity = potentials.iterator().next();
+			else for (final IIndexEntity e : potentials) {
+				if (commono == null)
+					commono = new Function(Messages.C4ScriptCompletionProcessor_MultipleCandidates, FunctionScope.PRIVATE);
+				entity = commono;
+				final Function f = functionFromEntity(e);
+				if (f != null)
+					for (int i = 0; i < f.numParameters(); i++) {
+						final Variable fpar = f.parameter(i);
+						final Variable cpar = commono.numParameters() > i
+							? commono.parameter(i)
+								: commono.addParameter(new Variable(fpar.name(), fpar.type()));
+							cpar.forceType(structure().typing().unify(cpar.type(), fpar.type()));
+							if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name())) //$NON-NLS-1$
+								cpar.setName(cpar.name()+"/"+fpar.name()); //$NON-NLS-1$
+					}
+			}
 		return entity;
 	}
 

@@ -9,18 +9,13 @@ import java.util.Set;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.InitializationFunction;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
@@ -53,31 +48,6 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		};
 	};
 
-	public static class RegionDescription {
-		public IRegion body;
-		public int bodyStart;
-		public Engine engine;
-		public Function func;
-		public void initialize(IRegion body, Engine engine) {
-			this.body = body;
-			this.bodyStart = body.getOffset();
-			this.engine = engine;
-		}
-	}
-
-	public boolean initializeRegionDescription(RegionDescription d, Script script, IRegion region) {
-		d.func = script.funcAt(region);
-		if (d.func == null) {
-			final Variable var = script.variableInitializedAt(region);
-			if (var == null)
-				return false;
-			else
-				d.initialize(var.initializationExpressionLocation(), var.engine());
-		} else
-			d.initialize(d.func.bodyLocation(), d.func.engine());
-		return true;
-	}
-
 	/**
 	 * Initialize {@link EntityLocator} with an editor, a document and a region. After invoking the constructor, {@link #expressionRegion()}, {@link #entity()} etc will be if locating succeeded.
 	 * @param doc The script document
@@ -88,25 +58,15 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	public EntityLocator(Script script, IDocument doc, IRegion region) throws BadLocationException, ProblemException {
 		if (script == null)
 			return;
-		final RegionDescription d = new RegionDescription();
-		if (!initializeRegionDescription(d, script, region)) {
-			simpleFindDeclaration(doc, region, script, null);
-			return;
+		exprRegion = region;
+		script.traverse(this, null);
+		if (exprAtRegion != null) {
+			final EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), this);
+			initializeProposedDeclarations(script, declRegion, exprAtRegion);
 		}
-		if (region.getOffset() >= d.bodyStart) {
-			exprRegion = new Region(region.getOffset()-d.bodyStart, 0);
-			if (d.func != null)
-				d.func.traverse(this, null);
-			if (exprAtRegion != null) {
-				final EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), this);
-				initializeProposedDeclarations(script, d, declRegion, exprAtRegion);
-			}
-		}
-		else
-			simpleFindDeclaration(doc, region, script, d.func);
 	}
 
-	public void initializeProposedDeclarations(final Script script, RegionDescription regionDescription, EntityRegion declRegion, ASTNode exprAtRegion) {
+	public void initializeProposedDeclarations(final Script script, EntityRegion declRegion, ASTNode exprAtRegion) {
 		boolean setRegion;
 		if (declRegion != null && declRegion.potentialEntities() != null && declRegion.potentialEntities().size() > 0) {
 			// region denotes multiple declarations - set proposed declarations to those
@@ -148,7 +108,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 					}
 				});
 
-			final Function engineFunc = regionDescription.engine.findFunction(declarationName);
+			final Function engineFunc = exprAtRegion.parent(Script.class).engine().findFunction(declarationName);
 			if (projectDeclarations != null || engineFunc != null) {
 				potentialEntities = new HashSet<IIndexEntity>();
 				if (projectDeclarations != null)
@@ -171,32 +131,8 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		else
 			setRegion = false;
 		if (setRegion && declRegion != null)
-			this.exprRegion = new Region(regionDescription.bodyStart+declRegion.region().getOffset(), declRegion.region().getLength());
-	}
-
-	private void simpleFindDeclaration(IDocument doc, IRegion region, Script script, Function func) throws BadLocationException {
-		IRegion lineInfo;
-		String line;
-		try {
-			lineInfo = doc.getLineInformationOfOffset(region.getOffset());
-			line = doc.get(lineInfo.getOffset(),lineInfo.getLength());
-		} catch (final BadLocationException e) {
-			return;
-		}
-		final int localOffset = region.getOffset() - lineInfo.getOffset();
-		int start,end;
-		for (start = localOffset; start > 0 && Character.isJavaIdentifierPart(line.charAt(start-1)); start--);
-		for (end = localOffset; end < line.length() && Character.isJavaIdentifierPart(line.charAt(end)); end++);
-		exprRegion = new Region(lineInfo.getOffset()+start,end-start);
-		for (final Declaration d : script.subDeclarations(script.index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES)) {
-			if (d instanceof InitializationFunction)
-				continue;
-			if (d.isAt(region.getOffset())) {
-				entity = d;
-				return;
-			}
-		}
-		entity = script.findDeclaration(new FindDeclarationInfo(doc.get(exprRegion.getOffset(), exprRegion.getLength()), script.index(), func));
+			this.exprRegion = new Region(exprAtRegion.sectionOffset()+declRegion.region().getOffset(),
+				declRegion.region().getLength());
 	}
 
 	/**
@@ -213,7 +149,8 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		expression.traverse(new IASTVisitor<Void>() {
 			@Override
 			public TraversalContinuation visitNode(ASTNode expression, Void _) {
-				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() < expression.end()) {
+				final IRegion a = expression.absolute();
+				if (exprRegion.getOffset() >= a.getOffset() && exprRegion.getOffset() < a.getOffset()+a.getLength()) {
 					exprAtRegion = expression;
 					return TraversalContinuation.TraverseSubElements;
 				}

@@ -22,8 +22,8 @@ public class TypeUtil {
 			public Definition definition() { return script() instanceof Definition ? (Definition)script() : null; }
 			@Override
 			public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
-				final int bodyOffset = context.absoluteExpressionsOffset();
-				return new SourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
+				final int soff = context.sectionOffset();
+				return new SourceLocation(expression.start()+soff, expression.end()+soff);
 			}
 			@Override
 			public Script script() { return context.script(); }

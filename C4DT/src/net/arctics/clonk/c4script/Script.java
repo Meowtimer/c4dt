@@ -1015,7 +1015,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public String infoText(IIndexEntity context) {
-		//requireLoaded();
 		if (sourceComment != null)
 			return sourceComment;
 		final Object f = source();

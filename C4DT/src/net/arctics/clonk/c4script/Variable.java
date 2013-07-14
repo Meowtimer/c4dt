@@ -9,6 +9,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.PropListExpression;
@@ -317,7 +318,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	public boolean isActualParm() { return !name().equals("..."); } //$NON-NLS-1$
 	@Override
-	public IRegion absolute() { return this; /* variables are always absolute because of the reasons */ }
+	public IASTSection section() { return null; /* variables are always absolute because of the reasons */ }
 
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {

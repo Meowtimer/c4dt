@@ -37,7 +37,6 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
-import net.arctics.clonk.c4script.ast.EntityLocator.RegionDescription;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.StringLiteral;
@@ -850,10 +849,8 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			final ScriptEditingState.Call funcCallInfo = state.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
 				IIndexEntity entity = functionFromCall(funcCallInfo.callFunc);
-				if (entity == null) {
-					final RegionDescription d = new RegionDescription();
-					entity = state().mergeFunctions(offset, funcCallInfo, d);
-				}
+				if (entity == null)
+					entity = state().mergeFunctions(offset, funcCallInfo);
 				final Function function = state().functionFromEntity(entity);
 				if (function != null) {
 					if (function instanceof IDocumentedDeclaration)

@@ -6,6 +6,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.Function;
+
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 

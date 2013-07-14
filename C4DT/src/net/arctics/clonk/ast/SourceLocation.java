@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.Function;
 
 import org.eclipse.jface.text.IRegion;
 
@@ -24,10 +23,6 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	public SourceLocation(Matcher matcher) {
 		start = matcher.start();
 		end = matcher.end();
-	}
-	public SourceLocation(IRegion region, Function relative) {
-		start = relative.bodyLocation().start()+region.getOffset();
-		end = relative.bodyLocation().start()+region.getOffset()+region.getLength();
 	}
 	public SourceLocation(int offset, IRegion relativeLocation) {
 		start = offset+relativeLocation.getOffset();

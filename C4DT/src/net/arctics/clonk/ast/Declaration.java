@@ -314,8 +314,6 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 		return null;
 	}
 
-	public int absoluteExpressionsOffset() {return 0;}
-
 	public DeclarationLocation[] declarationLocations() {
 		return new DeclarationLocation[] {
 			new DeclarationLocation(this, this, resource())
@@ -388,5 +386,10 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	}
 
 	public int nameStart() { return start(); }
+
+	@Override
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+		return new EntityRegion(this, regionToSelect(), name());
+	}
 
 }

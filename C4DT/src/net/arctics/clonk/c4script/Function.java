@@ -882,8 +882,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public Object[] arguments() { synchronized (parameters) { return parameters.toArray(); } }
-	@Override
-	public int absoluteExpressionsOffset() { return bodyLocation().getOffset(); }
 	/**
 	 * Return the cached block without performing checks.
 	 * @return The cached code block
@@ -907,8 +905,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public void setSubElements(ASTNode[] elms) { storeBody(elms[0], ""); }
 	@Override
 	public int absoluteOffset() { return bodyLocation().start(); }
-	@Override
-	public IRegion selectionRegion() { return wholeBody(); }
 	@Override
 	public IRegion regionToSelect() { return new SourceLocation(nameStart, nameStart+name().length()); }
 

@@ -26,7 +26,6 @@ import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jface.text.IRegion;
 
 public class IniSection
 	extends Declaration
@@ -77,8 +76,6 @@ public class IniSection
 	public ASTNode[] subElements() { return list.toArray(new ASTNode[list.size()]); }
 	@Override
 	public int absoluteOffset() { return sectionOffset()+start; }
-	@Override
-	public IRegion selectionRegion() { return absolute(); }
 
 	public IniSection(String name) { this.name = name; }
 
