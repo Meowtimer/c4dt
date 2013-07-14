@@ -11,12 +11,12 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.ui.PlatformUI;
 
 public class InvokeCommandHandler extends AbstractHandler {
-	
+
 	/*private static class InputDialogWithHistory extends InputDialog {
 
 		private static Stack<String> backStack = new Stack<String>();
 		private static Stack<String> forwardStack = new Stack<String>();
-		
+
 		public InputDialogWithHistory(Shell parentShell, String dialogTitle,
 				String dialogMessage, String initialValue,
 				IInputValidator validator) {
@@ -25,7 +25,7 @@ public class InvokeCommandHandler extends AbstractHandler {
 				@Override
 				public void keyPressed(KeyEvent e) {
 					// TODO Auto-generated method stub
-					
+
 				}
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -39,17 +39,17 @@ public class InvokeCommandHandler extends AbstractHandler {
 				}
 			});
 		}
-		
+
 	}*/
 
 	@Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-		 InputDialog inputDialog = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-		    		Messages.InvokeCommandAction_InvokeCommand, Messages.InvokeCommandAction_SpecifyCommand, "", null); //$NON-NLS-1$
+		 final InputDialog inputDialog = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+		    	Messages.InvokeCommandAction_InvokeCommand, Messages.InvokeCommandAction_SpecifyCommand, "", null); //$NON-NLS-1$
 		    switch (inputDialog.open()) {
 		    case Window.OK:
-		    	ExecutableScript script = Command.executableScriptFromCommand(inputDialog.getValue()); 
-		    	script.invoke();
+		    	final ExecutableScript script = Command.executableScriptFromCommand(inputDialog.getValue());
+		    	script.main().invoke(script.main().new FunctionInvocation(new Object[0], null, null));
 		    }
 	    return null;
     }

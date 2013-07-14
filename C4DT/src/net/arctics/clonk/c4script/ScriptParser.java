@@ -538,7 +538,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 								parser.error(Problem.TypeExpected, bt,bt+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
 							}
 							break;
-						case PARAMETERS_OPTIONALLY_TYPED:
+						case INFERRED:
 							if (parser.engine != parser.script && returnType != PrimitiveType.REFERENCE) {
 								returnType = null;
 								parser.seek(bt);

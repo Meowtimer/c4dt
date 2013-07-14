@@ -14,8 +14,10 @@ import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
+import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
@@ -73,6 +75,18 @@ public class EntityLocator extends ExpressionLocator<Void> {
 			this.potentialEntities = new HashSet<IIndexEntity>();
 			this.potentialEntities.addAll(declRegion.potentialEntities());
 			setRegion = true;
+		}
+		else if (declRegion != null && declRegion.entity() instanceof Directive) {
+			final Directive dir = (Directive) declRegion.entity();
+			switch (dir.type()) {
+			case INCLUDE: case APPENDTO:
+				this.entity = script.index().definitionNearestTo(script.resource(), dir.contentAsID());
+				setRegion = true;
+				break;
+			default:
+				setRegion = false;
+				break;
+			}
 		}
 		else if (declRegion != null && declRegion.entity() != null) {
 			// declaration was found; return it if this is not an object call ('->') or if the found declaration is non-global

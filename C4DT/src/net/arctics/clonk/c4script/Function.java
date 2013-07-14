@@ -659,7 +659,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			switch (typing()) {
 			case DYNAMIC:
 				break;
-			case PARAMETERS_OPTIONALLY_TYPED:
+			case INFERRED:
 				if (eq(returnType, PrimitiveType.REFERENCE))
 					output.append(" &");
 				break;

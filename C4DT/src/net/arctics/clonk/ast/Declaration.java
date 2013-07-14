@@ -370,7 +370,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	@Override
 	public boolean equals(Object other) { return this == other; /* identity */ }
 
-	public Typing typing() { return index() != null ? index().typing() : Typing.PARAMETERS_OPTIONALLY_TYPED; }
+	public Typing typing() { return index() != null ? index().typing() : Typing.INFERRED; }
 
 	@Override
 	public String patternMatchingText() { return name(); }

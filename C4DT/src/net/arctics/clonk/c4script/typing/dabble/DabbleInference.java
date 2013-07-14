@@ -149,7 +149,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	@Override
 	public DabbleInference configure(Index index, String args) {
 		super.configure(index, args);
-		typing = defaulting(index != null ? index.typing() : null, Typing.PARAMETERS_OPTIONALLY_TYPED);
+		typing = defaulting(index != null ? index.typing() : null, Typing.INFERRED);
 		for (final String a : args.split("\\|")) //$NON-NLS-1$
 			switch (a) {
 			case "noticeParameterCountMismatch": //$NON-NLS-1$
@@ -989,7 +989,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 		boolean shouldTypeFromCalls(final Function function) {
 			final boolean typeFromCalls =
-				typing == Typing.PARAMETERS_OPTIONALLY_TYPED &&
+				typing == Typing.INFERRED &&
 				script instanceof Definition &&
 				function.numParameters() > 0 &&
 				(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
@@ -1032,7 +1032,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		private void fillTypingMaps(final Map<String, IType> variableTypes, final Map<String, Function.Typing> functionTypings) {
-			if (typing == Typing.PARAMETERS_OPTIONALLY_TYPED)
+			if (typing == Typing.INFERRED)
 				if (!partial)
 					for (final Script s : script.conglomerate())
 						for (final Variable v : s.variables()) {
@@ -1240,7 +1240,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (!typing.compatible(leftTy, rightTy))
 					visitor.incompatibleTypesMarker(rightSide, rightSide, leftTy, rightTy);
 				break;
-			case PARAMETERS_OPTIONALLY_TYPED:
+			case INFERRED:
 				visitor.judgment(leftSide, visitor.ty(rightSide), rightSide, TypingJudgementMode.OVERWRITE);
 				break;
 			case DYNAMIC:

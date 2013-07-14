@@ -1052,6 +1052,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	@Override
-	public Typing typing() { return Typing.PARAMETERS_OPTIONALLY_TYPED; }
+	public Typing typing() { return Typing.INFERRED; }
 
 }

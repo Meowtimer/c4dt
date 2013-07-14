@@ -20,7 +20,7 @@ public enum Typing {
 	/** Static typing completely disabled. No parameter annotations allowed. */
 	DYNAMIC,
 	/** Allow type annotations for parameters, as the engine does. */
-	PARAMETERS_OPTIONALLY_TYPED,
+	INFERRED,
 	/** Statically typed */
 	STATIC {
 		@Override

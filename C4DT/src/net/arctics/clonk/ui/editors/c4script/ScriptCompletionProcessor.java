@@ -469,7 +469,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private boolean varInitializationProposals(ProposalsSite pl) {
 		if (pl.contextExpression instanceof VarInitialization) {
 			final VarInitialization vi = (VarInitialization)pl.contextExpression;
-			Typing typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
+			Typing typing = Typing.INFERRED;
 			if (pl.index instanceof ProjectIndex)
 				typing = ((ProjectIndex)pl.index).nature().settings().typing;
 			switch (typing) {

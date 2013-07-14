@@ -33,7 +33,7 @@ public class ProjectSettings extends SettingsBase {
 	public String disabledErrors;
 	/** Typing mode for this project. */
 	@IniField
-	public Typing typing = Typing.PARAMETERS_OPTIONALLY_TYPED;
+	public Typing typing = Typing.INFERRED;
 	/** Typing this project is in the process of being migrated to */
 	@IniField(category="Migration")
 	public Typing migrationTyping = null;

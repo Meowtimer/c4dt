@@ -231,7 +231,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					}
 				});
 				break;
-			case DYNAMIC: case PARAMETERS_OPTIONALLY_TYPED:
+			case DYNAMIC: case INFERRED:
 				Display.getDefault().asyncExec(new Runnable() {
 					@Override
 					public void run() {
