@@ -49,7 +49,6 @@ public class ReferencesSearchQuery extends SearchQuery {
 
 	public ReferencesSearchQuery(ClonkProjectNature start, Declaration declaration) {
 		super();
-		start.getProject().getReferencingProjects();
 		this.declaration = declaration.latestVersion();
 		this.scope = declaration.occurenceScope(map(start.projectSet(), ClonkProjectNature.SELECT_INDEX));
 	}

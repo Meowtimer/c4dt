@@ -189,7 +189,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 */
 	@Override
 	public IResource resource() { return parentDeclaration() != null ? parentDeclaration().resource() : null; }
-	public IFile file() { return as(resource(), IFile.class); }
+	public IFile file() { return parentDeclaration() != null ? parentDeclaration().file() : as(resource(), IFile.class); }
 
 	/**
 	 * Returns the parent declaration this one is contained in

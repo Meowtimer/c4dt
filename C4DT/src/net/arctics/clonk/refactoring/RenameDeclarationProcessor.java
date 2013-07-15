@@ -1,9 +1,12 @@
 package net.arctics.clonk.refactoring;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.StringUtil.rawFileName;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
@@ -14,13 +17,12 @@ import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ui.search.ReferencesSearchQuery;
 import net.arctics.clonk.ui.search.SearchMatch;
 import net.arctics.clonk.ui.search.SearchResult;
+import net.arctics.clonk.util.IConverter;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -57,14 +59,12 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 
 	@Override
 	public Change createChange(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
-		final IResource declaringFile = decl.file();
+		final IFile declaringFile = decl.file();
 		final ReferencesSearchQuery query = new ReferencesSearchQuery(ClonkProjectNature.get(declaringFile), decl);
 		query.run(monitor);
 		final SearchResult searchResult = (SearchResult) query.getSearchResult();
 		// all references in code
 		final Set<Object> elements = new HashSet<Object>(Arrays.asList(searchResult.getElements()));
-		// declaration location
-		elements.add(declaringFile);
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
 			final Function fieldAsFunc = (Function)decl;
@@ -72,19 +72,25 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.script().source() instanceof IFile)
 					elements.add(relatedFunc);
 		}
+		final Map<IFile, Object> reverseLookup = new HashMap<>();
+		final Set<IFile> files = new HashSet<IFile>(Arrays.asList(map(elements.toArray(), IFile.class, new IConverter<Object, IFile>() {
+			@Override
+			public IFile convert(Object element) {
+				IFile file;
+				if (element instanceof IFile)
+					file = (IFile)element;
+				else if (element instanceof Declaration)
+					file = ((Declaration)element).file();
+				else
+					file = null;
+				if (file != null)
+					reverseLookup.put(file, element);
+				return file;
+			}
+		})));
+		files.add(declaringFile);
 		final CompositeChange composite = new CompositeChange(String.format(Messages.RenamingProgress, decl.toString()));
-		for (final Object element : elements) {
-			IFile file;
-			if (element instanceof IFile)
-				file = (IFile)element;
-			else if (element instanceof Structure)
-				file = ((Structure)element).file();
-			else if (element instanceof Function)
-				file = (IFile) ((Function)element).script().source();
-			else if (element instanceof IniUnit)
-				file = ((IniUnit)element).file();
-			else
-				file = null;
+		for (final IFile file : files)
 			if (file != null) {
 				final TextFileChange fileChange = new TextFileChange(String.format(Messages.RenameChangeDescription, decl.toString(), file.getFullPath().toString()), file);
 				fileChange.setEdit(new MultiTextEdit());
@@ -103,7 +109,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 						final int nameStart = decl.nameStart();
 						fileChange.addEdit(new ReplaceEdit(nameStart, decl.name().length(), newName));
 					}
-				for (final Match m : searchResult.getMatches(element)) {
+				for (final Match m : searchResult.getMatches(reverseLookup.get(file))) {
 					final SearchMatch match = (SearchMatch) m;
 					try {
 						fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
@@ -114,7 +120,6 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 				if (fileChange.getEdit().getChildrenSize() > 0)
 					composite.add(fileChange);
 			}
-		}
 		return composite;
 	}
 
