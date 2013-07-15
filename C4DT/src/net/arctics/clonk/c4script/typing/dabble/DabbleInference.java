@@ -558,8 +558,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (ref.baseFunction().latestVersion() != base)
 							continue;
 					}
-					RelevanceCheck: if (ref != null && call.predecessor() != null) {
-						final IType predTy = nodeType(f, other, v, vtor, call.predecessor());
+					RelevanceCheck: if (ref != null) {
+						final IType predTy = call.predecessor() != null
+							? nodeType(f, other, v, vtor, call.predecessor())
+							: call.parent(Script.class);
 						if (predTy == null)
 							continue;
 						for (final IType t : predTy) {
