@@ -15,6 +15,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
+import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -305,7 +306,7 @@ public class StructureTextEditor extends TextEditor {
 	@Override
 	protected void createActions() {
 		super.createActions();
-		addActions(MESSAGES_BUNDLE, OpenDeclarationAction.class);
+		addActions(MESSAGES_BUNDLE, OpenDeclarationAction.class, RenameDeclarationAction.class);
 		if (getSourceViewerConfiguration().getContentAssistant(getSourceViewer()) != null) {
 			final IAction action = new ContentAssistAction(MESSAGES_BUNDLE, "ContentAssist.", this); //$NON-NLS-1$
 			action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
@@ -319,6 +320,7 @@ public class StructureTextEditor extends TextEditor {
 		if (structure() != null) {
 			menu.add(new Separator(Core.MENU_GROUP_CLONK));
 			addAction(menu, ClonkTextEditorAction.idString(OpenDeclarationAction.class));
+			addAction(menu, ClonkTextEditorAction.idString(RenameDeclarationAction.class));
 		}
 	}
 

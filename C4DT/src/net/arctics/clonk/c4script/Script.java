@@ -777,7 +777,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public abstract IStorage source();
 
 	@Override
-	public final IFile file() {
+	public IFile file() {
 		final IStorage storage = source();
 		return storage instanceof IFile ? (IFile)storage : null;
 	}

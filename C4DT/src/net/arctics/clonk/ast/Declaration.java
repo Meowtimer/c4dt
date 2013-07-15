@@ -1,5 +1,7 @@
 package net.arctics.clonk.ast;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -186,9 +188,8 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 	 * Returns the resource this declaration is declared in
 	 */
 	@Override
-	public IResource resource() {
-		return parentDeclaration() != null ? parentDeclaration().resource() : null;
-	}
+	public IResource resource() { return parentDeclaration() != null ? parentDeclaration().resource() : null; }
+	public IFile file() { return as(resource(), IFile.class); }
 
 	/**
 	 * Returns the parent declaration this one is contained in

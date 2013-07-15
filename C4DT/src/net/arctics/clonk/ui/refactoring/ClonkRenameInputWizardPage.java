@@ -34,7 +34,7 @@ class ClonkRenameInputWizardPage extends UserInputWizardPage {
 		newNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		newNameText.setLayoutData(gd);
-		newNameText.setText(processor.getNewName());
+		newNameText.setText(processor.newName());
 	}
 	
 	@Override

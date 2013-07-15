@@ -22,7 +22,6 @@ import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.c4script.EvaluateC4Script;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicatesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
-import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
 import net.arctics.clonk.ui.search.ScriptSearchAction;
@@ -195,7 +194,6 @@ public class C4ScriptEditor extends StructureTextEditor {
 		addActions(MESSAGES_BUNDLE,
 			TidyUpCodeAction.class,
 			FindReferencesAction.class,
-			RenameDeclarationAction.class,
 			FindDuplicatesAction.class,
 			ToggleCommentAction.class,
 			ScriptSearchAction.class,
@@ -212,7 +210,6 @@ public class C4ScriptEditor extends StructureTextEditor {
 		if (script() != null) {
 			if (script().isEditable()) {
 				addAction(menu, ClonkTextEditorAction.idString(TidyUpCodeAction.class));
-				addAction(menu, ClonkTextEditorAction.idString(RenameDeclarationAction.class));
 				addAction(menu, ClonkTextEditorAction.idString(ToggleCommentAction.class));
 			}
 			addAction(menu, ClonkTextEditorAction.idString(FindReferencesAction.class));

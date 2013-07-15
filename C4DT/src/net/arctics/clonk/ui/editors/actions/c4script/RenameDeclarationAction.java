@@ -38,7 +38,7 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 		}
 	}
 	/**
-	 * Perform a Rename Refactoring on the specified declaration. Custom options are passed to {@link RenameDeclarationProcessor#RenameDeclarationProcessor(Declaration, String, int)}
+	 * Perform a Rename Refactoring on the specified declaration. Custom options are passed to {@link RenameDeclarationProcessor#RenameDeclarationProcessor(Declaration, String)}
 	 * @param declarationToRename The {@link Declaration} to rename
 	 * @param fixedNewName New name to perform this refactoring with, without presenting UI to change this name. Supply null to let the user specify the new name
 	 * @param renameProcessorOptions {@link RenameDeclarationProcessor} options
@@ -47,7 +47,7 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 		if (declarationToRename != null) {
 			saveModifiedFiles();
 			final String newName = fixedNewName != null ? fixedNewName : declarationToRename.name();
-			final RenameRefactoring refactoring = new RenameRefactoring(new RenameDeclarationProcessor(declarationToRename, newName, renameProcessorOptions));
+			final RenameRefactoring refactoring = new RenameRefactoring(new RenameDeclarationProcessor(declarationToRename, newName));
 			final ClonkRenameRefactoringWizard wizard = new ClonkRenameRefactoringWizard(refactoring, fixedNewName == null);
 			final RefactoringWizardOpenOperation op = new RefactoringWizardOpenOperation(wizard);
 			try {

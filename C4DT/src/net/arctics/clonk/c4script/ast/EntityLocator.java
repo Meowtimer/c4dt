@@ -17,7 +17,6 @@ import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
