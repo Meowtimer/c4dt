@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.DeclMask;

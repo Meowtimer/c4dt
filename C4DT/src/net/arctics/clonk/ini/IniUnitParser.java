@@ -180,7 +180,9 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 			return entry;
 		} catch (final IniParserException e) {
 			if (modifyMarkers)
-				markers.marker(this, Problem.GenericError, unit, e.offset(), e.endOffset(), Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, e.severity(), (Object)e.getMessage());
+				markers.marker(this, Problem.GenericError, unit, e.offset(), e.endOffset(),
+					Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION,
+					e.severity(), (Object)e.getMessage());
 			return entry;
 		}
 	}
