@@ -58,8 +58,6 @@ public class StaticTypingUtil {
 		final Script script = Script.get(file, true);
 		if (script != null) {
 			final List<TypeAnnotation> annotations = script.typeAnnotations();
-			if (annotations == null)
-				System.out.println("wat");
 			return annotations;
 		} else
 			return null;
