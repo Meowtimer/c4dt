@@ -108,6 +108,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 			return true;
 		}
 		public void searchScript(IResource resource, Script script) {
+			script.requireLoaded();
 			if (script.file() != null) {
 				if (declaration instanceof Definition) {
 					final Directive include = script.directiveIncludingDefinition((Definition) declaration);
