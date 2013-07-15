@@ -8,9 +8,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.typing.dabble.Maybe;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.MetaDefinition;
@@ -36,6 +36,8 @@ public enum Typing {
 			return super.unifyNoChoice(a, b);
 		}
 	};
+
+	public static final Typing PARAMETERS_OPTIONALLY_TYPED = INFERRED;
 
 	public boolean allowsNonParameterAnnotations() {
 		switch (this) {

@@ -1,5 +1,6 @@
 package net.arctics.clonk.util;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
@@ -260,7 +261,16 @@ public abstract class Utilities {
 		try {
 			return (T) Enum.valueOf((Class<Enum>)enumClass, value);
 		} catch (final IllegalArgumentException e) {
-			return (T) Enum.valueOf((Class<Enum>)enumClass, makeJavaConstantString(value));
+			try {
+				return (T) Enum.valueOf((Class<Enum>)enumClass, makeJavaConstantString(value));
+			} catch (final IllegalArgumentException e2) {
+				try {
+					final Field f = enumClass.getField(value);
+					return (T) f.get(null);
+				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException e1) {
+					return (T) enumValues(enumClass)[0];
+				}
+			}
 		}
 	}
 
