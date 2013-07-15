@@ -857,14 +857,21 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 						((IDocumentedDeclaration)function).fetchDocumentation();
 					Script context;
 					final ASTNode pred = funcCallInfo.callPredecessor();
-					if (pred != null) {
-						final Function.Typing map = cursorFunc.script().typings().get(cursorFunc);
-						if (map != null)
-							context = defaulting(as(map.nodeTypes[pred.localIdentifier()], Script.class), cursorFunc.script());
-						else
-							context = cursorFunc.script();
-					} else
+					ContextSelection: {
+						if (pred != null) {
+							final Function.Typing map = cursorFunc.script().typings().get(cursorFunc);
+							if (map != null) {
+								final IType t = map.nodeTypes[pred.localIdentifier()];
+								if (t != null)
+									for (final IType t2 : t)
+										if (t2 instanceof Script) {
+											context  = (Script)t2;
+											break ContextSelection;
+										}
+							}
+						}
 						context = state().structure();
+					}
 					info = new ScriptContextInformation(
 						context, function.name() + "()", UI.CLONK_ENGINE_ICON, //$NON-NLS-1$
 						function, funcCallInfo.parmIndex,
