@@ -231,7 +231,7 @@ public abstract class Declaration extends ASTNode implements Serializable, IHasR
 
 	@Override
 	public ASTNode[] subElements() {
-		final List<? extends Declaration> sd = this.subDeclarations(this.index(), DeclMask.ALL);
+		final List<? extends Declaration> sd = this.subDeclarations(this.index(), DeclMask.VARIABLES|DeclMask.FUNCTIONS);
 		return sd.toArray(new ASTNode[sd.size()]);
 	}
 

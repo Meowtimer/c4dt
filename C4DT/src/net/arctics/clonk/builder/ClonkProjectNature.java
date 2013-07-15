@@ -19,9 +19,9 @@ import net.arctics.clonk.Milestones;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.builder.ProjectSettings.ProblemReportingStrategyInfo;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
-import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
@@ -210,11 +210,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	private void load() {
 		settings();
-		if (Core.instance().wasUpdated()) {
-			System.out.println(String.format("Update took place: Cleaning project %s", this.project.getName()));
-			index = new ProjectIndex(getProject(), indexFolder());
-			performBuildOnOutdatedProject();
-		} else {
+		try {
 			ProjectIndex loadedIndex = Index.loadShallow(ProjectIndex.class, indexFolder(), null, settings().engine());
 			if (loadedIndex != null) {
 				index = loadedIndex; // necessary to avoid infinite recursion
@@ -227,10 +223,12 @@ public class ClonkProjectNature implements IProjectNature {
 				}
 			}
 			index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject(), indexFolder());
+		} catch (final Exception e) {
+			performCleanBuild();
 		}
 	}
 
-	private void performBuildOnOutdatedProject() {
+	private void performCleanBuild() {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {

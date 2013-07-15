@@ -1506,7 +1506,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final ProplistDeclaration proplDecl = new ProplistDeclaration(new ArrayList<Variable>());
 				final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
 				proplDecl.setParent(visitor.script());
-				var.setLocation(node.absolute());
+				var.setLocation(node);
 				node.setDeclaration(var);
 				initializeFromAssignment(node, type, origin, visitor, var);
 				visitor.judgment(node.predecessor(), proplDecl, TypingJudgementMode.UNIFY);
