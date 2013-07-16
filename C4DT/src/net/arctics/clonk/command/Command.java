@@ -1,10 +1,14 @@
 package net.arctics.clonk.command;
 
+import static net.arctics.clonk.util.StringUtil.multiply;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -15,7 +19,9 @@ import net.arctics.clonk.Flags;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.IEvaluationContext;
+import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectConverter;
 import net.arctics.clonk.c4script.Conf;
@@ -261,6 +267,52 @@ public class Command {
 		public static void ToggleDebug(Object context) { Flags.DEBUG = !Flags.DEBUG; }
 		@CommandFunction
 		public static void ToggleOutputDabbleGraph(Object context) { Flags.OUTPUTDABBLEGRAPH = !Flags.OUTPUTDABBLEGRAPH; }
+		@CommandFunction
+		public static void OutputTree(Object context, String projectName, final String outputFile) {
+			final ClonkProjectNature nat = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
+			class Output implements IASTVisitor<Void>, AutoCloseable {
+				Writer writer;
+				int depth;
+				Output() throws IOException {
+					this.writer = new FileWriter(new File(outputFile));
+				}
+				@Override
+				public void close() {
+					try {
+						writer.close();
+					} catch (final IOException e) {
+						e.printStackTrace();
+					}
+				}
+				@Override
+				public TraversalContinuation visitNode(ASTNode node, Void context) {
+					final ASTNode[] subs = node.subElements();
+					try {
+						writer.append(multiply("\t", depth));
+						if (node instanceof Declaration)
+							writer.append(String.format("%s (%s)", ((Declaration) node).name(), node.getClass().getSimpleName()));
+						else if (subs.length == 0)
+							writer.append(node.printed());
+						else
+							writer.append(node.getClass().getSimpleName());
+						writer.append('\n');
+					} catch (final Exception e) {
+						return TraversalContinuation.Cancel;
+					}
+					depth++;
+					for (final ASTNode s : subs)
+						if (s != null)
+							s.traverse(this, context);
+					depth--;
+					return TraversalContinuation.SkipSubElements;
+				}
+			}
+			try (Output output = new Output()) {
+				nat.index().traverse(output, null);
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 }
