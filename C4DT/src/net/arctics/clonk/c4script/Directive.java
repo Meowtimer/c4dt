@@ -30,7 +30,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		(DirectiveType.values(), Directive.class, new IConverter<DirectiveType, Directive>() {
 		@Override
 		public Directive convert(DirectiveType from) {
-			return new Directive(from, "");
+			return new Directive(from, "", 0);
 		};
 	});
 
@@ -59,15 +59,13 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 
 	private final DirectiveType type;
 	private String content;
+	private final int identifierStart;
 	private transient ID cachedID;
 
-	public Directive(DirectiveType type, String content) {
+	public Directive(DirectiveType type, String content, int identifierStart) {
 		this.content = content;
 		this.type = type;
-	}
-
-	public Directive(String type, String content) {
-		this(DirectiveType.makeType(type),content);
+		this.identifierStart = identifierStart;
 	}
 
 	/**
@@ -192,4 +190,9 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		content = elms[0].printed();
 		cachedID = null;
 	}
+
+	@Override
+	public int identifierStart() { return start()+identifierStart; }
+	@Override
+	public int identifierLength() { return content != null ? content.length() : null; }
 }

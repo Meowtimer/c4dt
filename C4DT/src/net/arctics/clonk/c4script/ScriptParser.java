@@ -416,8 +416,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				result.setLocation(startOfDeclaration, this.offset);
 			}
 			else {
+				eatWhitespace();
+				final int cs = offset;
 				final String content = parseDirectiveParms();
-				final Directive directive = new Directive(type, content);
+				final Directive directive = new Directive(type, content, cs-startOfDeclaration);
 				directive.setLocation(absoluteSourceLocation(startOfDeclaration, this.offset));
 				script.addDeclaration(directive);
 				result = directive;

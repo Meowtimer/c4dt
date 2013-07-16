@@ -75,7 +75,7 @@ public class SearchResult extends AbstractTextSearchResult {
 	 * @param indirect Flag indicating whether the match indirectly refers to the declaration references were searched for.
 	 */
 	public void addMatch(Structure structure, ASTNode match, boolean potential, boolean indirect) {
-		addMatch(structure, match.identifierStart()+match.sectionOffset(), match.identifierLength(), potential, indirect);
+		addMatch(structure, match.sectionOffset() + match.identifierStart(), match.identifierLength(), potential, indirect);
 	}
 	/**
 	 * Clear internally maintained list of {@link BufferedScanner}s that were created for each file in which a match was found.
