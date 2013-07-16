@@ -16,6 +16,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.DeclMask;
@@ -576,5 +577,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		final IniEntry entry = section != null ? as(section.itemByKey(p[p.length-1]), IniEntry.class) : null;
 		return entry != null ? as(entry.value(), cls) : null;
 	}
+
+	@Override
+	public ASTNode[] subElements() { return sections(); }
 
 }

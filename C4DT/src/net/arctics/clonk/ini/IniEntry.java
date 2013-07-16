@@ -1,9 +1,12 @@
 package net.arctics.clonk.ini;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.NameValueAssignment;
@@ -70,4 +73,6 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 		if (value instanceof ISelfValidatingIniEntryValue)
 			((ISelfValidatingIniEntryValue)value).validate(markers, this);
 	}
+	@Override
+	public ASTNode[] subElements() { return new ASTNode[] {as(value(), ASTNode.class)}; }
 }
