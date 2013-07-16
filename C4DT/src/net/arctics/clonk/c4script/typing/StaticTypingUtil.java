@@ -1,7 +1,7 @@
 package net.arctics.clonk.c4script.typing;
 
+import static net.arctics.clonk.util.StringUtil.multiply;
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.multiply;
 
 import java.io.File;
 import java.io.IOException;

@@ -386,13 +386,6 @@ public abstract class Utilities {
 			return b;
 	}
 
-	public static String multiply(String s, int times) {
-		final StringBuilder builder = new StringBuilder(s.length()*times);
-		for (int i = 0; i < times; i++)
-			builder.append(s);
-		return builder.toString();
-	}
-
 	public static Object token(final String token) {
 		return new Object() {
 			@Override

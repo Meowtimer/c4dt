@@ -3,8 +3,8 @@ package net.arctics.clonk.c4script.typing.dabble;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.Flags.OUTPUTDABBLEGRAPH;
 import static net.arctics.clonk.util.StringUtil.blockString;
+import static net.arctics.clonk.util.StringUtil.multiply;
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.multiply;
 
 import java.io.File;
 import java.io.FileWriter;
