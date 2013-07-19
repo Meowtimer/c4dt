@@ -100,7 +100,6 @@ import net.arctics.clonk.c4script.typing.CallTargetType;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.ITypeable;
-import net.arctics.clonk.c4script.typing.ManifestedFunction;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeVariable;
 import net.arctics.clonk.c4script.typing.Typing;
@@ -322,7 +321,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * Synchronization of multiple visitor threads will be performed by locking on objects of this type.
 		 * @author madeen
 		 */
-		final class Visit extends FunctionReturnTypeVariable implements Runnable, ManifestedFunction {
+		final class Visit extends FunctionReturnTypeVariable implements Runnable {
 
 			Visitor visitor;
 			IType[] inferredTypes;
@@ -340,8 +339,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public String toString() { return function.qualifiedName(script); }
 			@Override
 			public void run() { visitor.visit(); }
-			@Override
-			public Script script() { return script; }
 
 			public Visit(Function function) {
 				super(function);
