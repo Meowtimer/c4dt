@@ -43,7 +43,10 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  * @author madeen
  *
  */
-public abstract class Declaration extends ASTNode implements Serializable, IHasRelatedResource, INode, IIndexEntity, IAdaptable, IPlaceholderPatternMatchTarget, IHasName {
+public abstract class Declaration extends ASTNode implements
+	Serializable, IHasRelatedResource, INode, IIndexEntity,
+	IAdaptable, IPlaceholderPatternMatchTarget, IHasName
+{
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 

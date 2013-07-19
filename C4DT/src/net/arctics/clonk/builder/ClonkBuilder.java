@@ -339,8 +339,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				public void run() {
 					strategy.initialize(markers, monitor(), scripts);
 					strategy.run();
-					strategy.run2();
 					strategy.apply();
+					strategy.run2();
 				}
 			});
 		markers.deploy();

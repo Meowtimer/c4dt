@@ -221,39 +221,56 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	static class ParameterValidation {
+		Script script;
 		Function called;
 		CallDeclaration node;
-		Visit visit;
-		void regularParameterValidation(DabbleInference inference, boolean judgeConcrete) {
+		void regularParameterValidation(DabbleInference inference, Visitor v) {
 			final ASTNode[] params = node.params();
-			final IType pred = node.predecessor() != null ? visit.inferredTypes[node.predecessor().localIdentifier()] : visit.input().script();
+			IType[] nodeTypes;
+			if (v == null) {
+				final Function.Typing typing = script.typings().get(node.parent(Function.class));
+				if (typing == null)
+					return;
+				nodeTypes = typing.nodeTypes;
+			} else
+				nodeTypes = v.visit.inferredTypes;
+			final IType pred = node.predecessor() != null
+				? nodeTypes[node.predecessor().localIdentifier()]
+				: script;
+			if (pred == null)
+				return;
 			for (int p = 0; p < params.length; p++) {
 				final ASTNode given = params[p];
 				if (given == null)
 					continue;
 				final IType parmTy = called.parameterType(p, pred);
-				final IType givenTy = visit.inferredTypes[given.localIdentifier()];
+				final IType givenTy = nodeTypes[given.localIdentifier()];
 				final IType unified = inference.typing.unifyNoChoice(parmTy, givenTy);
 				if (unified == null)
-					visit.visitor.incompatibleTypesMarker(node, given, parmTy, visit.inferredTypes[given.localIdentifier()]);
-				else if (judgeConcrete && givenTy == PrimitiveType.UNKNOWN)
-					visit.visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
+					try {
+						inference.markers().marker(script, Problem.IncompatibleTypes, given, given.start(), given.end(), Markers.NO_THROW,
+							inference.typing == Typing.STATIC ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING,
+							parmTy.typeName(true), givenTy.typeName(true)
+						);
+					} catch (final ProblemException e) {}
+				else if (v != null && givenTy == PrimitiveType.UNKNOWN)
+					v.judgment(given, unified, TypingJudgementMode.UNIFY);
 			}
 			if (inference.noticeParameterCountMismatch)
 				validateParameterCount(inference);
 		}
-		public ParameterValidation(CallDeclaration node, Function called, Visit visit) {
+		public ParameterValidation(CallDeclaration node, Function called, Script script) {
 			super();
 			this.node = node;
-			this.visit = visit;
+			this.script = script;
 			this.called = called;
 		}
 		private void validateParameterCount(DabbleInference inference) {
 			final Function f = node.parent(Function.class);
 			final ASTNode[] params = node.params();
-			if (f.index() == visit.input().script().index() && params.length != f.numParameters() && !(f.script() instanceof Engine))
+			if (f.index() == script.index() && params.length != f.numParameters() && !(f.script() instanceof Engine))
 				try {
-					inference.markers().error(visit.visitor, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
+					inference.markers().error(script, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
 						f.numParameters(), params.length, f.name());
 				} catch (final ProblemException e) {}
 		}
@@ -270,10 +287,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	private void validateParameters() {
-		for (final ParameterValidation pv : parameterValidations) {
-			pv.regularParameterValidation(this, false);
-			markers.take(pv.visit.visitor);
-		}
+		for (final ParameterValidation pv : parameterValidations)
+			try {
+				pv.regularParameterValidation(this, null);
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
 		parameterValidations.clear();
 	}
 
@@ -2127,11 +2146,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// not a special case... check regular parameter types
 					if (!visitor.preliminary && !visitor.visit.doubleTake)
 						if (!applyRuleBasedValidation(node, visitor, params))
-							if (visitor.visit.function.script() == visitor.script())
+							if (visitor.visit.function.script() == visitor.script()) {
+								final ParameterValidation pv = new ParameterValidation(node, f, visitor.script());
 								if (f instanceof EngineFunction)
-									new ParameterValidation(node, f, visitor.visit).regularParameterValidation(visitor.inference(), true);
+									pv.regularParameterValidation(visitor.inference(), visitor);
 								else
-									parameterValidations.add(new ParameterValidation(node, f, visitor.visit));
+									parameterValidations.add(pv);
+							}
 				}
 				private void maybeUnknownMarker(CallDeclaration node, Visitor visitor, final String declarationName) throws ProblemException {
 					final IType container = unknownFunctionShouldBeError(node, visitor);

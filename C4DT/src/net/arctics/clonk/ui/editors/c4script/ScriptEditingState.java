@@ -36,7 +36,10 @@ import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
+import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
@@ -317,7 +320,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			if (part instanceof C4ScriptEditor && ((C4ScriptEditor)part).state() == this) {
 				final Function f = ((C4ScriptEditor)part).functionAtCursor();
 				if (f != null)
-					reportProblemsOnCalledFunctions(f, markers);
+					for (final ProblemReportingStrategy strategy : problemReportingStrategies())
+						reportProblemsOnCalledFunctions(f, markers, strategy);
 			}
 		} catch (final Exception e) {}
 	}
@@ -362,8 +366,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				public void run() {
 					s.initialize(markers, new NullProgressMonitor(), new Script[] {structure()});
 					s.run();
-					s.run2();
 					s.apply();
+					s.run2();
 				}
 			});
 	}
@@ -501,35 +505,49 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					strategy.captureMarkers();
 					strategy.run();
 					strategy.apply();
-				}
-			});
-
-		// visit called functions
-		try {
-			reportProblemsOnCalledFunctions(function, markers);
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-
-		// parameter validation
-		for (final ProblemReportingStrategy strategy : problemReportingStrategies())
-			strategy.steer(new Runnable() {
-				@Override
-				public void run() {
+					// visit called functions
+					try {
+						reportProblemsOnCalledFunctions(function, markers, strategy);
+					} catch (final Exception e) {
+						e.printStackTrace();
+					}
 					strategy.run2();
 				}
 			});
-
 		return markers;
 	}
 
-	private void reportProblemsOnCalledFunctions(final Function function, final Markers markers) {
+	private void reportProblemsOnCalledFunctions(
+		final Function function,
+		final Markers markers,
+		final ProblemReportingStrategy strategy
+	) {
 		@SuppressWarnings("serial")
 		class DepthCallsCollector
 			extends HashMap<Pair<Script, Function>, Set<CallDeclaration>>
 			implements IASTVisitor<Pair<Script, Function>>
 		{
 			final Pair<Script, Function> entry = Pair.pair(structure(), function);
+			final IASTVisitor<Script> assignmentFollower = new IASTVisitor<Script>() {
+				@Override
+				public TraversalContinuation visitNode(ASTNode node, Script context) {
+					if (node instanceof AccessVar) {
+						final AccessVar av = (AccessVar) node;
+						final Variable v = as(av.declaration(), Variable.class);
+						if (v != null && v.scope() == Scope.LOCAL) {
+							final List<AccessVar> vr = context.varReferences().get(av.name());
+							if (vr != null)
+								for (final AccessVar o : vr)
+									if (o.declaration() == v) {
+										final Function f = o.parent(Function.class);
+										if (f != null)
+											follow(f, context);
+									}
+						}
+					}
+					return TraversalContinuation.Continue;
+				}
+			};
 			Function.Typing typing = structure().typings().get(function);
 			CallDeclaration localCall;
 			final int MAX_DEPTH = 4;
@@ -550,46 +568,52 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 							if (targetTy != null)
 								for (final IType t : targetTy)
 									if (t instanceof Script) {
-										final Pair<Script, Function> pair = Pair.pair((Script) t, ((Script)t).findFunction(f.name()));
-										if (pair.equals(entry))
-											continue;
-										Set<CallDeclaration> calls = this.get(pair);
-										if (calls == null) {
-											calls = new HashSet<>(3);
-											calls.add(localCall);
-											this.put(pair, calls);
-											if (depth < MAX_DEPTH) {
-												final Function.Typing old = typing;
-												typing = ((Script) t).typings().get(f);
-												depth++;
-												f.traverse(this, pair);
-												depth--;
-												typing = old;
-											}
-										} else
-											calls.add(localCall);
+										final Script s = (Script) t;
+										follow(f, s);
 									}
 						} catch (final Exception e) {
 							e.printStackTrace();
 						}
+				} else if (node instanceof BinaryOp) {
+					final BinaryOp op = (BinaryOp) node;
+					op.leftSide().traverse(this.assignmentFollower, context.first());
 				}
 				return TraversalContinuation.Continue;
+			}
+			private void follow(final Function f, Script s) {
+				final Pair<Script, Function> pair = Pair.pair(s, s.findFunction(f.name()));
+				if (!pair.equals(entry)) {
+					Set<CallDeclaration> calls = this.get(pair);
+					if (calls == null) {
+						calls = new HashSet<>(3);
+						calls.add(localCall);
+						this.put(pair, calls);
+						if (depth < MAX_DEPTH) {
+							final Function.Typing old = typing;
+							typing = s.typings().get(f);
+							depth++;
+							f.traverse(this, pair);
+							depth--;
+							typing = old;
+						}
+					} else
+						calls.add(localCall);
+				}
 			}
 		}
 		final DepthCallsCollector collector = new DepthCallsCollector();
 		if (!collector.isEmpty()) {
 			final Marker lastMarker = markers.last();
 			//System.out.println(StringUtil.blockString("", "", ",", collector.keySet()));
-			for (final ProblemReportingStrategy strategy : problemReportingStrategies())
-				strategy.steer(new Runnable() {
-					@Override
-					public void run() {
-						strategy.initialize(markers, new NullProgressMonitor(), collector.keySet());
-						strategy.captureMarkers();
-						strategy.run();
-						strategy.apply();
-					}
-				});
+			strategy.steer(new Runnable() {
+				@Override
+				public void run() {
+					strategy.initialize(markers, new NullProgressMonitor(), collector.keySet());
+					strategy.captureMarkers();
+					strategy.run();
+					strategy.apply();
+				}
+			});
 			if (markers.last() != lastMarker)
 				for (Marker m = lastMarker != null ? lastMarker.next : markers.first(); m != null; m = m.next)
 					if (m.severity == IMarker.SEVERITY_ERROR && m.reporter != null) {
@@ -711,8 +735,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 								s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
 								s.setObserver(observer);
 								s.run();
-								s.run2();
 								s.apply();
+								s.run2();
 							}
 						});
 			return fparser;
@@ -731,7 +755,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					synchronized (structureModificationLock) {
 						reportProblems(markers);
 						if (cf != null)
-							reportProblemsOnCalledFunctions(cf, markers);
+							for (final ProblemReportingStrategy strategy : problemReportingStrategies())
+								reportProblemsOnCalledFunctions(cf, markers, strategy);
 					}
 					markers.deploy();
 					Display.getDefault().asyncExec(refreshEditorsRunnable());

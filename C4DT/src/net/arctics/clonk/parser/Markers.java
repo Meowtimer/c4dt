@@ -191,12 +191,9 @@ public class Markers implements Iterable<Marker> {
 		}
 
 		if ((flags & ABSOLUTE_MARKER_LOCATION) == 0 && node != null) {
-			final Function f = node.parent(Function.class);
-			if (f != null) {
-				final int offs = f.bodyLocation().start();
-				markerStart += offs;
-				markerEnd += offs;
-			}
+			final int offs = node.sectionOffset();
+			markerStart += offs;
+			markerEnd += offs;
 		}
 		final String problem = code.makeErrorString(args);
 		add(new Marker(positionProvider, code, node, markerStart, markerEnd, severity, args));

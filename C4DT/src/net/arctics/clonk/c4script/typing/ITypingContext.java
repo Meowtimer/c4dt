@@ -41,7 +41,7 @@ public interface ITypingContext {
 	 */
 	boolean judgment(ASTNode node, IType type, TypingJudgementMode mode);
 	/**
-	 * Create a marker pointing out some type incompatibility at a node.  
+	 * Create a marker pointing out some type incompatibility at a node.
 	 * @param node The node at which the incompatibility is to be marked
 	 * @param region Text region
 	 * @param left First type.

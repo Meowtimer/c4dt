@@ -23,7 +23,7 @@ import org.eclipse.ui.part.FileEditorInput;
  * Declaration that contains sub declarations and describes more complex structures (like DefCores and scripts).
  * Provides support for being pinned to files in the project tree using {@link IResource} session properties.
  */
-public abstract class Structure extends Declaration implements ILatestDeclarationVersionProvider {
+public abstract class Structure extends Declaration implements ILatestDeclarationVersionProvider, IASTPositionProvider {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -224,9 +224,15 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		return d;
 	}
 
+	@Override
 	public IFile file() {
 		final Structure p = parent(Structure.class);
 		return p != null ? p.file() : null;
 	}
+
+	@Override
+	public Declaration container() { return this; }
+	@Override
+	public int fragmentOffset() { return 0; }
 
 }
