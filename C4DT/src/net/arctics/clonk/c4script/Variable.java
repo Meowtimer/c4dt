@@ -54,7 +54,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * Explicit type, not to be changed by weird type inference
 	 */
-	private transient boolean staticallyTyped;
+	private boolean typePinned;
 
 	/**
 	 * Initialize expression for locals; not constant so saving value is not sufficient
@@ -78,7 +78,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		this.type = type;
 		this.description = desc;
 		this.scope = Scope.VAR;
-		this.staticallyTyped = true;
+		this.typePinned = true;
 	}
 
 	public Variable(String name, ASTNode initialization) {
@@ -147,17 +147,17 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	public void forceType(IType type, boolean typeLocked) {
 		forceType(type);
-		this.staticallyTyped = typeLocked;
+		this.typePinned = typeLocked;
 	}
 
-	public void lockType() { staticallyTyped = true; }
+	public void pinType() { typePinned = true; }
 	public void assignType(IType type) { assignType(type, false); }
 
 	@Override
-	public void assignType(IType type, boolean _static) {
-		if (!staticallyTyped || _static) {
+	public void assignType(IType type, boolean pin) {
+		if (!typePinned || pin) {
 			forceType(type);
-			staticallyTyped = _static;
+			typePinned = pin;
 		}
 	}
 
@@ -292,8 +292,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public boolean isGlobal() { return scope == Scope.STATIC || scope == Scope.CONST; }
 
 	private void ensureTypeLockedIfPredefined(ASTNode declaration) {
-		if (!staticallyTyped && declaration instanceof Engine)
-			staticallyTyped = true;
+		if (!typePinned && declaration instanceof Engine)
+			typePinned = true;
 	}
 
 	@Override
@@ -343,7 +343,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public Function function() { return topLevelParentDeclarationOfType(Function.class); }
 	@Override
-	public boolean staticallyTyped() { return staticallyTyped || isEngineDeclaration(); }
+	public boolean staticallyTyped() { return typePinned || isEngineDeclaration(); }
 	@Override
 	public Object self() { return null; }
 	@Override

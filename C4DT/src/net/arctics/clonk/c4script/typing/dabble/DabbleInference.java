@@ -1386,6 +1386,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						? CallTargetType.INSTANCE // global func - don't assume this to be typed as this script
 						: visitor.input().thisType;
 				}
+				if (d instanceof Variable && ((Variable)d).staticallyTyped())
+					return ((Variable)d).type();
 				final TypeVariable stored = findTypeVariable(node, visitor);
 				if (stored != null)
 					return stored.get();
