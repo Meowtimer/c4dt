@@ -91,7 +91,8 @@ public enum Problem {
 	ConcreteArgumentMismatch(Messages.ConcreteArgumentMismatch,
 		Messages.CAM_Arg, Messages.CAM_Par, Messages.CAM_Callee, Messages.CAM_Expected, Messages.CAM_Got),
 	DeclarationNotFound(Messages.DeclarationNotFound, Messages.DNF_DeclarationName, Messages.DNF_Container),
-	LoopVariableUsedInMultipleLoops(Messages.LoopVariableUsedInMultipleLoops, Messages.LoopVariableName);
+	LoopVariableUsedInMultipleLoops(Messages.LoopVariableUsedInMultipleLoops, Messages.LoopVariableName),
+	LeadsToErrors("'%s' leads to errors");
 
 	private String message;
 	private String[] formatArgumentDescriptions;

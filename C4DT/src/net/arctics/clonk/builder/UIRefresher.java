@@ -23,17 +23,19 @@ final class UIRefresher implements Runnable {
 
 	@Override
 	public void run() {
-		IWorkbench w = PlatformUI.getWorkbench();
-		for (IWorkbenchWindow window : w.getWorkbenchWindows()) {
-			for (IWorkbenchPage page : window.getPages())
-				for (IEditorReference ref : page.getEditorReferences()) {
-					IEditorPart part = ref.getEditor(false);
-					if (part != null && part instanceof StructureTextEditor)
-						((StructureTextEditor)part).refreshOutline();
+		final IWorkbench w = PlatformUI.getWorkbench();
+		for (final IWorkbenchWindow window : w.getWorkbenchWindows()) {
+			for (final IWorkbenchPage page : window.getPages())
+				for (final IEditorReference ref : page.getEditorReferences()) {
+					final IEditorPart part = ref.getEditor(false);
+					if (part != null && part instanceof StructureTextEditor) {
+						final StructureTextEditor ed = (StructureTextEditor)part;
+						ed.refreshOutline();
+					}
 				}
-			CommonNavigator projectExplorer = UI.projectExplorer(window);
+			final CommonNavigator projectExplorer = UI.projectExplorer(window);
 			if (projectExplorer != null)
-				for (Script s : resourcesToBeRefreshed)
+				for (final Script s : resourcesToBeRefreshed)
 					UI.refreshAllProjectExplorers(s.resource());
 		}
 	}

@@ -266,7 +266,7 @@ public class Command {
 		@CommandFunction
 		public static void ToggleDebug(Object context) { Flags.DEBUG = !Flags.DEBUG; }
 		@CommandFunction
-		public static void ToggleOutputDabbleGraph(Object context) { Flags.OUTPUTDABBLEGRAPH = !Flags.OUTPUTDABBLEGRAPH; }
+		public static void ToggleOutputDabblePlan(Object context) { Flags.OUTPUTDABBLEPLAN = !Flags.OUTPUTDABBLEPLAN; }
 		@CommandFunction
 		public static void OutputTree(Object context, String projectName, final String outputFile) {
 			final ClonkProjectNature nat = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));

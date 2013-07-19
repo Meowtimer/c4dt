@@ -1,7 +1,7 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
 import static net.arctics.clonk.Flags.DEBUG;
-import static net.arctics.clonk.Flags.OUTPUTDABBLEGRAPH;
+import static net.arctics.clonk.Flags.OUTPUTDABBLEPLAN;
 import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.StringUtil.multiply;
 import static net.arctics.clonk.util.Utilities.as;
@@ -63,9 +63,9 @@ class Plan extends LinkedList<Runnable> {
 	static boolean requires(Visit testDependent, Visit testRequirement, Set<Visit> catcher) {
 		if (!catcher.add(testDependent))
 			return false;
-		if (testDependent.requirements.contains(testRequirement))
+		if (testDependent.dependencies.contains(testRequirement))
 			return true;
-		else for (final Visit td_ : testDependent.requirements)
+		else for (final Visit td_ : testDependent.dependencies)
 			if (requires(td_, testRequirement, catcher))
 				return true;
 		return false;
@@ -75,7 +75,7 @@ class Plan extends LinkedList<Runnable> {
 		if (requirement == dependent)
 			return;
 		if (!requires(requirement, dependent, new HashSet<Visit>())) {
-			dependent.requirements.add(requirement);
+			dependent.dependencies.add(requirement);
 			requirement.dependents.add(dependent);
 		} else {
 			if (DEBUG)
@@ -206,7 +206,7 @@ class Plan extends LinkedList<Runnable> {
 				log.append(String.format("%sVisiting %s\n", multiply("\t", depth), v.toString()));
 			v.run();
 			for (final Visit d : v.dependents)
-				if (d.requirements.remove(v) && d.requirements.size() == 0)
+				if (d.dependencies.remove(v) && d.dependencies.size() == 0)
 					run(d, depth+1);
 		}
 		@Override
@@ -216,9 +216,9 @@ class Plan extends LinkedList<Runnable> {
 		}
 		void find(Set<Visit> catcher, Visit start) {
 			if (catcher.add(start)) {
-				if (start.requirements.size() == 0)
+				if (start.dependencies.size() == 0)
 					this.add(start);
-				for (final Visit v : start.requirements)
+				for (final Visit v : start.dependencies)
 					find(catcher, v);
 				for (final Visit v : start.dependents)
 					find(catcher, v);
@@ -244,7 +244,7 @@ class Plan extends LinkedList<Runnable> {
 		final List<Visit> roots = new LinkedList<>();
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.visits.values())
-				if (v.requirements.size() == 0)
+				if (v.dependencies.size() == 0)
 					if (v.dependents.size() == 0)
 						this.add(v);
 					else
@@ -279,7 +279,7 @@ class Plan extends LinkedList<Runnable> {
 						writer.append("digraph G {bgcolor=white\n");
 						final Set<Visit> f = c.flatten();
 						for (final Visit v : f)
-							if (!v.requirements.isEmpty() || !v.dependents.isEmpty())
+							if (!v.dependencies.isEmpty() || !v.dependents.isEmpty())
 								writer.append(String.format("\tnode [ style=filled,shape=\"box\",fillcolor=\"antiquewhite:aquamarine\" ] \"%s\";\n", v.toString()));
 
 						for (final Visit v : f)
@@ -303,7 +303,7 @@ class Plan extends LinkedList<Runnable> {
 		populateVisitsMap();
 		determineRequirements();
 		populate();
-		if (OUTPUTDABBLEGRAPH)
+		if (OUTPUTDABBLEPLAN)
 			output();
 	}
 

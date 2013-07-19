@@ -9,7 +9,7 @@ import net.arctics.clonk.ui.editors.StructureTextEditor;
 public class LandscapeScriptEditor extends StructureTextEditor {
 	private LandscapeScriptEditingState state;
 	@Override
-	protected LandscapeScriptEditingState state() {
+	public LandscapeScriptEditingState state() {
 		if (state == null) {
 			state = StructureEditingState.request(LandscapeScriptEditingState.class, getDocumentProvider().getDocument(getEditorInput()), new LandscapeScript(fileEditedBy(this)), this);
 			state.reparse();

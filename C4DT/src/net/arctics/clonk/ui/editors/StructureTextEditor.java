@@ -413,7 +413,7 @@ public class StructureTextEditor extends TextEditor {
 	 * Return the {@link StructureEditingState} object being shared for all editors on the same file.
 	 * @return The {@link StructureEditingState}
 	 */
-	protected StructureEditingState<?, ?> state() { return null; }
+	public StructureEditingState<?, ?> state() { return null; }
 
 	@Override
 	protected void initializeKeyBindingScopes() {

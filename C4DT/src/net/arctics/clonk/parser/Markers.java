@@ -3,11 +3,10 @@ package net.arctics.clonk.parser;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
@@ -41,14 +40,11 @@ public class Markers implements Iterable<Marker> {
 	public Markers(IMarkerListener listener) { this(); this.listener = listener; }
 	public Markers(boolean enabled) { this.enabled = enabled; }
 
-	/**
-	 * Whether to not create any error markers at all - set if script is contained in linked group
-	 */
 	private boolean enabled = true;
 	private final Set<Problem> disabledErrors = new HashSet<Problem>();
 	private IMarkerListener listener;
 	private Marker first, last;
-	protected List<IMarker> captured;
+	private Set<IMarker> captured;
 
 	public synchronized Marker clear() {
 		final Marker r = first;
@@ -60,6 +56,7 @@ public class Markers implements Iterable<Marker> {
 	public IMarkerListener listener() { return listener; }
 
 	public Marker last() { return last; }
+	public Marker first() { return first; }
 
 	public void discardFrom(Marker start) {
 		if (start == null) {
@@ -133,6 +130,8 @@ public class Markers implements Iterable<Marker> {
 	}
 
 	public synchronized boolean add(Marker e) {
+		if (!errorEnabled(e.code))
+			return false;
 		if (last == null) {
 			first = last = e;
 			e.prev = e.next = null;
@@ -151,8 +150,7 @@ public class Markers implements Iterable<Marker> {
 		synchronized (this) {
 			for (Marker m = f, n; m != null; m = n) {
 				n = m.next;
-				if (errorEnabled(m.code))
-					this.add(m);
+				this.add(m);
 			}
 		}
 	}
@@ -345,11 +343,18 @@ public class Markers implements Iterable<Marker> {
 		}
 	}
 
+	public void capture(Collection<IMarker> markers) {
+		if (captured == null)
+			captured = new HashSet<>(markers);
+		else
+			captured.addAll(markers);
+	}
+
 	public void captureExistingMarkers(IResource resource) {
 		if (resource == null)
 			return;
 		try {
-			captured = new ArrayList<>(Arrays.asList(resource.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
+			captured = new HashSet<>(Arrays.asList(resource.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
 			resource.deleteMarkers(IMarker.TASK, true, IResource.DEPTH_ONE);
 		} catch (final CoreException e1) {
 			e1.printStackTrace();

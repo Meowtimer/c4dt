@@ -3,11 +3,12 @@ package net.arctics.clonk.ui.editors.c4script;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -28,6 +29,7 @@ import net.arctics.clonk.c4group.C4GroupItem;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.FunctionFragmentParser;
+import net.arctics.clonk.c4script.Marker;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
@@ -98,13 +100,14 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * C4Script-specific specialization of {@link StructureEditingState} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
  * @author madeen
  *
  */
-public final class ScriptEditingState extends StructureEditingState<C4ScriptEditor, Script> {
+public final class ScriptEditingState extends StructureEditingState<C4ScriptEditor, Script> implements IASTPositionProvider {
 
 	public final class Assistant extends ContentAssistant {
 		private ScriptCompletionProcessor processor;
@@ -300,6 +303,25 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		reparseWithDocumentContents(refreshEditorsRunnable());
 	}
 
+	@Override
+	public void refreshAfterBuild() {
+		super.refreshAfterBuild();
+		final Markers markers = new Markers();
+		reportProblemsOnFunctionsCalledByActiveFunction(markers);
+		markers.deploy();
+	}
+
+	private void reportProblemsOnFunctionsCalledByActiveFunction(final Markers markers) {
+		try {
+			final IWorkbenchPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart();
+			if (part instanceof C4ScriptEditor && ((C4ScriptEditor)part).state() == this) {
+				final Function f = ((C4ScriptEditor)part).functionAtCursor();
+				if (f != null)
+					reportProblemsOnCalledFunctions(f, markers);
+			}
+		} catch (final Exception e) {}
+	}
+
 	private Runnable refreshEditorsRunnable() {
 		return new Runnable() {
 			@Override
@@ -333,19 +355,17 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			Display.getDefault().asyncExec(uiRefreshRunnable);
 	}
 
-	private void reportProblems() {
-		final Markers markers = new StructureMarkers(true);
-		synchronized (structureModificationLock) {
-			reportProblems(markers);
-		}
-		markers.deploy();
-	}
-
 	private void reportProblems(final Markers markers) {
-		for (final ProblemReportingStrategy s : problemReportingStrategies()) {
-			s.initialize(markers, new NullProgressMonitor(), new Script[] {structure()});
-			s.run();
-		}
+		for (final ProblemReportingStrategy s : problemReportingStrategies())
+			s.steer(new Runnable() {
+				@Override
+				public void run() {
+					s.initialize(markers, new NullProgressMonitor(), new Script[] {structure()});
+					s.run();
+					s.run2();
+					s.apply();
+				}
+			});
 	}
 
 	public List<ProblemReportingStrategy> problemReportingStrategies() {
@@ -412,12 +432,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 		private void captureMarkersInFunctionBodies() {
 			try {
-				captured = new ArrayList<>(Arrays.asList(structure().file().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
-				for (final Iterator<IMarker> it = captured.iterator(); it.hasNext();) {
+				final Set<IMarker> _captured = new HashSet<>(Arrays.asList(structure().file().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
+				for (final Iterator<IMarker> it = _captured.iterator(); it.hasNext();) {
 					final IMarker c = it.next();
 					if (structure().funcAt(c.getAttribute(IMarker.CHAR_START, -1)) == null)
 						it.remove();
 				}
+				this.capture(_captured);
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
@@ -452,10 +473,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			public void run() {
 				try {
 					if (structure().source() instanceof IResource && C4GroupItem.groupItemBackingResource((IResource) structure().source()) == null) {
-						removeMarkers(fn, structure());
-						final Function f = (Function) fn.latestVersion();
-						final Markers markers = reportProblems(f);
-						markers.deploy();
+						reportProblems((Function) fn.latestVersion()).deploy();
 						Display.getDefault().asyncExec(refreshEditorsRunnable());
 					}
 				} catch (final Exception e) {
@@ -470,46 +488,121 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		if (errorsWhileTypingDisabled())
 			return new Markers();
 
-		final Markers markers = new Markers(new MarkerConfines(function));
+		final Markers markers = new Markers();
 		markers.applyProjectSettings(structure().index());
 
 		// visit the function
 		structure().deriveInformation();
-		for (final ProblemReportingStrategy strategy : problemReportingStrategies()) {
-			strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
-			strategy.run();
-		}
-
-		// visit directly called functions
-		final Function.Typing typing = structure().typings().get(function);
-		if (typing != null) try {
-			final Set<Pair<Script, Function>> callees = new HashSet<Pair<Script, Function>>();
-			function.traverse(new IASTVisitor<Void>() {
+		for (final ProblemReportingStrategy strategy : problemReportingStrategies())
+			strategy.steer(new Runnable() {
 				@Override
-				public TraversalContinuation visitNode(ASTNode node, Void context) {
-					if (node instanceof CallDeclaration) {
-						final CallDeclaration cd = (CallDeclaration) node;
-						final Function f = as(cd.declaration(), Function.class);
-						if (f != null && f.body() != null) {
-							final IType pred = cd.predecessor() != null ? typing.nodeTypes[cd.predecessor().localIdentifier()] : structure();
-							if (pred != null)
-								for (final IType t : pred)
-									if (t instanceof Script)
-										callees.add(Pair.pair((Script)t, f));
-						}
-					}
-					return TraversalContinuation.Continue;
-				}
-			}, null);
-			if (callees.size() > 0)
-				for (final ProblemReportingStrategy strategy : problemReportingStrategies()) {
-					strategy.initialize(markers, new NullProgressMonitor(), callees);
+				public void run() {
+					strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
+					strategy.captureMarkers();
 					strategy.run();
+					strategy.apply();
 				}
+			});
+
+		// visit called functions
+		try {
+			reportProblemsOnCalledFunctions(function, markers);
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
+
+		// parameter validation
+		for (final ProblemReportingStrategy strategy : problemReportingStrategies())
+			strategy.steer(new Runnable() {
+				@Override
+				public void run() {
+					strategy.run2();
+				}
+			});
+
 		return markers;
+	}
+
+	private void reportProblemsOnCalledFunctions(final Function function, final Markers markers) {
+		@SuppressWarnings("serial")
+		class DepthCallsCollector
+			extends HashMap<Pair<Script, Function>, Set<CallDeclaration>>
+			implements IASTVisitor<Pair<Script, Function>>
+		{
+			final Pair<Script, Function> entry = Pair.pair(structure(), function);
+			Function.Typing typing = structure().typings().get(function);
+			CallDeclaration localCall;
+			final int MAX_DEPTH = 4;
+			int depth = 0;
+			{ function.traverse(this, entry); }
+			@Override
+			public TraversalContinuation visitNode(ASTNode node, Pair<Script, Function> context) {
+				if (typing == null)
+					return TraversalContinuation.Cancel;
+				if (node instanceof CallDeclaration) {
+					if (depth == 0)
+						localCall = (CallDeclaration) node;
+					final CallDeclaration cd = (CallDeclaration) node;
+					final Function f = as(cd.declaration(), Function.class);
+					if (f != null && f.body() != null && !f.isGlobal())
+						try {
+							final IType targetTy = cd.predecessor() != null ? typing.nodeTypes[cd.predecessor().localIdentifier()] : context.first();
+							if (targetTy != null)
+								for (final IType t : targetTy)
+									if (t instanceof Script) {
+										final Pair<Script, Function> pair = Pair.pair((Script) t, ((Script)t).findFunction(f.name()));
+										if (pair.equals(entry))
+											continue;
+										Set<CallDeclaration> calls = this.get(pair);
+										if (calls == null) {
+											calls = new HashSet<>(3);
+											calls.add(localCall);
+											this.put(pair, calls);
+											if (depth < MAX_DEPTH) {
+												final Function.Typing old = typing;
+												typing = ((Script) t).typings().get(f);
+												depth++;
+												f.traverse(this, pair);
+												depth--;
+												typing = old;
+											}
+										} else
+											calls.add(localCall);
+									}
+						} catch (final Exception e) {
+							e.printStackTrace();
+						}
+				}
+				return TraversalContinuation.Continue;
+			}
+		}
+		final DepthCallsCollector collector = new DepthCallsCollector();
+		if (!collector.isEmpty()) {
+			final Marker lastMarker = markers.last();
+			//System.out.println(StringUtil.blockString("", "", ",", collector.keySet()));
+			for (final ProblemReportingStrategy strategy : problemReportingStrategies())
+				strategy.steer(new Runnable() {
+					@Override
+					public void run() {
+						strategy.initialize(markers, new NullProgressMonitor(), collector.keySet());
+						strategy.captureMarkers();
+						strategy.run();
+						strategy.apply();
+					}
+				});
+			if (markers.last() != lastMarker)
+				for (Marker m = lastMarker != null ? lastMarker.next : markers.first(); m != null; m = m.next)
+					if (m.severity == IMarker.SEVERITY_ERROR && m.reporter != null) {
+						final Function fn = m.reporter.parent(Function.class);
+						if (fn != null)
+							for (final Entry<Pair<Script, Function>, Set<CallDeclaration>> e : collector.entrySet())
+								if (e.getKey().second() == fn)
+									for (final CallDeclaration cd : e.getValue())
+										try {
+											markers.error(this, Problem.LeadsToErrors, cd, cd, Markers.NO_THROW, cd.printed());
+										} catch (final ProblemException e1) {}
+					}
+		}
 	}
 
 	private boolean errorsWhileTypingDisabled() {
@@ -602,8 +695,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	public FunctionFragmentParser updateFunctionFragment(
-		Function function,
-		IASTVisitor<ProblemReporter> observer,
+		final Function function,
+		final IASTVisitor<ProblemReporter> observer,
 		boolean typingContextVisitInAnyCase
 	) {
 		synchronized (structureModificationLock) {
@@ -611,27 +704,41 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			final boolean change = fparser.update();
 			if (change || (observer != null && typingContextVisitInAnyCase))
 				for (final ProblemReportingStrategy s : problemReportingStrategies())
-					if ((s.capabilities() & Capabilities.TYPING) != 0) {
-						s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
-						s.setObserver(observer);
-						s.run();
-					}
+					if ((s.capabilities() & Capabilities.TYPING) != 0)
+						s.steer(new Runnable() {
+							@Override
+							public void run() {
+								s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
+								s.setObserver(observer);
+								s.run();
+								s.run2();
+								s.apply();
+							}
+						});
 			return fparser;
 		}
 	}
 
 	@Override
 	public void partActivated(IWorkbenchPart part) {
-		if (editors.contains(part) && structure() != null)
+		if (editors.contains(part) && structure() != null) {
+			final Function cf = ((C4ScriptEditor)part).functionAtCursor();
 			new Job("Refreshing problem markers") {
 				@Override
 				protected IStatus run(IProgressMonitor monitor) {
 					structure().requireLoaded();
-					reportProblems();
+					final Markers markers = new StructureMarkers(true);
+					synchronized (structureModificationLock) {
+						reportProblems(markers);
+						if (cf != null)
+							reportProblemsOnCalledFunctions(cf, markers);
+					}
+					markers.deploy();
 					Display.getDefault().asyncExec(refreshEditorsRunnable());
 					return Status.OK_STATUS;
 				}
 			}.schedule();
+		}
 		super.partBroughtToTop(part);
 	}
 
@@ -818,4 +925,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	    	hover = new ScriptTextHover();
 	    return hover;
 	}
+	@Override
+	public IFile file() { return structure().file(); }
+	@Override
+	public Declaration container() { return structure(); }
+	@Override
+	public int fragmentOffset() { return 0; }
 }

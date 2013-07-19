@@ -154,12 +154,8 @@ public class C4ScriptEditor extends StructureTextEditor {
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		if (state != null) {;
+		if (state != null)
 			state.cancelReparsingTimer();
-			final Function f = functionAtCursor();
-			if (f != null)
-				state.reportProblems(f);
-		}
 		state().assistant().hide();
 		super.editorSaved();
 	}

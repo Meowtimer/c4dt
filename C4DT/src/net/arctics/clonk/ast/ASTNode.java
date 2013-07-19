@@ -550,23 +550,6 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			return false;
 	}
 
-	@SuppressWarnings("unchecked")
-	protected <T extends ASTNode> void collectExpressionsOfType(List<T> list, Class<T> type) {
-		if (type.isInstance(this))
-			list.add((T) this);
-		for (final ASTNode e : traversalSubElements()) {
-			if (e == null)
-				continue;
-			e.collectExpressionsOfType(list, type);
-		}
-	}
-
-	public <T extends ASTNode> Iterable<T> collectionExpressionsOfType(Class<T> cls) {
-		final List<T> l = new LinkedList<T>();
-		collectExpressionsOfType(l, cls);
-		return l;
-	}
-
 	public ASTNode sequenceTilMe() {
 		final Sequence fullSequence = sequence();
 		if (fullSequence != null) {
@@ -581,9 +564,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			return this;
 	}
 
-	private Sequence sequence() {
-		return as(parent(), Sequence.class);
-	}
+	private Sequence sequence() { return as(parent(), Sequence.class); }
 
 	public void postLoad(ASTNode parent) {
 		this.parent = parent;
@@ -677,9 +658,15 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		});
 	}
 
+	public long globalIdentifier() {
+		final IASTSection section = section();
+		return section != null ? section.globalIdentifier()+localIdentifier : -1;
+	}
+
 	private transient int localIdentifier = -1;
 	public final int localIdentifier() { return localIdentifier; }
 	public final void localIdentifier(int v) { localIdentifier = v; }
+
 	public final int sectionOffset() {
 		final IASTSection f = section();
 		return f != null ? f.absoluteOffset() : 0;

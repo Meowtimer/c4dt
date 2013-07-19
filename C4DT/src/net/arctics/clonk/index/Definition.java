@@ -384,7 +384,8 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	@Override
 	public String toString() {
-		return (localizedName() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+		return id != null ? id.stringValue() : name();
+		//return (localizedName() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	@Override

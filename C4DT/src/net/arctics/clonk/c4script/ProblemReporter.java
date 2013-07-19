@@ -35,11 +35,6 @@ public interface ProblemReporter extends IASTPositionProvider, ITypingContext {
 	 */
 	Markers markers();
 	/**
-	 * Set {@link #markers()}.
-	 * @param markers New value
-	 */
-	void setGlobalMarkers(Markers markers);
-	/**
 	 * Return the {@link Script} the reporter is responsible for.
 	 * @return
 	 */

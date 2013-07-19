@@ -390,4 +390,6 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	}
 	@Override
 	public ContentAssistant getContentAssistant(ISourceViewer sourceViewer) { return installAssistant(sourceViewer); }
+
+	public void refreshAfterBuild() {}
 }

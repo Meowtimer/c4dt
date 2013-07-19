@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -99,6 +100,7 @@ import net.arctics.clonk.c4script.typing.CallTargetType;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.ITypeable;
+import net.arctics.clonk.c4script.typing.ManifestedFunction;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeVariable;
 import net.arctics.clonk.c4script.typing.Typing;
@@ -119,10 +121,11 @@ import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.PerClass;
-import net.arctics.clonk.util.Profiled;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -131,8 +134,6 @@ import org.eclipse.jface.text.Region;
 public class DabbleInference extends ProblemReportingStrategy {
 
 	static final boolean UNUSEDPARMWARNING = false;
-
-	final Markers NULL_MARKERS = new Markers(false);
 
 	final Map<Script, Input> input = new HashMap<>();
 	Typing typing;
@@ -156,7 +157,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				noticeParameterCountMismatch = true;
 				break;
 			}
-		findProjectName();
 		return this;
 	}
 
@@ -168,7 +168,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	@Override
 	public DabbleInference initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
 		synchronized (projectName) {
-			super.initialize(defaulting(markers, NULL_MARKERS), progressMonitor, scripts);
+			super.initialize(markers, progressMonitor, scripts);
 			gatherInput(scripts);
 			return this;
 		}
@@ -207,7 +207,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Override
 	public void run() {
-		synchronized (projectName) { work(); }
+		synchronized (projectName) {
+			subTask(Messages.ComputingGraph);
+			final Plan plan = new Plan(this);
+			subTask(Messages.RunInference);
+			plan.run();
+		}
+	}
+
+	@Override
+	public void run2() {
+		validateParameters();
 	}
 
 	static class ParameterValidation {
@@ -252,18 +262,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	final List<ParameterValidation> parameterValidations = Collections.synchronizedList(new LinkedList<ParameterValidation>());
-	String projectName;
 
-	@Profiled
-	final void work() {
-		subTask(Messages.ComputingGraph);
-		parameterValidations.clear();
-		final Plan plan = new Plan(this);
-		subTask(Messages.RunInference);
-		plan.run();
-		subTask(Messages.ValidateParameters);
-		validateParameters();
-		subTask(Messages.Apply);
+	@Override
+	public void apply() {
 		for (final Input input : this.input.values())
 			input.apply();
 	}
@@ -274,13 +275,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			markers.take(pv.visit.visitor);
 		}
 		parameterValidations.clear();
-	}
-
-	private void findProjectName() {
-		String name = Messages.UnknownProject;
-		if (index != null && index.nature() != null)
-			name = index.nature().getProject().getName();
-		projectName = name.intern();
 	}
 
 	private void subTask(String text) {
@@ -309,7 +303,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		 * Synchronization of multiple visitor threads will be performed by locking on objects of this type.
 		 * @author madeen
 		 */
-		final class Visit extends FunctionReturnTypeVariable implements Runnable {
+		final class Visit extends FunctionReturnTypeVariable implements Runnable, ManifestedFunction {
 
 			Visitor visitor;
 			IType[] inferredTypes;
@@ -317,7 +311,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			boolean doubleTake;
 
 			final Set<Visit> dependents = new HashSet<>();
-			final Set<Visit> requirements = new HashSet<>();
+			final Set<Visit> dependencies = new HashSet<>();
 			final int hash;
 
 			@Override
@@ -327,6 +321,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public String toString() { return function.qualifiedName(script); }
 			@Override
 			public void run() { visitor.visit(); }
+			@Override
+			public Script script() { return script; }
 
 			public Visit(Function function) {
 				super(function);
@@ -750,14 +746,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			public void concreteArgumentMismatch(ASTNode argument, Variable parameter, Function callee, IType expected, IType got) {
-				try {
-					DabbleInference.this.markers().marker(this,
-						Problem.ConcreteArgumentMismatch,
-						argument, argument.start(), argument.end(),
-						Markers.NO_THROW, IMarker.SEVERITY_WARNING,
-						argument, parameter.name(), callee.qualifiedName(), expected.typeName(true), got.typeName(true)
-					);
-				} catch (final ProblemException e) {}
+				//try {
+				//	DabbleInference.this.markers().marker(this,
+				//		Problem.ConcreteArgumentMismatch,
+				//		argument, argument.start(), argument.end(),
+				//		Markers.NO_THROW, IMarker.SEVERITY_WARNING,
+				//		argument, parameter.name(), callee.qualifiedName(), expected.typeName(true), got.typeName(true)
+				//	);
+				//} catch (final ProblemException e) {}
 			}
 
 			@Override
@@ -801,20 +797,25 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return environment = environment.up == input().typeEnvironment ? null : environment.up;
 			}
 
-			private boolean createWarningAtDeclarationOfVariable(
-				ASTNode[] statements,
-				Variable variable,
-				Problem code,
-				Object... format
+			private void createWarningAtDeclarationOfVariable(
+				final ASTNode body,
+				final Variable variable,
+				final Problem code,
+				final Object... args
 			) {
-				for (final ASTNode s : statements)
-					for (final VarDeclarationStatement decl : s.collectionExpressionsOfType(VarDeclarationStatement.class))
-						for (final VarInitialization initialization : decl.variableInitializations())
-							if (initialization.variable == variable) {
-								this.markers().warning(this, code, initialization, initialization, 0, format);
-								return true;
+				body.traverse(new IASTVisitor<Void>() {
+					@Override
+					public TraversalContinuation visitNode(ASTNode node, Void context) {
+						if (node instanceof VarInitialization) {
+							final VarInitialization vi = (VarInitialization) node;
+							if (vi.variable == variable) {
+								markers().warning(Visitor.this, code, vi, vi, 0, args);
+								return TraversalContinuation.Cancel;
 							}
-				return false;
+						}
+						return TraversalContinuation.Continue;
+					}
+				}, null);
 			}
 
 			/**
@@ -832,24 +833,25 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (func.locals() != null)
 					for (final Variable v : func.locals()) {
 						if (!v.isUsed())
-							createWarningAtDeclarationOfVariable(statements, v, Problem.Unused, v.name());
+							createWarningAtDeclarationOfVariable(func.body(), v, Problem.Unused, v.name());
 						final Variable shadowed = script().findVariable(v.name());
 						// ignore those pesky static variables from scenario scripts
 						if (shadowed != null && !(shadowed.parentDeclaration() instanceof Scenario))
-							createWarningAtDeclarationOfVariable(statements, v, Problem.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
+							createWarningAtDeclarationOfVariable(func.body(), v, Problem.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
 					}
 			}
 
 			private final void startRoaming() { roaming++; }
-
 			private final void endRoaming() { --roaming; }
 
 			@Override
 			public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
 				if (node == null || node.parent(Script.class) != script || (preliminary && node.containedIn(visit.function)))
 					return;
-				else
+				else {
+					erroneous |= severity >= IMarker.SEVERITY_ERROR;
 					super.marker(positionProvider, code, node, markerStart, markerEnd, flags, severity, args);
+				}
 			}
 
 			@Override
@@ -915,8 +917,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public Markers markers() { return preliminary || visit.doubleTake ? NULL_MARKERS : this; }
 			@Override
-			public void setGlobalMarkers(Markers markers) { DabbleInference.this.markers = markers; }
-			@Override
 			public IVariable variable(AccessVar access, Object obj) { return null; }
 			@Override
 			public Object[] arguments() { return null; }
@@ -941,6 +941,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		final int fragmentOffset;
 		final TypeEnvironment typeEnvironment;
 		final boolean partial;
+		boolean erroneous = false;
 
 		public Script script() { return script; }
 
@@ -1049,12 +1050,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 		private void putFunctionTyping(final Map<String, Function.Typing> functionTypings, Visit visit) {
 			final Function fun = visit.function;
 			final TypeVariable retTy = typeEnvironment.get(fun);
-			final IType[] parameterTypes = new IType[fun.numParameters()];
-			final List<Variable> parms = fun.parameters();
-			for (int i = 0; i < parms.size(); i++) {
-				final Variable p = parms.get(i);
-				final TypeVariable parTy = typeEnvironment.get(p);
-				parameterTypes[i] = parTy != null ? parTy.get() : p.type();
+			IType[] parameterTypes;
+			if (erroneous) {
+				final Function.Typing oldTyping = script.typings().get(fun);
+				parameterTypes = oldTyping != null ? oldTyping.parameterTypes : new IType[0];
+			}
+			else {
+				parameterTypes = new IType[fun.numParameters()];
+				final List<Variable> parms = fun.parameters();
+				for (int i = 0; i < parms.size(); i++) {
+					final Variable p = parms.get(i);
+					final TypeVariable parTy = typeEnvironment.get(p);
+					parameterTypes[i] = parTy != null ? parTy.get() : p.type();
+				}
 			}
 			functionTypings.put(fun.name(),
 				new Function.Typing(
@@ -2723,6 +2731,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 			committee.put(expert.cls(), expert);
 		for (final Expert<?> expert : classes)
 			expert.findSuper();
+	}
+
+	@Override
+	public void captureMarkers() {
+		final List<IMarker> markers = new ArrayList<>(20);
+		for (final Input input : this.input.values())
+			try {
+				for (final IMarker m : input.script.file().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)) {
+					final int start = m.getAttribute(IMarker.CHAR_START, 0);
+					//final int end = m.getAttribute(IMarker.CHAR_END, 0);
+					for (final Visit visit : input.visits.values())
+						if (visit.function.bodyLocation().containsOffset(start)) {
+							markers.add(m);
+							break;
+						}
+				}
+			} catch (final CoreException e) {
+				//e.printStackTrace();
+			}
+		this.markers.capture(markers);
 	}
 
 }

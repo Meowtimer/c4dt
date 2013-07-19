@@ -13,4 +13,5 @@ public interface IASTSection {
 	 * @return The offset
 	 */
 	int absoluteOffset();
+	long globalIdentifier();
 }

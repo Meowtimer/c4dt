@@ -98,7 +98,7 @@ public class IniTextEditor extends StructureTextEditor {
 	}
 
 	@Override
-	protected IniUnitEditingState state() {
+	public IniUnitEditingState state() {
 		final IniUnit unit = (IniUnit) Structure.pinned(Utilities.fileEditedBy(this), true, false);
 		if (state == null && unit != null && unit.isEditable()) {
 			state = StructureEditingState.request(IniUnitEditingState.class, getDocumentProvider().getDocument(getEditorInput()), unit, this);

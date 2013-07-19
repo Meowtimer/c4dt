@@ -48,8 +48,6 @@ public class TypeUtil {
 			@Override
 			public Markers markers() { return null; }
 			@Override
-			public void setGlobalMarkers(Markers markers) { /* ignore */ }
-			@Override
 			public boolean judgment(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
 			@Override
 			public void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right) {}

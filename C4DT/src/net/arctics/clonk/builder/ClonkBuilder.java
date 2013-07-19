@@ -14,15 +14,16 @@ import net.arctics.clonk.Flags;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4GroupStreamOpener;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.UI;
@@ -327,17 +328,31 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		Display.getDefault().asyncExec(new UIRefresher(newEnqueued.keySet().toArray(new Script[newEnqueued.keySet().size()])));
 	}
 
-	private void reportProblems(final ScriptParser[] parsers, Script[] scripts) {
+	private void reportProblems(final ScriptParser[] parsers, final Script[] scripts) {
 		if (Flags.DEBUG)
 			System.out.println(String.format("%s: Reporting problems", getProject().getName()));
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
-		for (final ProblemReportingStrategy strategy : index.nature().problemReportingStrategies()) {
-			strategy.initialize(markers, this.monitor(), scripts);
-			strategy.run();
-		}
+		for (final ProblemReportingStrategy strategy : index.nature().problemReportingStrategies())
+			strategy.steer(new Runnable() {
+				@Override
+				public void run() {
+					strategy.initialize(markers, monitor(), scripts);
+					strategy.run();
+					strategy.run2();
+					strategy.apply();
+				}
+			});
 		markers.deploy();
 		Display.getDefault().asyncExec(new UIRefresher(scripts));
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
+				if (ed != null)
+					ed.state().refreshAfterBuild();
+			}
+		});
 	}
 
 	private void clearState() {
