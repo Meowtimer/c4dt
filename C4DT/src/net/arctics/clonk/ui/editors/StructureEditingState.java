@@ -323,7 +323,16 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 */
 	public void invalidate() {
 		document.removeDocumentListener(this);
-		document = editors.get(0).getDocumentProvider().getDocument(editors.get(0).getEditorInput());
+		boolean failed;
+		do {
+			failed = false;
+			try {
+				document = editors.get(0).getDocumentProvider().getDocument(editors.get(0).getEditorInput());
+			} catch (final NullPointerException np) {
+				editors.remove(0);
+				failed = true;
+			}
+		} while (failed);
 		document.addDocumentListener(this);
 	}
 

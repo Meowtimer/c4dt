@@ -22,6 +22,7 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.IMarkerListener.Decision;
+import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -356,5 +357,10 @@ public class Markers implements Iterable<Marker> {
 		} catch (final CoreException e1) {
 			e1.printStackTrace();
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return StringUtil.blockString("[", "]", ",", this);
 	}
 }

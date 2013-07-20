@@ -491,7 +491,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final IType concreteTy = callTypes[ci];
 					if (concreteTy == null)
 						continue;
-					final IType unified = typing.unifyNoChoice(result, concreteTy);
+					final IType unified = typing.unify(result, concreteTy);
 					if (unified == null) {
 						final Visitor visitor = callVisitors[ci];
 						final ASTNode concretePar = calls.get(ci).params()[par.parameterIndex()];
@@ -522,7 +522,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							final IType concreteTy = types[ci];
 							if (concreteTy == null)
 								continue;
-							final IType unified = typing.unifyNoChoice(result, concreteTy);
+							final IType unified = typing.unify(result, concreteTy);
 							if (unified == null)
 								discord++;
 							else
@@ -553,7 +553,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Function base = (Function) function.baseFunction().latestVersion();
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final CallDeclaration call = calls.get(ci);
-					if (call.params().length < function.numParameters())
+					if (call.params().length < function.numParameters() || call.predecessor() instanceof MemberOperator && ((MemberOperator) call.predecessor()).hasTilde())
 						continue;
 					final Function f = call.parent(Function.class);
 					final Script other = f.script();
@@ -564,6 +564,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 					visitors[ci] = vtor;
 
 					Function ref = as(call.declaration(), Function.class);
+					if (ref == null)
+						continue;
 					if (ref != null) {
 						// not related - short circuit skip
 						ref = (Function)ref.latestVersion();
@@ -2145,7 +2147,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// not a special case... check regular parameter types
 					if (!visitor.preliminary && !visitor.visit.doubleTake)
 						if (!applyRuleBasedValidation(node, visitor, params))
-							if (visitor.visit.function.script() == visitor.script()) {
+							if (node.params().length > 0 && visitor.visit.function.script() == visitor.script()) {
 								final ParameterValidation pv = new ParameterValidation(node, f, visitor.script());
 								if (f instanceof EngineFunction)
 									pv.regularParameterValidation(visitor.inference(), visitor);

@@ -495,12 +495,12 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		final Markers markers = new Markers();
 		markers.applyProjectSettings(structure().index());
 
-		// visit the function
 		structure().deriveInformation();
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies())
 			strategy.steer(new Runnable() {
 				@Override
 				public void run() {
+					// visit the function
 					strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
 					strategy.captureMarkers();
 					strategy.run();
