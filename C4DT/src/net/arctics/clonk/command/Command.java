@@ -217,10 +217,10 @@ public class Command {
 				}
 			});
 			System.out.println("===Scripts==="); //$NON-NLS-1$
-			for (final Script script : index.indexedScripts())
+			for (final Script script : index.scripts())
 				System.out.println(script.toString());
 			System.out.println("===Scenarios==="); //$NON-NLS-1$
-			for (final Scenario scen : index.indexedScenarios())
+			for (final Scenario scen : index.scenarios())
 				System.out.println(scen.toString());
 		}
 		@CommandFunction

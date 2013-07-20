@@ -33,12 +33,12 @@ import net.arctics.clonk.ast.ILatestDeclarationVersionProvider;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Directive;
+import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.Directive.DirectiveType;
-import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.typing.Typing;
@@ -93,9 +93,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	};
 
 	private final Map<Long, IndexEntity> entities = new HashMap<Long, IndexEntity>();
-	private final Map<ID, List<Definition>> indexedDefinitions = new HashMap<ID, List<Definition>>();
-	private final List<Script> indexedScripts = new LinkedList<Script>();
-	private final List<Scenario> indexedScenarios = new LinkedList<Scenario>();
+	private final Map<ID, List<Definition>> definitions = new HashMap<ID, List<Definition>>();
+	private final List<Script> scripts = new LinkedList<Script>();
+	private final List<Scenario> scenarios = new LinkedList<Scenario>();
 	private final List<Declaration> globalsContainers = new LinkedList<Declaration>();
 	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
 
@@ -131,7 +131,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * Return the number of unique ids
 	 * @return
 	 */
-	public int numUniqueIds() { return indexedDefinitions.size(); }
+	public int numUniqueIds() { return definitions.size(); }
 
 	/**
 	 * Get a list of all {@link Definition}s with a certain id.
@@ -139,10 +139,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The list
 	 */
 	public List<? extends Definition> definitionsWithID(ID id) {
-		if (indexedDefinitions == null)
+		if (definitions == null)
 			return null;
 		else
-			return indexedDefinitions.get(id);
+			return definitions.get(id);
 	}
 
 	public void postLoad() throws CoreException {
@@ -152,6 +152,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			saveSynchronizer = new Object();
 		if (loadSynchronizer == null)
 			loadSynchronizer = new Object();
+		// make sure all the things are actually in the entity map...
+		for (final ASTNode s : subElements())
+			if (s instanceof IndexEntity) {
+				final IndexEntity e = (IndexEntity) s;
+				if (entities.put(e.entityId(), e) == null)
+					System.out.println("That did something");
+			}
 		for (final IndexEntity e : entities()) {
 			e.index = this;
 			e.loaded = false;
@@ -185,7 +192,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			return null;
 		} catch (final CoreException e) {
 			// likely due to getSessionProperty being called on non-existent resources
-			for (final List<Definition> list : indexedDefinitions.values())
+			for (final List<Definition> list : definitions.values())
 				for (final Definition obj : list)
 					if (obj instanceof Definition) {
 						final Definition def = obj;
@@ -193,7 +200,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 							return def;
 					}
 			// also try scenarios
-			for (final Scenario s : indexedScenarios)
+			for (final Scenario s : scenarios)
 				if (s.definitionFolder() != null && s.definitionFolder().equals(folder))
 					return s;
 			//e.printStackTrace();
@@ -209,7 +216,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public Script scriptAt(IFile file) {
 		final Script result = Script.get(file, true);
 		if (result == null)
-			for (final Script s : this.indexedScripts)
+			for (final Script s : this.scripts)
 				if (s.resource() != null && s.resource().equals(file))
 					return s;
 		return result;
@@ -268,7 +275,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	/**
-	 * Re-populate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #indexedDefinitions}, {@link #indexedScenarios} and {@link #indexedScripts}.
+	 * Re-populate the quick-access lists ({@link #globalFunctions()}, {@link #staticVariables()}, {@link #declarationMap()}, {@link #appendagesOf(Definition)}) maintained by the index based on {@link #definitions}, {@link #scenarios} and {@link #scripts}.
 	 * @param postLoad true if called from {@link #postLoad()}. Will not clear some state in that case since it's assumed that it was properly loaded from the index file.
 	 */
 	public synchronized void refresh(final boolean postLoad) {
@@ -334,13 +341,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				return;
 			}
 			if (script instanceof Scenario) {
-				if (!indexedScenarios.contains(script))
-					indexedScenarios.add((Scenario) script);
+				if (!scenarios.contains(script))
+					scenarios.add((Scenario) script);
 			}
 			else if (script instanceof Definition)
 				addDefinition((Definition)script);
-			else if (!indexedScripts.contains(script))
-				indexedScripts.add(script);
+			else if (!scripts.contains(script))
+				scripts.add(script);
 		}
 	}
 
@@ -357,10 +364,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				pendingScriptAdds.add(definition);
 				return;
 			}
-			List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
+			List<Definition> alreadyDefinedObjects = definitions.get(definition.id());
 			if (alreadyDefinedObjects == null) {
 				alreadyDefinedObjects = new LinkedList<Definition>();
-				indexedDefinitions.put(definition.id(), alreadyDefinedObjects);
+				definitions.put(definition.id(), alreadyDefinedObjects);
 			} else if (alreadyDefinedObjects.contains(definition))
 				return;
 			alreadyDefinedObjects.add(definition);
@@ -394,7 +401,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	@SuppressWarnings("unchecked")
 	private <T> Sink.Decision allDefinitionsInternal(Sink<T> sink) {
-		final Iterator<List<Definition>> defsIt = indexedDefinitions.values().iterator();
+		final Iterator<List<Definition>> defsIt = definitions.values().iterator();
 		while (defsIt.hasNext()) {
 			final List<Definition> list = defsIt.next();
 			final Iterator<Definition> defIt = list.iterator();
@@ -419,8 +426,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		try {
 			if (allDefinitionsInternal(sink) == Decision.AbortIteration)
 				return;
-			ArrayUtil.sink(indexedScripts, sink);
-			ArrayUtil.sink(indexedScenarios, sink);
+			ArrayUtil.sink(scripts, sink);
+			ArrayUtil.sink(scenarios, sink);
 		} finally {
 			endScriptIteration();
 		}
@@ -434,7 +441,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		if (script instanceof Definition)
 			removeDefinition((Definition)script);
 		else
-			if (indexedScripts.remove(script))
+			if (scripts.remove(script))
 				scriptRemoved(script);
 		entities.remove(script.entityId());
 		script.index = null;
@@ -453,11 +460,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		}
 		if (definition.id() == null)
 			return;
-		final List<Definition> alreadyDefinedObjects = indexedDefinitions.get(definition.id());
+		final List<Definition> alreadyDefinedObjects = definitions.get(definition.id());
 		if (alreadyDefinedObjects != null)
 			if (alreadyDefinedObjects.remove(definition)) {
 				if (alreadyDefinedObjects.size() == 0)
-					indexedDefinitions.remove(definition.id());
+					definitions.remove(definition.id());
 				scriptRemoved(definition);
 			}
 	}
@@ -467,7 +474,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param scenario The {@link Scenario} to remove
 	 */
 	public void removeScenario(Scenario scenario) {
-		if (indexedScenarios.remove(scenario))
+		if (scenarios.remove(scenario))
 			scriptRemoved(scenario);
 	}
 
@@ -481,8 +488,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		});
 	}
 
-	public List<Scenario> indexedScenarios() { return Collections.unmodifiableList(indexedScenarios); }
-	public List<Script> indexedScripts() { return Collections.unmodifiableList(indexedScripts); }
+	public List<Scenario> scenarios() { return Collections.unmodifiableList(scenarios); }
+	public List<Script> scripts() { return Collections.unmodifiableList(scripts); }
 	public List<Function> globalFunctions() { return Collections.unmodifiableList(globalFunctions); }
 	public List<Variable> staticVariables() { return Collections.unmodifiableList(staticVariables); }
 	public Map<String, List<Declaration>> declarationMap() { return Collections.unmodifiableMap(declarationMap); }
@@ -627,11 +634,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * Clear the index so it won't manage any objects after this call.
 	 */
 	public synchronized void clear() {
-		synchronized(indexedDefinitions) {
-			indexedDefinitions.clear();
+		synchronized(definitions) {
+			definitions.clear();
 		}
-		indexedScripts.clear();
-		indexedScenarios.clear();
+		scripts.clear();
+		scenarios.clear();
 		clearEntityFiles();
 		entities.clear();
 		entityIdCounter = 0;
@@ -655,7 +662,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			public Definition convert(List<Definition> from) {
 				return Utilities.pickNearest(from, pivot, null);
 			}
-		}, indexedDefinitions.values());
+		}, definitions.values());
 	}
 
 	/**
@@ -850,7 +857,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param entity
 	 * @return The id of the entity. Is supposed to be unique.
 	 */
-	protected long addEntityReturningId(IndexEntity entity) {
+	protected long addEntity(IndexEntity entity) {
 		synchronized (this) {
 			final long id = entityIdCounter++;
 			this.entities.put(id, entity);
@@ -940,9 +947,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	private void removeNullsInScriptLists() {
-		if (indexedScripts.removeAll(Collections.singleton(null)))
+		if (scripts.removeAll(Collections.singleton(null)))
 			System.out.println("There were nulls in indexedScripts");
-		if (indexedScenarios.removeAll(Collections.singleton(null)))
+		if (scenarios.removeAll(Collections.singleton(null)))
 			System.out.println("There were nulls in indexedScenarios");
 	}
 
@@ -1017,12 +1024,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The copy or null if no declarations with that name are currently loaded.
 	 */
 	public List<Declaration> snapshotOfDeclarationsNamed(String name) {
-		final List<Declaration> decs = declarationMap().get(name);
-		if (decs == null)
-			return null;
-		final ArrayList<Declaration> result = new ArrayList<Declaration>(decs.size());
-		result.addAll(decs);
-		return result;
+		synchronized (declarationMap) {
+			final List<Declaration> decs = declarationMap.get(name);
+			if (decs == null)
+				return null;
+			final ArrayList<Declaration> result = new ArrayList<Declaration>(decs);
+			return result;
+		}
 	}
 
 	public List<CallDeclaration> callsTo(final String functionName) {
@@ -1044,9 +1052,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	@Override
 	public ASTNode[] subElements() {
 		final List<ASTNode> nodes = new ArrayList<>(100);
-		nodes.addAll(indexedScenarios);
-		nodes.addAll(indexedScripts);
-		for (final List<Definition> defs : indexedDefinitions.values())
+		nodes.addAll(scenarios);
+		nodes.addAll(scripts);
+		for (final List<Definition> defs : definitions.values())
 			nodes.addAll(defs);
 		return nodes.toArray(new ASTNode[nodes.size()]);
 	}

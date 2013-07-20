@@ -38,7 +38,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	public IndexEntity(Index index) {
 		this.index = index;
 		if (index != null)
-			entityId = index.addEntityReturningId(this);
+			entityId = index.addEntity(this);
 		else if (!(this instanceof TopLevelEntity))
 			throw new InvalidParameterException("index");
 	}

@@ -83,10 +83,10 @@ public class ProjectIndex extends Index {
 					return !item.refreshDefinitionFolderReference(project);
 				}
 			});
-			for (final Scenario scenario : indexedScenarios())
+			for (final Scenario scenario : scenarios())
 				if (!scenario.refreshDefinitionFolderReference(project))
 					stuffToBeRemoved.add(scenario);
-			for (final Script script : indexedScripts())
+			for (final Script script : scripts())
 				if (script instanceof SystemScript) {
 					final SystemScript standalone = (SystemScript) script;
 					if (!standalone.refreshFileReference(project))

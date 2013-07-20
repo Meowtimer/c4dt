@@ -108,7 +108,7 @@ public class SystemScript extends Script implements Serializable {
 					return null;
 				final ProjectIndex index = ProjectIndex.fromResource(resource);
 				if (index != null)
-					for (final Script script : index.indexedScripts()) {
+					for (final Script script : index.scripts()) {
 						final SystemScript sysScript = as(script, SystemScript.class);
 						if (sysScript != null && sysScript.file() != null && sysScript.file().equals(resource)) {
 							try {

@@ -684,7 +684,7 @@ public abstract class SpecialEngineRules {
 					index.forAllRelevantIndexes(new Sink<Index>() {
 						@Override
 						public void receivedObject(Index index) {
-							for (final Scenario s : index.indexedScenarios()) {
+							for (final Scenario s : index.scenarios()) {
 								final Function f = s.findLocalFunction(lit.literal(), true);
 								if (f != null)
 									decs.add(f);

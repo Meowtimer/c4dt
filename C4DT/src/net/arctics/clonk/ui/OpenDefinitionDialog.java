@@ -112,7 +112,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 				progressMonitor.worked(1);
 			}
 		});
-		for (final Scenario s : index.indexedScenarios())
+		for (final Scenario s : index.scenarios())
 			contentProvider.add(s, itemsFilter);
 		progressMonitor.done();
 	}
