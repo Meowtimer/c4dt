@@ -34,7 +34,7 @@ import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visit;
 import net.arctics.clonk.util.TaskExecution;
 
 @SuppressWarnings("serial")
-class Plan extends LinkedList<Runnable> {
+class Plan {
 
 	class VisitsByName extends LinkedList<Visit> implements Runnable {
 		@Override
@@ -44,13 +44,17 @@ class Plan extends LinkedList<Runnable> {
 		}
 	}
 
-	private final DabbleInference inference;
-	private final Map<String, VisitsByName> visits = new HashMap<>();
-	private final Set<Visit> doubleTakes = new HashSet<>();
+	final DabbleInference inference;
+	final Map<String, VisitsByName> visits = new HashMap<>();
+	final Set<Visit> doubleTakes = new HashSet<>();
+	final List<Visit> roots = new LinkedList<>();
+	int totalNumVisits;
 
 	void populateVisitsMap() {
+		totalNumVisits = 0;
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.visits.values()) {
+				totalNumVisits++;
 				VisitsByName list = visits.get(v.function.name());
 				if (list == null) {
 					list = new VisitsByName();
@@ -241,21 +245,10 @@ class Plan extends LinkedList<Runnable> {
 	}
 
 	void populate() {
-		final List<Visit> roots = new LinkedList<>();
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.visits.values())
 				if (v.dependencies.size() == 0)
-					if (v.dependents.size() == 0)
-						this.add(v);
-					else
-						roots.add(v);
-		while (roots.size() > 0) {
-			final Visit root = roots.get(0);
-			final Cluster c = new Cluster();
-			c.find(new HashSet<Visit>(), root);
-			roots.removeAll(c);
-			this.add(c);
-		}
+					roots.add(v);
 	}
 
 	void output() {
@@ -271,7 +264,7 @@ class Plan extends LinkedList<Runnable> {
 			};
 			void run() {
 				int x = 0;
-				for (final Runnable r : Plan.this) {
+				for (final Runnable r : roots) {
 					final Cluster c = as(r, Cluster.class);
 					if (c == null)
 						continue;
@@ -310,14 +303,7 @@ class Plan extends LinkedList<Runnable> {
 	void run() {
 		// prepare
 		TaskExecution.threadPool(visits.values(), 3);
-		// actual inference
-		TaskExecution.threadPool(this, 3);
-		if (DEBUG)
-			for (final Runnable r : this)
-				if (r instanceof Cluster) {
-					final Cluster c = (Cluster)r;
-					System.out.println(c.log.toString());
-				}
+		inference.runPlan(this);
 		// double takes
 		for (final Visit v : doubleTakes)
 			v.doubleTake = false;

@@ -19,6 +19,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
@@ -120,6 +122,7 @@ import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.PerClass;
+import net.arctics.clonk.util.TaskExecution;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -307,6 +310,46 @@ public class DabbleInference extends ProblemReportingStrategy {
 				input.put(p.script(), info);
 			}
 	}
+	
+	Object runLock = new Object();
+	ExecutorService threadPool;
+	int remainingRuns;
+
+	void runVisit(Visit visit) {
+		if (threadPool != null)
+			synchronized (threadPool) {
+				threadPool.execute(visit);
+				remainingRuns--;
+				if (remainingRuns == 0)
+					threadPool.shutdown();
+			}
+		else
+			visit.run();
+	}
+
+	void runPlan(Plan plan) {
+		if (plan.totalNumVisits == 0)
+			return;
+		if (plan.totalNumVisits < TaskExecution.THRESHOLD)
+			for (final Visit r : plan.roots)
+				runVisit(r);
+		else {
+			System.out.println("pool");
+			threadPool = TaskExecution.newPool();
+			try {
+				remainingRuns = plan.totalNumVisits;
+				for (final Visit r : plan.roots)
+					runVisit(r);
+				try {
+					threadPool.awaitTermination(3, TimeUnit.MINUTES);
+				} catch (final InterruptedException e) {
+					e.printStackTrace();
+				}
+			} finally {
+				threadPool = null;
+			}
+		}
+	}
 
 	/**
 	 * One script and associated information.
@@ -338,7 +381,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public String toString() { return function.qualifiedName(script); }
 			@Override
-			public void run() { visitor.visit(); }
+			public void run() {
+				visitor.visit();
+				for (final Visit d : dependents)
+					synchronized (runLock) {
+						if (d.dependencies.remove(this) && d.dependencies.size() == 0)
+							runVisit(d);
+					}
+			}
 
 			public Visit(Function function) {
 				super(function);

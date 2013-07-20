@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class TaskExecution {
-	static final int THRESHOLD = 20;
+	public static final int THRESHOLD = 20;
 	public static int threadPoolSize = Runtime.getRuntime().availableProcessors();
 	public static void threadPool(final Collection<? extends Runnable> runnables, int timeoutMinutes) {
 		if (runnables.size() < THRESHOLD)
@@ -22,7 +22,7 @@ public class TaskExecution {
 			}, timeoutMinutes);
 	}
 	public static void threadPool(Sink<ExecutorService> action, int timeoutMinutes) {
-		final ExecutorService pool = Executors.newFixedThreadPool(threadPoolSize);
+		final ExecutorService pool = newPool();
 		try {
 			action.receivedObject(pool);
 		} finally {
@@ -33,5 +33,8 @@ public class TaskExecution {
 				e.printStackTrace();
 			}
 		}
+	}
+	public static ExecutorService newPool() {
+		return Executors.newFixedThreadPool(threadPoolSize);
 	}
 }
