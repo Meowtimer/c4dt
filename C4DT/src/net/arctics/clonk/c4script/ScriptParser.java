@@ -236,7 +236,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		}
 	}
 
-	public String parseTokenAndReturnAsString() throws ProblemException {
+	public String parseTokenAndReturnAsString() throws ProblemException{
 		String s;
 		Number number;
 		if ((s = parseString()) != null)
@@ -416,7 +416,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				result.setLocation(startOfDeclaration, this.offset);
 			}
 			else {
-				eatWhitespace();
+				eat(WHITESPACE_WITHOUT_NEWLINE_CHARS);
 				final int cs = offset;
 				final String content = parseDirectiveParms();
 				final Directive directive = new Directive(type, content, cs-startOfDeclaration);
@@ -477,14 +477,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return synth;
 	}
 
-	private String parseDirectiveParms() {
-		final StringBuffer buffer = new StringBuffer(80);
-		while (!reachedEOF() && !BufferedScanner.isLineDelimiterChar((char)peek()) && parseComment() == null)
-			buffer.append((char)read());
-		// do let the comment be eaten
-		return buffer.length() != 0
-			? buffer.toString().trim()
-				: null;
+	private String parseDirectiveParms() throws ProblemException {
+		switch (peek()) {
+		case '\n': case '\r':
+			return null;
+		default:
+			return parseTokenAndReturnAsString();
+		}
 	}
 
 	private static class FunctionHeader {

@@ -66,12 +66,13 @@ public class Statement extends ASTNode implements Cloneable {
 		if (attachments == null)
 			attachments = new LinkedList<Attachment>();
 		attachments.add(attachment);
+		if (attachment instanceof ASTNode)
+			((ASTNode) attachment).setParent(this);
 	}
 
 	public void addAttachments(Collection<? extends Attachment> attachmentsToAdd) {
-		if (attachments == null)
-			attachments = new LinkedList<Attachment>();
-		attachments.addAll(attachmentsToAdd);
+		for (final Attachment a : attachmentsToAdd)
+			addAttachment(a);
 	}
 
 	public List<Attachment> attachments() { return attachments; }
