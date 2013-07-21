@@ -310,7 +310,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				input.put(p.script(), info);
 			}
 	}
-	
+
 	Object runLock = new Object();
 	ExecutorService threadPool;
 	int remainingRuns;
@@ -498,97 +498,27 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void typeParameterFromCalls(Function function, Variable par, TypeVariable parTyVar, List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors) {
-				IType result;
-				final boolean lenient = parTyVar.get() == PrimitiveType.UNKNOWN;
-				final PrimitiveType bestSeed = findBestTypingSeed(parTyVar, calls, callTypes);
-
-				if (bestSeed != null)
-					result = unifyFromSeed(function, par, parTyVar, calls, callTypes, callVisitors, lenient, bestSeed);
-				else if (!lenient) {
-					warnAtAllCalls(function, par, parTyVar, calls, callTypes, callVisitors);
-					result = parTyVar.get();
-				}
-				else
-					result = PrimitiveType.ANY;
-
-				if (lenient)
-					result = typing.unify(result, PrimitiveType.ANY);
+				IType result = PrimitiveType.UNKNOWN;
+				for (final IType t : callTypes)
+					if (t != null)
+						result = typing.unify(result, t);
 				parTyVar.set(result);
-			}
-
-			private void warnAtAllCalls(Function function, final Variable par, TypeVariable parTyVar, List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors) {
-				// no consensus at all - warnings at all call sides
-				final IType t = parTyVar.get();
-				for (int ci = 0; ci < calls.size(); ci++) {
-					final IType concreteTy = callTypes[ci];
-					if (concreteTy == null)
-						continue;
-					final Visitor visitor = callVisitors[ci];
-					final ASTNode concretePar = calls.get(ci).params()[par.parameterIndex()];
-					if (visitor != null)
-						visitor.concreteArgumentMismatch(concretePar, par, function, t, concreteTy);
-				}
-			}
-
-			private IType unifyFromSeed(
-				Function function, final Variable par, TypeVariable parTyVar,
-				List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors,
-				final boolean lenient, final PrimitiveType seed
-			) {
-				IType result = typing.unify(parTyVar.get(), seed);
-				for (int ci = 0; ci < calls.size(); ci++) {
-					final IType concreteTy = callTypes[ci];
-					if (concreteTy == null)
-						continue;
-					final IType unified = typing.unify(result, concreteTy);
-					if (unified == null) {
-						final Visitor visitor = callVisitors[ci];
-						final ASTNode concretePar = calls.get(ci).params()[par.parameterIndex()];
-						if (visitor != null && !lenient)
-							visitor.concreteArgumentMismatch(concretePar, par, function, result, concreteTy);
-					}
-					else
-						result = unified;
-				}
-				return result;
-			}
-
-			private PrimitiveType findBestTypingSeed(TypeVariable parTyVar, List<CallDeclaration> calls, IType[] types) {
-				IType result;
-				// if there are concrete parameter types not typing.unifying seed the unification chain with some primitive type
-				// and look which seed results in least disagreement. Then place warning markers at the concrete parameters
-				// not typing.unifying with that consensus.
-				// Only seeds are considered which typing.unify with parameter usage in the function body in the first place.
-				int leastDiscord = Integer.MAX_VALUE;
-				PrimitiveType bestSeed = null;
-				Seeding: {
-					for (final PrimitiveType seed : callTypingSeeds) {
-						result = typing.unifyNoChoice(parTyVar.get(), seed);
-						if (result == null)
-							continue; // disagreement with usage inside body - ignore
-						int discord = 0;
-						for (int ci = 0; ci < calls.size(); ci++) {
-							final IType concreteTy = types[ci];
-							if (concreteTy == null)
-								continue;
-							final IType unified = typing.unify(result, concreteTy);
-							if (unified == null)
-								discord++;
-							else
-								result = unified;
-						}
-						if (discord == 0) {
-							// no disagreement - type away
-							bestSeed = seed;
-							break Seeding;
-						}
-						else if (discord < leastDiscord) {
-							bestSeed = seed;
-							leastDiscord = discord;
-						}
-					}
-				}
-				return bestSeed;
+				//IType result;
+				//final boolean lenient = false; //parTyVar.get() == PrimitiveType.UNKNOWN;
+				//final PrimitiveType bestSeed = findBestTypingSeed(parTyVar, calls, callTypes);
+                //
+				//if (bestSeed != null)
+				//	result = unifyFromSeed(function, par, parTyVar, calls, callTypes, callVisitors, lenient, bestSeed);
+				//else if (!lenient) {
+				//	warnAtAllCalls(function, par, parTyVar, calls, callTypes, callVisitors);
+				//	result = parTyVar.get();
+				//}
+				//else
+				//	result = PrimitiveType.ANY;
+                //
+				//if (lenient)
+				//	result = typing.unify(result, PrimitiveType.ANY);
+				//parTyVar.set(result);
 			}
 
 			private void gatherCallTypes(
@@ -602,7 +532,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Function base = (Function) function.baseFunction().latestVersion();
 				for (int ci = 0; ci < calls.size(); ci++) {
 					final CallDeclaration call = calls.get(ci);
-					if (call.params().length < function.numParameters() || call.predecessor() instanceof MemberOperator && ((MemberOperator) call.predecessor()).hasTilde())
+					if (call.predecessor() instanceof MemberOperator && ((MemberOperator) call.predecessor()).hasTilde())
 						continue;
 					final Function f = call.parent(Function.class);
 					final Script other = f.script();
@@ -1151,15 +1081,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				((AccessDeclaration)node).setDeclaration(null);
 			return TraversalContinuation.Continue;
 		}
-	};
-
-	private static final PrimitiveType[] callTypingSeeds = new PrimitiveType[] {
-		PrimitiveType.UNKNOWN,
-		PrimitiveType.INT,
-		PrimitiveType.ID,
-		PrimitiveType.OBJECT,
-		PrimitiveType.STRING,
-		PrimitiveType.PROPLIST
 	};
 
 	/**
