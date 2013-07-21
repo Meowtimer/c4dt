@@ -16,6 +16,7 @@ import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
@@ -159,9 +160,13 @@ public class EntityLocator extends ExpressionLocator<Void> {
 
 	@Override
 	public TraversalContinuation visitNode(ASTNode expression, Void _) {
+		if (expression instanceof ProplistDeclaration)
+			return TraversalContinuation.SkipSubElements;
 		expression.traverse(new IASTVisitor<Void>() {
 			@Override
 			public TraversalContinuation visitNode(ASTNode expression, Void _) {
+				if (expression instanceof ProplistDeclaration)
+					return TraversalContinuation.SkipSubElements;
 				final IRegion a = expression.absolute();
 				if (exprRegion.getOffset() >= a.getOffset() && exprRegion.getOffset() < a.getOffset()+a.getLength()) {
 					exprAtRegion = expression;
