@@ -334,7 +334,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			for (final Visit r : plan.roots)
 				runVisit(r);
 		else {
-			System.out.println("pool");
 			threadPool = TaskExecution.newPool();
 			try {
 				remainingRuns = plan.totalNumVisits;
