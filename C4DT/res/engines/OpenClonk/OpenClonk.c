@@ -302,7 +302,7 @@ global func int CheckEffect(string name, object target, int priority, int timer,
 global func bool CheckVisibility(int player);
 global func int ClearMenuItems();
 global func bool ClearParticles(string name, object obj);
-global func bool ClearScheduleCall(object obj, string function);
+global func bool ClearScheduleCall(object obj, string|function function);
 global func bool CloseMenu();
 global func bool Collect(object item);
 global func bool ComponentAll(id components);
@@ -566,7 +566,7 @@ global func int RGB(int byR, int byG, int byB);
 global func int RGB2HSL(int Val);
 global func int RGBa(int byR, int byG, int byB, int byA);
 global func bool Schedule(object obj, string script, int delay, int repeat);
-global func bool ScheduleCall(object obj, string function, int delay, int repeat);
+global func bool ScheduleCall(object obj, string|function function, int delay, int repeat);
 global func int ScoreboardCol(id definition);
 global func object ScrollContents();
 global func bool SelectMenuItem(int number);
