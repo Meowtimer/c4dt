@@ -157,7 +157,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			if (s instanceof IndexEntity) {
 				final IndexEntity e = (IndexEntity) s;
 				if (entities.put(e.entityId(), e) == null)
-					System.out.println("That did something");
+					System.out.println(String.format("%s was missing from entities map", e.toString()));
 			}
 		for (final IndexEntity e : entities()) {
 			e.index = this;
