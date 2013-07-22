@@ -159,12 +159,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				noticeParameterCountMismatch = true;
 				break;
 			}
-		return this;
-	}
-
-	public DabbleInference() {
-		super();
 		assembleCommittee();
+		return this;
 	}
 
 	@Override

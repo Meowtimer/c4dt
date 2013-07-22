@@ -10,6 +10,7 @@ import java.util.Collection;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTVisitor;
+import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.Pair;
@@ -74,6 +75,11 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	 * @return The strategy
 	 */
 	public Index index() { return index; }
+	/**
+	 * Shortcut to {@link #index()}{@link Index#engine()}
+	 * @return The engine
+	 */
+	public Engine engine() { return index().engine(); }
 
 	/**
 	 * Run on the input provided to {@link #initialize(Markers, IProgressMonitor, Script[])}
