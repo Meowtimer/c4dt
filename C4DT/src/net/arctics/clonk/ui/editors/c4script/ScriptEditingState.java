@@ -307,11 +307,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	@Override
-	public void refreshAfterBuild() {
-		super.refreshAfterBuild();
-		final Markers markers = new Markers();
+	public void refreshAfterBuild(Markers markers) {
+		super.refreshAfterBuild(markers);
 		reportProblemsOnFunctionsCalledByActiveFunction(markers);
-		markers.deploy();
 	}
 
 	private void reportProblemsOnFunctionsCalledByActiveFunction(final Markers markers) {
@@ -862,11 +860,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return function;
 	}
 
-	public IIndexEntity mergeFunctions(int offset, final ScriptEditingState.Call funcCallInfo) {
+	public IIndexEntity mergeFunctions(int offset, final ScriptEditingState.Call call) {
 		IIndexEntity entity = null;
-		funcCallInfo.locator.initializeProposedDeclarations(structure(), null, (ASTNode)funcCallInfo.callFunc);
+		call.locator.initializeProposedDeclarations(structure(), null, (ASTNode)call.callFunc);
 		Function commono = null;
-		final Set<? extends IIndexEntity> potentials = funcCallInfo.locator.potentialEntities();
+		final Set<? extends IIndexEntity> potentials = call.locator.potentialEntities();
 		if (potentials != null)
 			if (potentials.size() == 1)
 				entity = potentials.iterator().next();

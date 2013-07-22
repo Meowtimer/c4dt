@@ -340,19 +340,28 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					strategy.initialize(markers, monitor(), scripts);
 					strategy.run();
 					strategy.apply();
-					strategy.run2();
 				}
 			});
-		markers.deploy();
-		Display.getDefault().asyncExec(new UIRefresher(scripts));
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
-				if (ed != null)
-					ed.state().refreshAfterBuild();
-			}
-		});
+		try {
+			Display.getDefault().asyncExec(new UIRefresher(scripts));
+			Display.getDefault().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
+					if (ed != null)
+						ed.state().refreshAfterBuild(markers);
+				}
+			});
+		} finally {
+			for (final ProblemReportingStrategy strategy : index.nature().problemReportingStrategies())
+				strategy.steer(new Runnable() {
+					@Override
+					public void run() {
+						strategy.run2();
+					}
+				});
+			markers.deploy();
+		}
 	}
 
 	private void clearState() {

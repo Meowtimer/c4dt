@@ -13,6 +13,7 @@ import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
 import net.arctics.clonk.util.Utilities;
 
@@ -400,5 +401,5 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	@Override
 	public ContentAssistant getContentAssistant(ISourceViewer sourceViewer) { return installAssistant(sourceViewer); }
 
-	public void refreshAfterBuild() {}
+	public void refreshAfterBuild(Markers markers) {}
 }
