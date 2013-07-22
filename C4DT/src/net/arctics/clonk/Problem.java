@@ -92,7 +92,7 @@ public enum Problem {
 		Messages.CAM_Arg, Messages.CAM_Par, Messages.CAM_Callee, Messages.CAM_Expected, Messages.CAM_Got),
 	DeclarationNotFound(Messages.DeclarationNotFound, Messages.DNF_DeclarationName, Messages.DNF_Container),
 	LoopVariableUsedInMultipleLoops(Messages.LoopVariableUsedInMultipleLoops, Messages.LoopVariableName),
-	LeadsToErrors("'%s' leads to errors");
+	LeadsToErrors(Messages.LeadsToErrors);
 
 	private String message;
 	private String[] formatArgumentDescriptions;

@@ -623,7 +623,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 								if (e.getKey().second() == fn)
 									for (final CallDeclaration cd : e.getValue())
 										try {
-											markers.error(this, Problem.LeadsToErrors, cd, cd, Markers.NO_THROW, cd.printed());
+											markers.error(this, Problem.LeadsToErrors, cd, cd, Markers.NO_THROW,
+												cd.printed(), fn.qualifiedName(e.getKey().first()));
 										} catch (final ProblemException e1) {}
 					}
 		}

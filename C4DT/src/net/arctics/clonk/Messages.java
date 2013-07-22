@@ -141,6 +141,7 @@ public class Messages extends NLS {
 	public static String ParameterCountMismatch;
 	public static String LoopVariableUsedInMultipleLoops;
 	public static String LoopVariableName;
+	public static String LeadsToErrors;
 
 	static {
 		// initialize resource bundle
