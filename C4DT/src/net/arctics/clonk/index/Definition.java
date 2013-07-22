@@ -24,8 +24,8 @@ import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.ini.CategoriesValue;
-import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.DefCoreUnit;
+import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Pair;
@@ -384,8 +384,8 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	@Override
 	public String toString() {
-		return id != null ? id.stringValue() : name();
-		//return (localizedName() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+		//return id != null ? id.stringValue() : name();
+		return (localizedName() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	@Override
