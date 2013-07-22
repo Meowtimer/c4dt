@@ -87,7 +87,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 				}
 			}
 			else if (node instanceof IDLiteral && declaration instanceof Definition) {
-				if (((IDLiteral)node).idValue().equals(((Definition)declaration).id()))
+				if (context.index().definitionNearestTo(context.file(), ((IDLiteral)node).idValue()) == declaration)
 					result.addMatch(context, node, false, false);
 			}
 			else if (node instanceof StringLiteral) {
