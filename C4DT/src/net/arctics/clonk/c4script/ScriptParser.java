@@ -294,7 +294,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				error(Problem.UnexpectedBlock, start, this.offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
 			} else {
 				final String tokenText = parseTokenAndReturnAsString();
-				error(Problem.CommaOrSemicolonExpected, this.offset, this.offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, tokenText);
+				error(Problem.CommaOrSemicolonExpected, this.offset-1, this.offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, tokenText);
 			}
 		}
 	}
