@@ -114,24 +114,7 @@ public enum Typing {
 
 		if (a instanceof TypeChoice) {
 			final TypeChoice tca = (TypeChoice)a;
-			/*final IType assumed = tca.assumed();
-			if (assumed != null) {
-				final IType b_ = unifyNoChoice(assumed, b);
-				if (b_ != null)
-					return TypeChoice.make(PrimitiveType.ANY, b_);
-			}*/
-			final IType l = tca.left();
-			final IType r = tca.right();
-			final IType l_ = unifyNoChoice(l, b);
-			final IType r_ = unifyNoChoice(r, b);
-			if (l_ == null && r_ == null)
-				return null;
-			else if (r_ == null)
-				return TypeChoice.make(l_, r);
-			else if (l_ == null)
-				return TypeChoice.make(l, r_);
-			else
-				return TypeChoice.make(l_, r_);
+			return unifyTypeAndChoice(tca, b, 0);
 		}
 
 		if (a instanceof IRefinedPrimitiveType && b instanceof PrimitiveType &&
@@ -185,6 +168,29 @@ public enum Typing {
 
 		return null;
 	}
+
+	private IType unifyTypeAndChoice(final TypeChoice choice, IType type, int recursion) {
+		final IType l = choice.left();
+		final IType r = choice.right();
+		if (l.equals(type) || r.equals(type))
+			return choice;
+		final IType l_ = unifyNoChoice(l, type);
+		final IType r_ = unifyNoChoice(r, type);
+		if (l_ != null && r_ != null) {
+			if (recursion < 5)
+				if (l_ instanceof TypeChoice && !(r_ instanceof TypeChoice))
+					return unifyTypeAndChoice((TypeChoice)l_, r_, recursion+1);
+				else if (r_ instanceof TypeChoice && !(l_ instanceof TypeChoice))
+					return unifyTypeAndChoice((TypeChoice)r_, l_, recursion+1);
+			return TypeChoice.make(l_, r_);
+		} else if (l_ != null)
+			return TypeChoice.make(l_, r);
+		else if (r_ != null)
+			return TypeChoice.make(l, r_);
+		else
+			return null;
+	}
+
 	protected IType unifyDefinitions(final Definition da, final Definition db) {
 		if (db.doesInclude(db.index(), da))
 			return da;
@@ -206,7 +212,9 @@ public enum Typing {
 					common.removeAll(cong);
 				}
 			}
-			return common.size() > 0 ? TypeChoice.make(common) : PrimitiveType.OBJECT.unified();
+			return common.size() > 0
+				? TypeChoice.make(common)
+				: TypeChoice.make(da, db);
 		}
 	}
 	public IType unifyNoChoice(IType a, IType b) {
