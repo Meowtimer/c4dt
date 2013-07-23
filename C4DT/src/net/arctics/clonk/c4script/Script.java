@@ -167,7 +167,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	public List<TypeAnnotation> typeAnnotations() { return typeAnnotations; }
-	public void setTypeAnnotations(List<TypeAnnotation> typeAnnotations) { this.typeAnnotations = typeAnnotations; }
+	public void setTypeAnnotations(List<TypeAnnotation> typeAnnotations) {
+		this.typeAnnotations = typeAnnotations;
+		if (this.typeAnnotations != null)
+			for (final TypeAnnotation a : typeAnnotations)
+				a.setParent(this);
+	}
 
 	public Map<String, List<CallDeclaration>> callMap() { return callMap; }
 	public Map<String, List<AccessVar>> varReferences() { return varReferencesMap; }
@@ -1380,7 +1385,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public ASTNode[] subElements() {
-		final List<Declaration> decs = subDeclarations(index(), DeclMask.ALL);
+		final List<ASTNode> decs = new ArrayList<ASTNode>(subDeclarations(index(), DeclMask.ALL));
+		if (typeAnnotations != null)
+			decs.addAll(typeAnnotations);
 		return decs.toArray(new ASTNode[decs.size()]);
 	}
 

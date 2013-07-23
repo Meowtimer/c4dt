@@ -200,7 +200,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				if (nature != null)
 					migrationTyping = nature.settings().migrationTyping;
 			}
-			script.setTypeAnnotations(null);
 		}
 	}
 
@@ -222,9 +221,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @throws ProblemException
 	 */
 	public void parse() throws ProblemException {
+		script().setTypeAnnotations(null);
 		clear();
 		parseDeclarations();
 		validate();
+		script().setTypeAnnotations(typeAnnotations);
 	}
 
 	@Override

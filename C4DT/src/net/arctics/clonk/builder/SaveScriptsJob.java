@@ -1,6 +1,11 @@
 package net.arctics.clonk.builder;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.List;
 
 import net.arctics.clonk.c4script.Script;
 
@@ -11,24 +16,36 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 class SaveScriptsJob extends Job {
-	private final Script[] scriptsToSave;
+	private final List<Script> scriptsToSave;
 	private final IProject project;
 	public SaveScriptsJob(IProject project, Script[] scriptsToSave) {
 		super(ClonkBuilder.buildTask(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts, project));
-		this.scriptsToSave = scriptsToSave;
+		this.scriptsToSave = new ArrayList<>(Arrays.asList(scriptsToSave));
 		this.project = project;
 	}
 	@Override
 	protected IStatus run(final IProgressMonitor monitor) {
-		monitor.beginTask(ClonkBuilder.buildTask(Messages.ClonkBuilder_SavingScriptIndexFiles, project), scriptsToSave.length+3);
+		monitor.beginTask(ClonkBuilder.buildTask(Messages.ClonkBuilder_SavingScriptIndexFiles, project), scriptsToSave.size()+3);
 		try {
-			for (final Script s : scriptsToSave)
+			for (final Iterator<Script> it = scriptsToSave.iterator(); it.hasNext();) {
+				final Script s = it.next();
 				try {
 					s.save();
+					it.remove();
 					monitor.worked(1);
+				} catch (final ConcurrentModificationException mod) {
+					System.out.println(
+						String.format("Failed to save %s due to modification during save() - retrying in hopes of modifications settling down ",
+							s.qualifiedName()));
 				} catch (final IOException e) {
-					e.printStackTrace();
+					System.out.println(String.format("%s could not be saved due to IO: %s",
+						s.qualifiedName(), e.getMessage()));
 				}
+			}
+			if (scriptsToSave.size() > 0) {
+				System.out.println("Keep SaveScriptsJob running");
+				schedule(1500);
+			}
 			monitor.worked(3);
 			return Status.OK_STATUS;
 		} finally {
