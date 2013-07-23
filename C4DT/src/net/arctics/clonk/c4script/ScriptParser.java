@@ -1657,6 +1657,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		Loop: while (!reachedEOF()) {
 			eatWhitespace();
 			switch (read()) {
+			case ';':
+				error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, ';');
+				//$FALL-THROUGH$
 			case ')':
 				if (!expectingComma && listToAddElementsTo.size() > 0)
 					listToAddElementsTo.add(whitespace(lastStart, this.offset-lastStart-1));
@@ -1671,11 +1674,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				if (expectingComma)
 					tokenExpectedError(",");
 				if (listToAddElementsTo.size() > 100)
-					error(Problem.InternalError, this.offset, this.offset, 0, Messages.InternalError_WayTooMuch);
+					error(Problem.InternalError, this.offset, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, Messages.InternalError_WayTooMuch);
 				//	break;
 				ASTNode arg = parseTupleElement();
 				if (arg == null) {
-					error(Problem.ExpressionExpected, this.offset, this.offset+1, Markers.NO_THROW);
+					error(Problem.ExpressionExpected, this.offset, this.offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
 					break Loop;
 				} else {
 					if (arg instanceof SimpleStatement) {
