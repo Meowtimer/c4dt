@@ -326,11 +326,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 	void runPlan(Plan plan) {
 		if (plan.totalNumVisits == 0)
 			return;
-		if (plan.totalNumVisits < TaskExecution.THRESHOLD)
-			for (final Visit r : plan.roots)
-				runVisit(r);
 		else {
-			threadPool = TaskExecution.newPool();
+			threadPool = TaskExecution.newPool(plan.totalNumVisits);
 			try {
 				remainingRuns = plan.totalNumVisits;
 				for (final Visit r : plan.roots)

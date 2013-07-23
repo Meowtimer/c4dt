@@ -19,10 +19,10 @@ public class TaskExecution {
 					for (final Runnable r : runnables)
 						pool.execute(r);
 				}
-			}, timeoutMinutes);
+			}, timeoutMinutes, runnables.size());
 	}
-	public static void threadPool(Sink<ExecutorService> action, int timeoutMinutes) {
-		final ExecutorService pool = newPool();
+	public static void threadPool(Sink<ExecutorService> action, int timeoutMinutes, Integer numWorkUnits) {
+		final ExecutorService pool = newPool(numWorkUnits);
 		try {
 			action.receivedObject(pool);
 		} finally {
@@ -34,7 +34,9 @@ public class TaskExecution {
 			}
 		}
 	}
-	public static ExecutorService newPool() {
-		return Executors.newFixedThreadPool(threadPoolSize);
+	public static ExecutorService newPool(Integer numWorkUnits) {
+		return numWorkUnits != null && numWorkUnits >= THRESHOLD
+			? Executors.newFixedThreadPool(threadPoolSize)
+			: Executors.newSingleThreadExecutor();
 	}
 }

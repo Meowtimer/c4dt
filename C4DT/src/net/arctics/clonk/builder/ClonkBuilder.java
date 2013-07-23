@@ -182,10 +182,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			reportProblems(parsers, scripts);
 			markers.deploy();
 
-			for (final ScriptParser parser : parsers)
-				if (parser != null && parser.script() != null)
-					parser.script().setTypeAnnotations(parser.typeAnnotations());
-
 			new SaveScriptsJob(proj, scripts).schedule();
 
 			performRequestedTypingMigration(proj, parsers);
@@ -269,10 +265,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			parserMapSize = parserMap.size();
 			for (final Script s : newEnqueued.keySet())
 				nature.index().addScript(s);
-			if (newEnqueued.size() < 8)
-				parseDeclarationsUsingSingleThread(newEnqueued);
-			else
-				parseDeclarationsUsingThreadPool(newEnqueued);
+			innerParseDeclarations(newEnqueued);
 			if (monitor.isCanceled())
 				return;
 			// don't queue dependent scripts during a clean build - if everything works right all scripts will have been added anyway
@@ -288,16 +281,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		indexRefresh(index);
 	}
 
-	private void parseDeclarationsUsingSingleThread(final Map<Script, ScriptParser> newEnqueued) {
-		for (final Script script : newEnqueued.keySet()) {
-			if (monitor.isCanceled())
-				return;
-			performParseDeclarations(script);
-			monitor.worked(1);
-		}
-	}
-
-	private void parseDeclarationsUsingThreadPool(final Map<Script, ScriptParser> newEnqueued) {
+	private void innerParseDeclarations(final Map<Script, ScriptParser> newEnqueued) {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
@@ -312,7 +296,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 						}
 					});
 			}
-		}, 20);
+		}, 20, newEnqueued.size());
 	}
 
 	private void indexRefresh(Index index) {

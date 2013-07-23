@@ -203,10 +203,11 @@ public abstract class Declaration extends ASTNode implements
 	}
 
 	/**
-	 * Return an {@link Iterable} to iterate over declarations accessible from this object that match the supplied bit mask
+	 * Return a {@link List} containing sub declarations of this declaration which. The list is populated with
+	 * those declarations that match the supplied mask.
 	 * @param contextIndex {@link Index} Context index. Required for correctly returning appended scripts if a project a completion proposal is invoked in contains scripts appending themselves to scripts from another project.
-	 * @param mask a bit mask specifying what to include in the returned {@link Iterable}, formed by the static variables in this interface
-	 * @return An iterable to iterate over sub declarations satifying the passed mask
+	 * @param mask a bit mask specifying what to include in the returned {@link List}, formed by the static variables defined in {@link DeclMask}.
+	 * @return A list containing sub declarations matching the mask
 	 */
 	public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) { return Collections.emptyList(); }
 	public boolean seesSubDeclaration(Declaration subDeclaration) { return true; }

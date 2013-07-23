@@ -168,7 +168,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 						func.traverse(visitor, func.script());
 					}
 			}
-		}, 20);
+		}, 20, scope.length);
 		return new Status(IStatus.OK, Core.PLUGIN_ID, 0, Messages.ClonkSearchQuery_Success, null);
 	}
 

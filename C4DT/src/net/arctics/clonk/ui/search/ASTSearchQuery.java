@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.search;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -54,7 +55,7 @@ public class ASTSearchQuery extends SearchQuery {
 	private final String templateText;
 	private final ASTNode template;
 	private final ASTNode replacement;
-	private final Iterable<Script> scope;
+	private final Collection<Script> scope;
 
 	public ASTNode replacement() { return replacement; }
 	public ASTNode template() { return template; }
@@ -69,7 +70,7 @@ public class ASTSearchQuery extends SearchQuery {
 		return e;
 	}
 
-	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Iterable<Script> scope) throws ProblemException {
+	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Collection<Script> scope) throws ProblemException {
 		this.templateText = templateExpressionText;
 		final Engine engine = commonEngine(scope);
 		this.template = ASTNodeMatcher.prepareForMatching(templateExpressionText, engine);
@@ -135,7 +136,7 @@ public class ASTSearchQuery extends SearchQuery {
 					if (s.file() != null)
 						item.execute(new ScriptSearcher(s));
 			}
-		}, 20);
+		}, 20, scope.size());
 		return new Status(IStatus.OK, Core.PLUGIN_ID, 0, "C4Script Search Success", null);
 	}
 
