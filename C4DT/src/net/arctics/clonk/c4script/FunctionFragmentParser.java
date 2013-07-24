@@ -1,11 +1,15 @@
 package net.arctics.clonk.c4script;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.ast.FunctionBody;
+import net.arctics.clonk.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.parser.Markers;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -46,8 +50,17 @@ public class FunctionFragmentParser extends ScriptParser {
 		// if block is non-existent or outdated, parse function code and store block
 		if (cachedBlock == null) {
 			try {
-				if (function != null)
+				if (function != null) {
 					function.clearLocalVars();
+					if (script.typeAnnotations() != null) {
+						final SourceLocation bl = function.bodyLocation();
+						for (final Iterator<TypeAnnotation> it = script.typeAnnotations().iterator(); it.hasNext();) {
+							final TypeAnnotation a = it.next();
+							if (a.start() >= bl.start() && a.end() <= bl.end())
+								it.remove();
+						}
+					}
+				}
 				setCurrentFunction(function);
 				markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
 				final EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
@@ -62,6 +75,12 @@ public class FunctionFragmentParser extends ScriptParser {
 				if (function != null) {
 					function.storeBody(body, functionSource);
 					script().deriveInformation();
+					if (script.typeAnnotations() != null && typeAnnotations() != null) {
+						final ArrayList<TypeAnnotation> annots = new ArrayList<>(script.typeAnnotations().size()+typeAnnotations().size());
+						annots.addAll(script.typeAnnotations());
+						annots.addAll(typeAnnotations());
+						script.setTypeAnnotations(annots);
+					}
 				}
 			} catch (final ProblemException pe) {}
 			return true;

@@ -52,4 +52,6 @@ public final class TypeAnnotation extends ASTNode {
 				entities.add((IIndexEntity)t);
 		return entities.size() > 0 ? new EntityRegion(entities, absolute()) : null;
 	}
+	@Override
+	public String printed() { return type.typeName(true); }
 }

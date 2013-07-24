@@ -199,6 +199,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				if (nature != null)
 					migrationTyping = nature.settings().migrationTyping;
 			}
+			if (typing.allowsNonParameterAnnotations() || migrationTyping != null)
+				typeAnnotations = new ArrayList<TypeAnnotation>();
 		}
 	}
 
@@ -260,8 +262,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * Parse declarations but not function code. Before calling this it should be ensured that the script is {@link #clear()}-ed to avoid duplicates.
 	 */
 	public void parseDeclarations() {
-		if (typing.allowsNonParameterAnnotations() || migrationTyping != null)
-			typeAnnotations = new ArrayList<TypeAnnotation>();
 		this.seek(0);
 		try {
 			parseInitialSourceComment();
@@ -654,6 +654,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return scope;
 	}
 
+	private TypeAnnotation typeAnnotation(int s, int e, IType type) {
+		return new TypeAnnotation(fragmentOffset()+s, fragmentOffset()+e, type);
+	}
+
 	private VarInitialization parseVarInitialization(Scope scope, Comment comment, final int backtrack) throws ProblemException {
 		eatWhitespace();
 		TypeAnnotation staticType;
@@ -666,7 +670,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				eatWhitespace();
 			else if (typing == Typing.STATIC) {
 				typeExpectedAt = this.offset;
-				staticType = new TypeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
+				staticType = typeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
 			} else
 				staticType = null;
 		} else
@@ -677,7 +681,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		if (s > bt)
 			if (varName.length() == 0) {
 				if (typing == Typing.STATIC) {
-					staticType = new TypeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
+					staticType = typeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
 					error(Problem.TypeExpected, bt, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
 				} else
 					staticType = null;
@@ -733,7 +737,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private TypeAnnotation placeholderTypeAnnotationIfMigrating(int offset) {
 		TypeAnnotation typeAnnotation;
 		if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
-			typeAnnotation = new TypeAnnotation(offset, offset, null);
+			typeAnnotation = typeAnnotation(offset, offset, null);
 			if (typeAnnotations != null)
 				typeAnnotations.add(typeAnnotation);
 		} else
@@ -761,7 +765,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				error(Problem.PrimitiveTypeNotSupported, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW,
 					'&', script.engine().name());
 			read();
-			t = new TypeAnnotation(offset-1, offset, PrimitiveType.REFERENCE);
+			t = typeAnnotation(offset-1, offset, PrimitiveType.REFERENCE);
 		}
 		else if ((str = parseIdentifier()) != null || ((id = parseID()) != null && (str = id.stringValue()) != null)) {
 			final PrimitiveType pt = PrimitiveType.fromString(str, script == engine||typing==Typing.STATIC);
@@ -771,17 +775,17 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				 * explicitly accepting any object won't be restricted to specific
 				 * definitions
 				 */
-				t = new TypeAnnotation(backtrack, offset, pt.unified());
+				t = typeAnnotation(backtrack, offset, pt.unified());
 			else if (typing.allowsNonParameterAnnotations())
 				if (script.index() != null && engine.acceptsId(str))
-					t = new TypeAnnotation(backtrack, offset, script.index().definitionNearestTo(script.file(), ID.get(str)));
+					t = typeAnnotation(backtrack, offset, script.index().definitionNearestTo(script.file(), ID.get(str)));
 			if (t != null) {
 				final List<TypeAnnotation> subAnnotations = new LinkedList<>();
 				final int p = offset;
 				eatWhitespace();
 				RefinementIndicator: switch (read()) {
 				case '&':
-					t = new TypeAnnotation(backtrack, offset, ReferenceType.make(t.type()));
+					t = typeAnnotation(backtrack, offset, ReferenceType.make(t.type()));
 					break;
 				case '[':
 					if (typing == Typing.STATIC || migrationTyping == Typing.STATIC)
@@ -835,9 +839,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			if (migrationTyping == Typing.STATIC)
 				if (topLevel && typeAnnotations != null)
 					// placeholder annotation
-					typeAnnotations.add(new TypeAnnotation(backtrack, backtrack, null));
+					typeAnnotations.add(typeAnnotation(backtrack, backtrack, null));
 			this.seek(backtrack);
-		}
+		} else
+			t.setEnd(fragmentOffset()+offset);
 		return t;
 	}
 
