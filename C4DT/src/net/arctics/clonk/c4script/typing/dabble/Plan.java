@@ -135,6 +135,13 @@ class Plan {
 
 	void determineRequirements() {
 
+		switch (inference.typing) {
+		case STATIC: case DYNAMIC:
+			return;
+		default:
+			break;
+		}
+
 		// callee -> caller if callee's result used
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.visits.values())
