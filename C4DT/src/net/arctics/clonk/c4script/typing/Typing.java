@@ -33,6 +33,12 @@ public enum Typing {
 				if (!db.includes(0).contains(da))
 					return null;
 			}
+			if (a instanceof ArrayType && b instanceof ArrayType)
+				if (!compatible(
+					((ArrayType)a).elementType(),
+					((ArrayType)b).elementType()
+				))
+					return null;
 			return super.unifyNoChoice(a, b);
 		}
 	};
