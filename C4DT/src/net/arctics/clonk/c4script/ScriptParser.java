@@ -115,7 +115,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 	protected Function currentFunction;
 	private Declaration currentDeclaration;
-	private TypeAnnotation parsedTypeAnnotation;
 
 	/**
 	 * Reference to project file the script was read from.
@@ -529,8 +528,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						parser.eatWhitespace();
 						final int bt = parser.offset;
 						if (parser.typing != Typing.DYNAMIC) {
-							returnType = parser.parseTypeAnnotation(true, true);
-							typeAnnotation = parser.parsedTypeAnnotation;
+							typeAnnotation = parser.parseTypeAnnotation(true, true);
+							returnType = typeAnnotation != null ? typeAnnotation.type() : null;
 						}
 						switch (parser.typing) {
 						case STATIC:
@@ -657,45 +656,35 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 	private VarInitialization parseVarInitialization(Scope scope, Comment comment, final int backtrack) throws ProblemException {
 		eatWhitespace();
-		parsedTypeAnnotation = null;
-		IType staticType;
-		TypeAnnotation typeAnnotation;
+		TypeAnnotation staticType;
 		final int bt = this.offset;
 		int typeExpectedAt = -1;
 		// when parsing an engine script from (res/engines/...), allow specifying the type directly
 		if (script == engine || typing.allowsNonParameterAnnotations()) {
 			staticType = parseTypeAnnotation(true, false);
-			if (staticType != null) {
-				typeAnnotation = parsedTypeAnnotation;
+			if (staticType != null)
 				eatWhitespace();
-			}
 			else if (typing == Typing.STATIC) {
-				typeAnnotation = null;
 				typeExpectedAt = this.offset;
-				staticType = PrimitiveType.ERRONEOUS;
+				staticType = new TypeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
 			} else
-				typeAnnotation = null;
-		}
-		else {
-			typeAnnotation = placeholderTypeAnnotationIfMigrating(this.offset);
-			staticType = null;
-		}
+				staticType = null;
+		} else
+			staticType = placeholderTypeAnnotationIfMigrating(this.offset);
 
 		final int s = this.offset;
 		String varName = readIdent();
 		if (s > bt)
 			if (varName.length() == 0) {
-				typeAnnotation = null;
 				if (typing == Typing.STATIC) {
-					staticType = PrimitiveType.ERRONEOUS;
+					staticType = new TypeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
 					error(Problem.TypeExpected, bt, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
-				}
-				staticType = typing == Typing.STATIC ? PrimitiveType.ERRONEOUS : null;
+				} else
+					staticType = null;
 				seek(bt);
 				varName = readIdent();
 			} else if (migrationTyping == Typing.STATIC && varName.equals(Keywords.In)) {
 				// ugh - for (var object in ...) workaround
-				typeAnnotation = null;
 				staticType = null;
 				seek(bt);
 				varName = readIdent();
@@ -710,12 +699,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		try {
 			final Variable var = script.createVarInScope(this, currentFunction, varName, scope,
 				fragmentOffset()+bt, fragmentOffset()+this.offset, comment);
-			if (typeAnnotation != null)
-				typeAnnotation.setTarget(var);
 			if (staticType != null)
-				var.assignType(staticType, true);
-			if (parsedTypeAnnotation != null)
-				parsedTypeAnnotation.setTarget(var);
+				staticType.setTarget(var);
+			if (staticType != null) {
+				var.assignType(staticType.type(), true);
+				staticType.setTarget(var);
+			}
 			this.currentDeclaration = var;
 			VarInitialization varInitialization;
 			ASTNode initializationExpression = null;
@@ -734,7 +723,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					var.forceType(PrimitiveType.INT); // most likely
 			}
 			varInitialization = new VarInitialization(varName, initializationExpression, bt-sectionOffset(), this.offset-sectionOffset(), var);
-			varInitialization.type = staticType;
+			varInitialization.type = staticType != null ? staticType.type() : null;
 			return varInitialization;
 		} finally {
 			this.currentDeclaration = outerDec;
@@ -744,7 +733,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private TypeAnnotation placeholderTypeAnnotationIfMigrating(int offset) {
 		TypeAnnotation typeAnnotation;
 		if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
-			typeAnnotation = new TypeAnnotation(offset, offset);
+			typeAnnotation = new TypeAnnotation(offset, offset, null);
 			if (typeAnnotations != null)
 				typeAnnotations.add(typeAnnotation);
 		} else
@@ -761,52 +750,49 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return new Variable(varName, scope);
 	}
 
-	private IType parseTypeAnnotation(boolean topLevel, boolean required) throws ProblemException {
-		if (topLevel)
-			parsedTypeAnnotation = null;
+	private TypeAnnotation parseTypeAnnotation(boolean topLevel, boolean required) throws ProblemException {
 		final int backtrack = this.offset;
 		final int start = this.offset;
 		String str;
-		IType t = null;
+		TypeAnnotation t = null;
 		ID id;
 		if (peek() == '&') {
 			if (!script.engine().settings().supportsRefs)
 				error(Problem.PrimitiveTypeNotSupported, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW,
 					'&', script.engine().name());
 			read();
-			t = PrimitiveType.REFERENCE;
+			t = new TypeAnnotation(offset-1, offset, PrimitiveType.REFERENCE);
 		}
 		else if ((str = parseIdentifier()) != null || ((id = parseID()) != null && (str = id.stringValue()) != null)) {
-			PrimitiveType pt;
-			t = pt = PrimitiveType.fromString(str, script == engine||typing==Typing.STATIC);
-			if (pt != null && !script.engine().supportsPrimitiveType(pt))
-				t = null;
-			else if (t == null && typing.allowsNonParameterAnnotations()) {
-				if (script.index() != null && engine.acceptsId(str))
-					t = script.index().definitionNearestTo(script.file(), ID.get(str));
-			}
-			else if (pt != null && script != engine)
+			final PrimitiveType pt = PrimitiveType.fromString(str, script == engine||typing==Typing.STATIC);
+			if (pt != null && script.engine().supportsPrimitiveType(pt))
 				/* give explicit parameter types authority boost -
 				 * they won't unify with Definitions so that parameters
 				 * explicitly accepting any object won't be restricted to specific
 				 * definitions
 				 */
-				t = pt.unified();
+				t = new TypeAnnotation(backtrack, offset, pt.unified());
+			else if (typing.allowsNonParameterAnnotations())
+				if (script.index() != null && engine.acceptsId(str))
+					t = new TypeAnnotation(backtrack, offset, script.index().definitionNearestTo(script.file(), ID.get(str)));
 			if (t != null) {
+				final List<TypeAnnotation> subAnnotations = new LinkedList<>();
 				final int p = offset;
 				eatWhitespace();
 				RefinementIndicator: switch (read()) {
 				case '&':
-					t = ReferenceType.make(t);
+					t = new TypeAnnotation(backtrack, offset, ReferenceType.make(t.type()));
 					break;
 				case '[':
 					if (typing == Typing.STATIC || migrationTyping == Typing.STATIC)
-						if (eq(t, PrimitiveType.ARRAY)) {
+						if (eq(t.type(), PrimitiveType.ARRAY)) {
 							eatWhitespace();
-							final IType elementType = parseTypeAnnotation(false, true);
+							final TypeAnnotation elementType = parseTypeAnnotation(false, true);
 							expect(']');
-							if (elementType != null)
-								t = new ArrayType(elementType);
+							if (elementType != null) {
+								subAnnotations.add(elementType);
+								t.setType(new ArrayType(elementType.type()));
+							}
 							break RefinementIndicator;
 						}
 					break;
@@ -822,19 +808,19 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						break;
 					} else
 						eatWhitespace();
-					final IType option = parseTypeAnnotation(false, true);
-					if (option != null)
-						t = typing.unify(t, option);
+					final TypeAnnotation option = parseTypeAnnotation(false, true);
+					if (option != null) {
+						subAnnotations.add(option);
+						t.setType(typing.unify(t.type(), option.type()));
+					}
 					else
 						break;
 					eatWhitespace();
 				}
+				t.setSubAnnotations(subAnnotations.toArray(new TypeAnnotation[subAnnotations.size()]));
 				if (topLevel)
-					if (typeAnnotations != null) {
-						parsedTypeAnnotation = new TypeAnnotation(backtrack, this.offset);
-						parsedTypeAnnotation.setType(t);
-						typeAnnotations.add(parsedTypeAnnotation);
-					}
+					if (typeAnnotations != null)
+						typeAnnotations.add(t);
 			}
 		}
 		if (t == null) {
@@ -846,7 +832,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			if (migrationTyping == Typing.STATIC)
 				if (topLevel && typeAnnotations != null)
 					// placeholder annotation
-					typeAnnotations.add(parsedTypeAnnotation = new TypeAnnotation(backtrack, backtrack));
+					typeAnnotations.add(new TypeAnnotation(backtrack, backtrack, null));
 			this.seek(backtrack);
 		}
 		return t;
@@ -1319,12 +1305,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						eatWhitespace();
 						expect('[');
 						eatWhitespace();
-						final IType targetType = parseTypeAnnotation(true, true);
+						final TypeAnnotation targetType = parseTypeAnnotation(true, true);
 						eatWhitespace();
 						expect(']');
 						eatWhitespace();
 						final ASTNode expr = parseExpression();
-						elm = new CastExpression(targetType, expr);
+						elm = new CastExpression(targetType != null ? targetType.type() : null, expr);
 					}
 					else {
 						final int beforeWhitespace = this.offset;
@@ -2436,7 +2422,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		}
 
 		final int typeStart = this.offset;
-		IType type = parseTypeAnnotation(true, false);
+		TypeAnnotation type = parseTypeAnnotation(true, false);
 		final int typeEnd = this.offset;
 		eatWhitespace();
 		int nameStart = this.offset;
@@ -2449,7 +2435,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			parmName = readIdent();
 			if (parmName.length() == 0)
 				return null;
-			parsedTypeAnnotation = placeholderTypeAnnotationIfMigrating(ta);
+			type = placeholderTypeAnnotationIfMigrating(ta);
 		}
 		switch (typing) {
 		case STATIC:
@@ -2464,18 +2450,18 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			break;
 		}
 		final Variable var = new Variable(null, Scope.PARAMETER);
-		if (parsedTypeAnnotation != null)
-			parsedTypeAnnotation.setTarget(var);
+		if (type != null)
+			type.setTarget(var);
 		if (type != null) {
-			if ((type == PrimitiveType.REFERENCE || type instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
+			if ((type.type() == PrimitiveType.REFERENCE || type.type() instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
 				error(Problem.PrimitiveTypeNotSupported, offset-1, offset, Markers.NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
-			var.forceType(type, true);
+			var.forceType(type.type(), true);
 		}
 		var.setName(parmName);
 		var.setLocation(new SourceLocation(nameStart-function.start(), this.offset-function.start()));
 		var.setParent(function);
-		if (parsedTypeAnnotation != null)
-			parsedTypeAnnotation.setTarget(var);
+		if (type != null)
+			type.setTarget(var);
 		function.addParameter(var);
 		eatWhitespace();
 		return var;

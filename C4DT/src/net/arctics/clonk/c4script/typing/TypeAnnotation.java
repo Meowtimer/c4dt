@@ -16,22 +16,32 @@ import net.arctics.clonk.index.IIndexEntity;
  */
 public final class TypeAnnotation extends ASTNode {
 	private static final long serialVersionUID = 1L;
-	private ITypeable typeable;
+	private ITypeable target;
 	private IType type;
+	private TypeAnnotation[] subAnnotations;
+	public TypeAnnotation(int start, int end, IType type) {
+		super(start, end);
+		this.type = type;
+	}
 	/** The typeable element this annotation is targeted at */
-	public ITypeable target() {return typeable;}
+	public ITypeable target() {return target;}
 	/** Set the target of this annotation. */
 	public void setTarget(ITypeable typeable) {
-		if (this.typeable != null && this.typeable != typeable)
+		if (this.target != null && this.target != typeable)
 			throw new IllegalArgumentException();
 		else
-			this.typeable = typeable;
+			this.target = typeable;
 	}
 	/** The type this annotation refers to. */
 	public IType type() {return type;}
 	/** Set the type of this annotation. */
 	public void setType(IType type) {this.type = type;}
-	public TypeAnnotation(int start, int end) {super(start, end);}
+	@Override
+	public ASTNode[] subElements() { return subAnnotations; }
+	public void setSubAnnotations(TypeAnnotation[] subAnnotations) {
+		this.subAnnotations = subAnnotations;
+		assignParentToSubElements();
+	}
 	@Override
 	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
 		if (type == null)
