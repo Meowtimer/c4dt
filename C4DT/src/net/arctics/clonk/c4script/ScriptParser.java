@@ -785,18 +785,21 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					break;
 				case '[':
 					if (typing == Typing.STATIC || migrationTyping == Typing.STATIC)
-						if (eq(t.type(), PrimitiveType.ARRAY)) {
-							eatWhitespace();
-							final TypeAnnotation elementType = parseTypeAnnotation(false, true);
-							expect(']');
-							if (elementType != null) {
-								subAnnotations.add(elementType);
-								t.setType(new ArrayType(elementType.type()));
-							}
-							break RefinementIndicator;
-						}
-					break;
-					//$FALL-THROUGH$
+						eatWhitespace();
+					final TypeAnnotation elementType = parseTypeAnnotation(false, true);
+					expect(']');
+					if (elementType != null) {
+						subAnnotations.add(elementType);
+						if (eq(t.type(), PrimitiveType.ARRAY))
+							t.setType(new ArrayType(elementType.type()));
+						else if (eq(t.type(), PrimitiveType.ID))
+							if (elementType.type() instanceof Definition)
+								t.setType(((Definition)elementType.type()).metaDefinition());
+							else
+								error(Problem.IncompatibleTypes, elementType.start(), elementType.end(), Markers.NO_THROW,
+									elementType.type().typeName(true), "definition");
+					}
+					break RefinementIndicator;
 				default:
 					seek(p);
 				}
