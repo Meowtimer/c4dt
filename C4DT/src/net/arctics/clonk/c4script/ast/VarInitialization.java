@@ -3,11 +3,13 @@ package net.arctics.clonk.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.util.ArrayUtil;
 
@@ -65,9 +67,17 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	}
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
-		if (type != null) {
-			output.append(type.typeName(false));
-			output.append(" ");
+		final Declaration p = parent(Declaration.class);
+		final Typing typing = p != null ? p.typing() : Typing.INFERRED;
+		switch (typing) {
+		case STATIC: case INFERRED:
+			if (type != null) {
+				output.append(type.typeName(typing == Typing.STATIC));
+				output.append(" ");
+			}
+			break;
+		case DYNAMIC:
+			break;
 		}
 		output.append(name);
 		if (expression != null) {
@@ -82,7 +92,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	 * @return
 	 */
 	public VarInitialization precedingInitialization() {
-		VarInitialization[] brothers = parent(VarDeclarationStatement.class).variableInitializations();
+		final VarInitialization[] brothers = parent(VarDeclarationStatement.class).variableInitializations();
 		return ArrayUtil.boundChecked(brothers, ArrayUtil.indexOf(this, brothers)-1);
 	}
 	/**
@@ -90,7 +100,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	 * @return
 	 */
 	public VarInitialization succeedingInitialization() {
-		VarInitialization[] sisters = parent(VarDeclarationStatement.class).variableInitializations();
+		final VarInitialization[] sisters = parent(VarDeclarationStatement.class).variableInitializations();
 		return ArrayUtil.boundChecked(sisters, ArrayUtil.indexOf(this, sisters)+1);
 	}
 

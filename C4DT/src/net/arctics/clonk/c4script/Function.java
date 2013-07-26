@@ -673,7 +673,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		output.append(name());
 		if (!oldStyle) {
 			output.append("("); //$NON-NLS-1$
-			printParametersString(output, new PrintParametersOptions(script().typings().get(this), true, true, false));
+			typing();
+			printParametersString(output, new PrintParametersOptions(script().typings().get(this), true,
+				typing() != net.arctics.clonk.c4script.typing.Typing.STATIC, false));
 			output.append(")"); //$NON-NLS-1$
 		}
 		else
