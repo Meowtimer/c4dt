@@ -777,8 +777,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				 */
 				t = typeAnnotation(backtrack, offset, pt.unified());
 			else if (typing.allowsNonParameterAnnotations())
-				if (script.index() != null && engine.acceptsId(str))
-					t = typeAnnotation(backtrack, offset, script.index().definitionNearestTo(script.file(), ID.get(str)));
+				if (script.index() != null && engine.acceptsId(str)) {
+					final Definition def = script.index().definitionNearestTo(script.file(), ID.get(str));
+					if (def != null)
+						t = typeAnnotation(backtrack, offset, def);
+				}
 			if (t != null) {
 				final List<TypeAnnotation> subAnnotations = new LinkedList<>();
 				final int p = offset;
