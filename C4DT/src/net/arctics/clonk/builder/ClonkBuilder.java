@@ -106,10 +106,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		this.buildKind = kind;
 		this.monitor = monitor;
 		
-		if (kind == FULL_BUILD) {
-			if (index.built())
-				return new IProject[] { proj };
-			index.built(true);
+		switch (index.built()) {
+		case No:
+			break;
+		case Yes:
+			if (kind == FULL_BUILD)
+				break;
+		default:
+			return new IProject[] { proj };
 		}
 		
 		clearState();
@@ -328,9 +332,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			Display.getDefault().syncExec(new Runnable() {
 				@Override
 				public void run() {
-					final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
-					if (ed != null)
-						ed.state().refreshAfterBuild(markers);
+					try {
+						final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
+						if (ed != null)
+							ed.state().refreshAfterBuild(markers);
+					} catch (final Exception e) {
+
+					}
 				}
 			});
 		} finally {

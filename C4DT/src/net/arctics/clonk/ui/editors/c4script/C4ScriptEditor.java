@@ -98,7 +98,14 @@ public class C4ScriptEditor extends StructureTextEditor {
 
 	@Override
 	protected void doSetInput(IEditorInput input) throws CoreException {
-		super.doSetInput(input);
+		try {
+			super.doSetInput(input);
+		} finally {
+			setDocumentPartitioner(input);
+		}
+	}
+
+	private void setDocumentPartitioner(IEditorInput input) {
 		final IDocument document = getDocumentProvider().getDocument(input);
 		if (document.getDocumentPartitioner() == null) {
 			final IDocumentPartitioner partitioner =

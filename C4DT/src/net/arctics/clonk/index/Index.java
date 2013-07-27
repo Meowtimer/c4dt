@@ -100,10 +100,16 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
 
 	protected File folder;
-	protected boolean built;
+	protected Built built;
+	
+	public enum Built {
+		No,
+		Yes,
+		LeaveAlone
+	}
 
-	public boolean built() { return built; }
-	public void built(boolean b) { built = b; }
+	public Built built() { return built; }
+	public void built(Built b) { built = b; }
 
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
@@ -271,7 +277,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public void refresh() {
 		refresh(false);
-		built(false);
+		built(Built.No);
 	}
 
 	/**
@@ -643,7 +649,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		entities.clear();
 		entityIdCounter = 0;
 		refresh(false);
-		built(false);
+		built(Built.No);
 	}
 
 	private void clearEntityFiles() {
