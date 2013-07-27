@@ -25,15 +25,15 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	private final List<RetargetTextEditorAction> actions = new ArrayList<RetargetTextEditorAction>();
 	
 	private void add(ResourceBundle bundle, @SuppressWarnings("unchecked") Class<? extends ClonkTextEditorAction>... classes) {
-		for (Class<? extends ClonkTextEditorAction> c : classes) {
-			String prefix = ClonkTextEditorAction.resourceBundlePrefix(c);
-			String id = ClonkTextEditorAction.idString(c);
+		for (final Class<? extends ClonkTextEditorAction> c : classes) {
+			final String prefix = ClonkTextEditorAction.resourceBundlePrefix(c);
+			final String id = ClonkTextEditorAction.idString(c);
 			add(bundle, prefix, id);
 		}
 	}
 
 	private void add(ResourceBundle bundle, String prefix, String id) {
-		RetargetTextEditorAction a = new RetargetTextEditorAction(bundle, prefix);
+		final RetargetTextEditorAction a = new RetargetTextEditorAction(bundle, prefix);
 		a.setActionDefinitionId(id);
 		actions.add(a);
 	}
@@ -48,7 +48,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	@Override
 	public void setActiveEditor(IEditorPart part) {
 		super.setActiveEditor(part);
-		for (RetargetTextEditorAction action : actions)
+		for (final RetargetTextEditorAction action : actions)
 			if (action != null)
 				if (part instanceof ITextEditor)
 					action.setAction(getAction((ITextEditor) part, action.getActionDefinitionId()));
@@ -57,10 +57,11 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	@Override
 	public void contributeToMenu(IMenuManager menu) {
 		super.contributeToMenu(menu);
-		for (RetargetTextEditorAction action : actions)
+		for (final RetargetTextEditorAction action : actions)
 			if (action != null) {
-				IMenuManager editMenu = menu.findMenuUsingPath(IWorkbenchActionConstants.M_EDIT);
-				editMenu.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, action);
+				final IMenuManager editMenu = menu.findMenuUsingPath(IWorkbenchActionConstants.M_EDIT);
+				if (editMenu != null)
+					editMenu.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, action);
 			}
 	}
 
