@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.editors.c4script;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -371,7 +372,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	public List<ProblemReportingStrategy> problemReportingStrategies() {
-		return ClonkProjectNature.get(structure().file()).problemReportingStrategies();
+		try {
+			return ClonkProjectNature.get(structure().file()).problemReportingStrategies();
+		} catch (final NullPointerException npe) {
+			return new ArrayList<>();
+		}
 	}
 
 	public void scheduleReparsing(final boolean onlyDeclarations) {
