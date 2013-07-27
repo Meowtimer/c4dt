@@ -100,7 +100,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
 
 	protected File folder;
-	protected Built built;
+	protected Built built = Built.No;
 	
 	public enum Built {
 		No,
