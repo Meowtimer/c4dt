@@ -99,21 +99,22 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		final IProject proj = getProject();
-		this.index = ClonkProjectNature.get(getProject()).index();
-		markers.applyProjectSettings(this.index);
-
+		
+		this.nature = ClonkProjectNature.get(proj);
+		this.index = nature.index();
+		this.markers.applyProjectSettings(index);
+		this.buildKind = kind;
+		this.monitor = monitor;
+		
 		if (kind == FULL_BUILD) {
 			if (index.built())
 				return new IProject[] { proj };
 			index.built(true);
 		}
-
-		this.buildKind = kind;
-		this.monitor = monitor;
+		
 		clearState();
 
-		//clearUIOfReferencesBeforeBuild();
-		ClonkProjectNature.get(proj).index().beginModification();
+		index.beginModification();
 		try {
 			try {
 
@@ -134,7 +135,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				return null;
 			}
 		} finally {
-			ClonkProjectNature.get(proj).index().endModification();
+			index.endModification();
 			clearState();
 		}
 	}
@@ -152,10 +153,6 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		final IProject proj,
 		IResourceDelta delta
 	) throws CoreException {
-
-		nature = ClonkProjectNature.get(proj);
-		final Index index = nature.index();
-
 		// visit files to open C4Groups if files are contained in c4group file system
 		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.OPEN));
 		try {
