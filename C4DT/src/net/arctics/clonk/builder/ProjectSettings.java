@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +42,7 @@ public class ProjectSettings extends SettingsBase {
 	public String problemReportingStrategies;
 
 	private Engine cachedEngine;
-	private HashSet<Problem> disabledErrorsSet;
+	private Set<Problem> disabledErrorsSet;
 
 	public ProjectSettings() {}
 
@@ -55,7 +56,7 @@ public class ProjectSettings extends SettingsBase {
 		return cachedEngine;
 	}
 
-	public synchronized HashSet<Problem> disabledErrorsSet() {
+	public synchronized Set<Problem> disabledErrorsSet() {
 		if (disabledErrorsSet == null) {
 			disabledErrorsSet = new HashSet<Problem>();
 			if (!disabledErrors.equals("")) {
@@ -118,7 +119,7 @@ public class ProjectSettings extends SettingsBase {
 		disabledErrorsSet = null;
 	}
 
-	public void setDisabledErrorsSet(HashSet<Problem> errorCodes) {
+	public void setDisabledErrorsSet(Set<Problem> errorCodes) {
 		this.disabledErrorsSet = errorCodes;
 		if (errorCodes != null)
 			this.disabledErrors = StringUtil.writeBlock(null, "", "", ",", errorCodes);

@@ -75,12 +75,11 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			doLoad();
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		protected void doLoad() {
-			disabledErrorCodes = (HashSet<Problem>) ClonkProjectNature.get(getProject()).settings().disabledErrorsSet().clone();
+			disabledErrorCodes = new HashSet<Problem>(ClonkProjectNature.get(getProject()).settings().disabledErrorsSet());
 			if (tableViewer != null)
-			for (Problem c : Problem.values())
+			for (final Problem c : Problem.values())
 				tableViewer.setChecked(c, !disabledErrorCodes.contains(c));
 		}
 
@@ -93,10 +92,10 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 						tableViewer.refresh();
 					}
 				});
-				ViewerFilter filter = new ViewerFilter() {
+				final ViewerFilter filter = new ViewerFilter() {
 					@Override
 					public boolean select(Viewer viewer, Object parentElement, Object element) {
-						String text = ((LabelProvider)tableViewer.getLabelProvider()).getText(element);
+						final String text = ((LabelProvider)tableViewer.getLabelProvider()).getText(element);
 						return StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(text).find();
 					}
 				};
@@ -111,7 +110,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 					@Override
 					public Object[] getElements(Object inputElement) {
 						if (inputElement == Problem.class) {
-							Problem[] elms = Problem.values().clone();
+							final Problem[] elms = Problem.values().clone();
 							Arrays.sort(elms, new Comparator<Problem>() {
 								@Override
 								public int compare(Problem o1, Problem o2) {
@@ -138,9 +137,9 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 
 		@Override
 		protected void doFillIntoGrid(Composite parent, int numColumns) {
-			Label label = getLabelControl(parent);
+			final Label label = getLabelControl(parent);
 			label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-			Table table = getTable(parent);
+			final Table table = getTable(parent);
 			GridData gd = new GridData();
 			gd.heightHint = 0;
 			gd.widthHint = SWT.DEFAULT;
@@ -206,12 +205,12 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 
 		@Override
 		public String getString(String name) {
-			String v = values.get(name);
+			final String v = values.get(name);
 			return v != null ? v : getDefaultString(name);
 		}
 
 		public void commit(String n, String v) {
-			ProjectSettings settings = getSettings();
+			final ProjectSettings settings = getSettings();
 			if (n.equals(ENGINENAME_PROPERTY)) {
 				settings.setEngineName(v);
 				UI.refreshAllProjectExplorers(getProject());
@@ -258,7 +257,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		this.element = element;
 		try {
 			this.adapterStore = new AdapterStore();
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 	}
