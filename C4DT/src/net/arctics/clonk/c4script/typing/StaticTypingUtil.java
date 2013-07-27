@@ -103,12 +103,12 @@ public class StaticTypingUtil {
 				final IFile file = as(m, IFile.class);
 				final IContainer folder = as(m, IContainer.class);
 				if (file != null) {
-					final String annotationPurgedContents = contentsWithAnnotationsPurged(file);
-					if (annotationPurgedContents != null)
+					String _purged = contentsWithAnnotationsPurged(file);
+					if (_purged != null)
 						try {
 							final Script script = Script.get(file, true);
 							if (script != null) {
-								final StringBuilder builder = new StringBuilder(annotationPurgedContents);
+								final StringBuilder builder = new StringBuilder(_purged);
 								script.traverse(new IASTVisitor<StringBuilder>() {
 									@Override
 									public TraversalContinuation visitNode(ASTNode node, StringBuilder context) {
@@ -121,11 +121,13 @@ public class StaticTypingUtil {
 										return TraversalContinuation.Continue;
 									}
 								}, builder);
+								_purged = builder.toString();
 							}
+							final String purged = _purged;
 							StreamUtil.writeToFile(destinationFile, new StreamWriteRunnable() {
 								@Override
 								public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
-									writer.write(annotationPurgedContents);
+									writer.write(purged);
 								}
 							});
 						} catch (final IOException e) {
