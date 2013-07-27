@@ -75,6 +75,7 @@ import net.arctics.clonk.c4script.ast.WhileStatement;
 import net.arctics.clonk.c4script.ast.Whitespace;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.ArrayType;
+import net.arctics.clonk.c4script.typing.ErroneousType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.ReferenceType;
@@ -755,6 +756,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	private TypeAnnotation parseTypeAnnotation(boolean topLevel, boolean required) throws ProblemException {
+		if (typing == Typing.STATIC && migrationTyping == null)
+			required = true;
 		final int backtrack = this.offset;
 		final int start = this.offset;
 		String str;
@@ -837,7 +840,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			if (typing == Typing.STATIC)
 				if (required) {
 					error(Problem.InvalidType, start, offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, readStringAt(start, offset));
-					return null;
+					return typeAnnotation(start, offset, new ErroneousType(readStringAt(start, offset)));
 				}
 			if (migrationTyping == Typing.STATIC)
 				if (topLevel && typeAnnotations != null)
