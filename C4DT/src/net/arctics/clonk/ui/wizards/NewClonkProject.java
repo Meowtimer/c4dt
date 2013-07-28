@@ -20,31 +20,31 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
 public class NewClonkProject extends Wizard implements INewWizard {
-	
+
 	protected NewClonkProjectWizardCreationPage page;
-	
+
 	@Override
 	public boolean performFinish() {
 		try {
-			IProject proj = page.getProjectHandle();
-			IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(page.getProjectName());
+			final IProject proj = page.getProjectHandle();
+			final IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(page.getProjectName());
 			if (!page.useDefaults())
 				desc.setLocation(page.getLocationPath());
-			desc.setNatureIds(new String[] {Core.id("clonknature")}); //$NON-NLS-1$
-			ICommand command = desc.newCommand();
+			desc.setNatureIds(new String[] {Core.NATURE_ID});
+			final ICommand command = desc.newCommand();
 			command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
 			desc.setBuildSpec(new ICommand[] {command});
 			desc.setReferencedProjects(page.getProjectsToReference());
 			proj.create(desc,null);
 			proj.open(null);
-			
-			ClonkProjectNature nature = ClonkProjectNature.get(proj);
+
+			final ClonkProjectNature nature = ClonkProjectNature.get(proj);
 			nature.settings().setEngineName(page.getEngine(false) != null ? page.getEngine(false).name() : "");
 			nature.saveSettings();
-			
-			
+
+
 			// link and import
-			for (String group : page.getGroupsToBeLinked())
+			for (final String group : page.getGroupsToBeLinked())
 				LinkC4GroupFileHandler.linkC4GroupFile(proj, new File(group));
 			QuickImportHandler.importFiles(getShell(), proj, ArrayUtil.map(page.getGroupsToBeImported(), File.class, new IConverter<String, File>() {
 				@Override
@@ -52,9 +52,9 @@ public class NewClonkProject extends Wizard implements INewWizard {
 					return new File(from);
 				}
 			}));
-			
+
 			return true;
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 		return false;
