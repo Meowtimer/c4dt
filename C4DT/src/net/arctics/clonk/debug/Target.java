@@ -129,11 +129,11 @@ public class Target extends DebugElement implements IDebugTarget {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends ILineReceivedListener> T requestLineReceivedListener(ICreate<T> create) {
-		Class<T> cls = create.cls();
-		for (ILineReceivedListener listener : lineReceiveListeners)
+		final Class<T> cls = create.cls();
+		for (final ILineReceivedListener listener : lineReceiveListeners)
 			if (listener.getClass() == cls)
 				return (T) listener;
-		T result = create.create();
+		final T result = create.create();
 		addLineReceiveListener(result);
 		return result;
 	}
@@ -195,7 +195,7 @@ public class Target extends DebugElement implements IDebugTarget {
 						ILineReceivedListener listenerToRemove = null;
 						boolean processed = false;
 						synchronized (lineReceiveListeners) {
-							Outer: for (ILineReceivedListener listener : lineReceiveListeners) {
+							Outer: for (final ILineReceivedListener listener : lineReceiveListeners) {
 								if (!listener.active())
 									continue;
 								switch (listener.lineReceived(event, Target.this)) {
@@ -223,7 +223,7 @@ public class Target extends DebugElement implements IDebugTarget {
 							reshuffleLines();
 						}
 					}
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					break;
 				}
 			terminated();
@@ -243,7 +243,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		@Override
 		public LineReceivedResult lineReceived(String event, Target target) throws IOException {
 			if (event.startsWith(Commands.POSITION)) { 
-				String sourcePath = event.substring(Commands.POSITION.length()+1, event.length());
+				final String sourcePath = event.substring(Commands.POSITION.length()+1, event.length());
 				stackTrace.clear();
 				stackTrace.add(sourcePath);
 
@@ -268,11 +268,11 @@ public class Target extends DebugElement implements IDebugTarget {
 				
 				try {
 					if (thread.getTopStackFrame() != null && thread.getTopStackFrame().getVariables() != null) {
-						DebugVariable[] varArray = ((StackFrame)thread.getTopStackFrame()).getVariables();
-						Map<String, DebugVariable> vars = new HashMap<String, DebugVariable>(varArray.length);
-						for (DebugVariable var : varArray)
+						final DebugVariable[] varArray = ((StackFrame)thread.getTopStackFrame()).getVariables();
+						final Map<String, DebugVariable> vars = new HashMap<String, DebugVariable>(varArray.length);
+						for (final DebugVariable var : varArray)
 							vars.put(var.getName(), var);
-						for (DebugVariable var : vars.values())
+						for (final DebugVariable var : vars.values())
 							send(String.format("%s %s", Commands.VAR, var.getName())); //$NON-NLS-1$
 						while (!isTerminated() && event != null && !vars.isEmpty()) {
 						//	System.out.println("missing " + vars.toString());
@@ -280,15 +280,15 @@ public class Target extends DebugElement implements IDebugTarget {
 							if (event != null && event.length() > 0)
 								if (event.startsWith(Commands.VAR)) { 
 									event = event.substring(Commands.VAR.length()); 
-									BufferedScanner scanner = new BufferedScanner(event);
+									final BufferedScanner scanner = new BufferedScanner(event);
 									scanner.read();
-									String varName = scanner.readIdent();
+									final String varName = scanner.readIdent();
 									scanner.read();
-									String varType = scanner.readIdent();
+									final String varType = scanner.readIdent();
 									scanner.read();
-									String varValue = event.substring(scanner.tell());
+									final String varValue = event.substring(scanner.tell());
 									if (varName != null && varType != null && varValue != null) {
-										DebugVariable var = vars.get(varName);
+										final DebugVariable var = vars.get(varName);
 										if (var != null) {
 											var.getValue().setValue(varValue, PrimitiveType.fromString(varType));
 											vars.remove(varName);
@@ -297,7 +297,7 @@ public class Target extends DebugElement implements IDebugTarget {
 								}
 						}
 					}
-				} catch (DebugException e) {
+				} catch (final DebugException e) {
 					e.printStackTrace();
 				}
 				
@@ -328,12 +328,12 @@ public class Target extends DebugElement implements IDebugTarget {
 	}
 	
 	private void setBreakpoints() {
-		IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
-		for (IBreakpoint b : breakpoints)
+		final IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
+		for (final IBreakpoint b : breakpoints)
 			try {
 				if (b.isEnabled())
 					breakpointAdded(b);
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 	}
@@ -341,7 +341,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	private void stoppedWithStackTrace(List<String> stackTrace) {
 		try {
 			thread.setStackTrace(stackTrace);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 			return;
 		}
@@ -351,7 +351,9 @@ public class Target extends DebugElement implements IDebugTarget {
 	private static Map<IResource, Target> existingTargets = new HashMap<IResource, Target>();
 	
 	public static Target existingDebugTargetForScenario(IResource scenario) {
-		return existingTargets.get(scenario);
+		synchronized (existingTargets) {
+			return existingTargets.get(scenario);
+		}
 	}
 	
 	public Target(ILaunch launch, IProcess process, int port, IResource scenario) throws Exception {
@@ -452,7 +454,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		}
 		try {
 			terminate();
-		} catch (DebugException e) {}
+		} catch (final DebugException e) {}
 		DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
 		fireTerminateEvent();
 	}
@@ -502,7 +504,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	
 	public final String receive() throws IOException {
 		if (reshuffledLines != null) {
-			String lost = reshuffledLines.poll();
+			final String lost = reshuffledLines.poll();
 			if (lost != null)
 				return lost;
 		}
@@ -531,10 +533,10 @@ public class Target extends DebugElement implements IDebugTarget {
 	public void breakpointAdded(IBreakpoint breakpoint) {
 		try {
 			if (breakpoint instanceof Breakpoint) {
-				Breakpoint bp = (Breakpoint) breakpoint;
+				final Breakpoint bp = (Breakpoint) breakpoint;
 				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber()-1)); //$NON-NLS-1$ 
 			}
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 	}
@@ -551,7 +553,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		try {
 			if (breakpoint.isEnabled())
 				breakpointAdded(breakpoint);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 	}
@@ -566,7 +568,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		if (socket != null) {
 			try {
 				socket.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 			socket = null;
