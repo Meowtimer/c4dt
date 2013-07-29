@@ -89,7 +89,7 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 		final IPreferenceStore store = Core.instance().getPreferenceStore();
 		store.setDefault(ACTIVE_ENGINE, ACTIVE_ENGINE_DEFAULT);
 		store.setDefault(SHOW_ERRORS_WHILE_TYPING, true);
-		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);
+		store.setDefault(STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, false);
 		store.setDefault(ANALYZE_CODE, true);
 		store.setDefault(INSTANT_C4SCRIPT_COMPLETIONS, false);
 		store.setDefault(LONG_PARAMETER_INFO, true);
