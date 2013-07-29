@@ -309,16 +309,11 @@ public class ClonkLaunchConfigurationDelegate extends
 		}
 
 		@Override
-		public void launchesAdded(ILaunch[] arg0) {
-		}
-
+		public void launchesAdded(ILaunch[] arg0) {}
 		@Override
-		public void launchesChanged(ILaunch[] arg0) {
-		}
-
+		public void launchesChanged(ILaunch[] arg0) {}
 		@Override
-		public void launchesRemoved(ILaunch[] arg0) {
-		}
+		public void launchesRemoved(ILaunch[] arg0) {}
 
 		@Override
 		public void launchesTerminated(ILaunch[] launches) {
@@ -326,6 +321,10 @@ public class ClonkLaunchConfigurationDelegate extends
 				if (l == launch) {
 					DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
 					ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
+					try {
+						if (tempFolder != null)
+							Utilities.removeRecursively(tempFolder);
+					} catch (final Exception e) {}
 				}
 		}
 

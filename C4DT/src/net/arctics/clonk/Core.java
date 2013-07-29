@@ -28,6 +28,7 @@ import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.UI;
+import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -480,18 +481,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		}
 	}
 
-	private static void removeRecursively(File f) {
-		if (f.isDirectory())
-			for (final File fi : f.listFiles())
-				removeRecursively(fi);
-		f.delete();
-	}
-
 	private void removeOldIndexes() {
 		final File stateDir = getStateLocation().toFile();
 		for (final String file : stateDir.list())
 			if (file.endsWith(ProjectIndex.INDEXFILE_SUFFIX) && ResourcesPlugin.getWorkspace().getRoot().findMember(file.substring(0, file.length()-ProjectIndex.INDEXFILE_SUFFIX.length())) == null)
-				removeRecursively(new File(stateDir, file));
+				Utilities.removeRecursively(new File(stateDir, file));
 	}
 
 	/**

@@ -705,6 +705,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The loaded index or null if loading the index failed for any reason.
 	 */
 	public static <T extends Index> T loadShallow(Class<T> indexClass, File indexFolder, File fallbackFileLocation, final Engine engine) {
+		if (Flags.STUDY)
+			return null;
 		if (!indexFolder.isDirectory())
 			return null;
 		try {
@@ -914,6 +916,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * Save the file storing what entities exist in this index but don't write entity-specific files.
 	 */
 	public void saveShallow() {
+		if (Flags.STUDY)
+			return;
 		final File indexFile = new File(folder, "index");
 		folder.mkdirs();
 		try {

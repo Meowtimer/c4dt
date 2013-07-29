@@ -1,5 +1,6 @@
 package net.arctics.clonk.util;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -419,6 +420,13 @@ public abstract class Utilities {
 				}
 			}
 		}
+	}
+
+	public static void removeRecursively(File f) {
+		if (f.isDirectory())
+			for (final File fi : f.listFiles())
+				removeRecursively(fi);
+		f.delete();
 	}
 
 }
