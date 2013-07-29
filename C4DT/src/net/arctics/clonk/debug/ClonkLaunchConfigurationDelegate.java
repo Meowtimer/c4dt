@@ -386,7 +386,7 @@ public class ClonkLaunchConfigurationDelegate extends
 									breadcrump.add(delta.getResource().getName());
 									for (IContainer c = delta.getResource().getParent(); c != null; c = c.getParent()) {
 										if (c == nature.getProject()) {
-											final File dest = new File(tempFolder, StringUtil.blockString("", "", "/", breadcrump));
+											final File dest = new File(tempFolder, StringUtil.blockString("", "", File.separator, breadcrump));
 											try {
 												StreamUtil.writeToFile(dest, new StreamWriteRunnable() {
 													@Override
