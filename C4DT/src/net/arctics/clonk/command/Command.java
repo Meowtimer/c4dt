@@ -264,9 +264,14 @@ public class Command {
 			System.out.println(String.format("%d", new Counter().count(ClonkProjectNature.get(projectName).index())));
 		}
 		@CommandFunction
-		public static void ToggleDebug(Object context) { Flags.DEBUG = !Flags.DEBUG; }
-		@CommandFunction
-		public static void ToggleOutputDabblePlan(Object context) { Flags.OUTPUTDABBLEPLAN = !Flags.OUTPUTDABBLEPLAN; }
+		public static void ToggleFlag(Object context, String flag) {
+			try {
+				final Field f = Flags.class.getField(flag);
+				f.set(null, !(Boolean) f.get(null));
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
+		}
 		@CommandFunction
 		public static void OutputTree(Object context, String projectName, final String outputFile) {
 			final ClonkProjectNature nat = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));

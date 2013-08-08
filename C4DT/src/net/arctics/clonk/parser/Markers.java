@@ -1,8 +1,10 @@
 package net.arctics.clonk.parser;
 
+import static net.arctics.clonk.Flags.SAYERRORS;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -100,7 +102,7 @@ public class Markers implements Iterable<Marker> {
 		return null;
 	}
 
-	private IMarker deploy(Marker marker) {
+	private IMarker deploy(final Marker marker) {
 		final IFile file = marker.scriptFile;
 		final Declaration declarationAssociatedWithFile = marker.container;
 		if (file == null)
@@ -111,6 +113,8 @@ public class Markers implements Iterable<Marker> {
 				declarationAssociatedWithFile != null ? declarationAssociatedWithFile.toString() : null, marker.code.ordinal()};
 			IMarker m = findCaptured(marker.start, marker.end);
 			if (m == null) {
+				if (SAYERRORS && marker.severity == IMarker.SEVERITY_ERROR)
+					sayError(marker);
 				m = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
 				attributes = concat(attributes, IMarker.CHAR_START, IMarker.CHAR_END);
 				attributeValues = concat(attributeValues, marker.start, marker.end);
@@ -128,6 +132,22 @@ public class Markers implements Iterable<Marker> {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	private void sayError(final Marker marker) {
+		// dat easteregg
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					synchronized (getClass()) {
+						Runtime.getRuntime().exec(new String[] {"say", marker.code.makeErrorString(marker.args)}).waitFor();
+					}
+				} catch (IOException | InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}.start();
 	}
 
 	public synchronized boolean add(Marker e) {
@@ -358,7 +378,7 @@ public class Markers implements Iterable<Marker> {
 			e1.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return StringUtil.blockString("[", "]", ",", this);
