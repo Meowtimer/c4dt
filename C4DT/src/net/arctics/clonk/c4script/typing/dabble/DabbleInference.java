@@ -152,7 +152,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 	@Override
 	public DabbleInference configure(Index index, String args) {
 		super.configure(index, args);
-		typing = defaulting(index != null ? index.typing() : null, Typing.INFERRED);
 		for (final String a : args.split("\\|")) //$NON-NLS-1$
 			switch (a) {
 			case "noticeParameterCountMismatch": //$NON-NLS-1$
@@ -166,6 +165,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	@Override
 	public DabbleInference initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
 		synchronized (projectName) {
+			typing = defaulting(index != null ? index.typing() : null, Typing.INFERRED);
 			super.initialize(markers, progressMonitor, scripts);
 			gatherInput(scripts);
 			return this;
@@ -175,6 +175,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	@Override
 	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Collection<Pair<Script, Function>> functions) {
 		synchronized (projectName) {
+			typing = defaulting(index != null ? index.typing() : null, Typing.INFERRED);
 			super.initialize(markers, progressMonitor, functions);
 			gatherInputFromRestrictedFunctionSet(functions);
 			return this;
