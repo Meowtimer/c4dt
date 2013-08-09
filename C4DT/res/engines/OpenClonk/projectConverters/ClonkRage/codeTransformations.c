@@ -1,8 +1,13 @@
 // set object properties
 ObjectSetAction($obj$, $action$, $params...$) => $obj$->SetAction($action$, $params...$);
-$setter:Call,/Set(XDir|YDir)/$($dir$, $:Integer,/0/$ | $:Whitespace$, $rest...$) => $setter>name$($dir$, $rest$);
+$setter:Call,/Set(XDir|YDir)/$($dir$, $:Integer,/0/$ | $:Whitespace$, $rest...$) => $setter!Call(value.name, placeholder.subElements)$($dir$, $rest$);
 $setter:Call,/Set(XDir|YDir)/$($dir$, $target$, $rest...$) => $target$->$setter>name$($dir$, $rest$);
-$:Call,/DefinitionCall|ObjectCall/$($target$, $func:String$, $params...$) => $target$->$func!Call(value.literal, placeholder.subElements)$($params$);
+
+// convert all indirect calls with string parameter for the function name into direct calls
+$:Call,/DefinitionCall|ObjectCall|PrivateCall|DefinitionCall/$($target$, $func:String$, $params...$) => $target$->$func!Call(value.literal, placeholder.subElements)$($params$);
+// convert indirect calls with complex parameter for the function name into Call calls
+$:Call,/DefinitionCall|ObjectCall|PrivateCall|DefinitionCall/$($target, $func:String~$, $params...$) => $target$->Call($func$, $params$);
+
 AddCommand($target$, $params...$) => $target$->AddCommand($params$);
 
 // object finding
