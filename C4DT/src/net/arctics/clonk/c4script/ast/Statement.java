@@ -139,7 +139,10 @@ public class Statement extends ASTNode implements Cloneable {
 			clone.attachments = new ArrayList<Attachment>(this.attachments);
 			for (int i = 0; i < clone.attachments.size(); i++)
 				try {
-					clone.attachments.set(i, clone.attachments.get(i).clone());
+					final Attachment a = clone.attachments.get(i).clone();
+					if (a instanceof ASTNode)
+						((ASTNode)a).setParent(this);
+					clone.attachments.set(i, a);
 				} catch (final CloneNotSupportedException e) {
 					clone.attachments.remove(i);
 					i--;
