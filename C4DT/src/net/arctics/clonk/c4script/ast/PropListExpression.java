@@ -130,21 +130,23 @@ public class PropListExpression extends ASTNode {
 
 	@Override
 	public PropListExpression clone() {
-		// when calling super.clone(), the sub elements obtained from definedDeclaration will be cloned
-		// and then reassigned to the original ProplistDeclaration which is not desired so temporarily
-		// set definedDeclaration to null to avoid this.
-		final ProplistDeclaration saved = this.definedDeclaration;
-		this.definedDeclaration = null;
-		try {
-			// regular copying of attributes with no sub element cloning taking place
-			final PropListExpression e = (PropListExpression) super.clone();
-			// clone the ProplistDeclaration, also cloning sub variables. This will automatically
-			// lead to getSubElements also returning cloned initialization expressions.
-			e.definedDeclaration = saved.clone();
-			return e;
-		} finally {
-			// restore state of original expression which is not supposed to be altered by calling clone()
-			this.definedDeclaration = saved;
+		synchronized (this) {
+			// when calling super.clone(), the sub elements obtained from definedDeclaration will be cloned
+			// and then reassigned to the original ProplistDeclaration which is not desired so temporarily
+			// set definedDeclaration to null to avoid this.
+			final ProplistDeclaration saved = this.definedDeclaration;
+			this.definedDeclaration = null;
+			try {
+				// regular copying of attributes with no sub element cloning taking place
+				final PropListExpression e = (PropListExpression) super.clone();
+				// clone the ProplistDeclaration, also cloning sub variables. This will automatically
+				// lead to subElements also returning cloned initialization expressions.
+				e.definedDeclaration = saved.clone();
+				return e;
+			} finally {
+				// restore state of original expression which is not supposed to be altered by calling clone()
+				this.definedDeclaration = saved;
+			}
 		}
 	}
 
