@@ -1,5 +1,6 @@
 package net.arctics.clonk.ast;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -93,6 +94,10 @@ public class MatchingPlaceholder extends Placeholder {
 				return ((CodeConverter.ICodeConverterContext)context.self()).var(name);
 			else
 				return null;
+		}
+		@CommandFunction
+		public static CallDeclaration Call(IEvaluationContext context, String name, ASTNode[] params) {
+			return new CallDeclaration(name, params);
 		}
 		@Override
 		public IVariable variable(AccessVar access, Object obj) {
@@ -272,7 +277,7 @@ public class MatchingPlaceholder extends Placeholder {
 		final Index index = original.parent(Declaration.class).index();
 		final Script transformations = new Transformations(index);
 		code = new SelfContainedScript(
-			entry, String.format("func Transform(value) { %s }", codeString),
+			entry, String.format("func Transform(value, placeholder) { %s }", codeString),
 			index
 		) {
 			private static final long serialVersionUID = 1L;
@@ -294,16 +299,17 @@ public class MatchingPlaceholder extends Placeholder {
 		System.arraycopy(s, 0, n, 0, s.length);
 
 		if (property() != null)
-			try {
-				for (int i = 0; i < s.length; i++)
-					n[i] = n[i].getClass().getMethod(property()).invoke(s[i]);
-			} catch (final Exception e) {
-				e.printStackTrace();
-			}
+			for (int i = 0; i < s.length; i++)
+				try {
+					n[i] = n[i] == null ? null : n[i].getClass().getMethod(property()).invoke(s[i]);
+				} catch (final Exception e) {
+					System.out.println(format("Failed to get %s on %s of type %s",
+						property(), n[i], n[i].getClass()));
+				}
 
 		if (code != null)
 			for (int i = 0; i < n.length; i++) try {
-				n[i] = code.invoke(code.new FunctionInvocation(new Object[] {n[i]}, code.script(), context));
+				n[i] = code.invoke(code.new FunctionInvocation(new Object[] {n[i], this}, code.script(), context));
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
@@ -314,7 +320,7 @@ public class MatchingPlaceholder extends Placeholder {
 			ASTNode node;
 			if (item instanceof ASTNode)
 				node = (ASTNode)item;
-			if (item instanceof String) {
+			else if (item instanceof String) {
 				if (subElements().length > 0)
 					node = new CallDeclaration((String)item, subElements());
 				else

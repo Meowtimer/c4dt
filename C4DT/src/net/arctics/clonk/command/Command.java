@@ -175,7 +175,7 @@ public class Command {
 				_WriteDescriptionsToFile(writeToFile, engine);
 		}
 		@CommandFunction
-		public static void convertProject(Object context, String source, String dest) {
+		public static void ConvertProject(Object context, String source, String dest) {
 			final ProjectConverter converter = new ProjectConverter(
 				ResourcesPlugin.getWorkspace().getRoot().getProject(source),
 				ResourcesPlugin.getWorkspace().getRoot().getProject(dest)

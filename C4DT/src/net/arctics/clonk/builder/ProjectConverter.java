@@ -1,8 +1,8 @@
 package net.arctics.clonk.builder;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -13,10 +13,10 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.ITransformer;
 import net.arctics.clonk.c4group.C4Group.GroupType;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.Tidy;
@@ -56,15 +56,6 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public ProjectConverter(IProject sourceProject, IProject destinationProject) {
 		this.sourceProject = ClonkProjectNature.get(sourceProject);
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
-		/*try {
-			for (IResource r : this.destinationProject.getProject().members()) {
-				if (r.getName().startsWith("."))
-					continue;
-				r.delete(true, new NullProgressMonitor());
-			}
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}*/
 		this.configuration = destinationEngine().projectConversionConfigurationForEngine(sourceEngine());
 		assert(sourceEngine() != destinationEngine());
 	}
@@ -99,12 +90,13 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	 * By letting this converter visit the source project the actual conversion is performed.
 	 */
 	@Override
-	public boolean visit(IResource resource) throws CoreException {
-		if (resource instanceof IProject || skipResource(resource))
+	public boolean visit(IResource other) throws CoreException {
+		if (other instanceof IProject || skipResource(other))
 			return true;
-		final IPath path = convertPath(resource.getProjectRelativePath());
-		if (resource instanceof IFile) {
-			final IFile sourceFile = (IFile) resource;
+		System.out.println(format("Copying %s", other.getFullPath()));
+		final IPath path = convertPath(other.getProjectRelativePath());
+		if (other instanceof IFile) {
+			final IFile sourceFile = (IFile) other;
 			final IFile file = destinationProject.getProject().getFile(path);
 			try (InputStream contents = sourceFile.getContents()) {
 				if (file.exists())
@@ -112,10 +104,11 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				else
 					file.create(contents, true, monitor);
 				convertFileContents(sourceFile, file);
-			} catch (final IOException e) {
+			} catch (final Exception e) {
+				System.out.println(format("Failed to convert contents of %s", other.getFullPath()));
 				e.printStackTrace();
 			}
-		} else if (resource instanceof IFolder) {
+		} else if (other instanceof IFolder) {
 			final IFolder container = destinationProject.getProject().getFolder(path);
 			if (!container.exists())
 				container.create(true, true, monitor);
