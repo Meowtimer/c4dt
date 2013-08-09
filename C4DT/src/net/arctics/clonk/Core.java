@@ -1,5 +1,8 @@
 package net.arctics.clonk;
 
+import static java.lang.String.format;
+import static java.lang.System.out;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -540,7 +543,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 						textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
 						textFileDocumentProvider.saveDocument(null, file, document, true);
 					} catch (final CoreException e) {
-						e.printStackTrace();
+						out.println(format("Failed to save %s: %s", file.getFullPath(), e.getMessage()));
 					}
 				return result;
 			} finally {

@@ -295,9 +295,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		}.transform(null, null, this);
 		if (result instanceof ASTNode[])
 			result = new Sequence((ASTNode[])result);
-		if (!(result instanceof ASTNode))
-			System.out.println("nope");
-		return (ASTNode)result;
+		return as(result, ASTNode.class);
 	}
 
 	/**

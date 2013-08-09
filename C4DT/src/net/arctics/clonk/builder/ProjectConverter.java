@@ -1,6 +1,7 @@
 package net.arctics.clonk.builder;
 
 import static java.lang.String.format;
+import static java.lang.System.out;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.io.InputStream;
@@ -8,15 +9,11 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.ITransformer;
 import net.arctics.clonk.c4group.C4Group.GroupType;
-import net.arctics.clonk.c4script.Directive;
-import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.Tidy;
@@ -93,7 +90,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public boolean visit(IResource other) throws CoreException {
 		if (other instanceof IProject || skipResource(other))
 			return true;
-		System.out.println(format("Copying %s", other.getFullPath()));
+		//System.out.println(format("Copying %s", other.getFullPath()));
 		final IPath path = convertPath(other.getProjectRelativePath());
 		if (other instanceof IFile) {
 			final IFile sourceFile = (IFile) other;
@@ -103,9 +100,10 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					file.setContents(contents, true, true, monitor);
 				else
 					file.create(contents, true, monitor);
+				//file.setCharset(sourceFile.getCharset(), monitor);
 				convertFileContents(sourceFile, file);
 			} catch (final Exception e) {
-				System.out.println(format("Failed to convert contents of %s", other.getFullPath()));
+				out.println(format("Failed to convert contents of %s: %s", other.getFullPath(), e.getMessage()));
 				e.printStackTrace();
 			}
 		} else if (other instanceof IFolder) {
@@ -149,9 +147,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			if (node != null)
 				try {
 					node = new Tidy().tidyExhaustive(node);
-				} catch (final CloneNotSupportedException e) {
-					e.printStackTrace();
-				}
+				} catch (final CloneNotSupportedException e) {}
 			return node;
 		}
 	};
@@ -159,20 +155,12 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		return sourceResource.getName().equals(".project");
 	}
 	private void convertFileContents(IFile sourceFile, IFile destinationFile) throws CoreException {
-		final Script script = Script.get(sourceFile, true);
-		if (script != null)
+		final Script sourceScript = Script.get(sourceFile, true);
+		if (sourceScript != null)
 			Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
 				@Override
 				public Object run(IDocument document) {
-					final ScriptParser parser = new ScriptParser(script);
-					try {
-						parser.parse();
-					} catch (final ProblemException e) {
-						e.printStackTrace();
-					}
-					for (final Directive d : script.directives())
-						if (d.type() == DirectiveType.STRICT)
-					codeConverter.runOnDocument(script, document);
+					codeConverter.runOnDocument(sourceScript, document);
 					/*if (script instanceof Definition) {
 						Definition def = (Definition) script;
 						//ActMapUnit unit = (ActMapUnit) Structure.pinned(def.definitionFolder().findMember("ActMap.txt"), true, false);
