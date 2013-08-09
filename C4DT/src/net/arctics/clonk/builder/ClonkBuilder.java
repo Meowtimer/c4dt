@@ -112,6 +112,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		case Yes:
 			if (kind == FULL_BUILD)
 				break;
+			//$FALL-THROUGH$
 		default:
 			return new IProject[] { proj };
 		}
