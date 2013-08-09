@@ -89,7 +89,7 @@ public class MatchingPlaceholder extends Placeholder {
 			return String.format("\"%s\"", text);
 		}
 		@CommandFunction
-		public static String var(IEvaluationContext context, String name) {
+		public static String EnforceLocal(IEvaluationContext context, String name) {
 			if (context.self() instanceof CodeConverter.ICodeConverterContext)
 				return ((CodeConverter.ICodeConverterContext)context.self()).var(name);
 			else
@@ -98,6 +98,10 @@ public class MatchingPlaceholder extends Placeholder {
 		@CommandFunction
 		public static CallDeclaration Call(IEvaluationContext context, String name, ASTNode[] params) {
 			return new CallDeclaration(name, params);
+		}
+		@CommandFunction
+		public static AccessVar Var(IEvaluationContext context, String name) {
+			return new AccessVar(name);
 		}
 		@Override
 		public IVariable variable(AccessVar access, Object obj) {
