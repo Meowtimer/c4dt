@@ -2,7 +2,7 @@
 ObjectSetAction($obj$, $action$, $params...$) => $obj$->SetAction($action$, $params...$);
 $setter:Call,/Set(XDir|YDir)/$($dir$, $:Integer,/0/$ | $:Whitespace$, $rest...$) => $setter>name$($dir$, $rest$);
 $setter:Call,/Set(XDir|YDir)/$($dir$, $target$, $rest...$) => $target$->$setter>name$($dir$, $rest$);
-ObjectCall($target$, $func:String$, $params...$) => $target$->$func>literal$($params$);
+$:Call,/DefinitionCall|ObjectCall/$($target$, $func:String$, $params...$) => $target$->$func!Call(value.literal, placeholder.subElements)$($params$);
 AddCommand($target$, $params...$) => $target$->AddCommand($params$);
 
 // object finding
