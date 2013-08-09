@@ -729,10 +729,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @param recursionCatcher Recursion catcher!
 	 * @return true if related, false if not
 	 */
-	private boolean inheritsFrom(Function otherFunc, Set<Function> recursionCatcher) {
+	public boolean inheritsFrom(Function otherFunc, Set<Function> recursionCatcher) {
 		Function f = this;
-		while (f != null && !recursionCatcher.contains(f)) {
-			recursionCatcher.add(f);
+		while (f != null && recursionCatcher.add(f)) {
 			if (otherFunc == f)
 				return true;
 			f = f.inheritedFunction();

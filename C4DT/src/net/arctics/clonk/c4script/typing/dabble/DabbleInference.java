@@ -2183,7 +2183,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return tyVar.get();
 					final Function fn = node.parent(Function.class);
 					final Function inherited = fn.inheritedFunction();
-					if (inherited != null)
+					if (inherited != null && !inherited.inheritsFrom(fn, new HashSet<Function>()))
 						if (inherited.body() != null) {
 							final Visit inhv = visitor.input().new Visit(inherited);
 							inhv.prepare();
