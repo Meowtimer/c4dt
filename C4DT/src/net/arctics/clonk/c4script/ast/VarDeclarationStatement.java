@@ -1,5 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
+import static net.arctics.clonk.util.ArrayUtil.filter;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,11 +52,9 @@ public class VarDeclarationStatement extends KeywordStatement {
 	}
 	@Override
 	public void setSubElements(ASTNode[] elms) {
-		for (final ASTNode n : elms)
-			if (!(n instanceof VarInitialization))
-				System.out.println(n.printed());
-		final VarInitialization[] newElms = new VarInitialization[elms.length];
-		System.arraycopy(elms, 0, newElms, 0, elms.length);
+		final List<VarInitialization> inits = Arrays.asList(filter(elms, VarInitialization.class));
+		final VarInitialization[] newElms = new VarInitialization[inits.size()];
+		System.arraycopy(inits.toArray(), 0, newElms, 0, inits.size());
 		varInitializations = newElms;
 	}
 	public final VarInitialization[] variableInitializations() {
