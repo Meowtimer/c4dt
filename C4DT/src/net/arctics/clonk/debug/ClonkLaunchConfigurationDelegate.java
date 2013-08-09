@@ -269,12 +269,9 @@ public class ClonkLaunchConfigurationDelegate extends
 							&& c != projectLevel.getParent(); c = c.getParent())
 						for (final IResource res : c.members())
 							if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
-								final GroupType gType = engine
-										.groupTypeForFileName(res.getName());
-								if (gType == GroupType.DefinitionGroup
-										|| gType == GroupType.ResourceGroup)
-									if (!Utilities.resourceInside(
-											scenarioFolder, (IContainer) res))
+								final GroupType gType = engine.groupTypeForFileName(res.getName());
+								if (gType == GroupType.DefinitionGroup || gType == GroupType.ResourceGroup)
+									if (!Utilities.resourceInside(scenarioFolder, (IContainer) res))
 										this.addWorkspaceDependency((IContainer) res);
 							}
 				}
@@ -329,9 +326,8 @@ public class ClonkLaunchConfigurationDelegate extends
 		}
 
 		public void launch(IProgressMonitor monitor) throws CoreException {
-			if (tempFolder != null) {
+			if (tempFolder != null)
 				ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
-			}
 			try {
 				// Working directory (work around a bug in early Linux engines)
 				final File workDirectory = engineFile.getParentFile();
@@ -344,12 +340,11 @@ public class ClonkLaunchConfigurationDelegate extends
 
 				// Run the engine
 				try {
-					if (mode.equals(ILaunchManager.DEBUG_MODE)) {
+					if (mode.equals(ILaunchManager.DEBUG_MODE))
 						if (scenario != null && !scenario.engine().settings().supportsDebugging)
 							abort(IStatus.ERROR, String.format(
 								Messages.EngineDoesNotSupportDebugging,
 								scenario.engine().name()));
-					}
 					final Process process = Runtime.getRuntime().exec(arguments(), null, workDirectory);
 					final Map<String, Object> processAttributes = new HashMap<String, Object>();
 					processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "clonkEngine"); //$NON-NLS-1$
@@ -383,7 +378,7 @@ public class ClonkLaunchConfigurationDelegate extends
 								if (purged != null) {
 									final List<String> breadcrump = new LinkedList<>();
 									breadcrump.add(delta.getResource().getName());
-									for (IContainer c = delta.getResource().getParent(); c != null; c = c.getParent()) {
+									for (IContainer c = delta.getResource().getParent(); c != null; c = c.getParent())
 										if (c == nature.getProject()) {
 											final File dest = new File(tempFolder, StringUtil.blockString("", "", File.separator, breadcrump));
 											try {
@@ -398,7 +393,6 @@ public class ClonkLaunchConfigurationDelegate extends
 											}
 										} else
 											breadcrump.add(0, c.getName());
-									}
 								}
 							}
 							break;
