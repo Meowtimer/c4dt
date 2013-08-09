@@ -540,7 +540,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				final T result = action.run(document);
 				if (save)
 					try {
-						textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
+						//textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
 						textFileDocumentProvider.saveDocument(null, file, document, true);
 					} catch (final CoreException e) {
 						out.println(format("Failed to save %s: %s", file.getFullPath(), e.getMessage()));
