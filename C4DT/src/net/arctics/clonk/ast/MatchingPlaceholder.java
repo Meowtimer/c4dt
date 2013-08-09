@@ -25,12 +25,14 @@ import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.GarbageStatement;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
+import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.evaluate.Constant;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Definition.ProxyVar;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
@@ -102,6 +104,10 @@ public class MatchingPlaceholder extends Placeholder {
 		@CommandFunction
 		public static AccessVar Var(IEvaluationContext context, String name) {
 			return new AccessVar(name);
+		}
+		@CommandFunction
+		public static MemberOperator MemberOperator(IEvaluationContext context, boolean dot, boolean tilde, ID id) {
+			return new MemberOperator(dot, tilde, id, 0);
 		}
 		@Override
 		public IVariable variable(AccessVar access, Object obj) {
