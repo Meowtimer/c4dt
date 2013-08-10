@@ -72,18 +72,30 @@ Chain(
 );
 
 // Local*() calls get converted into local<number> local accesses, but that is quite unoptimal
-LocalN($name:String$, $obj$)               => $obj$.$name!Var(value.literal)$;
-LocalN($name:String$)                      => this.$name!Var(value.literal)$;
-Local($number:Integer$)                    => this.$number!Var("local"+value.literal)$;
-Local($number:Integer$, $obj$)             => $obj$.$number!Var("local"+value.literal)$;
-SetLocal($number:Integer$, $value$)        => this.$number!Var("local"+value.literal)$ = $value$;
-SetLocal($number:Integer$, $value$, $obj$) => $obj$.$number!Var("local"+value.literal)$ = $value$;
-Local($complex:~Integer$)                  => this[Format("local%d", $complex$)];
-Local($complex:~Integer$, $obj$)           => $obj$[Format("local%d", $complex$)];
-Local()                                    => this.local0;
+Chain(
+	LocalN($name$)               => LocalN($name$, this),
+	LocalN($name:String$, $obj$) => $obj$.$name!Var(value.literal)$,
+	LocalN($name$, $obj$)        => $obj$[$name$]
+);
+Chain(
+	Local()                          => Local(0),
+	Local($number$)                  => Local($number$, this),
+	Local($number:Integer$, $obj$)   => $obj$.$number!Var("local"+value.literal)$,
+	Local($complex:~Integer$, $obj$) => $obj$[Format("local%d", $complex$)]
+);
+Chain(
+	// inflate to final form
+	SetLocal()                                 => SetLocal(0),
+	SetLocal($number$)                         => SetLocal($number$, nil),
+	SetLocal($number$, $value$)                => SetLocal($number$, $value$, this),
+	// convert to local<access> access
+	SetLocal($number:Integer$, $value$, $obj$) => $obj$.$number!Var("local"+value.literal)$ = $value$,
+	// indirect access via []
+	SetLocal($number$, $value$, $obj$) => $obj$[Format("local%d", $number$)]
+);
 
 // for Var() calls declare var<number> vars
-Var() => $!EnforceLocal("var0")$;
+$call:Call,/Var/,?value.params.length==0$ => $call!EnforceLocal("var0")$;
 Var($number:Integer$) => $number!EnforceLocal("var"+value.literal)$;
 
 // Message direct call
@@ -91,7 +103,7 @@ Message($msg$, $:Integer,/0/$ | $:Whitespace$, $params...$) => Message($msg$, $p
 Message($msg$, $obj$, $params...$) => $obj$->Message($msg$, $params...$);
 
 // EffectVar() calls turned into <effect>.var<number> accesses
-EffectVar($index:Integer$, $target$, $effect$) => $effect$.$index!Var("var"+value.literal$;
+EffectVar($index:Integer$, $target$, $effect$) => $effect$.$index!Var("var"+value.literal)$;
 EffectVar($complex$, $target$, $effect$) => $effect$[Format("var%d", $complex$)];
 
 // Visibility is property, yes.
@@ -123,6 +135,18 @@ EnergyCheck($...$) => true;
 GetDesc($obj$) => $obj$.Description;
 GetDesc($$, $def$) => $def$.Description;
 GetDesc() => this.Description;
+
+$call:Call,/FindConstructionSite/$($id$, $x:Integer$, $y:Integer$) =>
+	(xy = $call!{EnforceLocal("xy");return value.name;}$(
+		$id$,
+		$x!EnforceLocal("var"+value.literal)$,
+		$y!EnforceLocal("var"+value.literal)$
+	)) &&
+	(
+		($x!EnforceLocal("var"+value.literal)$ = xy[0]) ||
+		($y!EnforceLocal("var"+value.literal)$ = xy[1]) ||
+		true
+	);
 
 // OCF_Prey-using code crashes because of the reasons
 OCF_Prey => FatalError("No OCF_Prey");
