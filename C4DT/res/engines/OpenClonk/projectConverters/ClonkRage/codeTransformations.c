@@ -1,3 +1,5 @@
+$id:ID,?value.definition==nil$ => DefinitionByIDText($id!String(value.literal.stringValue)$);
+
 // replace ObjectSetAction with direct SetAction call
 ObjectSetAction($obj$, $action$, $params...$) => $obj$->SetAction($action$, $params...$);
 
@@ -20,8 +22,15 @@ $:Call,/DefinitionCall|ObjectCall|PrivateCall|ProtectedCall|DefinitionCall/$($ta
 $:Call,/DefinitionCall|ObjectCall|PrivateCall|ProtectedCall||DefinitionCall/$($target$, $func:~String$, $params...$)
 	=> $target$->Call($func$, $params$);
 
-// AddCommand direct call
-AddCommand($target$, $params...$) => $target$->AddCommand($params$);
+// Add/SetCommand direct call
+Chain(
+	AddCommand($:Whitespace$|$:Integer,/0/$, $params...$) => SetCommand(this, $params$),
+	AddCommand($target$, $params...$) => $target$->SetCommand($params$)
+);
+Chain(
+	SetCommand($:Whitespace$|$:Integer,/0/$, $params...$) => SetCommand(this, $params$),
+	SetCommand($target$, $params...$) => $target$->SetCommand($params$)
+);
 
 // FindObject is the new FindObject2
 FindObject2($params...$) => FindObject($params...$);
@@ -120,6 +129,8 @@ GetColorDw() => GetColor();
 GetColorDw($target$) => $target$->GetColor();
 SetColorDw($color$) => SetColor($color$);
 SetColorDw($color$, $target$) => $target$->SetColor($color$);
+GetPlrColorDw($params...$) => GetPlrColor($params$);
+SetPlrColorDw($params...$) => SetPlrColor($params$);
 
 // remove all the casts
 $:Call,/Cast(Int|C4ID|C4Object|Bool|Any)/$($data$) => $data$;
