@@ -107,7 +107,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public final <T> T topLevelParentDeclarationOfType(Class<T> type) {
+	public final <T> T topLevelParent(Class<T> type) {
 		T result = null;
 		for (ASTNode f = this; f != null; f = f.parent())
 			if (type.isAssignableFrom(f.getClass()))
@@ -116,7 +116,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T thisOrParentOfType(Class<T> cls) {
+	public <T> T thisOrParent(Class<T> cls) {
 		ASTNode e;
 		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;

@@ -93,13 +93,13 @@ public abstract class Declaration extends ASTNode implements
 	 * Returns the top-level {@link Structure} this declaration is declared in.
 	 * @return the {@link Structure}
 	 */
-	public Structure topLevelStructure() { return topLevelParentDeclarationOfType(Structure.class); }
+	public Structure topLevelStructure() { return topLevelParent(Structure.class); }
 
 	/**
 	 * Returns the {@link Script} this declaration is declared in.
 	 * @return the {@link Script}
 	 */
-	public Script script() { return topLevelParentDeclarationOfType(Script.class); }
+	public Script script() { return topLevelParent(Script.class); }
 
 	/**
 	 * Return the {@link Scenario} this declaration is declared in.

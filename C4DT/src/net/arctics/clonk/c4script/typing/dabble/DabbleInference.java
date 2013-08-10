@@ -1431,8 +1431,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			private void handleField(T node, Visitor visitor, final ASTNode pred) throws ProblemException {
 				final Declaration d = node.parent(Declaration.class);
 				if (d != null && pred == null) {
-					final Function f = d.topLevelParentDeclarationOfType(Function.class);
-					final Variable v = d.topLevelParentDeclarationOfType(Variable.class);
+					final Function f = d.topLevelParent(Function.class);
+					final Variable v = d.topLevelParent(Variable.class);
 					if (
 						(f != null && f.visibility() == FunctionScope.GLOBAL) ||
 						(f == null && v != null && v.scope() != Scope.LOCAL)

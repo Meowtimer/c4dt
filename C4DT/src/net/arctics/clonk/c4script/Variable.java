@@ -341,7 +341,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return The function or null if there is no function in the parent chain.
 	 */
 	@Override
-	public Function function() { return topLevelParentDeclarationOfType(Function.class); }
+	public Function function() { return topLevelParent(Function.class); }
 	@Override
 	public boolean staticallyTyped() { return typePinned || isEngineDeclaration(); }
 	@Override

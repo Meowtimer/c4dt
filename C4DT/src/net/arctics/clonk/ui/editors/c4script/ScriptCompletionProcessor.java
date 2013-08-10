@@ -498,7 +498,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private void ruleBasedProposals(ProposalsSite pl, ScriptParser parser) {
 		if (pl.contextExpression == null)
 			return;
-		final CallDeclaration innermostCallFunc = pl.contextExpression.thisOrParentOfType(CallDeclaration.class);
+		final CallDeclaration innermostCallFunc = pl.contextExpression.thisOrParent(CallDeclaration.class);
 		if (innermostCallFunc != null) {
 			final SpecialEngineRules rules = parser.specialEngineRules();
 			if (rules != null) {
