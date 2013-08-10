@@ -26,6 +26,7 @@ import net.arctics.clonk.c4script.ast.GarbageStatement;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.MemberOperator;
+import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.ast.evaluate.Constant;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.command.Command;
@@ -100,6 +101,10 @@ public class MatchingPlaceholder extends Placeholder {
 		@CommandFunction
 		public static CallDeclaration Call(IEvaluationContext context, String name, ASTNode[] params) {
 			return new CallDeclaration(name, params);
+		}
+		@CommandFunction
+		public static StringLiteral String(IEvaluationContext context, String value) {
+			return new StringLiteral(value);
 		}
 		@CommandFunction
 		public static AccessVar Var(IEvaluationContext context, String name) {
