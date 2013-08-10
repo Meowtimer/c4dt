@@ -22,10 +22,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		// #strict 2: ne -> !=, S= -> ==
-		final Script s = parent(Script.class);
-		if (s == null)
-			return this;
-		if (s.strictLevel() >= 2) {
+		if (tidy.strictLevel() >= 2) {
 			Operator op = operator();
 			if (op == Operator.StringEqual || op == Operator.eq)
 				op = Operator.Equal;

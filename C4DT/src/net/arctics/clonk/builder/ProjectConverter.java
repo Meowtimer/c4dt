@@ -146,7 +146,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			}).transform(null, null, expression);
 			if (node != null)
 				try {
-					node = new Tidy().tidyExhaustive(node);
+					node = new Tidy(2).tidyExhaustive(node);
 				} catch (final CloneNotSupportedException e) {}
 			return node;
 		}

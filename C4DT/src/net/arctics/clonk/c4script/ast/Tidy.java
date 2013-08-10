@@ -5,6 +5,9 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ITransformer;
 
 public class Tidy implements ITransformer {
+	private final int strictLevel;
+	public Tidy(int strictLevel) { this.strictLevel = strictLevel; }
+	public int strictLevel() { return strictLevel; }
 	@Override
 	public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 		try {
