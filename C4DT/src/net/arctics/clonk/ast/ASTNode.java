@@ -422,7 +422,13 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return null;
 	}
 
-	protected static Object value(Object obj) { return obj instanceof IVariable ? ((IVariable)obj).get() : obj; }
+	protected static Object value(Object obj) {
+		if (obj instanceof IVariable)
+			obj = ((IVariable)obj).get();
+		if (obj instanceof Integer)
+			obj = Long.valueOf((Integer)obj);
+		return obj;
+	}
 
 	/**
 	 * Evaluate the expression without a context. Same calling {@link #evaluate(IEvaluationContext)} with null.
