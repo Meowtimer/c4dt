@@ -577,6 +577,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 						} catch (final Exception e) {
 							e.printStackTrace();
 						}
+					if (depth == 0)
+						localCall = null;
 				} else if (node instanceof BinaryOp) {
 					final BinaryOp op = (BinaryOp) node;
 					op.leftSide().traverse(this.assignmentFollower, context.first());
