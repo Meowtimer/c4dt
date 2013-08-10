@@ -242,6 +242,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	public String parseTokenAndReturnAsString() throws ProblemException{
 		String s;
 		Number number;
+		ID id;
+		if ((id = parseID()) != null)
+			return id.stringValue();
 		if ((s = parseString()) != null)
 			return '"'+s+'"';
 		if ((s = parseIdentifier()) != null)
