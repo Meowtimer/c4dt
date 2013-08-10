@@ -272,7 +272,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							accessDec.setName(s);
 					}
 				try {
-					final Tidy tidy = new Tidy(parser.script().strictLevel());
+					final Tidy tidy = new Tidy(parser.script(), parser.script().strictLevel());
 					this.replacementString = tidy.tidy(replacement.replacementExpression()).printed(tabIndentation+1);
 				} catch (final CloneNotSupportedException e) {
 					e.printStackTrace();
@@ -717,7 +717,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			try {
 				replacements.add(
 					Messages.ClonkQuickAssistProcessor_TidyUp,
-					new Tidy(script.strictLevel()).tidyExhaustive(topLevel),
+					new Tidy(script, script.strictLevel()).tidyExhaustive(topLevel),
 					false, true
 				);
 			} catch (final CloneNotSupportedException e) {

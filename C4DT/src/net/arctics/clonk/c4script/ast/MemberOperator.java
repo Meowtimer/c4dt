@@ -118,7 +118,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
-		if (!dotNotation && !parent(Script.class).engine().settings().supportsProplists) {
+		if (!dotNotation && !tidy.structure().engine().settings().supportsProplists) {
 			final ASTNode succ = successorInSequence();
 			if (succ instanceof AccessVar)
 				return makeDotOperator();

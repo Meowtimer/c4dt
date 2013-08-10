@@ -3,11 +3,17 @@ package net.arctics.clonk.c4script.ast;
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ITransformer;
+import net.arctics.clonk.ast.Structure;
 
 public class Tidy implements ITransformer {
+	private final Structure structure;
 	private final int strictLevel;
-	public Tidy(int strictLevel) { this.strictLevel = strictLevel; }
+	public Tidy(Structure structure, int strictLevel) {
+		this.structure = structure;
+		this.strictLevel = strictLevel;
+	}
 	public int strictLevel() { return strictLevel; }
+	public Structure structure() { return structure; }
 	@Override
 	public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
 		try {
