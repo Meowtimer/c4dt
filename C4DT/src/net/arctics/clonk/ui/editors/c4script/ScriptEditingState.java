@@ -586,7 +586,12 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				return TraversalContinuation.Continue;
 			}
 			private void follow(final Function f, Script s) {
-				final Pair<Script, Function> pair = Pair.pair(s, s.findFunction(f.name()));
+				if (localCall == null)
+					return;
+				Function fn = s.findFunction(f.name());
+				if (fn == null)
+					return;
+				final Pair<Script, Function> pair = Pair.pair(s, fn);
 				if (!pair.equals(entry)) {
 					Set<CallDeclaration> calls = this.get(pair);
 					if (calls == null) {
