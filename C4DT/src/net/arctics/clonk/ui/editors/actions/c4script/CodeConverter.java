@@ -80,7 +80,7 @@ public abstract class CodeConverter {
 						textChange.addEdit(new ReplaceEdit(f.header().start(), f.header().getLength(), header.toString()));
 						f.setOldStyle(false);
 					}
-					replaceExpression(d, document, elms, textChange);
+					convertCode(document, textChange, d, elms);
 				} catch (final CloneNotSupportedException e1) {
 					e1.printStackTrace();
 				} catch (final BadLocationException e) {
@@ -102,8 +102,8 @@ public abstract class CodeConverter {
 		return c == '\t' || c == ' ' || c == '\n' || c == '\r';
 	}
 
-	private void replaceExpression(Declaration d, IDocument document, ASTNode e, TextChange textChange) throws BadLocationException, CloneNotSupportedException {
-		final IRegion region = e.absolute();
+	private void convertCode(IDocument document, TextChange textChange, Declaration codeOwner, ASTNode code) throws BadLocationException, CloneNotSupportedException {
+		final IRegion region = code.absolute();
 		int oldStart = region.getOffset();
 		int oldLength = region.getLength();
 		while (oldStart - 1 >= 0 && superflousBetweenFuncHeaderAndBody(document.getChar(oldStart-1))) {
@@ -113,10 +113,10 @@ public abstract class CodeConverter {
 		oldLength = Math.min(oldLength, document.getLength()-oldStart);
 		final String oldString = document.get(oldStart, oldLength);
 		final StringBuilder builder = new StringBuilder();
-		if (!(d instanceof Function))
+		if (!(codeOwner instanceof Function))
 			builder.append(' ');
 		final ASTNodePrinter newStringWriter = new AppendableBackedExprWriter(builder);
-		final Function function = as(d, Function.class);
+		final Function function = as(codeOwner, Function.class);
 		if (function != null)
 			Conf.blockPrelude(newStringWriter, 0);
 		final class CodeConverterContext implements ICodeConverterContext {
@@ -138,15 +138,15 @@ public abstract class CodeConverter {
 				return converted;
 			}
 		}
-		final CodeConverterContext cookie = new CodeConverterContext();
-		ASTNode conv = performConversion(e, d, cookie);
-		conv = cookie.postProcess(conv);
+		final CodeConverterContext ctx = new CodeConverterContext();
+		ASTNode conv = performConversion(code, codeOwner, ctx);
+		conv = ctx.postProcess(conv);
 		conv.print(newStringWriter, 0);
 		final String newString = newStringWriter.toString();
 		if (!oldString.equals(newString)) try {
 			textChange.addEdit(new ReplaceEdit(oldStart, oldLength, newString));
 		} catch (final MalformedTreeException malformed) {
-			System.out.println(d.name());
+			System.out.println(codeOwner.name());
 			malformed.printStackTrace();
 			throw malformed;
 		}
