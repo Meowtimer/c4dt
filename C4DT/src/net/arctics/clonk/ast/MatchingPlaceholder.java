@@ -222,7 +222,7 @@ public class MatchingPlaceholder extends Placeholder {
 			case 8230: // ellipsis unicode, OSX likes to substitute this for three dots
 				multiplicity = Multiplicity.Multiple;
 				break;
-			case '!':
+			case '!': case '?':
 				String codeString = scanner.readString(scanner.bufferSize()-scanner.tell());
 				if (!codeString.startsWith("{"))
 					codeString = String.format("return %s;", codeString);
@@ -421,6 +421,8 @@ public class MatchingPlaceholder extends Placeholder {
 			}
 		if (attribs.size() > 0) {
 			output.append(":");
+			if (negated)
+				output.append('~');
 			output.append(StringUtil.blockString("", "", ",", attribs));
 		}
 		output.append('$');
