@@ -4,9 +4,12 @@ import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -120,20 +123,20 @@ public abstract class CodeConverter {
 		if (function != null)
 			Conf.blockPrelude(newStringWriter, 0);
 		final class CodeConverterContext implements ICodeConverterContext {
-			private final List<VarInitialization> addedVars = new ArrayList<>(10);
+			private final Map<String, VarInitialization> addedVars = new HashMap<>(3);
 			@Override
 			public String var(String name) {
-				if (function != null && function.findVariable(name) == null) {
+				if (function != null && function.findVariable(name) == null && addedVars.get(name) == null) {
 					final Variable var = new Variable(name, PrimitiveType.ANY);
-					function.addLocal(var);
-					addedVars.add(new VarInitialization(name, null, 0, 0, var));
+					addedVars.put(name, new VarInitialization(name, null, 0, 0, var));
 				}
 				return name;
 			}
 			public ASTNode postProcess(ASTNode converted) {
 				if (converted instanceof FunctionBody && addedVars.size() > 0)
 					converted = new FunctionBody(function, concat(
-						new VarDeclarationStatement(addedVars, Scope.VAR),
+						new VarDeclarationStatement(
+							Arrays.asList(addedVars.values().toArray(new VarInitialization[addedVars.size()])), Scope.VAR),
 						converted.subElements()));
 				return converted;
 			}
