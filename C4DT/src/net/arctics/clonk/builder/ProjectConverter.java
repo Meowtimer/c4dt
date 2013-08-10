@@ -160,6 +160,8 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
 				@Override
 				public Object run(IDocument document) {
+					//final SelfContainedScript s = new SelfContainedScript(sourceScript.name(), document.get(), sourceScript.index());
+					// passing the original script here, be careful about modifying it
 					codeConverter.runOnDocument(sourceScript, document);
 					/*if (script instanceof Definition) {
 						Definition def = (Definition) script;
