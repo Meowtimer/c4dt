@@ -12,7 +12,6 @@ import net.arctics.clonk.ast.ControlFlow;
 import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 
 public class BinaryOp extends OperatorExpression implements ITidyable {
@@ -86,10 +85,10 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 
 	@Override
 	public void setSubElements(ASTNode[] elements) {
+		if (elements.length < 2 || elements[0] == null || elements[1] == null)
+			throw new IllegalArgumentException("BinaryOp.setSubElements requires two non-null sub elements");
 		leftSide  = elements[0];
-		rightSide = elements.length > 1 ? elements[1] : null;
-		if (rightSide == null)
-			System.out.println("woat?");
+		rightSide = elements[1];
 	}
 
 	public BinaryOp(Operator operator, ASTNode leftSide, ASTNode rightSide) {
