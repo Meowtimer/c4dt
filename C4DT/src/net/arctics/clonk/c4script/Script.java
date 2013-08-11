@@ -339,9 +339,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				allEffectFunctions.removeAll(effectCandidates);
 				if (effects == null)
 					effects = new HashMap<String, Effect>();
-				final Effect effect = new Effect(effectName, effectCandidates);
-				effect.setParent(this);
-				effects.put(effectName, effect);
+				final Effect existing = effects.get(effectName);
+				if (existing == null) {
+					final Effect effect = new Effect(effectName, effectCandidates);
+					effect.setParent(this);
+					effects.put(effectName, effect);
+				}
 			}
 		}
 	}
@@ -779,6 +782,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		variables = null;
 		cachedFunctionMap = null;
 		cachedVariableMap = null;
+		effects = null;
 	}
 
 	public abstract IStorage source();
