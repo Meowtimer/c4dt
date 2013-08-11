@@ -18,8 +18,8 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IDArray;
+import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnitParser;
@@ -367,8 +367,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 						for (int i = 0; i < selection.length; i++)
 							selection[i] = b.getInt(i*4);
 						@SuppressWarnings("unchecked")
-						final
-						KeyValuePair<IDLiteral, Integer>[] draggedItems = new KeyValuePair[selection.length];
+						final KeyValuePair<IDLiteral, Integer>[] draggedItems = new KeyValuePair[selection.length];
 						for (int i = selection.length-1; i >= 0; i--) {
 							draggedItems[i] = items.get(selection[i]);
 							if (selection[i] < c)
