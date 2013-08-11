@@ -405,56 +405,62 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @throws ProblemException
 	 */
 	protected Declaration parseDeclaration() throws ProblemException {
-		final int startOfDeclaration = this.offset;
-		Declaration result = null;
+		final int rewind = this.offset;
 
-		if (peek() == '#') {
-			read();
-			// directive
-			final String directiveName = parseIdentifier();
-			final DirectiveType type = DirectiveType.makeType(directiveName);
-			if (type == null) {
-				warning(Problem.UnknownDirective, startOfDeclaration, startOfDeclaration + 1 + (directiveName != null ? directiveName.length() : 0), 0, directiveName);
-				this.moveUntil(BufferedScanner.NEWLINE_CHARS);
-				result = new MalformedDeclaration(readStringAt(startOfDeclaration, this.offset));
-				result.setLocation(startOfDeclaration, this.offset);
-			}
-			else {
-				eat(WHITESPACE_WITHOUT_NEWLINE_CHARS);
-				final int cs = offset;
-				final String content = parseDirectiveParms();
-				final Directive directive = new Directive(type, content, cs-startOfDeclaration);
-				directive.setLocation(absoluteSourceLocation(startOfDeclaration, this.offset));
-				script.addDeclaration(directive);
-				result = directive;
+		final Declaration directive = parseDirective();
+		if (directive != null)
+			return directive;
+
+		final FunctionHeader functionHeader = FunctionHeader.parse(this, true);
+		if (functionHeader != null) {
+			final Function f = parseFunctionDeclaration(functionHeader);
+			if (f != null)
+				return f;
+		}
+
+		final String word = readIdent();
+		final Scope scope = word != null ? Scope.makeScope(word) : null;
+		if (scope != null) {
+			final List<VarInitialization> vars = parseVariableDeclaration(true, scope, collectPrecedingComment(rewind));
+			if (vars != null) {
+				for (final VarInitialization vi : vars)
+					if (vi.expression != null)
+						synthesizeInitializationFunction(vi);
+				return new Variables(vars);
 			}
 		}
 
-		if (result == null) {
-			final FunctionHeader functionHeader = FunctionHeader.parse(this, true);
-			if (functionHeader != null) {
-				final Function f = parseFunctionDeclaration(functionHeader);
-				if (f != null)
-					result = f;
-			}
-		}
+		this.seek(rewind);
+		return null;
+	}
 
-		if (result == null) {
-			final String word = readIdent();
-			final Scope scope = word != null ? Scope.makeScope(word) : null;
-			if (scope != null) {
-				final List<VarInitialization> vars = parseVariableDeclaration(true, scope, collectPrecedingComment(startOfDeclaration));
-				if (vars != null) {
-					for (final VarInitialization vi : vars)
-						if (vi.expression != null)
-							synthesizeInitializationFunction(vi);
-					result = new Variables(vars);
-				}
-			}
+	private Declaration parseDirective() throws ProblemException {
+		final int s = this.offset;
+		if (read() != '#') {
+			unread();
+			return null;
 		}
-
-		if (result == null)
-			this.seek(startOfDeclaration);
+		Declaration result;
+		// directive
+		final String directiveName = parseIdentifier();
+		final DirectiveType type = DirectiveType.makeType(directiveName);
+		if (type == null) {
+			warning(Problem.UnknownDirective, s, s + 1 + (directiveName != null ? directiveName.length() : 0), 0, directiveName);
+			this.moveUntil(BufferedScanner.NEWLINE_CHARS);
+			result = new MalformedDeclaration(readStringAt(s, this.offset));
+			result.setLocation(s, this.offset);
+		}
+		else {
+			if (type == DirectiveType.STRICT && !engine.settings().supportsStrictDirective)
+				error(Problem.NotSupported, s, this.offset, Markers.NO_THROW, "#"+DirectiveType.STRICT, engine.name());
+			eat(WHITESPACE_WITHOUT_NEWLINE_CHARS);
+			final int cs = offset;
+			final String content = parseDirectiveParms();
+			final Directive directive = new Directive(type, content, cs-s);
+			directive.setLocation(absoluteSourceLocation(s, this.offset));
+			script.addDeclaration(directive);
+			result = directive;
+		}
 		return result;
 	}
 

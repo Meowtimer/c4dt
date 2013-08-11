@@ -39,7 +39,7 @@ public class EngineSettings extends SettingsBase {
 	/**
 	 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a {@link Variable} object each {@link Definition} maintains as its 'proxy variable'.<br/>
 	 * This toggle activates/deactivates this behavior.
-	 * */ 
+	 * */
 	@IniField(category=INTRINSIC)
 	public boolean definitionsHaveProxyVariables;
 	/** Whether engine supports ref parameters (int & x). OpenClonk stopped supporting it. */
@@ -94,9 +94,11 @@ public class EngineSettings extends SettingsBase {
 	public boolean integersConvertibleToIDs;
 	@IniField(category=INTRINSIC)
 	public boolean supportsFunctionVisibility;
-	
+	@IniField(category=INTRINSIC)
+	public boolean supportsStrictDirective;
+
 	// Settings that are actually intended to be user-configurable
-	
+
 	/** Template for Documentation URL. */
 	@IniField
 	public String docURLTemplate;
@@ -117,9 +119,9 @@ public class EngineSettings extends SettingsBase {
 	/** Whether to dynamically load documentation from the given repository **/
 	@IniField
 	public boolean readDocumentationFromRepository;
-	
-	// Fields related to scanning cpp source files for built-in declarations. 
-	
+
+	// Fields related to scanning cpp source files for built-in declarations.
+
 	@IniField(category=SOURCE)
 	public String initFunctionMapPattern;
 	@IniField(category=SOURCE)
@@ -144,11 +146,11 @@ public class EngineSettings extends SettingsBase {
 	 */
 	@IniField(category=SOURCE)
 	public String callbackFunctions;
-	
+
 	private transient Map<String, C4Group.GroupType> fetgtm;
 	private transient Map<C4Group.GroupType, String> rfetgtm;
 	private transient List<String> supportedSoundFileExtensions_;
-	
+
 	/**
 	 * Return a map mapping a file name extension to a group type for this engine.
 	 * @return The map.
@@ -167,7 +169,7 @@ public class EngineSettings extends SettingsBase {
 		}
 		return fetgtm;
 	}
-	
+
 	/**
 	 * Reverse map of {@link #fileExtensionToGroupTypeMapping()}
 	 * @return The reverse map
@@ -176,7 +178,7 @@ public class EngineSettings extends SettingsBase {
 		fileExtensionToGroupTypeMapping();
 		return rfetgtm;
 	}
-	
+
 	private transient String fileDialogFilterString;
 	/**
 	 * Return a filter string for c4group files to be used with file dialogs
@@ -207,7 +209,7 @@ public class EngineSettings extends SettingsBase {
 			: docURLTemplate;
 		return String.format(urlFormatString, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
 	}
-	
+
 	/**
 	 * Return a list of sound file extensions this engine supports.
 	 * @return The extension list
@@ -217,7 +219,7 @@ public class EngineSettings extends SettingsBase {
 			supportedSoundFileExtensions_ = Arrays.asList(supportedSoundFileExtensions.split("\\;"));
 		return supportedSoundFileExtensions_;
 	}
-	
+
 	/**
 	 * Return array containing names of function this kind of engine will natively call.
 	 * @return The array of callback function names
