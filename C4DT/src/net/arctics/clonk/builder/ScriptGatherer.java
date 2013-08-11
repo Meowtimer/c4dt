@@ -59,7 +59,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 	private Definition createDefinition(IContainer folder) {
 		final IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
 		final IFile scenario = as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
-		final IFile script = as(findMemberCaseInsensitively(folder, "Script.c"), IFile.class); //$NON-NLS-1$
+		final IFile script = Script.findScriptFile(folder);
 		if (defCore == null && scenario == null && script == null)
 			return null;
 		try {

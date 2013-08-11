@@ -327,7 +327,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		// (see ClonkIndex.getLatestVersion)
 		definitionFolder = folder;
 		if (folder != null) {
-			scriptFile = as(Utilities.findMemberCaseInsensitively(definitionFolder, "Script.c"), IFile.class);
+			scriptFile = Script.findScriptFile(definitionFolder);
 			defCoreFile = as(Utilities.findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class);
 			folder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, this);
 			if (id() != null)

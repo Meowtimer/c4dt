@@ -8,6 +8,7 @@ import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -67,6 +68,7 @@ import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
@@ -1399,5 +1401,15 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					output.append("\n\n");
 				se.print(output, depth);
 			}
+	}
+
+	public static IFile findScriptFile(IContainer container) {
+		final String[] names = new String[] { "Script.c", "C4Script.c" };
+		for (final String name : names) {
+			final IResource f = findMemberCaseInsensitively(container, name);
+			if (f instanceof IFile)
+				return (IFile) f;
+		}
+		return null;
 	}
 }
