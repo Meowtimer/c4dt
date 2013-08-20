@@ -159,8 +159,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				public void update(ViewerCell cell) {
 					@SuppressWarnings("unchecked")
 					final
-					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) cell.getElement();
-					final Definition def = scenario.nearestDefinitionWithId(kv.key());
+					KeyValuePair<IDLiteral, Integer> kv = (KeyValuePair<IDLiteral, Integer>) cell.getElement();
+					final Definition def = scenario.nearestDefinitionWithId(kv.key().literal());
 					cell.setImage(def != null ? imageFor(def) : null);
 				}
 			});
@@ -170,8 +170,8 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				public void update(ViewerCell cell) {
 					@SuppressWarnings("unchecked")
 					final
-					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) cell.getElement();
-					final Definition def = scenario.nearestDefinitionWithId(kv.key());
+					KeyValuePair<IDLiteral, Integer> kv = (KeyValuePair<IDLiteral, Integer>) cell.getElement();
+					final Definition def = scenario.nearestDefinitionWithId(kv.key().literal());
 					cell.setText(def != null ? def.localizedName() : kv.key().toString());
 				}
 			});
