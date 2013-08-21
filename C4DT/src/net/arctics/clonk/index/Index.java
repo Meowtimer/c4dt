@@ -101,7 +101,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	protected File folder;
 	protected Built built = Built.No;
-	
+
 	public enum Built {
 		No,
 		Yes,
@@ -707,26 +707,18 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public static <T extends Index> T loadShallow(Class<T> indexClass, File indexFolder, File fallbackFileLocation, final Engine engine) {
 		if (!indexFolder.isDirectory())
 			return null;
-		try {
+		try (
 			final InputStream in = new GZIPInputStream(new FileInputStream(new File(indexFolder, "index")));
-			T index;
-			try {
-				final ObjectInputStream objStream = new IndexEntityInputStream(new Index() {
-					private static final long serialVersionUID = 1L;
-					@Override
-					public Engine engine() { return engine; }
-				}, null, in);
-				try {
-					index = indexClass.cast(objStream.readObject());
-					index.shallowAwake();
-					for (final IndexEntity e : index.entities())
-						e.index = index;
-				} finally {
-					objStream.close();
-				}
-			} finally {
-				in.close();
-			}
+			final ObjectInputStream objStream = new IndexEntityInputStream(new Index() {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public Engine engine() { return engine; }
+			}, null, in)
+		) {
+			final T index = indexClass.cast(objStream.readObject());
+			index.shallowAwake();
+			for (final IndexEntity e : index.entities())
+				e.index = index;
 			index.folder = indexFolder;
 			return index;
 		} catch (final Exception e) {
@@ -817,15 +809,17 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				e.printStackTrace();
 			}
 		}
-		private void doLoad(IndexEntity entity) throws FileNotFoundException, IOException {
-			final ObjectInputStream inputStream = newEntityInputStream(entity);
-			if (inputStream != null)
-				try (final ObjectInputStream s = inputStream) {
-					entity.load(s);
-				} catch (final Exception e) {
-					System.out.println(String.format("Failed to load entity '%s'", entity.qualifiedName()));
-					System.out.println(e.getMessage());
-				}
+		private void doLoad(IndexEntity entity) throws IOException {
+			try (final ObjectInputStream inputStream = newEntityInputStream(entity)) {
+				entity.load(inputStream);
+			} catch (final FileNotFoundException fn) {
+				// so no file found - big deal
+			} catch (final Exception e) {
+				System.out.println(String.format("Failed to load entity '%s': %s",
+					entity.qualifiedName(),
+					e.getMessage()
+				));
+			}
 			if (entity instanceof Script)
 				addGlobalsFromScript((Script)entity, appendages);
 		}
@@ -839,6 +833,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		entityLoader = new EntityLoader();
 	}
 
+	public void loadAllEntities() {
+		for (final IndexEntity e : entities.values())
+			e.requireLoaded();
+	}
+
 	public void loadEntity(IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
 		if (DEBUG)
 			System.out.println("Load entity " + entity.toString());
@@ -846,13 +845,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	public void saveEntity(IndexEntity entity) throws IOException {
-		final ObjectOutputStream s = newEntityOutputStream(entity);
-		try {
+		try (final ObjectOutputStream s = newEntityOutputStream(entity)) {
 			entity.save(s);
 		} catch (final Exception e) {
 			e.printStackTrace();
-		} finally {
-			s.close();
 		}
 	}
 
@@ -882,12 +878,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	public ObjectInputStream newEntityInputStream(IndexEntity entity) throws FileNotFoundException, IOException {
-		try {
-			return new IndexEntityInputStream(this, entity, new GZIPInputStream(new FileInputStream(entityFile(entity))));
-		} catch (final FileNotFoundException e) {
-			// might not be necessary to have an entity file
-			return null;
-		}
+		return new IndexEntityInputStream(this, entity, new GZIPInputStream(new FileInputStream(entityFile(entity))));
 	}
 
 	public IndexEntity entityWithId(long entityId) {
