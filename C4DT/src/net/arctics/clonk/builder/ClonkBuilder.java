@@ -20,6 +20,7 @@ import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.Index.Built;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Markers;
@@ -99,15 +100,16 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		final IProject proj = getProject();
-		
+
 		this.nature = ClonkProjectNature.get(proj);
 		this.index = nature.index();
 		this.markers.applyProjectSettings(index);
 		this.buildKind = kind;
 		this.monitor = monitor;
-		
+
 		switch (index.built()) {
 		case No:
+			index.built(Built.Yes);
 			break;
 		case Yes:
 			if (kind == FULL_BUILD)
@@ -116,7 +118,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		default:
 			return new IProject[] { proj };
 		}
-		
+
 		clearState();
 
 		index.beginModification();
