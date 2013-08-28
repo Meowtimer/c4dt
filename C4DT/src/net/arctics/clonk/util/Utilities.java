@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Scenario;
@@ -19,6 +20,7 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -427,6 +429,15 @@ public abstract class Utilities {
 			for (final File fi : f.listFiles())
 				removeRecursively(fi);
 		f.delete();
+	}
+
+	public static void abort(int severity, String message, Throwable nested) throws CoreException {
+		throw new CoreException(new Status(severity, Core.PLUGIN_ID, message, nested));
+	}
+
+	/** Helper for throwing CoreException objects */
+	public static void abort(int severity, String message) throws CoreException {
+		throw new CoreException(new Status(severity, Core.PLUGIN_ID, message));
 	}
 
 }

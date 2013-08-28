@@ -19,7 +19,6 @@ import net.arctics.clonk.util.ICreate;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -326,20 +325,8 @@ public class Target extends DebugElement implements IDebugTarget {
 		thread.fireSuspendEvent(DebugEvent.STEP_INTO);
 	}
 
-	private static Map<IPath, Target> existingTargets = new HashMap<IPath, Target>();
-
-	public static Target existingDebugTargetForScenario(IResource scenario) {
-		synchronized (existingTargets) {
-			return existingTargets.get(scenario.getProjectRelativePath());
-		}
-	}
-
 	public Target(ILaunch launch, IProcess process, Integer port, IResource scenario) throws Exception {
 		super(null);
-		synchronized (existingTargets) {
-			assert(existingTargets.get(scenario) == null);
-			existingTargets.put(scenario.getProjectRelativePath(), this);
-		}
 		this.launch = launch;
 		this.process = process;
 		this.thread = new ScriptThread(this);
@@ -394,9 +381,6 @@ public class Target extends DebugElement implements IDebugTarget {
 	 * Called when the engine terminated for whatever reason.
 	 */
 	public void terminated() {
-		synchronized (existingTargets) {
-			existingTargets.remove(scenario);
-		}
 		try {
 			terminate();
 		} catch (final DebugException e) {}
