@@ -19,6 +19,7 @@ import net.arctics.clonk.util.ICreate;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -63,7 +64,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		public static final String GO = "GO"; //$NON-NLS-1$
 		public static final String POSITION = "POS"; //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * Result type for ILineReceivedListener.lineReceived.
 	 * Used to decide whether a listener processed a line and whether it should be removed from the queue or not.
@@ -73,13 +74,13 @@ public class Target extends DebugElement implements IDebugTarget {
 		/** Has been processed but should not be removed. */
 		ProcessedDontRemove,
 		/** Has been processed and should be removed. */
-		ProcessedRemove,	
+		ProcessedRemove,
 		/** Has not been processed and should not be removed. */
 		NotProcessedDontRemove,
 		/** Not processed but to be removed anyway. */
 		NotProcessedRemove
 	}
-	
+
 	/**
 	 * Interface to be implemented by objects interested in lines sent by the engine.
 	 * @author madeen
@@ -105,9 +106,9 @@ public class Target extends DebugElement implements IDebugTarget {
 		 */
 		public boolean active();
 	}
-	
+
 	public static final int CONNECTION_ATTEMPT_WAITTIME = 2000;
-	
+
 	private final ILaunch launch;
 	private final IProcess process;
 	private final ScriptThread thread;
@@ -117,9 +118,9 @@ public class Target extends DebugElement implements IDebugTarget {
 	private BufferedReader socketReader;
 	private boolean suspended;
 	private final IResource scenario;
-	
+
 	private final List<ILineReceivedListener> lineReceiveListeners = new LinkedList<ILineReceivedListener>();
-	
+
 	/**
 	 * Request a line received listener of a certain type. A new one won't be created if one already exists
 	 * exactly matching the class specified by create.cls().
@@ -148,7 +149,7 @@ public class Target extends DebugElement implements IDebugTarget {
 			lineReceiveListeners.add(0, listener);
 		}
 	}
-	
+
 	/**
 	 * Remove a line received listener from the internal list.
 	 * @param listener The listener to remove
@@ -159,31 +160,13 @@ public class Target extends DebugElement implements IDebugTarget {
 			lineReceiveListeners.remove(listener);
 		}
 	}
-	
-	/**
-	 * Return the socket writer used to communicate with the engine.
-	 * @return
-	 */
-	public PrintWriter getSocketWriter() {
-		return socketWriter;
-	}
 
-	/**
-	 * Return the socket reader used to receive commands from the engine.
-	 * @return
-	 */
-	public BufferedReader getSocketReader() {
-		return socketReader;
-	}
-	
 	private class EventDispatchJob extends Job implements ILineReceivedListener {
-		
-		public EventDispatchJob(String name) {
-			super(name);
-		}
-		
+
+		public EventDispatchJob(String name) { super(name); }
+
 		private final List<String> stackTrace = new ArrayList<String>(10);
-		
+
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
 			addLineReceiveListener(this);
@@ -231,23 +214,18 @@ public class Target extends DebugElement implements IDebugTarget {
 		}
 
 		@Override
-		public boolean exclusive() {
-			return false;
-		}
-		
+		public boolean exclusive() { return false; }
 		@Override
-		public boolean active() {
-			return true;
-		}
+		public boolean active() { return true; }
 
 		@Override
 		public LineReceivedResult lineReceived(String event, Target target) throws IOException {
-			if (event.startsWith(Commands.POSITION)) { 
+			if (event.startsWith(Commands.POSITION)) {
 				final String sourcePath = event.substring(Commands.POSITION.length()+1, event.length());
 				stackTrace.clear();
 				stackTrace.add(sourcePath);
 
-				send(Commands.SENDSTACKTRACE); 
+				send(Commands.SENDSTACKTRACE);
 				while (!isTerminated() && event != null) {
 					event = receive();
 					if (event != null && event.length() > 0)
@@ -265,7 +243,7 @@ public class Target extends DebugElement implements IDebugTarget {
 				}
 
 				stoppedWithStackTrace(stackTrace);
-				
+
 				try {
 					if (thread.getTopStackFrame() != null && thread.getTopStackFrame().getVariables() != null) {
 						final DebugVariable[] varArray = ((StackFrame)thread.getTopStackFrame()).getVariables();
@@ -278,8 +256,8 @@ public class Target extends DebugElement implements IDebugTarget {
 						//	System.out.println("missing " + vars.toString());
 							event = receive();
 							if (event != null && event.length() > 0)
-								if (event.startsWith(Commands.VAR)) { 
-									event = event.substring(Commands.VAR.length()); 
+								if (event.startsWith(Commands.VAR)) {
+									event = event.substring(Commands.VAR.length());
 									final BufferedScanner scanner = new BufferedScanner(event);
 									scanner.read();
 									final String varName = scanner.readIdent();
@@ -300,7 +278,7 @@ public class Target extends DebugElement implements IDebugTarget {
 				} catch (final DebugException e) {
 					e.printStackTrace();
 				}
-				
+
 				if (!suspended) {
 					suspended = true;
 					thread.fireSuspendEvent(DebugEvent.CLIENT_REQUEST);
@@ -309,24 +287,24 @@ public class Target extends DebugElement implements IDebugTarget {
 			}
 			return LineReceivedResult.NotProcessedDontRemove;
 		}
-		
+
 	}
-	
+
 	synchronized void setConnectionObjects(Socket socket, PrintWriter socketWriter, BufferedReader socketReader_) {
 		this.socket = socket;
 		this.socketWriter = socketWriter;
 		this.socketReader = socketReader_;
-		
+
 		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
-		
+
 		send(""); //$NON-NLS-1$
-		send(Commands.STEP); // suspend in order to set breakpoints 
+		send(Commands.STEP); // suspend in order to set breakpoints
 		setBreakpoints();
-		send(Commands.GO); // go! 
-		
+		send(Commands.GO); // go!
+
 		new EventDispatchJob("Clonk Debugger Event Dispatch").schedule(); //$NON-NLS-1$
 	}
-	
+
 	private void setBreakpoints() {
 		final IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
 		for (final IBreakpoint b : breakpoints)
@@ -337,7 +315,7 @@ public class Target extends DebugElement implements IDebugTarget {
 				e.printStackTrace();
 			}
 	}
-	
+
 	private void stoppedWithStackTrace(List<String> stackTrace) {
 		try {
 			thread.setStackTrace(stackTrace);
@@ -348,102 +326,69 @@ public class Target extends DebugElement implements IDebugTarget {
 		thread.fireSuspendEvent(DebugEvent.STEP_INTO);
 	}
 
-	private static Map<IResource, Target> existingTargets = new HashMap<IResource, Target>();
-	
+	private static Map<IPath, Target> existingTargets = new HashMap<IPath, Target>();
+
 	public static Target existingDebugTargetForScenario(IResource scenario) {
 		synchronized (existingTargets) {
-			return existingTargets.get(scenario);
+			return existingTargets.get(scenario.getProjectRelativePath());
 		}
 	}
-	
-	public Target(ILaunch launch, IProcess process, int port, IResource scenario) throws Exception {
-		super(null);
 
+	public Target(ILaunch launch, IProcess process, Integer port, IResource scenario) throws Exception {
+		super(null);
 		synchronized (existingTargets) {
 			assert(existingTargets.get(scenario) == null);
-			existingTargets.put(scenario, this);
+			existingTargets.put(scenario.getProjectRelativePath(), this);
 		}
-		
 		this.launch = launch;
 		this.process = process;
 		this.thread = new ScriptThread(this);
 		this.threads = new IThread[] {thread};
 		this.scenario = scenario;
-
-		new ConnectionJob(this, "Clonk Debugger Connection Job", port).schedule(); //$NON-NLS-1$
-
-		DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
-
-		//launch.setsou
-
+		if (port != null) {
+			new ConnectionJob(this, "Clonk Debugger Connection Job", port).schedule(); //$NON-NLS-1$
+			DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
+		}
 	}
 
-	public IResource getScenario() {
-		return scenario;
-	}
-
-	/*
-	private void abort(String message, Exception e) throws Exception {
-		System.out.println(message);
-		throw e;
-	}*/
-
+	public IResource scenario() { return scenario; }
 	@Override
-	public String getName() throws DebugException {
-		return "Clonk DebugTarget"; //$NON-NLS-1$
-	}
-
+	public String getName() throws DebugException { return "Clonk DebugTarget"; } //$NON-NLS-1$
 	@Override
-	public IProcess getProcess() {
-		return process;
-	}
-
+	public IProcess getProcess() { return process; }
 	@Override
-	public IThread[] getThreads() throws DebugException {
-		return threads;
-	}
-
+	public IThread[] getThreads() throws DebugException { return threads; }
 	@Override
-	public boolean hasThreads() throws DebugException {
-		return threads.length > 0;
-	}
-
+	public boolean hasThreads() throws DebugException { return threads.length > 0; }
 	@Override
-	public boolean supportsBreakpoint(IBreakpoint breakpoint) {
-		return breakpoint instanceof Breakpoint;
-	}
-
+	public boolean supportsBreakpoint(IBreakpoint breakpoint) { return breakpoint instanceof Breakpoint; }
 	@Override
-	public IDebugTarget getDebugTarget() {
-		return this;
-	}
-
+	public IDebugTarget getDebugTarget() { return this; }
 	@Override
-	public ILaunch getLaunch() {
-		return launch;
-	}
-
+	public ILaunch getLaunch() { return launch; }
 	@Override
-	public String getModelIdentifier() {
-		return ClonkDebugModelPresentation.ID;
-	}
-
+	public String getModelIdentifier() { return ClonkDebugModelPresentation.ID; }
 	@SuppressWarnings("rawtypes")
 	@Override
-	public Object getAdapter(Class adapter) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	public Object getAdapter(Class adapter) { return null; }
 	@Override
-	public boolean canTerminate() {
-		return !isTerminated();
-	}
-
+	public boolean canTerminate() { return !isTerminated(); }
 	@Override
-	public boolean isTerminated() {
-		return process.isTerminated();
-	}
+	public boolean isTerminated() { return process.isTerminated(); }
+	@Override
+	public boolean canResume() { return !isTerminated() && isSuspended(); }
+	@Override
+	public boolean canSuspend() { return !isTerminated() && !isSuspended(); }
+	@Override
+	public boolean isSuspended() { return suspended; }
+	@Override
+	public boolean canDisconnect() { return !isDisconnected(); }
+	@Override
+	public boolean isDisconnected() { return socket == null; }
+	@Override
+	public IMemoryBlock getMemoryBlock(long startAddress, long length) throws DebugException { return null; }
+	@Override
+	public boolean supportsStorageRetrieval() { return false; }
 
 	/*+
 	 * Called when the engine terminated for whatever reason.
@@ -458,28 +403,13 @@ public class Target extends DebugElement implements IDebugTarget {
 		DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
 		fireTerminateEvent();
 	}
-	
+
 	@Override
 	public void terminate() throws DebugException {
 		disconnect();
 		process.terminate();
 	}
 
-	@Override
-	public boolean canResume() {
-		return !isTerminated() && isSuspended();
-	}
-
-	@Override
-	public boolean canSuspend() {
-		return !isTerminated() && !isSuspended();
-	}
-
-	@Override
-	public boolean isSuspended() {
-		return suspended;
-	}
-	
 	public void send(String command, ILineReceivedListener listener) {
 		if (listener != null)
 			addLineReceiveListener(listener);
@@ -489,19 +419,19 @@ public class Target extends DebugElement implements IDebugTarget {
 			socketWriter.flush();
 		}
 	}
-	
+
 	public final void send(String command) {
 		send(command, null);
 	}
-	
+
 	private Queue<String> lostLines = new LinkedList<String>();
 	private Queue<String> reshuffledLines;
-	
+
 	public void reshuffleLines() {
 		reshuffledLines = lostLines;
 		lostLines = new LinkedList<String>();
 	}
-	
+
 	public final String receive() throws IOException {
 		if (reshuffledLines != null) {
 			final String lost = reshuffledLines.poll();
@@ -534,7 +464,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		try {
 			if (breakpoint instanceof Breakpoint) {
 				final Breakpoint bp = (Breakpoint) breakpoint;
-				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber()-1)); //$NON-NLS-1$ 
+				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber()-1)); //$NON-NLS-1$
 			}
 		} catch (final CoreException e) {
 			e.printStackTrace();
@@ -545,7 +475,6 @@ public class Target extends DebugElement implements IDebugTarget {
 	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
 		if (delta.getAttribute(IBreakpoint.ENABLED) != null)
 			breakpointAdded(breakpoint);
-
 	}
 
 	@Override
@@ -559,11 +488,6 @@ public class Target extends DebugElement implements IDebugTarget {
 	}
 
 	@Override
-	public boolean canDisconnect() {
-		return !isDisconnected();
-	}
-
-	@Override
 	public void disconnect() throws DebugException {
 		if (socket != null) {
 			try {
@@ -574,21 +498,6 @@ public class Target extends DebugElement implements IDebugTarget {
 			socket = null;
 		}
 		lineReceiveListeners.clear();
-	}
-
-	@Override
-	public boolean isDisconnected() {
-		return socket == null;
-	}
-
-	@Override
-	public IMemoryBlock getMemoryBlock(long startAddress, long length) throws DebugException {
-		return null;
-	}
-
-	@Override
-	public boolean supportsStorageRetrieval() {
-		return false;
 	}
 
 }

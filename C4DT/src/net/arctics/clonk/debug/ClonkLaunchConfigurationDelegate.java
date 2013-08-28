@@ -129,7 +129,7 @@ public class ClonkLaunchConfigurationDelegate extends
 
 	/**
 	 * Searches an appropriate Clonk installation for launching the scenario.
-	 * 
+	 *
 	 * @param configuration
 	 *            The launch configuration
 	 * @param scenario
@@ -306,11 +306,16 @@ public class ClonkLaunchConfigurationDelegate extends
 		}
 
 		@Override
-		public void launchesAdded(ILaunch[] arg0) {}
+		public void launchesAdded(ILaunch[] launches) {
+			for (int i = 0; i < launches.length; i++)
+				System.out.println("Launch added: " + launches[i].getProcesses()[0].getLabel());
+		}
 		@Override
-		public void launchesChanged(ILaunch[] arg0) {}
+		public void launchesChanged(ILaunch[] launches) {}
 		@Override
-		public void launchesRemoved(ILaunch[] arg0) {}
+		public void launchesRemoved(ILaunch[] launches) {
+
+		}
 
 		@Override
 		public void launchesTerminated(ILaunch[] launches) {

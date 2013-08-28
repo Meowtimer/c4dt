@@ -56,7 +56,7 @@ public class ScriptThread extends DebugElement implements IThread {
 	}
 
 	public void setStackTrace(List<String> stackTrace) throws CoreException {
-		final ProjectIndex index = ProjectIndex.get(getTarget().getScenario().getProject());
+		final ProjectIndex index = ProjectIndex.get(getTarget().scenario().getProject());
 		if (index == null) {
 			nullOut();
 			return;
