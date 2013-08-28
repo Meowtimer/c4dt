@@ -784,6 +784,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		cachedFunctionMap = null;
 		cachedVariableMap = null;
 		effects = null;
+		typeAnnotations = null;
 	}
 
 	public abstract IStorage source();

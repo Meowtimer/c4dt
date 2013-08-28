@@ -266,6 +266,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * Parse declarations but not function code. Before calling this it should be ensured that the script is {@link #clear()}-ed to avoid duplicates.
 	 */
 	public void parseDeclarations() {
+		script().setTypeAnnotations(null);
 		this.seek(0);
 		try {
 			parseInitialSourceComment();
@@ -277,6 +278,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			}
 		}
 		catch (final ProblemException e) { return; }
+		finally {
+			script().setTypeAnnotations(typeAnnotations);
+		}
 	}
 	private void readUnexpectedBlock() throws ProblemException {
 		eatWhitespace();

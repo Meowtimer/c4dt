@@ -54,4 +54,6 @@ public final class TypeAnnotation extends ASTNode {
 	}
 	@Override
 	public String printed() { return type.typeName(true); }
+	@Override
+	public String toString() { return printed(); }
 }
