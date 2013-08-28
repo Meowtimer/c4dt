@@ -690,6 +690,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		// engine function
 		return index().engine().findDeclaration(info);
 	}
+
 	private Declaration findDefinition(FindDeclarationInfo info) {
 		final Definition d = info.index.definitionNearestTo(resource(), ID.get(info.name));
 		if (d != null)

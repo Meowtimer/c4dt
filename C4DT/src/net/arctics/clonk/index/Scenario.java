@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.SourceLocation;
@@ -29,6 +30,12 @@ public class Scenario extends Definition {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private transient Declaration scenarioPropList; { createScenarioProplist(); }
+
+	@Override
+	public void deriveInformation() {
+		super.deriveInformation();
+		createScenarioProplist();
+	}
 
 	private synchronized Declaration createScenarioProplist() {
 		if (scenarioPropList == null && engine().settings().supportsGlobalProplists) {
