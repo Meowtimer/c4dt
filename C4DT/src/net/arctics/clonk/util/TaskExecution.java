@@ -36,7 +36,7 @@ public class TaskExecution {
 	}
 	public static ExecutorService newPool(Integer numWorkUnits) {
 		return numWorkUnits != null && numWorkUnits >= THRESHOLD
-			? Executors.newFixedThreadPool(threadPoolSize)
+			? Executors.newCachedThreadPool()
 			: Executors.newSingleThreadExecutor();
 	}
 }
