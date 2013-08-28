@@ -313,6 +313,12 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		return null;
 	}
 
+	public TimerTask runAndCancelTimerTask(TimerTask whichTask) {
+		if (whichTask != null)
+			whichTask.run();
+		return cancelTimerTask(whichTask);
+	}
+
 	/**
 	 * The structure this listener corresponds to.
 	 * @return The {@link Structure}

@@ -588,7 +588,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			private void follow(final Function f, Script s) {
 				if (localCall == null)
 					return;
-				Function fn = s.findFunction(f.name());
+				final Function fn = s.findFunction(f.name());
 				if (fn == null)
 					return;
 				final Pair<Script, Function> pair = Pair.pair(s, fn);
@@ -646,8 +646,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	@Override
 	public void cancelReparsingTimer() {
-		reparseTask = cancelTimerTask(reparseTask);
-		reportFunctionProblemsTask = cancelTimerTask(reportFunctionProblemsTask);
+		reparseTask = runAndCancelTimerTask(reparseTask);
+		reportFunctionProblemsTask = runAndCancelTimerTask(reportFunctionProblemsTask);
 		super.cancelReparsingTimer();
 	}
 
