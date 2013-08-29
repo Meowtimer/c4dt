@@ -439,7 +439,7 @@ global func int GetHomebaseProduction(int player, id id, int index, int category
 global func id GetID();
 global func int GetIndexOf(array array2search, any needle);
 global func int GetKiller();
-global func int GetLength(any text);
+global func int GetLength(string|array text);
 global func int GetMass();
 global func int GetMaterial(int x, int y);
 global func int GetMaterialCount(int material_index);
