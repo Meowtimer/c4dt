@@ -580,14 +580,17 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 
 		// search global
-		final Function global = index().findGlobal(Function.class, name());
-		if (global != null && global != this)
-			return global;
+		final Index ndx = index();
+		if (ndx != null) {
+			final Function global = ndx.findGlobal(Function.class, name());
+			if (global != null && global != this)
+				return global;
 
-		// search in engine
-		final Function f = index().engine().findFunction(name());
-		if (f != null)
-			return f;
+			// search in engine
+			final Function f = ndx.engine().findFunction(name());
+			if (f != null)
+				return f;
+		}
 
 		return null;
 	}

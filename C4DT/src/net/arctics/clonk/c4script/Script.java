@@ -285,6 +285,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		super.postLoad(parent, root);
 		deriveInformation();
 		findScenario();
+		for (final Function f : functions())
+			f.findInherited();
 	}
 
 	private void loadIncludes() {
