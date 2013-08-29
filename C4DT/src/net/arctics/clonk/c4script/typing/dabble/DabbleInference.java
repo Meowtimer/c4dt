@@ -1730,10 +1730,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				}
 				@Override
+				public boolean skipReportingProblemsForSubElements() { return true; }
+				@Override
 				public void visit(BinaryOp node, Visitor visitor) throws ProblemException {
 					final Operator op = node.operator();
 					final ASTNode left = node.leftSide();
 					final ASTNode right = node.rightSide();
+
+					// right first
+					visitor.visit(right, true);
+					visitor.visit(left, true);
 
 					detectProblems(node, visitor, op, left, right);
 
