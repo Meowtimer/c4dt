@@ -913,32 +913,26 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			e1.printStackTrace();
 			return;
 		}
-		try {
+		try (
 			final OutputStream out = new GZIPOutputStream(new FileOutputStream(indexFile));
-			removeNullsInScriptLists();
-			try {
-				final IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, null, out) {
-					@Override
-					protected Object replaceObject(Object obj) throws IOException {
-						// directives are also directly saved
-						if (obj instanceof Directive)
-							return obj;
-						// disable replacing entities with EntityId objects which won't resolve properly because this here is the place where entities are actually saved.
-						if (obj instanceof IndexEntity && ((IndexEntity)obj).index == Index.this)
-							return obj;
-						return super.replaceObject(obj);
-					}
-				};
-				objStream.writeObject(index());
-				objStream.close();
-			} catch (final Exception e) {
-				System.out.println(String.format("Error saving index for '%s'", this.nature().getProject().getName()));
-				e.printStackTrace();
-			} finally {
-				out.close();
+			final IndexEntityOutputStream objStream = new IndexEntityOutputStream(this, null, out) {
+				@Override
+				protected Object replaceObject(Object obj) throws IOException {
+					// directives are also directly saved
+					if (obj instanceof Directive)
+						return obj;
+					// disable replacing entities with EntityId objects which won't resolve properly because this here is the place where entities are actually saved.
+					if (obj instanceof IndexEntity && ((IndexEntity)obj).index == Index.this)
+						return obj;
+					return super.replaceObject(obj);
+				}
 			}
+		) {
+			removeNullsInScriptLists();
+			objStream.writeObject(index());
 			purgeUnusedIndexFiles(indexFile);
 		} catch (final Exception e) {
+			System.out.println(String.format("Error saving index for '%s'", this.nature().getProject().getName()));
 			e.printStackTrace();
 		}
 	}
