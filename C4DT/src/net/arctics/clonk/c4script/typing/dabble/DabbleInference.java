@@ -1642,9 +1642,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return false;
 					if (origin != null) {
 						final IType elmTy = visitor.ty(leftSide.argument());
-						for (final IType e : elmTy)
-							if (eq(e, PrimitiveType.STRING))
-								return visitor.judgment(pred, PrimitiveType.PROPLIST, mode);
+						if (elmTy != null)
+							for (final IType e : elmTy)
+								if (eq(e, PrimitiveType.STRING))
+									return visitor.judgment(pred, PrimitiveType.PROPLIST, mode);
 						return visitor.judgment(pred, new ArrayType(rightSideType), TypingJudgementMode.UNIFY);
 					}
 					return true;
@@ -2113,7 +2114,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (!applyRuleBasedValidation(node, visitor, params))
 							if (node.params().length > 0 && visitor.visit.function.script() == visitor.script()) {
 								final ParameterValidation pv = new ParameterValidation(node, f, visitor.script());
-								if (f instanceof EngineFunction)
+								if (f.baseFunction() instanceof EngineFunction)
 									pv.regularParameterValidation(visitor.inference(), visitor);
 								else
 									parameterValidations.add(pv);
