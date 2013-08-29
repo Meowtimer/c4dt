@@ -100,6 +100,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	@SuppressWarnings({"rawtypes"})
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 		final IProject proj = getProject();
+		final IResourceDelta delta = getDelta(proj);
 
 		this.nature = ClonkProjectNature.get(proj);
 		this.index = nature.index();
@@ -112,8 +113,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			index.built(Built.Yes);
 			break;
 		case Yes:
-			if (kind == FULL_BUILD)
+			if (kind == FULL_BUILD || delta.getAffectedChildren().length > 0)
 				break;
+			System.out.println(String.format("%s: Skipping build", proj.getName()));
 			//$FALL-THROUGH$
 		default:
 			return new IProject[] { proj };
@@ -124,8 +126,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		index.beginModification();
 		try {
 			try {
-
-				final Script[] scripts = performBuildPhases(proj, getDelta(proj));
+				final Script[] scripts = performBuildPhases(proj, delta);
 
 				if (monitor.isCanceled()) {
 					monitor.done();
