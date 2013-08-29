@@ -668,7 +668,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return scope;
 	}
 
-	private TypeAnnotation typeAnnotation(int s, int e, IType type) {
+	protected TypeAnnotation typeAnnotation(int s, int e, IType type) {
 		return new TypeAnnotation(fragmentOffset()+s, fragmentOffset()+e, type);
 	}
 

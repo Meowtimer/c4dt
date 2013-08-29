@@ -9,6 +9,9 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.util.LineNumberObtainer;
 
 import org.eclipse.core.resources.IFile;
@@ -37,6 +40,11 @@ final class EngineScriptParser extends ScriptParser {
 			lno.obtainCharNumberInObtainedLine()
 		));
 		super.marker(code, errorStart, errorEnd, flags, severity, args);
+	}
+	@Override
+	protected TypeAnnotation typeAnnotation(int s, int e, IType type) {
+		// undo authority boost -.-
+		return super.typeAnnotation(s, e, type instanceof PrimitiveType.Unified ? ((PrimitiveType.Unified)type).base() : type);
 	}
 	@Override
 	protected Function newFunction(String nameWillBe) { return new EngineFunction(); }
