@@ -48,8 +48,10 @@ public class ScriptsHelper {
 		};
 		tempParser.markers().setListener(markerListener);
 		ASTNode result = tempParser.parseDeclaration();
-		if (result == null)
+		if (result == null || result instanceof Variables) {
+			tempParser.seek(0);
 			result = tempParser.parseStandaloneStatement(source, function);
+		}
 		if (visitor != null && result != null)
 			result.traverse(visitor, context);
 		return result;
