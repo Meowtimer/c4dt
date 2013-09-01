@@ -112,20 +112,16 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 */
 	private static Core instance;
 
-	/**
-	 * Provider used by the plugin to provide text of documents
-	 */
-	private final TextFileDocumentProvider textFileDocumentProvider;
+	private static final class TextFileDocumentProviderThing {
+		/**
+		 * Provider used by the plugin to provide text of documents
+		 */
+		static final TextFileDocumentProvider provider = runsHeadless() ? null : new TextFileDocumentProvider();
+	}
 
 	private String engineConfigurationFolder;
 	private Version versionFromLastRun;
-	private final boolean runsHeadless;
-
-	public Core(boolean runsHeadless) {
-		this.runsHeadless = runsHeadless;
-		this.textFileDocumentProvider = runsHeadless() ? null : new TextFileDocumentProvider();
-	}
-	public Core() { this(false); }
+	private static boolean runsHeadless;
 
 	public Version versionFromLastRun() {
 		return versionFromLastRun;
@@ -384,11 +380,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 */
 	public static Core instance() { return instance; }
 	/** Whether the plugin runs in headless mode. */
-	public boolean runsHeadless() { return runsHeadless; }
+	public static boolean runsHeadless() { return runsHeadless; }
 
 	public static void headlessInitialize(String engineConfigurationFolder, String engine) {
+		runsHeadless = true;
 		if (instance == null) {
-			instance = new Core(true);
+			instance = new Core();
 			instance.engineConfigurationFolder = engineConfigurationFolder;
 			instance.setActiveEngineByName(engine);
 		}
@@ -528,26 +525,27 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 
 	public <T> T performActionsOnFileDocument(IStorage file, IDocumentAction<T> action, boolean save) {
-		synchronized (textFileDocumentProvider) {
+		final TextFileDocumentProvider provider = TextFileDocumentProviderThing.provider;
+		synchronized (provider) {
 			try {
-				textFileDocumentProvider.connect(file);
+				provider.connect(file);
 			} catch (final CoreException e) {
 				e.printStackTrace();
 				return null;
 			}
 			try {
-				final IDocument document = textFileDocumentProvider.getDocument(file);
+				final IDocument document = provider.getDocument(file);
 				final T result = action.run(document);
 				if (save)
 					try {
 						//textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
-						textFileDocumentProvider.saveDocument(null, file, document, true);
+						provider.saveDocument(null, file, document, true);
 					} catch (final CoreException e) {
 						out.println(format("Failed to save %s: %s", file.getFullPath(), e.getMessage()));
 					}
 				return result;
 			} finally {
-				textFileDocumentProvider.disconnect(file);
+				provider.disconnect(file);
 			}
 		}
 	}
