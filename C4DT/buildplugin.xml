@@ -8,8 +8,8 @@
 	<property environment="env"/>
 	<property name="C4DTTests.location" value="../C4DTTests"/>
 	<property name="debuglevel" value="source,lines,vars"/>
-	<property name="target" value="1.6"/>
-	<property name="source" value="1.6"/>
+	<property name="target" value="1.7"/>
+	<property name="source" value="1.7"/>
 	<path id="Plug-in Dependencies.libraryclasspath">
 		<fileset dir="${env.ECLIPSE_HOME}/plugins" includes="*.jar"/>
 		<pathelement location="lib/antlr-runtime-3.4.jar"/>
