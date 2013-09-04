@@ -174,7 +174,7 @@ public abstract class Utilities {
 	 * @param filter A filter to exclude some of the items contained in the list
 	 * @return The item 'nearest' to resource
 	 */
-	public static <T extends IHasRelatedResource> T pickNearest(List<T> fromList, IResource resource, IPredicate<T> filter) {
+	public static <T extends IHasRelatedResource> T pickNearest(List<? extends T> fromList, IResource resource, IPredicate<T> filter) {
 		int bestDist = Integer.MAX_VALUE;
 		T best = null;
 		if (fromList != null) {

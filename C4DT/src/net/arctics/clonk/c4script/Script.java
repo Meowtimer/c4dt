@@ -9,6 +9,7 @@ import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
+import static net.arctics.clonk.util.Utilities.pickNearest;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -403,7 +404,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @param contextIndex The project index to search for includes in.
 	 */
 	@Override
-	public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
+	public boolean gatherIncludes(Index contextIndex, final Script origin, Collection<Script> set, int options) {
 		if (!set.add(this))
 			return false;
 		if (directives != null) {
@@ -417,18 +418,23 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				if (d.type() == DirectiveType.INCLUDE || (d.type() == DirectiveType.APPENDTO && (options & GatherIncludesOptions.NoAppendages) == 0)) {
 					final ID id = d.contentAsID();
 					for (final Index in : contextIndex.relevantIndexes()) {
-						final Iterable<? extends Definition> defs = in.definitionsWithID(id);
-						if (defs != null)
-							for (final Definition def : defs) {
-								if (origin != null && def.scenario() != null && origin.scenario() != def.scenario())
-									continue;
-								if ((options & GatherIncludesOptions.Recursive) == 0)
-									set.add(def);
-								else {
-									if (d.type() == DirectiveType.INCLUDE)
-										options &= ~GatherIncludesOptions.NoAppendages;
-									def.gatherIncludes(contextIndex, origin, set, options);
+						final List<? extends Definition> defs = in.definitionsWithID(id);
+						final Definition pick =
+							defs == null ? null :
+							(origin == null || origin.resource() == null) ? defs.get(0) :
+							pickNearest(defs, origin.resource(), new IPredicate<Definition>() {
+								@Override
+								public boolean test(Definition def) {
+									return origin == null || def.scenario() == null || origin.scenario() == def.scenario();
 								}
+							});
+						if (pick != null)
+							if ((options & GatherIncludesOptions.Recursive) == 0)
+								set.add(pick);
+							else {
+								if (d.type() == DirectiveType.INCLUDE)
+									options &= ~GatherIncludesOptions.NoAppendages;
+								pick.gatherIncludes(contextIndex, origin, set, options);
 							}
 					}
 				}
