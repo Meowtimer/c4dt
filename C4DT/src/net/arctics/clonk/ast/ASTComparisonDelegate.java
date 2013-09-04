@@ -10,10 +10,10 @@ import static net.arctics.clonk.util.ArrayUtil.concat;
  */
 public class ASTComparisonDelegate {
 
-	public final ASTNode top;
+	public final ASTNode rightTop;
 	public ASTNode left, right;
 
-	public ASTComparisonDelegate(ASTNode top) { this.top = top; }
+	public ASTComparisonDelegate(ASTNode rightTop) { this.rightTop = rightTop; }
 
 	/**
 	 * Called if some difference was found and an attempt is made to make a previous left node consume a right node
@@ -50,7 +50,7 @@ public class ASTComparisonDelegate {
 			(left != null && left.compare(right, this)) ||
 			acceptSubElementDifference(left, right)
 		) {
-			if (top == right)
+			if (rightTop == right)
 				applyLeftToRightMapping(new ASTNode[] {left}, new ASTNode[][] {{right}});
 			return true;
 		} else
