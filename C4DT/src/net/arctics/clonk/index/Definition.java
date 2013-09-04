@@ -459,7 +459,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public String qualifiedName() { return id().stringValue(); }
 
 	static {
-		if (!Core.instance().runsHeadless())
+		if (!Core.runsHeadless())
 			Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent event) {

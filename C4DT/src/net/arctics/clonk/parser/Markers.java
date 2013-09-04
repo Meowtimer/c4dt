@@ -74,7 +74,7 @@ public class Markers implements Iterable<Marker> {
 	}
 
 	public synchronized void deploy() {
-		if (Core.instance().runsHeadless())
+		if (Core.runsHeadless())
 			return;
 		for (Marker deploy = clear(); deploy != null; deploy = deploy.next)
 			deploy(deploy);

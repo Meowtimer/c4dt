@@ -78,7 +78,7 @@ public abstract class Conf {
 	}
 
 	static {
-		if (Core.instance() != null && !Core.instance().runsHeadless()) {
+		if (Core.instance() != null && !Core.runsHeadless()) {
 			final IPropertyChangeListener listener = new IPropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent event) {
