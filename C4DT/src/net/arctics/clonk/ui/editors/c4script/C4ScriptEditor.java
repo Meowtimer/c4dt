@@ -161,9 +161,9 @@ public class C4ScriptEditor extends StructureTextEditor {
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
+		final ScriptEditingState state = state();
 		if (state != null)
-			state.cancelReparsingTimer();
-		state().assistant().hide();
+			state.saved();
 		super.editorSaved();
 	}
 

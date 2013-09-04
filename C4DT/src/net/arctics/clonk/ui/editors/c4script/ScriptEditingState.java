@@ -967,4 +967,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	public Declaration container() { return structure(); }
 	@Override
 	public int fragmentOffset() { return 0; }
+
+	public void saved() {
+		cancelReparsingTimer();
+		assistant().hide();
+	}
 }
