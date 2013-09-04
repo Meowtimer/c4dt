@@ -18,9 +18,14 @@ import net.arctics.clonk.index.MetaDefinition;
 public enum Typing {
 
 	/** Static typing completely disabled. No parameter annotations allowed. */
-	DYNAMIC,
+	DYNAMIC {
+		@Override
+		public IType unifyNoChoice(IType a, IType b) { return PrimitiveType.ANY; }
+	},
+
 	/** Allow type annotations for parameters, as the engine does. */
 	INFERRED,
+
 	/** Statically typed */
 	STATIC {
 		@Override
@@ -41,18 +46,13 @@ public enum Typing {
 					return null;
 			return super.unifyNoChoice(a, b);
 		}
+		@Override
+		public boolean allowsNonParameterAnnotations() { return true; }
 	};
 
 	public static final Typing PARAMETERS_OPTIONALLY_TYPED = INFERRED;
 
-	public boolean allowsNonParameterAnnotations() {
-		switch (this) {
-		case STATIC:
-			return true;
-		default:
-			return false;
-		}
-	}
+	public boolean allowsNonParameterAnnotations() { return false; }
 
 	private IType unifyLeft(IType a, IType b) {
 		if (a == null)
@@ -168,9 +168,6 @@ public enum Typing {
 
 		if (a instanceof CallTargetType)
 			return unify(PrimitiveType.OBJECT, b);
-//			if (b instanceof Definition || b instanceof MetaDefinition || b instanceof ProplistDeclaration ||
-//				b == PrimitiveType.OBJECT || b == PrimitiveType.ID || b == PrimitiveType.PROPLIST)
-//				return b;
 
 		return null;
 	}
