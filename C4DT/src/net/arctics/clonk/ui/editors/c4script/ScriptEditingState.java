@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors.c4script;
 
-import static java.lang.String.format;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.lang.ref.WeakReference;
@@ -643,7 +642,6 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 							@Override
 							public void receivedObject(Script item) {
 								if (item != p.first() && item.doesInclude(ndx, baseDef)) {
-									System.out.println(format("%s\t\t%s", item.name(), base.name()));
 									final Function ovrld = item.findLocalFunction(base.name(), true);
 									if (ovrld != null)
 										result.add(new Pair<Script, Function>(item, ovrld));
