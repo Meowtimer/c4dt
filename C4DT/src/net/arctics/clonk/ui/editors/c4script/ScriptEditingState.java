@@ -1,15 +1,16 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -45,13 +46,16 @@ import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.EntityLocator;
+import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.IFunctionCall;
 import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.TypeUtil;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.IMarkerListener;
 import net.arctics.clonk.parser.Markers;
@@ -63,6 +67,7 @@ import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 import net.arctics.clonk.util.Pair;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -311,6 +316,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	public void refreshAfterBuild(Markers markers) {
 		super.refreshAfterBuild(markers);
 		reportProblemsOnFunctionsCalledByActiveFunction(markers);
+		oldFunctionBody = null;
 	}
 
 	private void reportProblemsOnFunctionsCalledByActiveFunction(final Markers markers) {
@@ -509,11 +515,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					strategy.run();
 					strategy.apply();
 					// visit called functions
-					try {
-						reportProblemsOnCalledFunctions(function, markers, strategy);
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
+					//try {
+					//	reportProblemsOnCalledFunctions(function, markers, strategy);
+					//} catch (final Exception e) {
+					//	e.printStackTrace();
+					//}
 					strategy.run2();
 				}
 			});
@@ -525,6 +531,22 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		final Markers markers,
 		final ProblemReportingStrategy strategy
 	) {
+		/*final IAnnotationModel am = editors.get(0).getDocumentProvider().getAnnotationModel(editors.get(0).getEditorInput());
+		try {
+			file().deleteMarkers(Core.MARKER_ADDEDASTNODE, true, IResource.DEPTH_INFINITE);
+			am.connect(document);
+			for (
+				@SuppressWarnings("unchecked")
+				final Iterator<Annotation> it = am.getAnnotationIterator();
+				it.hasNext();
+			) {
+				final Annotation a = it.next();
+				if (a.getType().equals("net.arctics.clonk.addedastnodeannotation"))
+					am.removeAnnotation(a);
+			}
+			am.disconnect(document);
+		} catch (final CoreException e) {}*/
+
 		@SuppressWarnings("serial")
 		class DepthCallsCollector
 			extends HashMap<Pair<Script, Function>, Set<CallDeclaration>>
@@ -610,33 +632,85 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 						calls.add(localCall);
 				}
 			}
+			public Collection<Pair<Script, Function>> expandedFunctionSet() {
+				final Set<Pair<Script, Function>> result = new HashSet<>(keySet());
+				final Index ndx = function.index();
+				for (final Pair<Script, Function> p : keySet()) {
+					final Function base = p.second().baseFunction();
+					final Script baseDef = as(base.script(), Definition.class);
+					if (baseDef != null)
+						ndx.allScripts(new Sink<Script>() {
+							@Override
+							public void receivedObject(Script item) {
+								if (item != p.first() && item.doesInclude(ndx, baseDef)) {
+									System.out.println(format("%s\t\t%s", item.name(), base.name()));
+									final Function ovrld = item.findLocalFunction(base.name(), true);
+									if (ovrld != null)
+										result.add(new Pair<Script, Function>(item, ovrld));
+								}
+							}
+						});
+				}
+				return result;
+			}
 		}
 		final DepthCallsCollector collector = new DepthCallsCollector();
 		if (!collector.isEmpty()) {
 			final Marker lastMarker = markers.last();
-			//System.out.println(StringUtil.blockString("", "", ",", collector.keySet()));
 			strategy.steer(new Runnable() {
 				@Override
 				public void run() {
-					strategy.initialize(markers, new NullProgressMonitor(), collector.keySet());
+					strategy.initialize(markers, new NullProgressMonitor(), collector.expandedFunctionSet());
 					strategy.captureMarkers();
 					strategy.run();
 					strategy.apply();
 				}
 			});
+			/*
 			if (markers.last() != lastMarker)
-				for (Marker m = lastMarker != null ? lastMarker.next : markers.first(); m != null; m = m.next)
-					if (m.severity == IMarker.SEVERITY_ERROR && m.reporter != null) {
-						final Function fn = m.reporter.parent(Function.class);
-						if (fn != null)
-							for (final Entry<Pair<Script, Function>, Set<CallDeclaration>> e : collector.entrySet())
-								if (e.getKey().second() == fn)
-									for (final CallDeclaration cd : e.getValue())
-										try {
-											markers.error(this, Problem.LeadsToErrors, cd, cd, Markers.NO_THROW,
-												cd.printed(), fn.qualifiedName(e.getKey().first()));
-										} catch (final ProblemException e1) {}
-					}
+				if (oldFunctionBody != null && oldFunctionBody.owner().latestVersion() == function.latestVersion()) {
+					class Differ extends ASTComparisonDelegate {
+						final List<ASTNode> added = new LinkedList<>();
+						public Differ(ASTNode rightTop) { super(rightTop); }
+						@Override
+						public boolean acceptRightExtraElement(ASTNode rightNode) {
+							added.add(rightNode);
+							return true;
+						}
+						@Override
+						public boolean acceptLeftExtraElement(ASTNode leftNode) {
+							return leftNode instanceof Comment;
+						}
+						void prune() {
+							for (final Iterator<ASTNode> it = added.iterator(); it.hasNext();) {
+								final ASTNode a = it.next();
+								boolean remove = false;
+								for (final ASTNode b : added)
+									if (b != a && a.containedIn(b)) {
+										remove = true;
+										break;
+									}
+								if (remove)
+									it.remove();
+							}
+						}
+					};
+					final Differ differ = new Differ(function.body());
+					oldFunctionBody.compare(function.body(), differ);
+					differ.prune();
+					for (final ASTNode add : differ.added) try {
+						final IMarker addedMarker = file().createMarker(Core.MARKER_ADDEDASTNODE);
+						final IRegion region = add.absolute();
+						addedMarker.setAttribute(IMarker.SEVERITY, 0);
+						addedMarker.setAttribute(IMarker.CHAR_START, region.getOffset());
+						addedMarker.setAttribute(IMarker.CHAR_END, region.getOffset()+region.getLength());
+						final SimpleMarkerAnnotation annot = new SimpleMarkerAnnotation(addedMarker);
+						am.connect(document);
+						am.addAnnotation(annot, new Position(region.getOffset(), region.getLength()));
+						am.disconnect(document);
+					} catch (final CoreException ce) {}
+				}
+			*/
 		}
 	}
 
@@ -729,12 +803,16 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		super.invalidate();
 	}
 
+	private FunctionBody oldFunctionBody;
+
 	public FunctionFragmentParser updateFunctionFragment(
 		final Function function,
 		final IASTVisitor<ProblemReporter> observer,
 		boolean typingContextVisitInAnyCase
 	) {
 		synchronized (structureModificationLock) {
+			if (oldFunctionBody == null)
+				oldFunctionBody = function.body();
 			final FunctionFragmentParser fparser = new FunctionFragmentParser(document, structure(), function, null);
 			final boolean change = fparser.update();
 			if (change || (observer != null && typingContextVisitInAnyCase))

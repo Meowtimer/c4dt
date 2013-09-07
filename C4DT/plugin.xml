@@ -323,6 +323,35 @@
 			priority="100" />
 	</extension>
 	
+	<extension id="net.arctics.clonk.addedastnode" point="org.eclipse.core.resources.markers">
+		<persistent value="false" />
+		<super type="org.eclipse.core.resources.textmarker" />
+		<super type="org.eclipse.core.resources.marker" />
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+		<type
+			markerSeverity="0"
+			super="org.eclipse.ui.workbench.texteditor.info"
+			name="net.arctics.clonk.addedastnodeannotation"
+			markerType="net.arctics.clonk.addedastnode"
+		/>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+		<specification annotationType="net.arctics.clonk.addedastnodeannotation"
+			label="Added AST Node"
+			colorPreferenceKey="addedAstNodeColor"
+			colorPreferenceValue="255,100,0"
+			textPreferenceKey="addedAstNodeText"
+			textPreferenceValue="true"
+			verticalRulerPreferenceKey="addedAstNodeVertical"
+			verticalRulerPreferenceValue="true"
+			textStylePreferenceKey="addedAstNodeStyle"
+			textStylePreferenceValue="BOX">
+		</specification>
+	</extension>
+	
 	<extension id="net.arctics.clonk.c4scripterror" name="%C4ScriptError" point="org.eclipse.core.resources.markers">
 		<persistent value="true" />
 		<super type="org.eclipse.core.resources.problemmarker" />
