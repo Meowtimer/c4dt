@@ -187,9 +187,9 @@ public enum Typing {
 					return unifyTypeAndChoice((TypeChoice)r_, l_, recursion+1);
 			return TypeChoice.make(l_, r_);
 		} else if (l_ != null)
-			return l_;
+			return TypeChoice.make(l_, r);
 		else if (r_ != null)
-			return r_;
+			return TypeChoice.make(l, r_);
 		else
 			return null;
 	}
