@@ -1,7 +1,7 @@
 package net.arctics.clonk.c4script.typing;
 
-import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.ArrayUtil.foldl;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,9 +13,9 @@ import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.typing.dabble.Maybe;
+import net.arctics.clonk.util.ArrayUtil.Folder;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
-import net.arctics.clonk.util.ArrayUtil.Folder;
 
 /**
  * Represents a typing where either of two types are possible.
@@ -209,8 +209,8 @@ public class TypeChoice implements IType {
 		if (obj instanceof TypeChoice) {
 			final TypeChoice other = (TypeChoice)obj;
 			return
-				(other.left.equals(left) && other.right.equals(right)) ||
-				(other.right.equals(left) && other.right.equals(left));
+				(eq(left, other.left) && eq(right, other.right)) ||
+				(eq(left, other.right) && eq(right, other.left));
 		} else
 			return false;
 	}
