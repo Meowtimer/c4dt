@@ -641,6 +641,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 							}
 						});
 				}
+				for (final Iterator<Pair<Script, Function>> it = result.iterator(); it.hasNext();) {
+					final Pair<Script, Function> p = it.next();
+					if (p.first() == structure())
+						it.remove();
+				}
 				return result;
 			}
 		}
