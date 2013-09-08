@@ -40,7 +40,7 @@ public class DabbleInferenceTest extends TestBase {
 	var obj = CreateObject(GetID());
 	Log(obj->Unknown());
 }""")
-		setup.inference.run()
+		setup.inference.perform()
 		Assert.assertTrue(setup.inferenceMarkers.size() == 0)
 	}
 
@@ -58,7 +58,7 @@ public class DabbleInferenceTest extends TestBase {
 			}
 			"""
 		)
-		setup.inference.run()
+		setup.inference.perform()
 		def ty = setup.script.findLocalFunction("IfElse", false).locals()[0].type()
 		Assert.assertTrue(ty instanceof TypeChoice)
 		def types = (ty as TypeChoice).flatten()
@@ -107,7 +107,7 @@ public class DabbleInferenceTest extends TestBase {
 				)
 				(derived, base) = setup.scripts
 			}
-			setup.inference.run()
+			setup.inference.perform()
 			Assert.assertEquals(PrimitiveType.STRING.unified(), base.findLocalFunction("Func3", false).parameters()[0].type())
 			Assert.assertEquals(PrimitiveType.STRING.unified(), derived.findLocalFunction("Func2", false).parameters()[0].type())
 			Assert.assertTrue(setup.inferenceMarkers.size() >= 1)
@@ -161,7 +161,7 @@ func Usage() {
 
 		def setup = new Setup(definitions)
 		def (base, derived, clonk, wipf) = setup.scripts
-		setup.inference.run()
+		setup.inference.perform()
 
 		Assert.assertEquals(clonk, base.typings().functionTypings['MakeObject'].returnType)
 		Assert.assertEquals(new MetaDefinition(clonk), base.typings().functionTypings['Type'].returnType)
@@ -180,7 +180,7 @@ func Test()
 	var b = CreateObject(t);
 }
 """, new DefinitionInfo(source:'', name:'Clonk'))
-		setup.inference.run()
+		setup.inference.perform()
 
 		def (scr, clonk) = setup.scripts
 		def at = scr.findLocalFunction("Test", false).findLocalDeclaration("a", Variable.class).type()
@@ -223,12 +223,13 @@ func Test()
 			System.out.println(String.format('Testing permutation %s', permArray.collect({it -> it.name}).join(', ')))
 			def setup = new Setup(permArray)
 
-			setup.inference.run()
+			setup.inference.perform()
 
 			Definition a = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('A') }
 			Definition b = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('B') }
 			Definition clonk = setup.scripts.find { it -> (it as Definition).id().stringValue().equals('Clonk') }
-			Assert.assertEquals(TypeChoice.make(clonk, PrimitiveType.ANY), b.findLocalFunction('CallSomeMethod', false).parameter(0).type())
+			def expectedParmType = TypeChoice.make(clonk, PrimitiveType.INT)
+			Assert.assertEquals(expectedParmType, b.findLocalFunction('CallSomeMethod', false).parameter(0).type())
 		}
 	}
 
@@ -269,7 +270,7 @@ func Test()
 			new DefinitionInfo(name: "Derived", source: derivedSource)
 		)
 
-		setup.inference.run()
+		setup.inference.perform()
 
 		def (base, derived) = setup.scripts
 
@@ -312,7 +313,7 @@ func Test()
 
 		def setup = new Setup(definitions)
 		def (base, derived, clonk, wipf, user) = setup.scripts
-		setup.inference.run()
+		setup.inference.perform()
 
 		Assert.assertEquals(clonk, base.typings().functionTypings['MakeObject'].returnType)
 		Assert.assertEquals(new MetaDefinition(clonk), base.typings().functionTypings['Type'].returnType)
@@ -402,7 +403,7 @@ func Test()
 
 			System.out.println()
 			System.out.println(fnOrderStr)
-			setup.inference.run()
+			setup.inference.perform()
 
 			try {
 				Assert.assertEquals(Maybe.make(abyss), rescuesBuilder.findFunction("PrepareAbyssOne").parameter(0).type())
@@ -450,12 +451,12 @@ func Type() { return Clonk; }
 		] as DefinitionInfo[]
 
 		def setup = new Setup(definitions)
-		setup.inference.run()
+		setup.inference.perform()
 
 		Assert.assertEquals(
-			new ArrayType(TypeChoice.make(PrimitiveType.ANY, setup.scripts[2])),
+			new ArrayType(setup.scripts[2]),
 			setup.scripts[1].typings().variableTypes['items']
 		);
-		Assert.assertEquals(new ArrayType(TypeChoice.make(PrimitiveType.ANY, setup.scripts[2])), setup.scripts[1].typings().functionTypings['ToArray'].returnType);
+		Assert.assertEquals(new ArrayType(setup.scripts[2]), setup.scripts[1].typings().functionTypings['ToArray'].returnType);
 	}
 }

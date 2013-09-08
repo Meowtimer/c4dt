@@ -160,6 +160,17 @@ public abstract class ProblemReportingStrategy implements Runnable {
 		}
 	}
 
+	public void perform() {
+		steer(new Runnable() {
+			@Override
+			public void run() {
+				ProblemReportingStrategy.this.run();
+				ProblemReportingStrategy.this.apply();
+				ProblemReportingStrategy.this.run2();
+			}
+		});
+	}
+
 	protected String projectName;
 	protected void findProjectName() {
 		String name = "UnknownProject";
