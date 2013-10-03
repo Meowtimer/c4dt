@@ -48,8 +48,8 @@ import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IDArray;
+import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.PlayerControlsUnit;
@@ -57,8 +57,8 @@ import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.DeclarationProposal;
-import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.ui.editors.ProposalsSite;
+import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.KeyValuePair;
@@ -358,7 +358,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				return super.locateEntityInParameter(node, script, index, offsetInExpression, parmExpression);
 			};
 			@Override
-			public void contributeAdditionalProposals(CallDeclaration node, int index, ASTNode parmExpression, ScriptCompletionProcessor completions, ProposalsSite pl) {
+			public void contributeAdditionalProposals(CallDeclaration node, int index, ASTNode parmExpression, ScriptCompletionProcessor processor, ProposalsSite pl) {
 				if (index != 0)
 					return;
 				final Script script = node.parent(Script.class);
@@ -375,7 +375,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 										if (pl.prefix != null && !comp.name().toLowerCase().contains(pl.prefix))
 											continue;
 										pl.addProposal(new DeclarationProposal(comp, as(t, Declaration.class), "\""+comp.name()+"\"", pl.offset, pl.prefix != null ? pl.prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText(script), "", completions.state()));
+											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText(script), "", pl));
 									}
 								}
 					}

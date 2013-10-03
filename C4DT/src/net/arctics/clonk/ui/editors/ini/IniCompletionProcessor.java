@@ -88,7 +88,7 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 			return new ICompletionProposal[0];
 		prefix = prefix.toLowerCase();
 
-		pl = new ProposalsSite(offset, wordOffset, doc, prefix, new LinkedList<ICompletionProposal>(), state().structure().index(), null, null);
+		pl = new ProposalsSite(state(), offset, wordOffset, doc, prefix, new LinkedList<ICompletionProposal>(), state().structure().index(), null, null);
 
 		state().ensureIniUnitUpToDate();
 		final IniSection section = state().structure().sectionAtOffset(offset);

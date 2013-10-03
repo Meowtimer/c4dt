@@ -44,7 +44,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	/** The additional info of this proposal. */
 	private String additionalProposalInfo;
 
-	private final StructureEditingState<?, ?> state;
+	private final ProposalsSite site;
 
 	/** Category for sorting */
 	private int category;
@@ -58,6 +58,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	public void setCategory(int category) { this.category = category; }
 	public int cursorPosition() { return cursorPosition; }
 	public void setImage(Image image) { this.image = image; }
+	public ProposalsSite site() { return site; }
 
 	/**
 	 * Creates a new completion proposal based on the provided information. The replacement string is
@@ -94,7 +95,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 		String displayString,
 		IContextInformation contextInformation,
 		String additionalProposalInfo, String postInfo,
-		StructureEditingState<?, ?> state
+		ProposalsSite site
 	) {
 		this.declaration = declaration;
 		this.context = context;
@@ -107,7 +108,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 		this.contextInformation= contextInformation;
 		this.additionalProposalInfo= additionalProposalInfo;
 		this.postInfo = postInfo;
-		this.state = state;
+		this.site = site;
 	}
 
 	public DeclarationProposal(
@@ -118,11 +119,11 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 		Image image,
 		IContextInformation contextInformation,
 		String additionalProposalInfo, String postInfo,
-		StructureEditingState<?, ?> state
+		ProposalsSite site
 	) {
 		this(
 			declaration, context, replacementString, replacementOffset, replacementLength,
-			declaration.name().length(), image, null, contextInformation, additionalProposalInfo, postInfo, state
+			declaration.name().length(), image, null, contextInformation, additionalProposalInfo, postInfo, site
 		);
 		displayStringRecomputationNecessary = true;
 	}
@@ -139,8 +140,8 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 		try {
 			if (replacementString != null)
 				document.replace(replacementOffset, replacementLength, replacementString);
-			if (state != null)
-				state.completionProposalApplied(this);
+			if (site != null)
+				site.state.completionProposalApplied(this);
 		} catch (final BadLocationException x) {
 			// ignore
 		}
@@ -202,7 +203,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	}
 
 	private Declaration context() {
-		return context != null ? context : state != null ? state.structure() : declaration;
+		return context != null ? context : site != null ? site.state.structure() : declaration;
 	}
 
 	@Override

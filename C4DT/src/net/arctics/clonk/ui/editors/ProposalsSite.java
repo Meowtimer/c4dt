@@ -19,6 +19,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 public class ProposalsSite extends PrecedingExpression {
+	public final StructureEditingState<?, ?> state;
 	public final List<ICompletionProposal> proposals;
 	public final int offset;
 	public final int wordOffset;
@@ -53,11 +54,13 @@ public class ProposalsSite extends PrecedingExpression {
 		}
 	}
 	public ProposalsSite(
+		StructureEditingState<?, ?> state,
 		int offset, int wordOffset, IDocument document,
 		String untamperedPrefix, List<ICompletionProposal> proposals,
 		Index index, Function function, Script script
 	) {
 		super(function);
+		this.state = state;
 		this.offset = offset;
 		this.wordOffset = wordOffset;
 		this.document = document;

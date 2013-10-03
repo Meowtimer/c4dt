@@ -183,7 +183,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		} catch (final BadLocationException e) { }
 
 		return new ProposalsSite(
-			offset, wordOffset, doc, prefix, new ArrayList<ICompletionProposal>(),
+			state(), offset, wordOffset, doc, prefix, new ArrayList<ICompletionProposal>(),
 			ClonkProjectNature.get(state().structure().resource()).index(),
 			state.functionAt(offset), state.structure()
 		);
@@ -459,7 +459,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				if (pl.prefix != null && !stringMatchesPrefix(keyword, pl.prefix))
 					continue;
 				final DeclarationProposal prop = new DeclarationProposal(null, null, keyword, pl.offset, pl.prefix != null ? pl.prefix.length() : 0, keyword.length(), keywordImg ,
-					keyword, null ,null, ": keyword", state());
+					keyword, null ,null, ": keyword", pl);
 				prop.setCategory(cats.Keywords);
 				pl.addProposal(prop);
 			}
@@ -481,7 +481,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 					for (final PrimitiveType t : PrimitiveType.values())
 						if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ERRONEOUS && pl.index.engine().supportsPrimitiveType(t)) {
 							final DeclarationProposal prop = new DeclarationProposal(null, null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
-								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, state());
+								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, pl);
 							prop.setCategory(cats.Keywords);
 							pl.addProposal(prop);
 						}
@@ -560,7 +560,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				if (pl.prefix != null && !stringMatchesPrefix(loc, pl.prefix))
 					continue;
 				final DeclarationProposal prop = new DeclarationProposal(null, null, loc, pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , loc.length(),
-					keywordImg , loc, null, null, Messages.C4ScriptCompletionProcessor_Engine, state());
+					keywordImg , loc, null, null, Messages.C4ScriptCompletionProcessor_Engine, pl);
 				prop.setCategory(cats.Keywords);
 				pl.addProposal(prop);
 			}
@@ -586,7 +586,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		state.set(null, parser.script(), document);
 		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(state);
 		final ProposalsSite pl = new ProposalsSite(
-			expression != null ? expression.end() : 0,
+			null, expression != null ? expression.end() : 0,
 			0, document, "", result, function.index(), function, parser.script()
 		).setPreceding(new PrecedingExpression(expression, expression.parent(Sequence.class), PrimitiveType.UNKNOWN));
 		processor.innerProposalsInFunction(pl, parser);
@@ -608,7 +608,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		final DeclarationProposal prop = new DeclarationProposal(
 			null, null, "", pl.wordOffset, replacementLength,  //$NON-NLS-1$
 			0, img, callback != null ? callback : displayString,
-			null, null, Messages.C4ScriptCompletionProcessor_Callback, state()
+			null, null, Messages.C4ScriptCompletionProcessor_Callback, pl
 		) {
 			@Override
 			public boolean validate(IDocument document, int offset, DocumentEvent event) {
@@ -707,7 +707,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			final DeclarationProposal prop = new DeclarationProposal(
 				directive, directive, txt, pl.offset, replacementLength, txt.length(),
 				directiveIcon, directive.type().toString(), null, null,
-				Messages.C4ScriptCompletionProcessor_Engine, state()
+				Messages.C4ScriptCompletionProcessor_Engine, pl
 			);
 			prop.setCategory(cats.Directives);
 			pl.addProposal(prop);
@@ -723,7 +723,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			final Image declaratorImg = UI.imageForPath("icons/declarator.png"); //$NON-NLS-1$
 			int replacementLength = 0;
 			if (pl.prefix != null) replacementLength = pl.prefix.length();
-			final DeclarationProposal prop = new DeclarationProposal(null, null, declarator,pl.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, state()); //$NON-NLS-1$
+			final DeclarationProposal prop = new DeclarationProposal(null, null, declarator,pl.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, pl); //$NON-NLS-1$
 			prop.setCategory(cats.Keywords);
 			pl.addProposal(prop);
 		}

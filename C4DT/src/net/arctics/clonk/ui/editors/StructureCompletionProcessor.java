@@ -107,7 +107,7 @@ public abstract class StructureCompletionProcessor<StateClass
 			final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
 
 			final DeclarationProposal prop = new DeclarationProposal(def, def, def.id().stringValue(), pl.wordOffset, replacementLength, def.id().stringValue().length(),
-				defIcon, displayString.trim(), null, null, String.format(": %s", PrimitiveType.ID.typeName(true)), state()); //$NON-NLS-1$
+				defIcon, displayString.trim(), null, null, String.format(": %s", PrimitiveType.ID.typeName(true)), pl); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
 			pl.addProposal(prop);
 		} catch (final Exception e) {}
@@ -143,7 +143,7 @@ public abstract class StructureCompletionProcessor<StateClass
 		final String postInfo = returnType == PrimitiveType.UNKNOWN ? "" : ": " + returnType.typeName(true);
 		final DeclarationProposal prop = new DeclarationProposal(
 			func, target, replacement, pl.offset, replacementLength,
-			UI.functionIcon(func), null/*contextInformation*/, null, postInfo, state() //$NON-NLS-1$
+			UI.functionIcon(func), null/*contextInformation*/, null, postInfo, pl
 		);
 		prop.setCategory(cats.Functions);
 		pl.addProposal(prop);
@@ -161,7 +161,7 @@ public abstract class StructureCompletionProcessor<StateClass
 			var, target,
 			var.name(), pl.offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
 			null, null, ": " + var.type(defaulting(as(target, Script.class), pl.script)).typeName(true), //$NON-NLS-1$
-			state()
+			pl
 		);
 		setVariableCategory(var, prop);
 		pl.addProposal(prop);

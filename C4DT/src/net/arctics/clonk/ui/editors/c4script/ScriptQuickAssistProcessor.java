@@ -59,6 +59,7 @@ import net.arctics.clonk.index.ID;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.DeclarationProposal;
+import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.util.ArrayUtil;
@@ -223,14 +224,14 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			int replacementLength, int cursorPosition, Image image,
 			String displayString, IContextInformation contextInformation,
 			String additionalProposalInfo, String postInfo,
-			ScriptEditingState state,
+			ProposalsSite site,
 			Replacement replacement, int tabIndentation,
 			ScriptParser parser, Function func
 		) {
 			super(declaration, declaration, replacementString, replacementOffset,
 				replacementLength, cursorPosition, image, displayString,
 				contextInformation, additionalProposalInfo, postInfo,
-				state);
+				site);
 			this.replacement = replacement;
 			this.tabIndentation = tabIndentation;
 			this.parser = parser;
