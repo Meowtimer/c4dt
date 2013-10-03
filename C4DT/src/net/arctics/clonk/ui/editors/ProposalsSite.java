@@ -15,6 +15,7 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.ui.editors.c4script.ProposalCycle;
 
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
@@ -24,7 +25,7 @@ public class ProposalsSite extends PrecedingExpression {
 	public final int offset;
 	public final int wordOffset;
 	public final IDocument document;
-	public final String untamperedPrefix, prefix;
+	public String untamperedPrefix, prefix;
 	public final Map<Class<? extends Declaration>, Map<String, DeclarationProposal>> declarationProposals;
 	public final Index index;
 	public final Script script;
@@ -108,5 +109,14 @@ public class ProposalsSite extends PrecedingExpression {
 				}
 		}
 		proposals.removeAll(outcycled);
+	}
+	public String updatePrefix(int currentOffset) {
+		try {
+			untamperedPrefix = document.get(offset, currentOffset - offset);
+		} catch (final BadLocationException e) {
+			e.printStackTrace();
+			return "";
+		}
+		return prefix = untamperedPrefix.toLowerCase();
 	}
 }

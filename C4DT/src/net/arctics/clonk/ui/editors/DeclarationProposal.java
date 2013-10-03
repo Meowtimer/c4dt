@@ -228,25 +228,22 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 
 	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
-		try {
-			final int replaceOffset = replacementOffset();
-			if (offset >= replaceOffset) {
-				final String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
-				if (!validPrefix(prefix))
-					return false;
-				for (final String s : identifiers())
-					if (s.toLowerCase().contains(prefix))
-						return true;
-				final String content = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
-				if (declaration != null) {
-					if (declaration.name().toLowerCase().contains(content))
-						return true;
-					if (declaration instanceof Definition && ((Definition)declaration).id().stringValue().toLowerCase().contains(content))
-						return true;
-				}
+		final int replaceOffset = replacementOffset();
+		if (offset >= replaceOffset) {
+			if (site == null)
+				return false;
+			final String prefix = site.updatePrefix(offset);
+			if (!validPrefix(prefix))
+				return false;
+			for (final String s : identifiers())
+				if (s.toLowerCase().contains(prefix))
+					return true;
+			if (declaration != null) {
+				if (declaration.name().toLowerCase().contains(prefix))
+					return true;
+				if (declaration instanceof Definition && ((Definition)declaration).id().stringValue().toLowerCase().contains(prefix))
+					return true;
 			}
-		} catch (final BadLocationException e) {
-			// concurrent modification - ignore
 		}
 		return false;
 	}
