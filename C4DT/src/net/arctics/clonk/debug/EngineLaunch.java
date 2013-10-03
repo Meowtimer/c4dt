@@ -98,7 +98,7 @@ class EngineLaunch implements ILaunchesListener2, IResourceChangeListener {
 		try {
 			if (nature.settings().typing.allowsNonParameterAnnotations()) {
 				tf = Files.createTempDirectory("c4dt").toFile(); //$NON-NLS-1$
-				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(nature.getProject(), tf, true);
+				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(StaticTypingUtil.toFile(nature.getProject()), tf, true);
 			}
 		} catch (final IOException e) {
 			e.printStackTrace();
@@ -249,7 +249,7 @@ class EngineLaunch implements ILaunchesListener2, IResourceChangeListener {
 					switch (delta.getKind()) {
 					case IResourceDelta.CHANGED:
 						if ((delta.getFlags() & IResourceDelta.CONTENT) == IResourceDelta.CONTENT && delta.getResource() instanceof IFile) {
-							final String purged = StaticTypingUtil.purgeTyping((IFile) delta.getResource());
+							final String purged = StaticTypingUtil.purgeTyping(StaticTypingUtil.toFile(delta.getResource()));
 							if (purged != null) {
 								final List<String> breadcrump = new LinkedList<>();
 								breadcrump.add(delta.getResource().getName());

@@ -1,7 +1,6 @@
 package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.StringUtil.multiply;
-import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +25,6 @@ import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -56,8 +54,11 @@ public class StaticTypingUtil {
 	 * @param file The file to operate on
 	 * @return Contents of the file with typing annotations replaced with whitespace or null if no typing annotations stored for the file.
 	 */
-	public static String purgeTyping(IFile file) {
-		final Script script = Script.get(file, true);
+	public static String purgeTyping(File file) {
+		final IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
+		if (files == null || files.length == 0)
+			return null;
+		final Script script = Script.get(files[0], true);
 		if (script == null)
 			return null;
 		final List<TypeAnnotation> annotations = script.typeAnnotations();
@@ -91,54 +92,50 @@ public class StaticTypingUtil {
 			return null;
 	}
 
+	public static File toFile(IResource resource) {
+		return new File(resource.getLocation().toOSString());
+	}
+	
 	/**
 	 * Mirror a folder inside a project into a folder not managed by Eclipse, replacing files with typing annotations with versions processed via {@link #purgeTyping(IFile)}.
 	 * @param original The original folder which may contain scripts with type annotations
 	 * @param mirror Mirror folder
 	 * @param linkFiles Whether to link files with no typing annotations instead of copying them.
 	 */
-	public static void mirrorDirectoryWithTypingAnnotationsRemoved(IContainer originalContainer, File mirrorFolder, boolean linkFiles) {
+	public static void mirrorDirectoryWithTypingAnnotationsRemoved(File rawFolder, File mirrorFolder, boolean linkFiles) {
 		mirrorFolder.mkdirs();
-		final File rawFolder = new File(originalContainer.getLocation().toOSString());
-		try {
-			for (final IResource m : originalContainer.members()) {
-				if (m.getName().startsWith("."))
-					continue;
-				final File destinationFile = new File(mirrorFolder, m.getName());
-				final File originalFile = new File(rawFolder, m.getName());
-				final IFile file = as(m, IFile.class);
-				final IContainer folder = as(m, IContainer.class);
-				if (file != null) {
-					final String purged = purgeTyping(file);
-					if (purged != null)
-						try {
-							StreamUtil.writeToFile(destinationFile, new StreamWriteRunnable() {
-								@Override
-								public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
-									writer.write(purged);
-								}
-							});
-						} catch (final IOException e1) {
-							e1.printStackTrace();
-						}
-					else if (linkFiles)
-						try {
-							Files.createSymbolicLink(destinationFile.toPath(), originalFile.toPath());
-						} catch (final IOException e) {
-							System.out.println(String.format("Failed to link %s", originalFile));
-						}
-					else
-						try {
-							Files.copy(originalFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-						} catch (final IOException e) {
-							System.out.println(String.format("Failed to copy %s", originalFile));
-						}
-				}
-				else if (folder != null)
-					mirrorDirectoryWithTypingAnnotationsRemoved(folder, destinationFile, linkFiles);
+		for (final File originalFile : rawFolder.listFiles()) {
+			if (originalFile.getName().startsWith("."))
+				continue;
+			final File destinationFile = new File(mirrorFolder, originalFile.getName());
+			if (originalFile.isFile()) {
+				final String purged = purgeTyping(originalFile);
+				if (purged != null)
+					try {
+						StreamUtil.writeToFile(destinationFile, new StreamWriteRunnable() {
+							@Override
+							public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
+								writer.write(purged);
+							}
+						});
+					} catch (final IOException e1) {
+						e1.printStackTrace();
+					}
+				else if (linkFiles)
+					try {
+						Files.createSymbolicLink(destinationFile.toPath(), originalFile.toPath());
+					} catch (final IOException e) {
+						System.out.println(String.format("Failed to link %s", originalFile));
+					}
+				else
+					try {
+						Files.copy(originalFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					} catch (final IOException e) {
+						System.out.println(String.format("Failed to copy %s", originalFile));
+					}
 			}
-		} catch (final CoreException e) {
-			e.printStackTrace();
+			else if (originalFile.isDirectory())
+				mirrorDirectoryWithTypingAnnotationsRemoved(originalFile, destinationFile, linkFiles);
 		}
 	}
 
@@ -166,7 +163,7 @@ public class StaticTypingUtil {
 	@CommandFunction
 	public static void NoSTMirror(Object context, String project, String destinationFolder) {
 		final IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(project);
-		mirrorDirectoryWithTypingAnnotationsRemoved(p, new File(destinationFolder), true);
+		mirrorDirectoryWithTypingAnnotationsRemoved(toFile(p), new File(destinationFolder), true);
 	}
 
 	@CommandFunction
