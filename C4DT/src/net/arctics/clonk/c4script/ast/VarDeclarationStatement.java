@@ -40,7 +40,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		this(Arrays.asList(varInitializations), scope);
 	}
 	public VarDeclarationStatement(String varName, ASTNode initialization, int namePos, Scope scope) {
-		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos, namePos+varName.length(), null)), scope);
+		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos, namePos+varName.length(), null, null)), scope);
 	}
 	@Override
 	public String keyword() {

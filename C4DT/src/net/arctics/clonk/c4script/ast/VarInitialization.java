@@ -9,11 +9,9 @@ import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.c4script.typing.Typing;
-import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.util.ArrayUtil;
-
-import org.eclipse.jface.text.Region;
 
 /**
  * A single var declaration/initialization. Includes name of variable being declared, optionally the initialization expression and
@@ -28,7 +26,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	/**
 	 * Explicit type annotation used for this initialization
 	 */
-	public IType type;
+	public TypeAnnotation typeAnnotation;
 	/**
 	 * Name of the variable being declared.
 	 */
@@ -48,31 +46,33 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	 * @param start Start location.
 	 * @param end End location.
 	 * @param var Variable. May be null.
+	 * @param typeAnnotation TODO
 	 */
-	public VarInitialization(String name, ASTNode expression, int start, int end, Variable var) {
+	public VarInitialization(String name, ASTNode expression, int start, int end, Variable var, TypeAnnotation typeAnnotation) {
 		super();
 		this.name = name;
 		this.expression = expression;
+		this.typeAnnotation = typeAnnotation;
+		this.variable = var;
 		setLocation(start, end);
 		assignParentToSubElements();
-		this.variable = var;
 	}
 	@Override
-	public ASTNode[] subElements() {
-		return new ASTNode[] {expression};
-	}
+	public ASTNode[] subElements() { return new ASTNode[] {typeAnnotation, expression}; }
 	@Override
 	public void setSubElements(ASTNode[] elms) {
-		expression = elms[0];
+		typeAnnotation = (TypeAnnotation) elms[0];
+		expression = elms[1];
 	}
+	public IType type() { return typeAnnotation != null ? typeAnnotation.type() : null; }
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		final Declaration p = parent(Declaration.class);
 		final Typing typing = p != null ? p.typing() : Typing.INFERRED;
 		switch (typing) {
 		case STATIC: case INFERRED:
-			if (type != null) {
-				output.append(type.typeName(typing == Typing.STATIC));
+			if (typeAnnotation != null) {
+				output.append(typeAnnotation.type().typeName(typing == Typing.STATIC));
 				output.append(" ");
 			}
 			break;
@@ -105,16 +105,8 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
-		if (type instanceof IIndexEntity && offset < type.typeName(false).length())
-			return new EntityRegion((IIndexEntity) type, new Region(start(), type.typeName(false).length()));
-		else
-			return new EntityRegion(variable, this);
-	}
-
+	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) { return new EntityRegion(variable, this); }
 	@Override
-	public String patternMatchingText() {
-		return name;
-	}
+	public String patternMatchingText() { return name; }
 
 }

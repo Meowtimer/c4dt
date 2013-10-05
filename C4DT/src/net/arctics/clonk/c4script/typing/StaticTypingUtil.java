@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script.typing;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.util.StringUtil.multiply;
 
 import java.io.File;
@@ -13,7 +14,6 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTVisitor;
-import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectSettings;
@@ -68,8 +68,8 @@ public class StaticTypingUtil {
 			final String text = StreamUtil.stringFromFile(file);
 			final StringBuilder builder = new StringBuilder(text);
 			for (int i = annotations.size()-1; i >= 0; i--) {
-				final SourceLocation loc = annotations.get(i);
-				builder.replace(loc.start(), loc.end(), StringUtil.repetitions(" ", loc.getLength()));
+				final IRegion loc = annotations.get(i).absolute();
+				builder.replace(loc.getOffset(), loc.getOffset()+loc.getLength(), StringUtil.repetitions(" ", loc.getLength()));
 			}
 			
 			// cast expressions
@@ -125,13 +125,13 @@ public class StaticTypingUtil {
 					try {
 						Files.createSymbolicLink(destinationFile.toPath(), originalFile.toPath());
 					} catch (final IOException e) {
-						System.out.println(String.format("Failed to link %s", originalFile));
+						System.out.println(format("Failed to link %s", originalFile));
 					}
 				else
 					try {
 						Files.copy(originalFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 					} catch (final IOException e) {
-						System.out.println(String.format("Failed to copy %s", originalFile));
+						System.out.println(format("Failed to copy %s", originalFile));
 					}
 			}
 			else if (originalFile.isDirectory())
@@ -148,7 +148,7 @@ public class StaticTypingUtil {
 			if (s.typing != typing) {
 				s.migrationTyping = typing;
 				nature.saveSettings();
-				new WorkspaceJob(String.format("Migrating '%s' to static typing", projectName)) {
+				new WorkspaceJob(format("Migrating '%s' to static typing", projectName)) {
 					@Override
 					public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
 						nature.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
@@ -156,7 +156,7 @@ public class StaticTypingUtil {
 					}
 				}.schedule();
 			} else
-				UI.message(String.format("'%s' is already in that typing mode", projectName));
+				UI.message(format("'%s' is already in that typing mode", projectName));
 		}
 	}
 

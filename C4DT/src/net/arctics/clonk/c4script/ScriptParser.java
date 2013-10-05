@@ -669,7 +669,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	protected TypeAnnotation typeAnnotation(int s, int e, IType type) {
-		return new TypeAnnotation(fragmentOffset()+s, fragmentOffset()+e, type);
+		return new TypeAnnotation(-sectionOffset()+s, -sectionOffset()+e, type);
 	}
 
 	private VarInitialization parseVarInitialization(Scope scope, Comment comment, final int backtrack) throws ProblemException {
@@ -739,8 +739,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				else if (scope == Scope.STATIC && script == engine)
 					var.forceType(PrimitiveType.INT); // most likely
 			}
-			varInitialization = new VarInitialization(varName, initializationExpression, bt-sectionOffset(), this.offset-sectionOffset(), var);
-			varInitialization.type = staticType != null ? staticType.type() : null;
+			varInitialization = new VarInitialization(varName, initializationExpression, bt-sectionOffset(), this.offset-sectionOffset(), var, staticType);
 			return varInitialization;
 		} finally {
 			this.currentDeclaration = outerDec;
@@ -768,8 +767,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	private TypeAnnotation parseTypeAnnotation(boolean topLevel, boolean required) throws ProblemException {
-		if (typing == Typing.STATIC && migrationTyping == null)
-			required = true;
+		required |= typing == Typing.STATIC && migrationTyping == null;
 		final int backtrack = this.offset;
 		final int start = this.offset;
 		String str;
@@ -860,7 +858,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					typeAnnotations.add(typeAnnotation(backtrack, backtrack, null));
 			this.seek(backtrack);
 		} else
-			t.setEnd(fragmentOffset()+offset);
+			t.setEnd(-sectionOffset()+offset);
 		return t;
 	}
 

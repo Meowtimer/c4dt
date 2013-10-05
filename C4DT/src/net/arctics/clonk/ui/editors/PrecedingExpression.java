@@ -23,13 +23,12 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 	public IType precedingType;
 	public final Function function;
 	public void pos(int pos) { this.exprRegion = new Region(pos, 0); exprAtRegion = null; }
-	public PrecedingExpression(Function function) { super(-1); this.function = function; }
-	public PrecedingExpression(ASTNode contextExpression, Sequence contextSequence, IType precedingType) {
+	public PrecedingExpression(Function function, ASTNode contextExpression, Sequence contextSequence, IType precedingType) {
 		super(-1);
+		this.function = function;
 		this.contextExpression = contextExpression;
 		this.contextSequence = contextSequence;
 		this.precedingType = precedingType;
-		this.function = null;
 	}
 	@Override
 	public TraversalContinuation visitNode(ASTNode expression, ProblemReporter context) {

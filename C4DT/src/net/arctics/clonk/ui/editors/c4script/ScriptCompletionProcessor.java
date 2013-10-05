@@ -46,6 +46,7 @@ import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.c4script.typing.dabble.Maybe;
 import net.arctics.clonk.index.Definition;
@@ -58,7 +59,6 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.ui.editors.DeclarationProposal;
-import net.arctics.clonk.ui.editors.PrecedingExpression;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.util.UI;
@@ -185,7 +185,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		return new ProposalsSite(
 			state(), offset, wordOffset, doc, prefix, new ArrayList<ICompletionProposal>(),
 			ClonkProjectNature.get(state().structure().resource()).index(),
-			state.functionAt(offset), state.structure()
+			state.functionAt(offset), state.structure(), null, null, null
 		);
 	}
 
@@ -467,32 +467,31 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	}
 
 	private boolean varInitializationProposals(ProposalsSite pl) {
-		if (pl.contextExpression instanceof VarInitialization) {
-			final VarInitialization vi = (VarInitialization)pl.contextExpression;
-			Typing typing = Typing.INFERRED;
-			if (pl.index instanceof ProjectIndex)
-				typing = ((ProjectIndex)pl.index).nature().settings().typing;
-			switch (typing) {
-			case STATIC:
-				if (eq(vi.type, PrimitiveType.ERRONEOUS)) {
-					for (final Index ndx : pl.index.relevantIndexes())
-						proposalsForIndexedDefinitions(pl, ndx);
-					final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
-					for (final PrimitiveType t : PrimitiveType.values())
-						if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ERRONEOUS && pl.index.engine().supportsPrimitiveType(t)) {
-							final DeclarationProposal prop = new DeclarationProposal(null, null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
-								keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, pl);
-							prop.setCategory(cats.Keywords);
-							pl.addProposal(prop);
-						}
-				}
-				break;
-			default:
-				break;
-			}
-			return true;
-		} else
+		final VarInitialization vi = as(pl.contextExpression, VarInitialization.class);
+		final TypeAnnotation annot = as(pl.contextExpression, TypeAnnotation.class);
+		if (vi == null && annot == null)
 			return false;
+		if (annot == null && vi != null && (vi.typeAnnotation == null || vi.typeAnnotation.type() != PrimitiveType.ERRONEOUS))
+			return true;
+		final Typing typing = pl.index instanceof ProjectIndex
+			? ((ProjectIndex)pl.index).nature().settings().typing
+			: Typing.INFERRED;
+		switch (typing) {
+		case STATIC:
+			for (final Index ndx : pl.index.relevantIndexes())
+				proposalsForIndexedDefinitions(pl, ndx);
+			final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
+			for (final PrimitiveType t : PrimitiveType.values())
+				if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ERRONEOUS && pl.index.engine().supportsPrimitiveType(t)) {
+					final DeclarationProposal prop = new DeclarationProposal(null, null, t.scriptName(), pl.offset, pl.prefix != null ? pl.prefix.length() : 0 , t.scriptName().length(),
+						keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, pl);
+					prop.setCategory(cats.Keywords);
+					pl.addProposal(prop);
+				}
+			return true;
+		default:
+			return true;
+		}
 	}
 
 	private void ruleBasedProposals(ProposalsSite pl, ScriptParser parser) {
@@ -587,8 +586,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(state);
 		final ProposalsSite pl = new ProposalsSite(
 			null, expression != null ? expression.end() : 0,
-			0, document, "", result, function.index(), function, parser.script()
-		).setPreceding(new PrecedingExpression(expression, expression.parent(Sequence.class), PrimitiveType.UNKNOWN));
+			0, document, "", result, function.index(), function, parser.script(),
+			expression, expression.parent(Sequence.class), PrimitiveType.UNKNOWN
+		);
 		processor.innerProposalsInFunction(pl, parser);
 		return result;
 	}

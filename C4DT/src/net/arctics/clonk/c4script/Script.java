@@ -167,7 +167,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		this.typeAnnotations = typeAnnotations;
 		if (this.typeAnnotations != null)
 			for (final TypeAnnotation a : typeAnnotations)
-				a.setParent(this);
+				if (a.parent() == null)
+					a.setParent(this);
 	}
 
 	public Map<String, List<CallDeclaration>> callMap() { return callMap; }

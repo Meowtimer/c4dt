@@ -1,5 +1,7 @@
 package net.arctics.clonk.c4script.typing;
 
+import static net.arctics.clonk.util.Utilities.defaulting;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,7 +39,7 @@ public final class TypeAnnotation extends ASTNode {
 	/** Set the type of this annotation. */
 	public void setType(IType type) {this.type = type;}
 	@Override
-	public ASTNode[] subElements() { return subAnnotations; }
+	public ASTNode[] subElements() { return defaulting(subAnnotations, EMPTY_EXPR_ARRAY); }
 	public void setSubAnnotations(TypeAnnotation[] subAnnotations) {
 		this.subAnnotations = subAnnotations;
 		assignParentToSubElements();

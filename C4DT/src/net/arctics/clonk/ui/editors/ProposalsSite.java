@@ -8,10 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.ui.editors.c4script.ProposalCycle;
 
@@ -58,9 +61,10 @@ public class ProposalsSite extends PrecedingExpression {
 		StructureEditingState<?, ?> state,
 		int offset, int wordOffset, IDocument document,
 		String untamperedPrefix, List<ICompletionProposal> proposals,
-		Index index, Function function, Script script
+		Index index, Function function, Script script,
+		ASTNode contextExpression, Sequence contextSequence, IType precedingType
 	) {
-		super(function);
+		super(function, contextExpression, contextSequence, precedingType);
 		this.state = state;
 		this.offset = offset;
 		this.wordOffset = wordOffset;
@@ -78,12 +82,6 @@ public class ProposalsSite extends PrecedingExpression {
 		this.declarationProposals = new HashMap<>();
 		this.index = index;
 		this.script = script;
-	}
-	public ProposalsSite setPreceding(PrecedingExpression preceding) {
-		this.contextExpression = preceding.contextExpression;
-		this.contextSequence   = preceding.contextSequence;
-		this.precedingType     = preceding.precedingType;
-		return this;
 	}
 	public ICompletionProposal[] finish(ProposalCycle cycle) {
 		if (proposals.size() > 0) {
