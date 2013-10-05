@@ -84,7 +84,6 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				tableViewer.setChecked(c, !disabledErrorCodes.contains(c));
 		}
 
-		@SuppressWarnings("unchecked")
 		private Table getTable(Composite parent) {
 			if (table == null) {
 				filterBox = new Text(parent, SWT.SEARCH | SWT.CANCEL);
@@ -96,8 +95,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				});
 				final ViewerFilter filter = new ViewerFilter() {
 					@Override
-					public boolean select(@SuppressWarnings("rawtypes") Viewer viewer, Object parentElement, Object element) {
-						@SuppressWarnings("rawtypes")
+					public boolean select(Viewer viewer, Object parentElement, Object element) {
 						final String text = ((ILabelProvider)tableViewer.getLabelProvider()).getText(element);
 						return StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(text).find();
 					}
@@ -105,13 +103,13 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				table = new Table(parent, SWT.CHECK | SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
 				tableViewer = new CheckboxTableViewer(table);
 				tableViewer.addFilter(filter);
-				tableViewer.setContentProvider(new IStructuredContentProvider<Problem, Class<Problem>>() {
+				tableViewer.setContentProvider(new IStructuredContentProvider() {
 					@Override
-					public void inputChanged(Viewer<Class<Problem>> viewer, Class<Problem> oldInput, Class<Problem> newInput) {}
+					public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
 					@Override
 					public void dispose() {}
 					@Override
-					public Problem[] getElements(Class<Problem> inputElement) {
+					public Problem[] getElements(Object inputElement) {
 						if (inputElement == Problem.class) {
 							final Problem[] elms = Problem.values().clone();
 							Arrays.sort(elms, new Comparator<Problem>() {
@@ -125,10 +123,10 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 						return null;
 					}
 				});
-				tableViewer.setLabelProvider(new LabelProvider<Problem>() {
+				tableViewer.setLabelProvider(new LabelProvider() {
 					@Override
-					public String getText(Problem element) {
-						return element.messageWithFormatArgumentDescriptions();
+					public String getText(Object element) {
+						return ((Problem) element).messageWithFormatArgumentDescriptions();
 					}
 				});
 				tableViewer.addCheckStateListener(this);

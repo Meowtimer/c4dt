@@ -16,7 +16,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
-@SuppressWarnings("rawtypes")
 public class ClonkDebugModelPresentation extends LabelProvider implements IDebugModelPresentation {
 	
 	public static final String ID = ClonkDebugModelPresentation.class.getName();

@@ -79,7 +79,6 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	private static class LabelProvider extends org.eclipse.jface.viewers.LabelProvider implements IStyledLabelProvider {
 		@Override
 		public StyledString getStyledText(Object element) {

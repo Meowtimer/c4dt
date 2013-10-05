@@ -72,7 +72,7 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 	private Text templateText;
 	private Text replacementText;
 	private ISearchPageContainer container;
-	private ComboViewer<Recent, Recent[]> recentsCombo;
+	private ComboViewer recentsCombo;
 
 	public ScriptSearchPage() {}
 	public ScriptSearchPage(String title) { super(title); }
@@ -111,7 +111,7 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 
 	private void addRecent() {
 		final Recent recent = new Recent(templateText.getText(), replacementText.getText());
-		final ArrayList<Recent> list = new ArrayList<Recent>(Arrays.asList(recentsCombo.getInput()));
+		final ArrayList<Recent> list = new ArrayList<Recent>(Arrays.asList((Recent[])recentsCombo.getInput()));
 		final int ndx = list.indexOf(recent);
 		if (ndx != -1)
 			list.remove(ndx);
@@ -168,9 +168,8 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 		final GridData gd_presetCombo = new GridData(GridData.FILL_HORIZONTAL);
 		gd_presetCombo.widthHint = 568;
 		recentsCombo.setLayoutData(gd_presetCombo);
-		this.recentsCombo = new ComboViewer<Recent, Recent[]>(recentsCombo);
-		@SuppressWarnings("unchecked")
-		final IContentProvider<Recent[]> prov = new ArrayContentProvider();
+		this.recentsCombo = new ComboViewer(recentsCombo);
+		final IContentProvider prov = new ArrayContentProvider();
 		this.recentsCombo.setContentProvider(prov);
 		this.recentsCombo.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override

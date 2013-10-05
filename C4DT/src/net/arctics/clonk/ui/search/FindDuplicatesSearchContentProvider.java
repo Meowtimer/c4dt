@@ -18,7 +18,7 @@ public class FindDuplicatesSearchContentProvider extends SearchContentProvider {
 	}
 
 	@Override
-	public void inputChanged(@SuppressWarnings("rawtypes") Viewer viewer, Object oldInput, Object newInput) {
+	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		result = (FindDuplicatesSearchResult) newInput;
 		if (result != null)
 			query = result.getQuery();

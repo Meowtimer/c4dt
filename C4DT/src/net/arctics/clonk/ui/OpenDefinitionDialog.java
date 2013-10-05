@@ -41,7 +41,6 @@ public class OpenDefinitionDialog extends EntityChooser {
 		this.imageStore = imageStore;
 	}
 
-	@SuppressWarnings("rawtypes")
 	private class OpenDefinitionLabelProvider extends LabelProvider implements IStyledLabelProvider {
 		@Override
 		public StyledString getStyledText(Object element) {

@@ -27,7 +27,6 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 		return new SearchContentProvider(this, flat);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	protected void configureTableViewer(TableViewer tableViewer) {
 		final SearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(true);

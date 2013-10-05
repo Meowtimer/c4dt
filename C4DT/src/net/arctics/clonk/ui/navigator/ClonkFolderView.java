@@ -82,7 +82,6 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		instance = this;
 	}
 
-	@SuppressWarnings("rawtypes")
 	private class ClonkFolderContentProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 
 		@Override
@@ -278,7 +277,6 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		super.dispose();
 	}
 
-	@SuppressWarnings("unchecked")
 	private void refreshTree(boolean onlyIfInputChanged) {
 		final Engine engine = currentEngine();
 		final String clonkPath = engine != null ? engine.settings().gamePath : null;

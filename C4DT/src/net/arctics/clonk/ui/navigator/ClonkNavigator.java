@@ -154,6 +154,6 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	@Override
 	public void dispose() {}
 	@Override
-	public void inputChanged(@SuppressWarnings("rawtypes") Viewer viewer, Object oldInput, Object newInput) {}
+	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
 
 }

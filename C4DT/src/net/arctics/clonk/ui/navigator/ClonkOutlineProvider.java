@@ -25,7 +25,6 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.graphics.Image;
 
-@SuppressWarnings("rawtypes")
 public class ClonkOutlineProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 
 	protected static final Object[] NO_CHILDREN = new Object[0];

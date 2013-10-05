@@ -318,7 +318,6 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			dec.addSelectionListener(changeAmountListener);
 		}
 
-		@SuppressWarnings("unchecked")
 		public DefinitionListEditor(String label, Composite parent, IniEntry entry) {
 			createControl(parent, label);
 			this.array = (IDArray)entry.value();
@@ -326,7 +325,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			this.viewer.setInput(array);
 		}
 
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({ "unchecked" })
 		private TableViewer createViewer() {
 			final TableViewer viewer = new TableViewer(table) {
 				@Override

@@ -235,7 +235,6 @@ public enum UI {
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
 	public static CheckboxTableViewer createProjectReferencesViewer(Composite parent) {
 		final CheckboxTableViewer result = CheckboxTableViewer.newCheckList(parent, SWT.TOP | SWT.BORDER);
 		result.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());

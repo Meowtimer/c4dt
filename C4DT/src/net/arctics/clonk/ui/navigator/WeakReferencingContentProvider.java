@@ -95,7 +95,6 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 		wrapped.dispose();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		return wrapped.isLabelProperty(unwrap(element), property);
@@ -106,7 +105,6 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 		wrapped.removeListener(new LabelProviderListenerWrapper(listener));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		wrapped.inputChanged(viewer, unwrap(oldInput), unwrap(newInput));
@@ -139,13 +137,11 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 		return wrapped.hasChildren(unwrap(element));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Image getImage(Object element) {
 		return wrapped.getImage(unwrap(element));
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String getText(Object element) {
 		return wrapped.getText(unwrap(element));
