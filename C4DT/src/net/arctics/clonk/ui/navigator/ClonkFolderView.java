@@ -12,13 +12,13 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4Group;
+import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4group.C4Group.StreamReadCallback;
 import net.arctics.clonk.c4group.C4GroupEntryHeader;
 import net.arctics.clonk.c4group.C4GroupFile;
 import net.arctics.clonk.c4group.C4GroupHeaderFilterBase;
 import net.arctics.clonk.c4group.C4GroupItem;
 import net.arctics.clonk.c4group.C4GroupTopLevelCompressed;
-import net.arctics.clonk.c4group.C4Group.GroupType;
-import net.arctics.clonk.c4group.C4Group.StreamReadCallback;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.UI;
@@ -82,13 +82,13 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		instance = this;
 	}
 
-	private class ClonkFolderContentProvider extends LabelProvider
-			implements ITreeContentProvider, IStyledLabelProvider {
+	@SuppressWarnings("rawtypes")
+	private class ClonkFolderContentProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 
 		@Override
 		public Object[] getChildren(Object parentElement) {
 			try {
-				File folder = (File) parentElement;
+				final File folder = (File) parentElement;
 				return folder.listFiles(new FilenameFilter() {
 					@Override
 					public boolean accept(File dir, String name) {
@@ -99,7 +99,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 						return (currentEngine().groupTypeForFileName(name) != GroupType.OtherGroup || new File(dir, name).isDirectory()); 
 					}
 				});
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				return new Object[0];
 			}
 		}
@@ -127,8 +127,8 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 		@Override
 		public Image getImage(Object element) {
-			Engine engine = currentEngine();
-			GroupType gt = engine.groupTypeForFileName((((File) element).toString()));
+			final Engine engine = currentEngine();
+			final GroupType gt = engine.groupTypeForFileName((((File) element).toString()));
 			return engine.image(gt);
 		}
 
@@ -165,7 +165,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	private IProject selectedProject() {
 		try {
 			return ResourcesPlugin.getWorkspace().getRoot().getProject(projectEditor.text.getText());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return null;
 		}
 	}
@@ -198,7 +198,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		);
 		openInCurrentProject.addSelectionListener(this);
 
-		PreferenceStore dummyPrefStore = new PreferenceStore();
+		final PreferenceStore dummyPrefStore = new PreferenceStore();
 		dummyPrefStore.setValue(ClonkPreferences.ACTIVE_ENGINE, Core.instance().getPreferenceStore().getString(ClonkPreferences.ACTIVE_ENGINE));
 
 		createProjectEditor(optionsComposite, UI.createFormData(
@@ -225,7 +225,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 			new FormAttachment(0, 0),
 			new FormAttachment(optionsComposite, 0))
 		);
-		ClonkFolderContentProvider prov = new ClonkFolderContentProvider();
+		final ClonkFolderContentProvider prov = new ClonkFolderContentProvider();
 		folderTree.setContentProvider(prov);
 		refreshTree(false);
 		folderTree.setLabelProvider(prov);
@@ -242,7 +242,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		lookForID = new MenuItem(treeMenu, SWT.PUSH);
 		lookForID.setText(Messages.ClonkFolderView_LookForIDMenuText);
 		
-		for (MenuItem item : new MenuItem[] {linkMenuItem, importMenuItem, refreshMenuItem, lookForID})
+		for (final MenuItem item : new MenuItem[] {linkMenuItem, importMenuItem, refreshMenuItem, lookForID})
 			item.addSelectionListener(this);
 		folderTree.getTree().setMenu(treeMenu);
 
@@ -261,7 +261,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 			return;
 		IProject proj = null;
 		if (selection instanceof IStructuredSelection) {
-			IStructuredSelection ssel = (IStructuredSelection) selection;
+			final IStructuredSelection ssel = (IStructuredSelection) selection;
 			if (ssel.getFirstElement() instanceof IResource)
 				proj = ((IResource) ssel.getFirstElement()).getProject();
 		}
@@ -278,10 +278,11 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		super.dispose();
 	}
 
+	@SuppressWarnings("unchecked")
 	private void refreshTree(boolean onlyIfInputChanged) {
-		Engine engine = currentEngine();
-		String clonkPath = engine != null ? engine.settings().gamePath : null;
-		File clonkFolder = (clonkPath != null && !clonkPath.equals("")) //$NON-NLS-1$
+		final Engine engine = currentEngine();
+		final String clonkPath = engine != null ? engine.settings().gamePath : null;
+		final File clonkFolder = (clonkPath != null && !clonkPath.equals("")) //$NON-NLS-1$
 			? new File( clonkPath)
 			: new File("/"); //$NON-NLS-1$
 		if (!onlyIfInputChanged || !Utilities.eq(folderTree.getInput(), clonkFolder))
@@ -289,10 +290,10 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	}
 
 	protected Engine currentEngine() {
-		IProject p = selectedProject();
+		final IProject p = selectedProject();
 		Engine engine = null;
 		if (p != null && p.isOpen()) {
-			ClonkProjectNature nature = ClonkProjectNature.get(p);
+			final ClonkProjectNature nature = ClonkProjectNature.get(p);
 			if (nature != null)
 				engine = nature.index().engine();
 		}
@@ -308,22 +309,22 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	}
 
 	private void linkSelection() {
-		for (Object f : ((IStructuredSelection)folderTree.getSelection()).toArray()) {
-			File sel = (File) f;
+		for (final Object f : ((IStructuredSelection)folderTree.getSelection()).toArray()) {
+			final File sel = (File) f;
 			if (sel.isDirectory()) {
 				UI.message(String.format(Messages.ClonkFolderView_JustAFolder, sel.getName()));
 				return;
 			}
-			IProject proj = selectedProject();
+			final IProject proj = selectedProject();
 			if (proj != null)
 				LinkC4GroupFileHandler.linkC4GroupFile(proj, sel);
 		}
 	}
 
 	private void importSelection() {
-		for (Object f : ((IStructuredSelection)folderTree.getSelection()).toArray()) {
-			File sel = (File)f;
-			IProject proj = selectedProject();
+		for (final Object f : ((IStructuredSelection)folderTree.getSelection()).toArray()) {
+			final File sel = (File)f;
+			final IProject proj = selectedProject();
 			if (proj != null)
 				QuickImportHandler.importFiles(getSite().getShell(), proj, sel);
 		}
@@ -334,7 +335,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		if (e.getSource() == openInCurrentProject)
 			updateProjectChooserEnablization();
 		else if (e.getSource() == projectEditor.addButton) {
-			IProject project = UI.selectClonkProject(selectedProject());
+			final IProject project = UI.selectClonkProject(selectedProject());
 			if (project != null)
 				projectEditor.text.setText(project.getName());
 		} else if (e.getSource() == importMenuItem)
@@ -348,7 +349,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	}
 
 	private void lookForID() {
-		InputDialog inputDialog = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+		final InputDialog inputDialog = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
     		"Look for ID", Messages.ClonkFolderView_LookForIDPromptCaption, "CLNK", null); //$NON-NLS-1$ //$NON-NLS-3$
 		if (inputDialog.open() != Window.OK)
 			return;
@@ -360,7 +361,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 			protected IStatus run(IProgressMonitor monitor) {
 				final List<File> containing = new ArrayList<File>();
 				
-				for (Object f : selection) {
+				for (final Object f : selection) {
 					final File sel = (File)f;
 					if (sel.isDirectory())
 						continue;
@@ -373,9 +374,9 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 							}
 							@Override
 							public void processGroupItem(C4GroupItem item) throws CoreException {
-								C4GroupFile file = as(item, C4GroupFile.class);
+								final C4GroupFile file = as(item, C4GroupFile.class);
 								if (file != null) {
-									String s = file.getContentsAsString();
+									final String s = file.getContentsAsString();
 									if (idPattern.matcher(s).find())
 										containing.add(sel);
 								}
@@ -386,12 +387,12 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 							public void readStream(InputStream stream) {
 								try {
 									group.readIntoMemory(true, headerFilter, stream);
-								} catch (Exception e) {
+								} catch (final Exception e) {
 									e.printStackTrace();
 								}
 							}
 						});
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
 				}

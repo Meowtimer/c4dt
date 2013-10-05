@@ -24,6 +24,7 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.graphics.Image;
 
+@SuppressWarnings("rawtypes")
 public class SearchContentProvider extends ClonkLabelProvider implements ITreeContentProvider, ILabelProvider, DelegatingStyledCellLabelProvider.IStyledLabelProvider {
 
 	private final boolean flat;

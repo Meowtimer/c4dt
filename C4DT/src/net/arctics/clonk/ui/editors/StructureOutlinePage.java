@@ -98,6 +98,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		getTreeViewer().getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		getTreeViewer().setFilters(new ViewerFilter[] {
 			new ViewerFilter() {
+				@SuppressWarnings({ "rawtypes", "unchecked" })
 				@Override
 				public boolean select(Viewer viewer, Object parentElement, Object element) {
 					if (StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(((ILabelProvider)getTreeViewer().getLabelProvider()).getText(element)).find())
@@ -152,6 +153,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		}
 	};
 
+	@SuppressWarnings("unchecked")
 	private void setTreeViewerInput(Declaration obj) {
 		final TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
@@ -209,10 +211,12 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public void setInput(Object input) {
 		getTreeViewer().setInput(input);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void clear() {
 		getTreeViewer().setInput(null);
 	}

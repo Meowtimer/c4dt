@@ -318,6 +318,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			dec.addSelectionListener(changeAmountListener);
 		}
 
+		@SuppressWarnings("unchecked")
 		public DefinitionListEditor(String label, Composite parent, IniEntry entry) {
 			createControl(parent, label);
 			this.array = (IDArray)entry.value();
@@ -325,6 +326,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			this.viewer.setInput(array);
 		}
 
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		private TableViewer createViewer() {
 			final TableViewer viewer = new TableViewer(table) {
 				@Override
@@ -344,7 +346,6 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			});
 			viewer.addDropSupport(DND.DROP_MOVE, transferTypes, new ViewerDropAdapter(viewer) {
 				private KeyValuePair<ID, Integer> target;
-				@SuppressWarnings("unchecked")
 				@Override
 				public boolean validateDrop(Object target, int operation, TransferData transferType) {
 					try {
@@ -366,7 +367,6 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 						final int[] selection = new int[d.getData().length/4];
 						for (int i = 0; i < selection.length; i++)
 							selection[i] = b.getInt(i*4);
-						@SuppressWarnings("unchecked")
 						final KeyValuePair<IDLiteral, Integer>[] draggedItems = new KeyValuePair[selection.length];
 						for (int i = selection.length-1; i >= 0; i--) {
 							draggedItems[i] = items.get(selection[i]);
@@ -405,9 +405,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				}
 				@Override
 				public Image getColumnImage(Object element, int columnIndex) {
-					@SuppressWarnings("unchecked")
-					final
-					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
+					final KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
 					switch (columnIndex) {
 					case 0:
 						final Definition def = scenario.nearestDefinitionWithId(kv.key());
@@ -418,9 +416,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				}
 				@Override
 				public String getColumnText(Object element, int columnIndex) {
-					@SuppressWarnings("unchecked")
-					final
-					KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
+					final KeyValuePair<ID, Integer> kv = (KeyValuePair<ID, Integer>) element;
 					switch (columnIndex) {
 					case 1:
 						final Definition def = scenario.nearestDefinitionWithId(kv.key());

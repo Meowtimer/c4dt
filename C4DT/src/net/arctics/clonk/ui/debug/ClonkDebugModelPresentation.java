@@ -1,9 +1,10 @@
 package net.arctics.clonk.ui.debug;
 
 import net.arctics.clonk.debug.Breakpoint;
+import net.arctics.clonk.debug.ScriptThread;
 import net.arctics.clonk.debug.StackFrame;
 import net.arctics.clonk.debug.Target;
-import net.arctics.clonk.debug.ScriptThread;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.debug.core.DebugException;
@@ -15,6 +16,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
+@SuppressWarnings("rawtypes")
 public class ClonkDebugModelPresentation extends LabelProvider implements IDebugModelPresentation {
 	
 	public static final String ID = ClonkDebugModelPresentation.class.getName();
@@ -22,19 +24,16 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 	@Override
 	public void computeDetail(IValue value, IValueDetailListener listener) {
 		try {
-			String val = value.getValueString();
+			final String val = value.getValueString();
 			listener.detailComputed(value, val);
-		} catch (DebugException e) {
+		} catch (final DebugException e) {
 			e.printStackTrace();
 			listener.detailComputed(value, "Fail"); //$NON-NLS-1$
 		}
 	}
 
 	@Override
-	public void setAttribute(String attribute, Object value) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void setAttribute(String attribute, Object value) {}
 
 	@Override
 	public String getEditorId(IEditorInput input, Object element) {
@@ -46,7 +45,7 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 		if (element instanceof IFile)
 			return new FileEditorInput((IFile) element);
 		else if (element instanceof Breakpoint) {
-			Breakpoint breakpoint = (Breakpoint) element;
+			final Breakpoint breakpoint = (Breakpoint) element;
 			return getEditorInput(breakpoint.getMarker().getResource());
 		}
 		return null;
@@ -64,12 +63,12 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 			else if (element instanceof Breakpoint)
 				return ((Breakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint"); //$NON-NLS-1$
 			else if (element instanceof IWatchExpression) {
-				IWatchExpression expr = (IWatchExpression) element;
+				final IWatchExpression expr = (IWatchExpression) element;
 				return expr.getExpressionText() + " == " + (expr.getValue() != null ? expr.getValue().getValueString() : "<nil>"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			else
 				return "Empty"; //$NON-NLS-1$
-		} catch (DebugException e) {
+		} catch (final DebugException e) {
 			e.printStackTrace();
 			return "Fail"; //$NON-NLS-1$
 		}

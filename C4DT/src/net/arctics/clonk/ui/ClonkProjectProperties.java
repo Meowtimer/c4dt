@@ -26,6 +26,7 @@ import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ICheckStateProvider;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -83,6 +84,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				tableViewer.setChecked(c, !disabledErrorCodes.contains(c));
 		}
 
+		@SuppressWarnings("unchecked")
 		private Table getTable(Composite parent) {
 			if (table == null) {
 				filterBox = new Text(parent, SWT.SEARCH | SWT.CANCEL);
@@ -94,21 +96,22 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				});
 				final ViewerFilter filter = new ViewerFilter() {
 					@Override
-					public boolean select(Viewer viewer, Object parentElement, Object element) {
-						final String text = ((LabelProvider)tableViewer.getLabelProvider()).getText(element);
+					public boolean select(@SuppressWarnings("rawtypes") Viewer viewer, Object parentElement, Object element) {
+						@SuppressWarnings("rawtypes")
+						final String text = ((ILabelProvider)tableViewer.getLabelProvider()).getText(element);
 						return StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(text).find();
 					}
 				};
 				table = new Table(parent, SWT.CHECK | SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
 				tableViewer = new CheckboxTableViewer(table);
 				tableViewer.addFilter(filter);
-				tableViewer.setContentProvider(new IStructuredContentProvider() {
+				tableViewer.setContentProvider(new IStructuredContentProvider<Problem, Class<Problem>>() {
 					@Override
-					public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
+					public void inputChanged(Viewer<Class<Problem>> viewer, Class<Problem> oldInput, Class<Problem> newInput) {}
 					@Override
 					public void dispose() {}
 					@Override
-					public Object[] getElements(Object inputElement) {
+					public Problem[] getElements(Class<Problem> inputElement) {
 						if (inputElement == Problem.class) {
 							final Problem[] elms = Problem.values().clone();
 							Arrays.sort(elms, new Comparator<Problem>() {
@@ -122,10 +125,10 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 						return null;
 					}
 				});
-				tableViewer.setLabelProvider(new LabelProvider() {
+				tableViewer.setLabelProvider(new LabelProvider<Problem>() {
 					@Override
-					public String getText(Object element) {
-						return ((Problem)element).messageWithFormatArgumentDescriptions();
+					public String getText(Problem element) {
+						return element.messageWithFormatArgumentDescriptions();
 					}
 				});
 				tableViewer.addCheckStateListener(this);

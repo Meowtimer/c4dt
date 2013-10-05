@@ -6,9 +6,9 @@ import java.util.Collection;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4Group;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4group.C4GroupFileSystem;
 import net.arctics.clonk.c4group.C4GroupItem;
-import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -152,12 +152,8 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	}
 
 	@Override
-	public void dispose() {
-
-	}
-
+	public void dispose() {}
 	@Override
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-	}
+	public void inputChanged(@SuppressWarnings("rawtypes") Viewer viewer, Object oldInput, Object newInput) {}
 
 }

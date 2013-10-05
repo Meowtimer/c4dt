@@ -24,10 +24,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
+@SuppressWarnings("rawtypes")
 public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider, IColorProvider {
 	
 	public ClonkLabelProvider() {}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Image getImage(Object element) {
 		if (element instanceof IProject)
@@ -51,6 +53,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return UI.iconFor(element);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public String getText(Object element) {
 		if (element instanceof IProject)

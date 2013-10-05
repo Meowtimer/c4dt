@@ -15,7 +15,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.IShowInSource;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.part.ShowInContext;
-import net.arctics.clonk.ui.search.SearchContentProvider;
 
 public class SearchResultPage extends AbstractTextSearchViewPage implements IShowInSource, IShowInTargetList {
 	
@@ -28,9 +27,10 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 		return new SearchContentProvider(this, flat);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void configureTableViewer(TableViewer tableViewer) {
-		SearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(true);
+		final SearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(true);
 		tableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(contentAndLabelProvider));
 		tableViewer.setContentProvider(contentAndLabelProvider);
 		tableViewer.setComparator(contentAndLabelProvider.getComparator());
@@ -38,7 +38,7 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 
 	@Override
 	protected void configureTreeViewer(TreeViewer treeViewer) {
-		SearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(false);
+		final SearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(false);
 		treeViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(contentAndLabelProvider));
 		treeViewer.setContentProvider(contentAndLabelProvider);
 		treeViewer.setComparator(contentAndLabelProvider.getComparator());
@@ -51,7 +51,7 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 	
 	@Override
 	protected void showMatch(Match match, int currentOffset, int currentLength, boolean activate) throws PartInitException {
-		SearchMatch clonkMatch = (SearchMatch) match;
+		final SearchMatch clonkMatch = (SearchMatch) match;
 		StructureTextEditor editor;
 		editor = (StructureTextEditor) StructureTextEditor.openDeclaration(clonkMatch.structure(), activate);
 		editor.selectAndReveal(currentOffset, currentLength);
@@ -62,11 +62,10 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 		return new ShowInContext(null, null) {
 			@Override
 			public Object getInput() {
-				IStructuredSelection selection = (IStructuredSelection) getViewer().getSelection();
-				Object firstElm = selection.getFirstElement();
-				if (firstElm instanceof Match) {
+				final IStructuredSelection selection = (IStructuredSelection) getViewer().getSelection();
+				final Object firstElm = selection.getFirstElement();
+				if (firstElm instanceof Match)
 					return ((Structure)((Match)firstElm).getElement()).resource();
-				}
 				return selection.getFirstElement();
 			}
 		};
@@ -83,12 +82,12 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 	
 	@Override
 	protected void handleOpen(OpenEvent event) {
-		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+		final IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 		if (selection.getFirstElement() instanceof Match) {
-			Match m = (Match) selection.getFirstElement();
+			final Match m = (Match) selection.getFirstElement();
 			try {
 				showMatch(m, m.getOffset(), m.getLength(), true);
-			} catch (PartInitException e) {
+			} catch (final PartInitException e) {
 				e.printStackTrace();
 			}
 		}

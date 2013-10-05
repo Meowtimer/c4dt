@@ -41,26 +41,23 @@ public class ClonkSorter extends ViewerSorter {
 			cachedEngine = ClonkProjectNature.engineFromResource(resource);
 		}
 		GroupType gt;
-		if (cachedEngine != null && (gt = cachedEngine.groupTypeForFileName(resource.getName())) != GroupType.OtherGroup) {
-			for (int i = 0; i < groupSortOrder.length; i++) {
+		if (cachedEngine != null && (gt = cachedEngine.groupTypeForFileName(resource.getName())) != GroupType.OtherGroup)
+			for (int i = 0; i < groupSortOrder.length; i++)
 				if (groupSortOrder[i] == gt)
 					return i;
-			}
-		}
-		for(int i = 0; i < sortPriorities.length;i++) {
+		for(int i = 0; i < sortPriorities.length;i++)
 			if (resource.getName().toLowerCase().endsWith(sortPriorities[i]))
 				return i+groupSortOrder.length;
-		}
 		return sortPriorities.length+1;
 	}
 	
 	private synchronized int getSortPriority(IResource resource) {
-		int simplePriority = getSortPriorityIgnoringTags(resource);
+		final int simplePriority = getSortPriorityIgnoringTags(resource);
 		String relatedTag;
 		try {
 			relatedTag = resource.getPersistentProperty(ColorTagging.COLOR_TAG);
 			ColorTagging.rgbForResource(resource);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			relatedTag = null;
 		}
 		Integer tagCateg;
@@ -84,7 +81,7 @@ public class ClonkSorter extends ViewerSorter {
 	}
 	
 	@Override
-	public int compare(Viewer viewer, Object e1, Object e2) {
+	public int compare(@SuppressWarnings("rawtypes") Viewer viewer, Object e1, Object e2) {
 		return super.compare(viewer, e1, e2);
 	}
 

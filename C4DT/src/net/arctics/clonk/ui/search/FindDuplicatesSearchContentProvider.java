@@ -18,7 +18,7 @@ public class FindDuplicatesSearchContentProvider extends SearchContentProvider {
 	}
 
 	@Override
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+	public void inputChanged(@SuppressWarnings("rawtypes") Viewer viewer, Object oldInput, Object newInput) {
 		result = (FindDuplicatesSearchResult) newInput;
 		if (result != null)
 			query = result.getQuery();
@@ -33,21 +33,15 @@ public class FindDuplicatesSearchContentProvider extends SearchContentProvider {
 
 	@Override
 	public Object[] getChildren(Object parentElement) {
-		if (parentElement instanceof Function) {
+		if (parentElement instanceof Function)
 			return query.getDetectedDupes().get(parentElement).toArray();
-		}
 		else
 			return new Object[0];
 	}
 
 	@Override
-	public Object getParent(Object element) {
-		return null;
-	}
-
+	public Object getParent(Object element) { return null; }
 	@Override
-	public boolean hasChildren(Object element) {
-		return element instanceof Function;
-	}
+	public boolean hasChildren(Object element) { return element instanceof Function; }
 
 }

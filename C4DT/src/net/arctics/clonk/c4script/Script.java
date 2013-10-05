@@ -160,14 +160,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	);
 
 	public Typings typings() { return defaulting(typings, NO_TYPINGS); }
-	public void setTypings(Typings typings) {
-		this.typings = typings;
-//		for (final Function f : this.functions()) {
-//			final Function.Typing typing = typings.get(f);
-//			if (typing != null)
-//				typing.printNodeTypes(f);
-//		}
-	}
+	public void setTypings(Typings typings) { this.typings = typings; }
 
 	public List<TypeAnnotation> typeAnnotations() { return typeAnnotations; }
 	public void setTypeAnnotations(List<TypeAnnotation> typeAnnotations) {
