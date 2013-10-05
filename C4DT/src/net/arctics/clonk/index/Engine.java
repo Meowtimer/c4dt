@@ -436,61 +436,23 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		for (final IStorageLocation loc : storageLocations) {
 			final URL url = loc.locatorForEntry(String.format("%s.c", name()), false); //$NON-NLS-1$
 			if (url != null) {
-				parseEngineScriptAtURL(url);
+				try (InputStream stream = url.openStream()) {
+					final String engineScript = StreamUtil.stringFromInputStream(stream);
+					final ScriptParser parser = new EngineScriptParser(engineScript, this, null, url);
+					try {
+						parser.parse();
+					} catch (final ProblemException e) {
+						e.printStackTrace();
+					}
+					postLoad((Declaration)null, (Index)null);
+				} catch (final IOException e1) {
+					e1.printStackTrace();
+				}
 				new IniDescriptionsLoader(this).loadDescriptions(lang);
 				break;
 			}
 		}
 	}
-
-	private void parseEngineScriptAtURL(final URL url) {
-		try (InputStream stream = url.openStream()) {
-			final String engineScript = StreamUtil.stringFromInputStream(stream);
-			final ScriptParser parser = new EngineScriptParser(engineScript, this, null, url);
-			try {
-				parser.parse();
-			} catch (final ProblemException e) {
-				e.printStackTrace();
-			}
-			postLoad((Declaration)null, (Index)null);
-		} catch (final IOException e1) {
-			e1.printStackTrace();
-		}
-	}
-
-	/*private void writeDescriptions(File file) {
-		final IniUnit unit = new IniUnit("");
-		IniSection descriptions = unit.addDeclaration(new IniSection("Functions"));
-		for (final Function f : this.functions()) {
-			final IniSection fs = descriptions.addDeclaration(new IniSection(f.name()));
-			final String fd = f.userDescription();
-			if (fd != null)
-				fs.addDeclaration(new ComplexIniEntry(0, 0, "Description", fd.trim()));
-			for (final Variable p : f.parameters()) {
-				final String pd = p.userDescription();
-				if (pd == null)
-					continue;
-				final IniSection ps = fs.addDeclaration(new IniSection(p.name()));
-				if (ps != null)
-					ps.addDeclaration(new ComplexIniEntry(0, 0, "Description", pd.trim()));
-				else
-					System.out.println("you should feel bad");
-			}
-		}
-		descriptions = unit.addDeclaration(new IniSection("Variables"));
-		for (final Variable v : this.variables()) {
-			final String vd = v.userDescription();
-			if (vd == null)
-				continue;
-			final IniSection vs = descriptions.addDeclaration(new IniSection(v.name()));
-			vs.addDeclaration(new ComplexIniEntry(0, 0, "Description", vd.trim()));
-		}
-		try (FileWriter writer = new FileWriter(file)) {
-			unit.save(new AppendableBackedExprWriter(writer), true);
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
-	}*/
 
 	private void createSpecialRules() {
 		try {

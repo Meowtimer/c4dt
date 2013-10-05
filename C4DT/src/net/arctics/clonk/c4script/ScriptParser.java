@@ -677,8 +677,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		TypeAnnotation staticType;
 		final int bt = this.offset;
 		int typeExpectedAt = -1;
-		// when parsing an engine script from (res/engines/...), allow specifying the type directly
-		if (script == engine || typing.allowsNonParameterAnnotations()) {
+		if (typing.allowsNonParameterAnnotations()) {
 			staticType = parseTypeAnnotation(true, false);
 			if (staticType != null)
 				eatWhitespace();
@@ -784,7 +783,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			t = typeAnnotation(offset-1, offset, PrimitiveType.REFERENCE);
 		}
 		else if ((str = parseIdentifier()) != null || ((id = parseID()) != null && (str = id.stringValue()) != null)) {
-			final PrimitiveType pt = PrimitiveType.fromString(str, script == engine||typing==Typing.STATIC);
+			final PrimitiveType pt = PrimitiveType.fromString(str, typing==Typing.STATIC);
 			if (pt != null && script.engine().supportsPrimitiveType(pt))
 				/* give explicit parameter types authority boost -
 				 * they won't unify with Definitions so that parameters
