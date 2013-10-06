@@ -13,9 +13,9 @@ import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
+import net.arctics.clonk.c4script.Standalone;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.Statement.Attachment;
-import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 
@@ -60,21 +60,11 @@ public class ASTSearchQuery extends SearchQuery {
 	public ASTNode replacement() { return replacement; }
 	public ASTNode template() { return template; }
 
-	private Engine commonEngine(Iterable<Script> scripts) {
-		Engine e = null;
-		for (final Script s : scripts)
-			if (e == null)
-				e = s.engine();
-			else if (e != s.engine())
-				throw new IllegalArgumentException("Scripts from different engines");
-		return e;
-	}
-
 	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Collection<Script> scope) throws ProblemException {
+		final Standalone stal = new Standalone(scope);
 		this.templateText = templateExpressionText;
-		final Engine engine = commonEngine(scope);
-		this.template = ASTNodeMatcher.prepareForMatching(templateExpressionText, engine);
-		this.replacement = replacementExpressionText != null ? ASTNodeMatcher.prepareForMatching(replacementExpressionText, engine) : null;
+		this.template = ASTNodeMatcher.prepareForMatching(stal.parse(templateExpressionText));
+		this.replacement = replacementExpressionText != null ? ASTNodeMatcher.prepareForMatching(stal.parse(replacementExpressionText)) : null;
 		this.scope = scope;
 	}
 

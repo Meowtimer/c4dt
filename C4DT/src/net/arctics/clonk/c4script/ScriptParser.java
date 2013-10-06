@@ -13,7 +13,6 @@ import java.util.Vector;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.ast.IASTVisitor;
@@ -2548,19 +2547,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		final ASTNode result = new Whitespace();
 		setRelativeLocation(result, start, start+length);
 		return result;
-	}
-
-	public static ASTNode parse(final String source, Engine engine) throws ProblemException {
-		return ScriptsHelper.parseStandaloneNode(source, null, null, null, engine, null);
-	}
-
-	public static ASTNode matchingExpr(final String statementText, Engine engine) {
-		try {
-			return ASTNodeMatcher.prepareForMatching(parse(statementText, engine));
-		} catch (final ProblemException e) {
-			e.printStackTrace();
-			return null;
-		}
 	}
 
 	/**

@@ -8,7 +8,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.MatchingPlaceholder.Multiplicity;
-import net.arctics.clonk.c4script.ScriptsHelper;
+import net.arctics.clonk.c4script.Standalone;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.Unfinished;
@@ -125,7 +125,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	 */
 	public static ASTNode prepareForMatching(final String statementText, Engine engine) {
 		try {
-			return prepareForMatching(ScriptsHelper.parse(statementText, engine));
+			return prepareForMatching(new Standalone(engine).parse(statementText));
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 			return null;

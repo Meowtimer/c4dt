@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script;
 
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.eq;
 
@@ -570,7 +571,7 @@ public abstract class SpecialEngineRules {
 			final Object scriptExpr = arguments[0].evaluateStatic(script);
 			if (scriptExpr instanceof String)
 				try {
-					ScriptsHelper.parseStandaloneNode((String)scriptExpr, node.parent(Function.class), null, new IMarkerListener() {
+					new Standalone(iterable(processor.script())).parse((String)scriptExpr, node.parent(Function.class), null, new IMarkerListener() {
 						@Override
 						public Decision markerEncountered(
 							Markers markers, IASTPositionProvider positionProvider,
@@ -591,7 +592,7 @@ public abstract class SpecialEngineRules {
 								return Decision.PassThrough;
 							}
 						}
-					}, processor.script().engine(), null);
+					}, null);
 				} catch (final ProblemException e) {
 					// that on slipped through - pretend nothing happened
 				}
@@ -603,7 +604,7 @@ public abstract class SpecialEngineRules {
 				final StringLiteral lit = (StringLiteral) parmExpression;
 				final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(offsetInExpression-1); // make up for '"'
 				try {
-					ScriptsHelper.parseStandaloneNode(lit.literal(), node.parent(Function.class), locator, null, script.engine(), null);
+					new Standalone(iterable(script)).parse(lit.literal(), node.parent(Function.class), locator, null, null);
 				} catch (final ProblemException e) {}
 				if (locator.expressionAtRegion() != null) {
 					final EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, locator);
