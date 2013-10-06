@@ -18,6 +18,7 @@ import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.ast.Comment;
+import net.arctics.clonk.debug.EngineLaunch;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Index.Built;
@@ -116,8 +117,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (kind == FULL_BUILD || delta.getAffectedChildren().length > 0)
 				break;
 			System.out.println(String.format("%s: Skipping build", proj.getName()));
-			//$FALL-THROUGH$
-		default:
+			return new IProject[] { proj };
+		case LeaveAlone:
 			return new IProject[] { proj };
 		}
 
@@ -136,6 +137,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				// validate files related to the scripts that have been parsed
 				for (final Script script : scripts)
 					validateRelatedFiles(script);
+				
+				EngineLaunch.scriptsBuild(scripts);
 
 				return new IProject[] { proj };
 			} catch (final Exception e) {

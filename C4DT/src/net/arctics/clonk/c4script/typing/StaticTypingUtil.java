@@ -61,11 +61,15 @@ public class StaticTypingUtil {
 		final Script script = Script.get(files[0], true);
 		if (script == null)
 			return null;
+		return purgeTyping(script);
+	}
+
+	public static String purgeTyping(final Script script) {
 		final List<TypeAnnotation> annotations = script.typeAnnotations();
 		if (annotations != null) {
 			
 			// annotations
-			final String text = StreamUtil.stringFromFile(file);
+			final String text = StreamUtil.stringFromFile(script.file());
 			final StringBuilder builder = new StringBuilder(text);
 			for (int i = annotations.size()-1; i >= 0; i--) {
 				final IRegion loc = annotations.get(i).absolute();

@@ -14,6 +14,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.typing.StaticTypingUtil;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
@@ -25,14 +26,8 @@ import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -47,7 +42,7 @@ import org.eclipse.debug.core.ILaunchesListener2;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
 
-class EngineLaunch implements ILaunchesListener2, IResourceChangeListener {
+public class EngineLaunch implements ILaunchesListener2 {
 	private final ILaunchConfiguration configuration;
 	private final IFolder scenarioFolder;
 	private final IPath scenarioFolderPath;
@@ -60,6 +55,27 @@ class EngineLaunch implements ILaunchesListener2, IResourceChangeListener {
 	private final ILaunch launch;
 
 	static final Map<IPath, EngineLaunch> list = new HashMap<IPath, EngineLaunch>();
+
+	private static EngineLaunch get(IPath scenarioPath) {
+		synchronized (list) {
+			return list.get(scenarioPath);
+		}
+	}
+
+	public static void scriptsBuild(Script[] scripts) {
+		synchronized (list) {
+			if (list.size() == 0)
+				return;
+		}
+		for (final Script s : scripts) {
+			final Scenario scen = s.scenario();
+			if (scen != null) {
+				final EngineLaunch launch = get(scen.resource().getFullPath());
+				if (launch != null)
+					launch.purgeTyping(s);
+			}
+		}
+	}
 
 	public static class MultipleLaunchesException extends CoreException {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -191,7 +207,6 @@ class EngineLaunch implements ILaunchesListener2, IResourceChangeListener {
 		for (final ILaunch l : launches)
 			if (l == launch) {
 				DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
-				ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 				try {
 					if (tempFolder != null)
 						Utilities.removeRecursively(tempFolder);
@@ -200,8 +215,6 @@ class EngineLaunch implements ILaunchesListener2, IResourceChangeListener {
 	}
 
 	public void launch(IProgressMonitor monitor) throws CoreException {
-		if (tempFolder != null)
-			ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
 		try {
 			// Working directory (work around a bug in early Linux engines)
 			final File workDirectory = engineFile.getParentFile();
@@ -238,45 +251,29 @@ class EngineLaunch implements ILaunchesListener2, IResourceChangeListener {
 		}
 	}
 
-	@Override
-	public void resourceChanged(IResourceChangeEvent event) {
-		try {
-			if (tempFolder == null)
-				return;
-			event.getDelta().accept(new IResourceDeltaVisitor() {
-				@Override
-				public boolean visit(IResourceDelta delta) throws CoreException {
-					switch (delta.getKind()) {
-					case IResourceDelta.CHANGED:
-						if ((delta.getFlags() & IResourceDelta.CONTENT) == IResourceDelta.CONTENT && delta.getResource() instanceof IFile) {
-							final String purged = StaticTypingUtil.purgeTyping(StaticTypingUtil.toFile(delta.getResource()));
-							if (purged != null) {
-								final List<String> breadcrump = new LinkedList<>();
-								breadcrump.add(delta.getResource().getName());
-								for (IContainer c = delta.getResource().getParent(); c != null; c = c.getParent())
-									if (c == nature.getProject()) {
-										final File dest = new File(tempFolder, StringUtil.blockString("", "", File.separator, breadcrump));
-										try {
-											StreamUtil.writeToFile(dest, new StreamWriteRunnable() {
-												@Override
-												public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
-													writer.write(purged);
-												}
-											});
-										} catch (final IOException e) {
-											e.printStackTrace();
-										}
-									} else
-										breadcrump.add(0, c.getName());
+	private void purgeTyping(Script script) {
+		final String purged = StaticTypingUtil.purgeTyping(script);
+		if (purged != null) {
+			final IResource res = script.file();
+			final List<String> breadcrump = new LinkedList<>();
+			breadcrump.add(res.getName());
+			for (IContainer c = res.getParent(); c != null; c = c.getParent())
+				if (c == nature.getProject()) {
+					final File dest = new File(tempFolder, StringUtil.blockString("", "", File.separator, breadcrump));
+					try {
+						StreamUtil.writeToFile(dest, new StreamWriteRunnable() {
+							@Override
+							public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
+								writer.write(purged);
 							}
-						}
-						break;
+						});
+					} catch (final IOException e) {
+						e.printStackTrace();
 					}
-					return true;
-				}
-			});
-		} catch (final CoreException e) {
-			e.printStackTrace();
+					break;
+				} else
+					breadcrump.add(0, c.getName());
 		}
 	}
+
 }
