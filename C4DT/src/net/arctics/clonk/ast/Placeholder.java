@@ -1,10 +1,17 @@
 package net.arctics.clonk.ast;
 
+import static net.arctics.clonk.util.ArrayUtil.iterable;
+
+import java.util.Iterator;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.stringtbl.StringTbl;
 
-public class Placeholder extends ASTNode {
+public class Placeholder extends ASTNode implements IRefinedPrimitiveType {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected String entryName;
@@ -45,5 +52,14 @@ public class Placeholder extends ASTNode {
 	public boolean hasSideEffects() {
 		return true; // let's just assume that
 	}
+	
+	@Override
+	public Iterator<IType> iterator() { return iterable((IType)this).iterator(); }
+	@Override
+	public String typeName(boolean special) { return special ? toString() : PrimitiveType.ANY.typeName(false); }
+	@Override
+	public IType simpleType() { return PrimitiveType.ANY; }
+	@Override
+	public PrimitiveType primitiveType() { return PrimitiveType.ANY; }
 
 }

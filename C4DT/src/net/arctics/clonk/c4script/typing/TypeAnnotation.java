@@ -1,14 +1,17 @@
 package net.arctics.clonk.c4script.typing;
 
+import static net.arctics.clonk.util.ArrayUtil.concat;
+import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
-import static net.arctics.clonk.util.Utilities.eq;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
+import net.arctics.clonk.ast.Placeholder;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.IIndexEntity;
 
@@ -38,9 +41,18 @@ public final class TypeAnnotation extends ASTNode {
 	/** The type this annotation refers to. */
 	public IType type() {return type;}
 	/** Set the type of this annotation. */
-	public void setType(IType type) {this.type = type;}
+	public void setType(IType type) {
+		this.type = type;
+		assignParentToSubElements();
+	}
 	@Override
-	public ASTNode[] subElements() { return defaulting(subAnnotations, EMPTY_EXPR_ARRAY); }
+	public ASTNode[] subElements() { return concat(as(type, Placeholder.class), defaulting(subAnnotations, EMPTY_EXPR_ARRAY)); }
+	@Override
+	public void setSubElements(ASTNode[] elms) {
+		type = (IType)elms[0];
+		subAnnotations = elms.length > 1 ? Arrays.copyOfRange(elms, 1, elms.length, TypeAnnotation[].class) : null;
+		assignParentToSubElements();
+	}
 	public void setSubAnnotations(TypeAnnotation[] subAnnotations) {
 		this.subAnnotations = subAnnotations;
 		assignParentToSubElements();
@@ -61,9 +73,6 @@ public final class TypeAnnotation extends ASTNode {
 	public String toString() { return printed(); }
 	@Override
 	public boolean equalAttributes(ASTNode other) {
-		if (!super.equalAttributes(other))
-			return false;
-		final TypeAnnotation otherAnnot = (TypeAnnotation)other;
-		return eq(otherAnnot.type(), type());
+		return super.equalAttributes(other);
 	}
 }
