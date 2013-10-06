@@ -1,11 +1,11 @@
 package net.arctics.clonk.builder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 import net.arctics.clonk.c4script.Script;
 
@@ -16,11 +16,11 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 class SaveScriptsJob extends Job {
-	private final List<Script> scriptsToSave;
+	private final Set<Script> scriptsToSave;
 	private final IProject project;
 	public SaveScriptsJob(IProject project, Script[] scriptsToSave) {
 		super(ClonkBuilder.buildTask(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts, project));
-		this.scriptsToSave = new ArrayList<>(Arrays.asList(scriptsToSave));
+		this.scriptsToSave = new HashSet<>(Arrays.asList(scriptsToSave));
 		this.project = project;
 	}
 	@Override

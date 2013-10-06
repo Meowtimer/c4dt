@@ -110,12 +110,8 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 		if (index == null)
 			return;
 		synchronized (index.saveSynchronizer()) {
-			try {
-				requireLoaded();
-				index.saveEntity(this);
-			} catch (final Exception e) {
-				e.printStackTrace();
-			}
+			requireLoaded();
+			index.saveEntity(this);
 		}
 	}
 

@@ -847,8 +847,6 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public void saveEntity(IndexEntity entity) throws IOException {
 		try (final ObjectOutputStream s = newEntityOutputStream(entity)) {
 			entity.save(s);
-		} catch (final Exception e) {
-			e.printStackTrace();
 		}
 	}
 
