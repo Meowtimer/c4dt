@@ -127,6 +127,11 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param parent
 	 */
 	public void setParent(ASTNode parent) { this.parent = parent; }
+	
+	protected <T extends ASTNode> T tempSubElement(T node) {
+		node.setParent(this);
+		return node;
+	}
 
 	/**
 	 * Print additional text prepended to the actual expression text ({@link #doPrint(ASTNodePrinter, int)})

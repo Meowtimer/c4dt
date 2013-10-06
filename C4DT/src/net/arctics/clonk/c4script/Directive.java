@@ -160,9 +160,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	@Override
 	public boolean equalAttributes(ASTNode other) {
 		final Directive d = (Directive) other;
-		if (eq(d.content, this.content))
-			return true;
-		return false;
+		return super.equalAttributes(other) && eq(d.content, this.content) && eq(d.type, this.type);
 	}
 
 	@Override
@@ -173,9 +171,9 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		try {
 			switch (type()) {
 			case APPENDTO: case INCLUDE:
-				return new ASTNode[] { new IDLiteral(contentAsID()) };
+				return new ASTNode[] { tempSubElement(new IDLiteral(contentAsID())) };
 			case STRICT:
-				return new ASTNode[] { new IntegerLiteral(contents() != null ? Long.parseLong(contents()) : engine().settings().strictDefaultLevel) };
+				return new ASTNode[] { tempSubElement(new IntegerLiteral(contents() != null ? Long.parseLong(contents()) : engine().settings().strictDefaultLevel)) };
 			default:
 				return null;
 			}

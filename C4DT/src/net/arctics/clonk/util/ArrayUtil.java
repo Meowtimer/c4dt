@@ -137,7 +137,6 @@ public class ArrayUtil {
 								return true;
 						return false;
 					}
-
 					@Override
 					public T next() {
 						for (index++; index < items.length; index++)
@@ -145,10 +144,8 @@ public class ArrayUtil {
 								return items[index];
 						return null;
 					}
-
 					@Override
-					public void remove() {
-					}
+					public void remove() {}
 				};
 			}
 		};

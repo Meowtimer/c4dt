@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -52,10 +53,17 @@ public final class TypeAnnotation extends ASTNode {
 		for (final IType t : type)
 			if (t instanceof IIndexEntity)
 				entities.add((IIndexEntity)t);
-		return entities.size() > 0 ? new EntityRegion(entities, absolute()) : null;
+		return entities.size() > 0 ? new EntityRegion(entities, this) : null;
 	}
 	@Override
 	public String printed() { return type.typeName(true); }
 	@Override
 	public String toString() { return printed(); }
+	@Override
+	public boolean equalAttributes(ASTNode other) {
+		if (!super.equalAttributes(other))
+			return false;
+		final TypeAnnotation otherAnnot = (TypeAnnotation)other;
+		return eq(otherAnnot.type(), type());
+	}
 }
