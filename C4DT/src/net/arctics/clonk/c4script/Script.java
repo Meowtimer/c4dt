@@ -409,19 +409,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			for (final Directive d : directivesCopy) {
 				if (d == null)
 					continue;
-				if (d.type() == DirectiveType.INCLUDE || (d.type() == DirectiveType.APPENDTO && (options & GatherIncludesOptions.NoAppendages) == 0)) {
+				switch (d.type()) {
+				case INCLUDE:
+				case APPENDTO:
 					final ID id = d.contentAsID();
 					for (final Index in : contextIndex.relevantIndexes()) {
 						final List<? extends Definition> defs = in.definitionsWithID(id);
-						final Definition pick =
-							defs == null ? null :
-							(origin == null || origin.resource() == null) ? defs.get(0) :
-							pickNearest(defs, origin.resource(), new IPredicate<Definition>() {
-								@Override
-								public boolean test(Definition def) {
-									return origin == null || def.scenario() == null || origin.scenario() == def.scenario();
-								}
-							});
+						final Definition pick = defs == null
+							? null
+							: (origin == null || origin.resource() == null)
+							? defs.get(0)
+							: pickNearest(defs, origin.resource(), null);
 						if (pick != null)
 							if ((options & GatherIncludesOptions.Recursive) == 0)
 								set.add(pick);
@@ -431,6 +429,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 								pick.gatherIncludes(contextIndex, origin, set, options);
 							}
 					}
+					break;
+				default:
+					break;
 				}
 			}
 		}
