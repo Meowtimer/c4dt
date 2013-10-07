@@ -114,7 +114,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			index.built(Built.Yes);
 			break;
 		case Yes:
-			if (delta.getAffectedChildren().length > 0)
+			if (delta != null && delta.getAffectedChildren().length > 0)
 				break;
 			System.out.println(String.format("%s: Skipping build", proj.getName()));
 			return new IProject[] { proj };
