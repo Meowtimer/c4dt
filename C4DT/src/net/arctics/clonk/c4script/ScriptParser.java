@@ -749,7 +749,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		TypeAnnotation typeAnnotation;
 		if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
 			typeAnnotation = typeAnnotation(offset, offset, null);
-			if (typeAnnotations != null)
+			if (typeAnnotations != null && sectionOffset() != 0)
 				typeAnnotations.add(typeAnnotation);
 		} else
 			typeAnnotation = null;
@@ -844,21 +844,20 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					eatWhitespace();
 				}
 				t.setSubAnnotations(subAnnotations.toArray(new TypeAnnotation[subAnnotations.size()]));
-				if (topLevel)
-					if (typeAnnotations != null)
-						typeAnnotations.add(t);
+				if (typeAnnotations != null && topLevel && sectionOffset() == 0)
+					typeAnnotations.add(t);
 			}
 		}
 		if (t == null) {
-			if (typing == Typing.STATIC)
+			if (typing == Typing.STATIC) {
 				if (required) {
 					error(Problem.InvalidType, start, offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, readStringAt(start, offset));
 					return typeAnnotation(start, offset, new ErroneousType(readStringAt(start, offset)));
 				}
-			if (migrationTyping == Typing.STATIC)
-				if (topLevel && typeAnnotations != null)
+				if (topLevel && typeAnnotations != null && sectionOffset() == 0)
 					// placeholder annotation
 					typeAnnotations.add(typeAnnotation(start, start, null));
+			}
 			this.seek(start);
 		} else
 			t.setEnd(-sectionOffset()+offset);

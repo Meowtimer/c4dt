@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
@@ -65,9 +66,9 @@ public class StaticTypingUtil {
 	}
 
 	public static String purgeTyping(final Script script) {
-		final List<TypeAnnotation> annotations = script.typeAnnotations();
+		final List<TypeAnnotation> annotations = allTypeAnnotations(script);
 		if (annotations != null) {
-			
+
 			// annotations
 			final String text = StreamUtil.stringFromFile(script.file());
 			final StringBuilder builder = new StringBuilder(text);
@@ -75,7 +76,7 @@ public class StaticTypingUtil {
 				final IRegion loc = annotations.get(i).absolute();
 				builder.replace(loc.getOffset(), loc.getOffset()+loc.getLength(), StringUtil.repetitions(" ", loc.getLength()));
 			}
-			
+
 			// cast expressions
 			script.traverse(new IASTVisitor<StringBuilder>() {
 				@Override
@@ -89,17 +90,34 @@ public class StaticTypingUtil {
 					return TraversalContinuation.Continue;
 				}
 			}, builder);
-			
+
 			return builder.toString();
 		}
 		else
 			return null;
 	}
 
+	private static List<TypeAnnotation> allTypeAnnotations(final Script script) {
+		script.requireLoaded();
+		@SuppressWarnings("serial")
+		class Annots extends ArrayList<TypeAnnotation> implements IASTVisitor<Void> {
+			public Annots() { super(script.typeAnnotations()); }
+			@Override
+			public TraversalContinuation visitNode(ASTNode node, Void context) {
+				if (node instanceof TypeAnnotation)
+					this.add((TypeAnnotation)node);
+				return TraversalContinuation.Continue;
+			}
+		};
+		final Annots annots = new Annots();
+		script.traverse(annots, null);
+		return annots.size() > 0 ? annots : null;
+	}
+
 	public static File toFile(IResource resource) {
 		return new File(resource.getLocation().toOSString());
 	}
-	
+
 	/**
 	 * Mirror a folder inside a project into a folder not managed by Eclipse, replacing files with typing annotations with versions processed via {@link #purgeTyping(IFile)}.
 	 * @param original The original folder which may contain scripts with type annotations
