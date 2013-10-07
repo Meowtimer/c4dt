@@ -1337,7 +1337,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						expect(']');
 						eatWhitespace();
 						final ASTNode expr = parseExpression();
-						elm = new CastExpression(targetType != null ? targetType.type() : null, expr);
+						elm = new CastExpression(targetType, expr);
 					}
 					else {
 						final int beforeWhitespace = this.offset;

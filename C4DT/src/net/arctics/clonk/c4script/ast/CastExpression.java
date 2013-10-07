@@ -5,26 +5,34 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.c4script.typing.TypeAnnotation;
 
 public class CastExpression extends ASTNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private final IType targetType;
-	private final ASTNode expression;
-	public CastExpression(IType targetType, ASTNode expression) {
+	private TypeAnnotation targetTypeAnnotation;
+	private ASTNode expression;
+	public CastExpression(TypeAnnotation targetTypeAnnotation, ASTNode expression) {
 		super();
-		this.targetType = targetType;
+		this.targetTypeAnnotation = targetTypeAnnotation;
 		this.expression = expression;
 		assignParentToSubElements();
 	}
 	public ASTNode expression() { return expression; }
-	public IType targetType() { return targetType; }
+	public TypeAnnotation targetTypeAnnotation() { return targetTypeAnnotation; }
+	public IType targetType() { return targetTypeAnnotation != null ? targetTypeAnnotation.type() : PrimitiveType.UNKNOWN; }
 	@Override
-	public ASTNode[] subElements() { return new ASTNode[] {expression}; }
+	public ASTNode[] subElements() { return new ASTNode[] {targetTypeAnnotation, expression}; }
+	@Override
+	public void setSubElements(ASTNode[] elms) {
+		targetTypeAnnotation = (TypeAnnotation) elms[0];
+		expression = elms[1];
+	}
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		output.append(Keywords.Cast);
 		output.append('[');
-		output.append(targetType.typeName(false));
+		output.append(targetTypeAnnotation.printed());
 		output.append(']');
 		output.append(' ');
 		expression.print(output, depth);
