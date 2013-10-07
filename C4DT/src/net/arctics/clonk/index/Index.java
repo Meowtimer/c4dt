@@ -145,10 +145,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The list
 	 */
 	public List<? extends Definition> definitionsWithID(ID id) {
-		if (definitions == null)
-			return null;
-		else
-			return definitions.get(id);
+		return definitions == null ? null : definitions.get(id);
 	}
 
 	public void postLoad() throws CoreException {
