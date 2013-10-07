@@ -138,7 +138,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				for (final Script script : scripts)
 					validateRelatedFiles(script);
 				
-				EngineLaunch.scriptsBuild(scripts);
+				EngineLaunch.scriptsBuilt(scripts);
 
 				return new IProject[] { proj };
 			} catch (final Exception e) {

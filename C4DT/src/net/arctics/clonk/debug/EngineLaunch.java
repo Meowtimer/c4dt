@@ -62,7 +62,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 		}
 	}
 
-	public static void scriptsBuild(Script[] scripts) {
+	public static void scriptsBuilt(Script[] scripts) {
 		synchronized (list) {
 			if (list.size() == 0)
 				return;
