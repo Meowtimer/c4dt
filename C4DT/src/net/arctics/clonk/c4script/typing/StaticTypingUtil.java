@@ -2,6 +2,7 @@ package net.arctics.clonk.c4script.typing;
 
 import static java.lang.String.format;
 import static net.arctics.clonk.util.StringUtil.multiply;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.arctics.clonk.Core;
@@ -101,7 +103,7 @@ public class StaticTypingUtil {
 		script.requireLoaded();
 		@SuppressWarnings("serial")
 		class Annots extends ArrayList<TypeAnnotation> implements IASTVisitor<Void> {
-			public Annots() { super(script.typeAnnotations()); }
+			public Annots() { super(defaulting(script.typeAnnotations(), Collections.<TypeAnnotation>emptyList())); }
 			@Override
 			public TraversalContinuation visitNode(ASTNode node, Void context) {
 				if (node instanceof TypeAnnotation)
