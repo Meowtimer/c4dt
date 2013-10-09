@@ -252,6 +252,8 @@ public class EngineLaunch implements ILaunchesListener2 {
 	}
 
 	private void purgeTyping(Script script) {
+		if (tempFolder == null)
+			return;
 		final String purged = StaticTypingUtil.purgeTyping(script);
 		if (purged != null) {
 			final IResource res = script.file();
