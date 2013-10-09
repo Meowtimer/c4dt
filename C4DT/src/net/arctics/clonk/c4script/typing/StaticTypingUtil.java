@@ -40,7 +40,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.IRegion;
 
 /**
- * Helper class to purge type annotations from C4ScriptST source files so that the resulting scripts will be accepted by the engine.
+ * Helper class to erase type annotations from C4ScriptST source files so that the resulting scripts will be accepted by the engine.
  * @author madeen
  *
  */
@@ -55,17 +55,17 @@ public class StaticTypingUtil {
 	 * @param file The file to operate on
 	 * @return Contents of the file with typing annotations replaced with whitespace or null if no typing annotations stored for the file.
 	 */
-	public static String purgeTyping(File file) {
+	public static String eraseTypeAnnotations(File file) {
 		final IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
 		if (files == null || files.length == 0)
 			return null;
 		final Script script = Script.get(files[0], true);
 		if (script == null)
 			return null;
-		return purgeTyping(script);
+		return eraseTypeAnnotations(script);
 	}
 
-	public static String purgeTyping(final Script script) {
+	public static String eraseTypeAnnotations(final Script script) {
 		final List<TypeAnnotation> annotations = allTypeAnnotations(script);
 		if (annotations != null) {
 
@@ -119,7 +119,7 @@ public class StaticTypingUtil {
 	}
 
 	/**
-	 * Mirror a folder inside a project into a folder not managed by Eclipse, replacing files with typing annotations with versions processed via {@link #purgeTyping(IFile)}.
+	 * Mirror a folder inside a project into a folder not managed by Eclipse, replacing files with typing annotations with versions processed via {@link #eraseTypeAnnotations(IFile)}.
 	 * @param original The original folder which may contain scripts with type annotations
 	 * @param mirror Mirror folder
 	 * @param linkFiles Whether to link files with no typing annotations instead of copying them.
@@ -131,13 +131,13 @@ public class StaticTypingUtil {
 				continue;
 			final File destinationFile = new File(mirrorFolder, originalFile.getName());
 			if (originalFile.isFile()) {
-				final String purged = purgeTyping(originalFile);
-				if (purged != null)
+				final String erased = eraseTypeAnnotations(originalFile);
+				if (erased != null)
 					try {
 						StreamUtil.writeToFile(destinationFile, new StreamWriteRunnable() {
 							@Override
 							public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
-								writer.write(purged);
+								writer.write(erased);
 							}
 						});
 					} catch (final IOException e1) {

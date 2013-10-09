@@ -72,7 +72,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 			if (scen != null) {
 				final EngineLaunch launch = get(scen.resource().getFullPath());
 				if (launch != null)
-					launch.purgeTyping(s);
+					launch.eraseTypeAnnotations(s);
 			}
 		}
 	}
@@ -111,24 +111,23 @@ public class EngineLaunch implements ILaunchesListener2 {
 		this.nature = n;
 		this.args = new LinkedList<String>();
 		File tf = null;
-		try {
-			if (nature.settings().typing.allowsNonParameterAnnotations()) {
+		if (nature.settings().typing.allowsNonParameterAnnotations())
+			try {
 				tf = Files.createTempDirectory("c4dt").toFile(); //$NON-NLS-1$
 				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(StaticTypingUtil.toFile(nature.getProject()), tf, true);
+			} catch (final IOException e) {
+				e.printStackTrace();
 			}
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
 		this.tempFolder = tf;
 		DebugPlugin.getDefault().getLaunchManager().addLaunchListener(this);
-		record();
+		determineArguments();
 	}
 
 	void addWorkspaceDependency(IContainer res) {
 		if (tempFolder != null)
-			args.add(Path.fromOSString(tempFolder.getAbsolutePath()).append(res.getProjectRelativePath()).toOSString());
+			addArgument(Path.fromOSString(tempFolder.getAbsolutePath()).append(res.getProjectRelativePath()).toOSString());
 		else
-			args.add(ClonkLaunchConfigurationDelegate.resFilePath(res));
+			addArgument(ClonkLaunchConfigurationDelegate.resFilePath(res));
 	}
 
 	public void addArgument(String arg) {
@@ -139,10 +138,10 @@ public class EngineLaunch implements ILaunchesListener2 {
 		return args.toArray(new String[args.size()]);
 	}
 
-	public void record() throws CoreException {
+	public void determineArguments() throws CoreException {
 		final Engine engine = nature.index().engine();
 		// Engine
-		this.args.add(engineFile.getAbsolutePath());
+		this.addArgument(engineFile.getAbsolutePath());
 
 		// Scenario
 		this.addWorkspaceDependency(scenarioFolder);
@@ -167,8 +166,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 		if (configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false))
 			this.addArgument(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "fullscreen")); //$NON-NLS-1$
 		else {
-			this.addArgument(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine,
-					engine.settings().editorCmdLineOption));
+			this.addArgument(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, engine.settings().editorCmdLineOption));
 			this.addArgument(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "noleague")); //$NON-NLS-1$
 		}
 
@@ -251,10 +249,10 @@ public class EngineLaunch implements ILaunchesListener2 {
 		}
 	}
 
-	private void purgeTyping(Script script) {
+	private void eraseTypeAnnotations(Script script) {
 		if (tempFolder == null)
 			return;
-		final String purged = StaticTypingUtil.purgeTyping(script);
+		final String purged = StaticTypingUtil.eraseTypeAnnotations(script);
 		if (purged != null) {
 			final IResource res = script.file();
 			final List<String> breadcrump = new LinkedList<>();
