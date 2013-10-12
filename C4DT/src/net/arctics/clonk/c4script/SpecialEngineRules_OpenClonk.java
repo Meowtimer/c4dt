@@ -116,10 +116,18 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			Object parmEv;
 			if (!node.name().equals("RemoveEffect") && node.params().length >= 1 && (parmEv = node.params()[0].evaluateStatic(node.parent(Function.class))) instanceof String) {
 				final String effectName = (String) parmEv;
-				return processor.script().effects().get(effectName);
+				return findEffect(processor.script(), effectName);
 			}
 			return null;
 		};
+		private Effect findEffect(Script script, String effectName) {
+			for (final Script s : script.conglomerate()) {
+				final Effect effect = s.script().effects().get(effectName);
+				if (effect != null)
+					return effect;
+			}
+			return null;
+		}
 		@Override
 		public EntityRegion locateEntityInParameter(
 			CallDeclaration node, Script script, int index,
@@ -127,7 +135,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		) {
 			if (parmExpression instanceof StringLiteral && node.params().length >= 1 && node.params()[0] == parmExpression) {
 				final String effectName = ((StringLiteral)parmExpression).literal();
-				final Effect effect = script.script().effects().get(effectName);
+				final Effect effect = findEffect(script, effectName);
 				if (effect != null)
 					return new EntityRegion(new HashSet<IIndexEntity>(effect.functions().values()), new Region(parmExpression.start()+1, parmExpression.getLength()-2));
 			}
