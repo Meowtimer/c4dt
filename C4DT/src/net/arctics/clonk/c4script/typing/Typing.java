@@ -74,8 +74,11 @@ public enum Typing {
 					return PrimitiveType.ID;
 				break;
 			case OBJECT:
-			case INT:
 			case STRING:
+				break;
+			case INT:
+				if (b instanceof Definition)
+					return b;
 				break;
 			case BOOL:
 				if (eq(b, PrimitiveType.INT))
