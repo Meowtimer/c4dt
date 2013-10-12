@@ -25,6 +25,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
@@ -92,9 +93,12 @@ public abstract class SpecialEngineRules {
 
 	protected Engine engine;
 
+	private final ASTNode RETURN_TRUE;
+	
 	public SpecialEngineRules(Engine engine) {
 		super();
 		this.engine = engine;
+		RETURN_TRUE = ASTNodeMatcher.prepareForMatching("$:FunctionBody$(return $:True$|$:NumberLiteral,/1/$;)", engine);
 	}
 
 	/**
@@ -531,27 +535,24 @@ public abstract class SpecialEngineRules {
 			final List<Declaration> functions = functionsNamed(script, (String)ev);
 			final List<IType> types = new ArrayList<IType>(functions.size());
 			for (final Declaration f : functions)
-				if (f.script() instanceof Definition)
-					types.add(f.script());
-				else if (f.script() != null)
-					for (final Directive directive : f.script().directives())
-						if (directive.type() == DirectiveType.APPENDTO) {
-							final Definition def = f.script().index().definitionNearestTo(script.resource(), directive.contentAsID());
-							if (def != null)
-								types.add(def);
-						}
+				if (f instanceof Function)
+					addTypeFromFunction(script, types, (Function) f);
 			for (final Index index : script.index().relevantIndexes())
 				for (final Function f : index.declarationsWithName((String)ev, Function.class))
-					if (f.script() instanceof Definition)
-						types.add(f.script());
-					else for (final Directive directive : f.script().directives())
-						if (directive.type() == DirectiveType.APPENDTO) {
-							final Definition def = f.script().index().definitionNearestTo(script.resource(), directive.contentAsID());
-							if (def != null)
-								types.add(def);
-						}
+					addTypeFromFunction(script, types, f);
 			final IType ty = script.typing().unify(types);
 			return ty;
+		}
+		private void addTypeFromFunction(Script script, final List<IType> types, final Function f) {
+			if (f.body() != null && RETURN_TRUE.match(f.body()) != null)
+				if (f.script() instanceof Definition)
+					types.add(f.script());
+				else for (final Directive directive : f.script().directives())
+					if (directive.type() == DirectiveType.APPENDTO) {
+						final Definition def = f.script().index().definitionNearestTo(script.resource(), directive.contentAsID());
+						if (def != null)
+							types.add(def);
+					}
 		};
 	};
 
