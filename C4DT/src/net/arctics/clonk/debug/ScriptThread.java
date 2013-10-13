@@ -140,7 +140,12 @@ public class ScriptThread extends DebugElement implements IThread {
 			map = calculateLineToFunctionMap(script);
 			lineToFunctionMaps.put(script, map);
 		}
-		return line >= 0 && line < map.length ? map[line] : null;
+		for (int x = line; line-x < 3; x--) {
+			final Function f = x >= 0 && x < map.length ? map[x] : null;
+			if (f != null)
+				return f;
+		}
+		return null;
 	}
 
 	public ScriptThread(Target target) {
