@@ -768,14 +768,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(T from) {
-		try {
-			if (from instanceof Script)
-				return (T) Utilities.scriptForResource(from.resource());
-			else if (from instanceof Structure && from.resource() instanceof IFile)
-				return (T) Structure.pinned(from.resource(), false, false);
-		} catch (final CoreException e) {
-			e.printStackTrace();
-		}
+		if (from instanceof Script)
+			return (T) Utilities.scriptForResource(from.resource());
+		else if (from instanceof Structure && from.resource() instanceof IFile)
+			return (T) Structure.pinned(from.resource(), false, false);
 		return null;
 	}
 

@@ -15,6 +15,7 @@ import net.arctics.clonk.util.ObjectFinderVisitor;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -107,20 +108,32 @@ public class ProjectIndex extends Index {
 	 * Find a script belonging to the project resource denoted by the given path.
 	 */
 	@Override
-	public Script findScriptByPath(String path) {
-		final IResource res = nature().getProject().findMember(new Path(path));
-		if (res != null) {
-			Script result;
-			try {
-				result = Utilities.scriptForResource(res);
+	public Script findScriptByPath(String pathString) {
+		synchronized (nature) {
+			final Path path = new Path(pathString);
+			final IResource res = findScriptFileMatchingPath(path);
+			if (res != null) {
+				final Script result = Utilities.scriptForResource(res);
 				if (result != null)
 					return result;
-			} catch (final CoreException e) {
-				e.printStackTrace();
-				return null;
+			}
+			return super.findScriptByPath(pathString);
+		}
+	}
+	
+	private IResource findScriptFileMatchingPath(Path path) {
+		final IResource perfect = nature().getProject().findMember(path);
+		if (perfect != null)
+			return perfect;
+		for (final Scenario s : scenarios()) {
+			final IContainer scenarioFolder = s.definitionFolder();
+			if (scenarioFolder != null && path.segment(0).equals(scenarioFolder.getName())) {
+				final IResource res = scenarioFolder.findMember(path.removeFirstSegments(1));
+				if (res != null)
+					return res;
 			}
 		}
-		return super.findScriptByPath(path);
+		return null;
 	}
 
 	/**
