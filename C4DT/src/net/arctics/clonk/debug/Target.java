@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
@@ -19,6 +21,7 @@ import net.arctics.clonk.util.ICreate;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -117,7 +120,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	private BufferedReader socketReader;
 	private boolean suspended;
 	private final IResource scenario;
-
+	
 	private final List<ILineReceivedListener> lineReceiveListeners = new LinkedList<ILineReceivedListener>();
 
 	/**
@@ -328,6 +331,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	public Target(ILaunch launch, IProcess process, Integer port, IResource scenario) throws Exception {
 		super(null);
 		this.launch = launch;
+		//this.launch.setSourceLocator(new SourceLookupDirector());
 		this.process = process;
 		this.thread = new ScriptThread(this);
 		this.threads = new IThread[] {thread};
@@ -448,11 +452,23 @@ public class Target extends DebugElement implements IDebugTarget {
 		try {
 			if (breakpoint instanceof Breakpoint) {
 				final Breakpoint bp = (Breakpoint) breakpoint;
-				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, bp.getMarker().getResource().getProjectRelativePath().toOSString(), bp.getLineNumber()-1)); //$NON-NLS-1$
+				final IResource res = bp.getMarker().getResource();
+				final IPath relPath = relativePath(res);
+				send(String.format("%s %s:%d", Commands.TOGGLEBREAKPOINT, relPath.toOSString(), bp.getLineNumber())); //$NON-NLS-1$
 			}
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private IPath relativePath(final IResource res) {
+		final IPath relPath = res.getProjectRelativePath();
+		final ClonkProjectNature cpn = ClonkProjectNature.get(res);
+		final String scenSuffix = "." + cpn.index().engine().settings().groupTypeToFileExtensionMapping().get(GroupType.ScenarioGroup);
+		for (int i = relPath.segmentCount()-1; i >= 0; i--)
+			if (relPath.segment(i).endsWith(scenSuffix))
+				return relPath.removeFirstSegments(i);
+		return relPath;
 	}
 
 	@Override
@@ -473,6 +489,18 @@ public class Target extends DebugElement implements IDebugTarget {
 
 	@Override
 	public void disconnect() throws DebugException {
+		if (socketWriter != null) {
+			socketWriter.close();
+			socketWriter = null;
+		}
+		if (socketReader != null) {
+			try {
+				socketReader.close();
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
+			socketReader = null;
+		}
 		if (socket != null) {
 			try {
 				socket.close();
