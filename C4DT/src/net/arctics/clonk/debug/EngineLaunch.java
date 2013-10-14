@@ -229,7 +229,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 					if (scenario != null && !scenario.engine().settings().supportsDebugging)
 						Utilities.abort(IStatus.ERROR,
 							String.format(Messages.EngineDoesNotSupportDebugging, scenario.engine().name()));
-				final Process process = Runtime.getRuntime().exec(arguments(), null, workDirectory);
+				final Process process = new ProcessBuilder(arguments()).directory(workDirectory).start();
 				final Map<String, String> processAttributes = new HashMap<String, String>();
 				processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "clonkEngine"); //$NON-NLS-1$
 				processAttributes.put(IProcess.ATTR_PROCESS_LABEL, scenarioFolder.getProjectRelativePath().toOSString());
