@@ -32,7 +32,6 @@ import net.arctics.clonk.c4group.C4GroupItem;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.FunctionFragmentParser;
-import net.arctics.clonk.c4script.Marker;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
@@ -650,8 +649,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			}
 		}
 		final DepthCallsCollector collector = new DepthCallsCollector();
-		if (!collector.isEmpty()) {
-			final Marker lastMarker = markers.last();
+		if (!collector.isEmpty())
 			strategy.steer(new Runnable() {
 				@Override
 				public void run() {
@@ -661,10 +659,6 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					strategy.apply();
 				}
 			});
-
-			//if (markers.last() != lastMarker)
-			//	annotateAddedNodes(function);
-		}
 	}
 
 	private void annotateAddedNodes(final Function function) {
