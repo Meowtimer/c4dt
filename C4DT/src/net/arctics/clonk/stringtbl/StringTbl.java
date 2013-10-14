@@ -10,22 +10,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Problem;
-import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.NameValueAssignment;
 import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.Region;
 
@@ -38,9 +33,6 @@ public class StringTbl extends Structure implements ITreeNode {
 	private final Map<String, NameValueAssignment> map = new HashMap<String, NameValueAssignment>();
 	private transient IFile file;
 
-	public IFile file() {
-		return file;
-	}
 
 	@Override
 	public void setFile(IFile file) {
@@ -49,13 +41,24 @@ public class StringTbl extends Structure implements ITreeNode {
 	}
 
 	@Override
-	public IResource resource() {
-		return file;
-	}
-
-	public Map<String, NameValueAssignment> map() {
-		return map;
-	}
+	public IFile file() { return file; }
+	@Override
+	public IResource resource() { return file; }
+	public Map<String, NameValueAssignment> map() { return map; }
+	@Override
+	public void addChild(ITreeNode node) {}
+	@Override
+	public Collection<? extends ITreeNode> childCollection() { return map.values(); }
+	@Override
+	public String nodeName() { return "StringTbl"; } //$NON-NLS-1$
+	@Override
+	public ITreeNode parentNode() { return null; }
+	@Override
+	public IPath path() { return ITreeNode.Default.path(this); }
+	@Override
+	public boolean subNodeOf(ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
+	@Override
+	public boolean requiresScriptReparse() { return true; }
 
 	public void addTblEntry(String key, String value, int start, int end) {
 		final NameValueAssignment nv = new NameValueAssignment(start, end, key, value);
@@ -136,40 +139,6 @@ public class StringTbl extends Structure implements ITreeNode {
 		});
 	}
 
-	@Override
-	public void addChild(ITreeNode node) {
-	}
-
-	@Override
-	public Collection<? extends ITreeNode> childCollection() {
-		return map.values();
-	}
-
-	@Override
-	public String nodeName() {
-		return "StringTbl";  //$NON-NLS-1$
-	}
-
-	@Override
-	public ITreeNode parentNode() {
-		return null;
-	}
-
-	@Override
-	public IPath path() {
-		return ITreeNode.Default.path(this);
-	}
-
-	@Override
-	public boolean subNodeOf(ITreeNode node) {
-		return ITreeNode.Default.subNodeOf(this, node);
-	}
-
-	@Override
-	public boolean requiresScriptReparse() {
-		return true;
-	}
-
 	public static EntityRegion entryRegionInString(String stringValue, int exprStart, int offset) {
 		final int firstDollar = stringValue.lastIndexOf('$', offset-1);
 		final int secondDollar = stringValue.indexOf('$', offset);
@@ -241,38 +210,6 @@ public class StringTbl extends Structure implements ITreeNode {
 		r.singleDeclarationRegionUsed = moreThanOneSubstitution ? null : reg;
 		r.anySubstitutionsApplied = substitutionsApplied;
 		return r;
-	}
-
-	/**
-	 * Create error markers in scripts for StringTbl references where the entry is missing from some of the StringTbl**.txt files
-	 * @param context The parser
-	 * @param region The region describing the string table reference in question
-	 * @param node
-	 */
-	public static void reportMissingStringTblEntries(ProblemReporter context, EntityRegion region, ASTNode node) {
-		StringBuilder miss = null;
-		try {
-			for (final IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {
-				if (!(r instanceof IFile))
-					continue;
-				final IFile f = (IFile) r;
-				final Matcher m = StringTbl.PATTERN.matcher(r.getName());
-				if (m.matches()) {
-					final String lang = m.group(1);
-					final StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
-					if (tbl != null)
-						if (tbl.map().get(region.text()) == null) {
-							if (miss == null)
-								miss = new StringBuilder(10);
-							if (miss.length() > 0)
-								miss.append(", "); //$NON-NLS-1$
-							miss.append(lang);
-						}
-				}
-			}
-		} catch (final CoreException e) {}
-		if (miss != null)
-			context.markers().warning(context, Problem.MissingLocalizations, node, region.region(), 0, region.text(), miss);
 	}
 
 }

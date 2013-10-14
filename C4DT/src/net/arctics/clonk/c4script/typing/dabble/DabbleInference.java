@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
@@ -35,6 +36,7 @@ import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.Placeholder;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
@@ -124,6 +126,7 @@ import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.PerClass;
 import net.arctics.clonk.util.TaskExecution;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -2303,7 +2306,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (i+1 < valueLen && value.charAt(i) == '$') {
 							final EntityRegion region = StringTbl.entryRegionInString(lit, node.start(), (i+1));
 							if (region != null) {
-								StringTbl.reportMissingStringTblEntries(visitor, region, node);
+								reportMissingStringTblEntries(visitor, region, node);
 								i += region.region().getLength();
 								continue;
 							}
@@ -2663,7 +2666,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<Placeholder>(Placeholder.class) {
 				@Override
 				public void visit(Placeholder node, Visitor visitor) throws ProblemException {
-					StringTbl.reportMissingStringTblEntries(visitor, new EntityRegion(null, node, node.entryName()), node);
+					reportMissingStringTblEntries(visitor, new EntityRegion(null, node, node.entryName()), node);
 				}
 			},
 
@@ -2744,6 +2747,38 @@ public class DabbleInference extends ProblemReportingStrategy {
 				//e.printStackTrace();
 			}
 		this.markers.capture(markers);
+	}
+
+	/**
+	 * Create error markers in scripts for StringTbl references where the entry is missing from some of the StringTbl**.txt files
+	 * @param context Problem reporter
+	 * @param region The region describing the string table reference in question
+	 * @param node Node in which the reference to the string table entry is contained
+	 */
+	public static void reportMissingStringTblEntries(ProblemReporter context, EntityRegion region, ASTNode node) {
+		StringBuilder miss = null;
+		try {
+			for (final IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {
+				if (!(r instanceof IFile))
+					continue;
+				final IFile f = (IFile) r;
+				final Matcher m = StringTbl.PATTERN.matcher(r.getName());
+				if (m.matches()) {
+					final String lang = m.group(1);
+					final StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
+					if (tbl != null)
+						if (tbl.map().get(region.text()) == null) {
+							if (miss == null)
+								miss = new StringBuilder(10);
+							if (miss.length() > 0)
+								miss.append(", "); //$NON-NLS-1$
+							miss.append(lang);
+						}
+				}
+			}
+		} catch (final CoreException e) {}
+		if (miss != null)
+			context.markers().warning(context, Problem.MissingLocalizations, node, region.region(), 0, region.text(), miss);
 	}
 
 }

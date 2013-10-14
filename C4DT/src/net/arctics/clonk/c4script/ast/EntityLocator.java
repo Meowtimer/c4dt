@@ -63,7 +63,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		exprRegion = region;
 		script.traverse(this, null);
 		if (exprAtRegion != null) {
-			final EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.start(), this);
+			final EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.absolute().getOffset(), this);
 			initializeProposedDeclarations(script, declRegion, exprAtRegion);
 		}
 	}

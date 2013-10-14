@@ -163,7 +163,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		@Override
 		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
 			try {
-				final EntityLocator locator = new EntityLocator(structure(), viewer.getDocument(),region);
+				final EntityLocator locator = new EntityLocator(structure(), viewer.getDocument(), region);
 				if (locator.entity() != null)
 					return new IHyperlink[] {
 						new EntityHyperlink(locator.expressionRegion(), locator.entity())
