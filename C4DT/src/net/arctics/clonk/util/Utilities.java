@@ -103,7 +103,7 @@ public abstract class Utilities {
 			return null;
 	}
 
-	public static Script scriptForResource(IResource resource) throws CoreException {
+	public static Script scriptForResource(IResource resource) {
 		if (resource instanceof IContainer)
 			return Definition.definitionCorrespondingToFolder((IContainer) resource);
 		else if (resource instanceof IFile)

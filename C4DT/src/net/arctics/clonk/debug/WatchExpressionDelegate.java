@@ -1,7 +1,9 @@
 package net.arctics.clonk.debug;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -54,7 +56,9 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 		 * @param listener the watch expression listener
 		 */
 		public void add(String expression, IWatchExpressionListener listener) {
-			listeners.put(expression, listener);
+			synchronized (listeners) {
+				listeners.put(expression, listener);
+			}
 		}
 
 		/**
@@ -64,10 +68,14 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 		public LineReceivedResult lineReceived(String line, Target target) throws IOException {
 			String toRemove = null;
 			boolean processed = false;
-			for (Entry<String, IWatchExpressionListener> entry : listeners.entrySet()) {
+			List<Entry<String, IWatchExpressionListener>> cpy;
+			synchronized (listeners) {
+				cpy = new ArrayList<>(listeners.entrySet());
+			}
+			for (final Entry<String, IWatchExpressionListener> entry : cpy) {
 				final String expression = entry.getKey();
-				IWatchExpressionListener listener = entry.getValue();
-				String s = Commands.EVALUATIONRESULT + " " + expression + "="; //$NON-NLS-1$ //$NON-NLS-2$
+				final IWatchExpressionListener listener = entry.getValue();
+				final String s = Commands.EVALUATIONRESULT + " " + expression + "="; //$NON-NLS-1$ //$NON-NLS-2$
 				if (line.startsWith(s)){
 					final Value value = new Value(target, line.substring(s.length()));
 					listener.watchEvaluationFinished(new IWatchExpressionResult() {
@@ -97,10 +105,14 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 					break;
 				}
 			}
-			if (toRemove != null)
-				listeners.remove(toRemove);
+			boolean noneLeft;
+			synchronized (listeners) {
+				if (toRemove != null)
+					listeners.remove(toRemove);
+				noneLeft = listeners.size() == 0;
+			}
 			return processed
-				? listeners.size() == 0
+				? noneLeft
 					? LineReceivedResult.ProcessedRemove
 					: LineReceivedResult.ProcessedDontRemove
 				: LineReceivedResult.NotProcessedDontRemove;
@@ -111,7 +123,9 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 		 */
 		@Override
 		public boolean active() {
-			return !listeners.isEmpty();
+			synchronized (listeners) {
+				return !listeners.isEmpty();
+			}
 		}
 	}
 
@@ -121,7 +135,7 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 	 */
 	@Override
 	public void evaluateExpression(final String expression, final IDebugElement context, final IWatchExpressionListener listener) {
-		Target target = (Target) context.getDebugTarget();
+		final Target target = (Target) context.getDebugTarget();
 		target.requestLineReceivedListener(new ICreate<EvaluationResultListener>() {
 			@Override
 			public Class<EvaluationResultListener> cls() {

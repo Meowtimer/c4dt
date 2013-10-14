@@ -8,6 +8,7 @@ import java.util.List;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.PrintParametersOptions;
 import net.arctics.clonk.c4script.Variable;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.DebugException;
@@ -20,7 +21,7 @@ public class StackFrame extends DebugElement implements IStackFrame {
 	private static final String NAME_FORMAT = Messages.ClonkDebugStackFrame_StackFrameMessage;
 
 	private int line;
-	private Object function;
+	private final Object function;
 	private final ScriptThread thread;
 	private DebugVariable[] variables;
 
@@ -68,7 +69,6 @@ public class StackFrame extends DebugElement implements IStackFrame {
 
 	public void setLine(int line) { this.line = line; }
 	public Object getFunction() { return function; }
-	public void setFunction(Object function) { this.function = function; }
 	@Override
 	public int getCharEnd() throws DebugException { return -1; }
 	@Override

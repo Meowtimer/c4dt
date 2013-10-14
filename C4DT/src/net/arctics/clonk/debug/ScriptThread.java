@@ -73,18 +73,16 @@ public class ScriptThread extends DebugElement implements IThread {
 			final String fullSourcePath = sourcePath;
 			final int delim = sourcePath.lastIndexOf(':');
 			final String linePart = sourcePath.substring(delim+1);
-			final int line = Integer.parseInt(linePart)+1;
+			final int line = Integer.parseInt(linePart);
 			sourcePath = sourcePath.substring(0, delim);
 			final Script script = findScript(sourcePath, index, new HashSet<Index>());
 			final Function f = script != null ? funcAtLine(script, line) : null;
 			final Object funObj = f != null ? f : fullSourcePath;
-			if (stillToBeReused > 0)
-				if (stackFrames[stillToBeReused-1].getFunction().equals(funObj)) {
-					newStackFrames[i] = stackFrames[--stillToBeReused];
-					newStackFrames[i].setLine(line);
-					continue;
-				}
-			newStackFrames[i] = new StackFrame(this, f != null ? f : fullSourcePath, line);
+			if (stillToBeReused > 0 && stackFrames[stillToBeReused-1].getFunction().equals(funObj)) {
+				newStackFrames[i] = stackFrames[--stillToBeReused];
+				newStackFrames[i].setLine(line);
+			} else
+				newStackFrames[i] = new StackFrame(this, f != null ? f : fullSourcePath, line);
 		}
 		stackFrames = newStackFrames;
 	}
@@ -142,7 +140,12 @@ public class ScriptThread extends DebugElement implements IThread {
 			map = calculateLineToFunctionMap(script);
 			lineToFunctionMaps.put(script, map);
 		}
-		return line >= 0 && line < map.length ? map[line] : null;
+		for (int x = line; line-x < 3; x--) {
+			final Function f = x >= 0 && x < map.length ? map[x] : null;
+			if (f != null)
+				return f;
+		}
+		return null;
 	}
 
 	public ScriptThread(Target target) {
