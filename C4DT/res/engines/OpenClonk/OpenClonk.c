@@ -760,6 +760,8 @@ static const int MAPALGO_Ellipsis;
 static const int MAPALGO_Polygon;
 static const int MAPALGO_Turbulence;
 static const int MAPALGO_Border;
+static const int MAPALGO_Lines;
+static const int MAPALGO_Rotate;
 
 static const int GUI_SetTag;
 static const int GUI_Call;
