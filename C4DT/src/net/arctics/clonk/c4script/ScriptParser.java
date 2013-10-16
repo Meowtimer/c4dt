@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
@@ -226,7 +227,17 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		clear();
 		parseDeclarations();
 		validate();
+		filterLocalTypeAnnotations();
 		script().setTypeAnnotations(typeAnnotations);
+	}
+	private void filterLocalTypeAnnotations() {
+		if (typeAnnotations == null)
+			return;
+		for (final Iterator<TypeAnnotation> it = typeAnnotations.iterator(); it.hasNext();) {
+			final TypeAnnotation annot = it.next();
+			if (annot.parent() != script() && annot.parent(Script.class) == script())
+				it.remove();
+		}
 	}
 
 	@Override
@@ -844,7 +855,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					eatWhitespace();
 				}
 				t.setSubAnnotations(subAnnotations.toArray(new TypeAnnotation[subAnnotations.size()]));
-				if (typeAnnotations != null && topLevel && sectionOffset() == 0)
+				if (typeAnnotations != null && topLevel)
 					typeAnnotations.add(t);
 			}
 		}
