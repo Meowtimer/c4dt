@@ -60,7 +60,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	 * @param start Start location.
 	 * @param end End location.
 	 * @param var Variable. May be null.
-	 * @param typeAnnotation TODO
+	 * @param typeAnnotation Explicit type annotation
 	 */
 	public VarInitialization(String name, ASTNode expression, int start, int end, Variable var, TypeAnnotation typeAnnotation) {
 		super();
