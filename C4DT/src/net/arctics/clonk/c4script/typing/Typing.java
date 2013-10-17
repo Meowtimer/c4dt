@@ -108,16 +108,8 @@ public enum Typing {
 		if (a instanceof TypeChoice && b instanceof TypeChoice) {
 			final TypeChoice tca = (TypeChoice)a;
 			final TypeChoice tcb = (TypeChoice)b;
-			final IType l = unifyNoChoice(tca.left(), tcb.left());
-			final IType r = unifyNoChoice(tca.right(), tcb.right());
-			if (l != null && r != null)
-				return TypeChoice.make(l, r);
-			else if (l == null && r != null)
-				return TypeChoice.make(TypeChoice.make(tca.left(), tcb.left()), r);
-			else if (l != null && r == null)
-				return TypeChoice.make(l, TypeChoice.make(tca.right(), tcb.right()));
-			else
-				return null;
+			final IType firstTry = unifyTypeChoices(tca, tcb);
+			return firstTry != null ? firstTry : unifyTypeChoices(tca, new TypeChoice(tcb.right(), tcb.left()));
 		}
 
 		if (a instanceof TypeChoice) {
@@ -172,6 +164,19 @@ public enum Typing {
 			return unify(PrimitiveType.OBJECT, b);
 
 		return null;
+	}
+
+	private IType unifyTypeChoices(final TypeChoice tca, final TypeChoice tcb) {
+		final IType l = unifyNoChoice(tca.left(), tcb.left());
+		final IType r = unifyNoChoice(tca.right(), tcb.right());
+		if (l != null && r != null)
+			return TypeChoice.make(l, r);
+		else if (l == null && r != null)
+			return TypeChoice.make(TypeChoice.make(tca.left(), tcb.left()), r);
+		else if (l != null && r == null)
+			return TypeChoice.make(l, TypeChoice.make(tca.right(), tcb.right()));
+		else
+			return null;
 	}
 
 	private IType unifyTypeAndChoice(final TypeChoice choice, IType type, int recursion) {
