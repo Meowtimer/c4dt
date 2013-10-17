@@ -1815,12 +1815,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final ASTNode arg = node.argument();
 					if (node.operator().modifiesArgument() && !visitor.expert(arg).isModifiable(arg, visitor))
 						visitor.markers().error(visitor, Problem.ExpressionNotModifiable, node, arg, Markers.NO_THROW);
-					final Expert<? super ASTNode> rarg = visitor.expert(arg);
+					final Expert<? super ASTNode> xprt = visitor.expert(arg);
 					final PrimitiveType firstArgType = node.operator().firstArgType();
-					if (rarg.unifyDeclaredAndGiven(arg, firstArgType, visitor) == null)
-						visitor.incompatibleTypesMarker(node, arg, firstArgType, visitor.ty(arg, rarg));
+					if (xprt.unifyDeclaredAndGiven(arg, firstArgType, visitor) == null)
+						visitor.incompatibleTypesMarker(node, arg, firstArgType, visitor.ty(arg, xprt));
 					if (firstArgType != PrimitiveType.UNKNOWN)
-						rarg.judgment(arg, firstArgType, null, visitor, TypingJudgementMode.UNIFY);
+						xprt.judgment(arg, firstArgType, node, visitor, TypingJudgementMode.UNIFY);
 				}
 				@Override
 				public boolean isModifiable(UnaryOp node, Visitor visitor) {
