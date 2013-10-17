@@ -223,9 +223,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	static class ParameterValidation {
-		Script script;
-		Function called;
-		CallDeclaration node;
+		final Script script;
+		final Function called;
+		final CallDeclaration node;
 		void regularParameterValidation(DabbleInference inference, Visitor v) {
 			final ASTNode[] params = node.params();
 			IType[] nodeTypes;
