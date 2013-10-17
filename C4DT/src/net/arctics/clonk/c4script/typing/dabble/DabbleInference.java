@@ -1045,7 +1045,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final Function fun = visit.function;
 			final TypeVariable retTy = typeEnvironment.get(fun);
 			IType[] parameterTypes;
-			if (erroneous) {
+			if (erroneous && typing == Typing.INFERRED) {
 				final Function.Typing oldTyping = script.typings().get(fun);
 				parameterTypes = oldTyping != null ? oldTyping.parameterTypes : new IType[0];
 			}
