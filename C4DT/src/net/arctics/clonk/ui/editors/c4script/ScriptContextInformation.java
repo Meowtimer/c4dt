@@ -58,6 +58,7 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 		if (obj instanceof ScriptContextInformation) {
 			final ScriptContextInformation other = (ScriptContextInformation) obj;
 			return
+				parmsStart == other.parmsStart &&
 				Utilities.eq(getInformationDisplayString(), other.getInformationDisplayString());
 		}
 		return false;

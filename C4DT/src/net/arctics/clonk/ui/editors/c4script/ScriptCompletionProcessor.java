@@ -62,7 +62,6 @@ import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -885,7 +884,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 		try {
 			// HACK: if changed, hide the old one -.-
-			if (!Utilities.eq(prevInformation, info))
+			if (!eq(prevInformation, info))
 				state().assistant().hide();
 			return info != null ? new IContextInformation[] {info} : null;
 		} finally {
