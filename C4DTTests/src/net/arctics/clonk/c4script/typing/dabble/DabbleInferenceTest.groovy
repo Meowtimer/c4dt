@@ -5,6 +5,7 @@ import net.arctics.clonk.TestBase
 import net.arctics.clonk.c4script.ScriptParserTest
 import net.arctics.clonk.c4script.Variable
 import net.arctics.clonk.c4script.typing.ArrayType
+import net.arctics.clonk.c4script.typing.Maybe;
 import net.arctics.clonk.c4script.typing.PrimitiveType
 import net.arctics.clonk.c4script.typing.TypeChoice
 import net.arctics.clonk.index.Definition

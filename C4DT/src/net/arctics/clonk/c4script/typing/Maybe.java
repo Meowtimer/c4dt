@@ -1,11 +1,7 @@
-package net.arctics.clonk.c4script.typing.dabble;
+package net.arctics.clonk.c4script.typing;
 
 import static net.arctics.clonk.util.Utilities.eq;
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
-import net.arctics.clonk.c4script.typing.IType;
-import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.c4script.typing.TypeChoice;
 import net.arctics.clonk.index.Definition;
 
 public class Maybe extends TypeChoice {

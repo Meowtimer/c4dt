@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.typing.dabble.Maybe;
 import net.arctics.clonk.util.ArrayUtil.Folder;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.StringUtil;
