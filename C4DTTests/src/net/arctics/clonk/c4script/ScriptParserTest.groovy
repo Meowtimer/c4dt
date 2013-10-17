@@ -1,46 +1,34 @@
 package net.arctics.clonk.c4script
 
 import java.util.regex.Matcher
-import java.util.regex.Pattern
-import org.junit.Assert
-import org.junit.Before
 
 import net.arctics.clonk.Core
 import net.arctics.clonk.DefinitionInfo
-import net.arctics.clonk.Problem;
-import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.ProblemException
 import net.arctics.clonk.TestBase
-import net.arctics.clonk.ast.ASTComparisonDelegate;
-import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.c4script.ScriptParser;
-import net.arctics.clonk.c4script.Operator;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.index.Engine
-import net.arctics.clonk.index.EngineSettings
-import net.arctics.clonk.index.ID;
-import net.arctics.clonk.index.Index
-import net.arctics.clonk.index.Definition
-import net.arctics.clonk.parser.BufferedScanner
-import net.arctics.clonk.parser.Markers
-import net.arctics.clonk.util.SelfcontainedStorage;
+import net.arctics.clonk.ast.ASTComparisonDelegate
+import net.arctics.clonk.ast.ASTNode
 import net.arctics.clonk.c4script.ast.AccessVar
 import net.arctics.clonk.c4script.ast.BinaryOp
 import net.arctics.clonk.c4script.ast.Block
-import net.arctics.clonk.c4script.ast.BreakStatement
-import net.arctics.clonk.c4script.ast.BunchOfStatements
 import net.arctics.clonk.c4script.ast.CallDeclaration
 import net.arctics.clonk.c4script.ast.ForStatement
 import net.arctics.clonk.c4script.ast.IntegerLiteral
 import net.arctics.clonk.c4script.ast.SimpleStatement
 import net.arctics.clonk.c4script.ast.StringLiteral
-import net.arctics.clonk.c4script.ast.True
 import net.arctics.clonk.c4script.ast.UnaryOp
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement
 import net.arctics.clonk.c4script.ast.VarInitialization
-import net.arctics.clonk.c4script.ast.WhileStatement
 import net.arctics.clonk.c4script.ast.UnaryOp.Placement
+import net.arctics.clonk.index.Definition
+import net.arctics.clonk.index.Engine
+import net.arctics.clonk.index.ID
+import net.arctics.clonk.index.Index
+import net.arctics.clonk.parser.Markers
+import net.arctics.clonk.util.SelfcontainedStorage
 
 import org.eclipse.core.resources.IStorage
+import org.junit.Assert
 import org.junit.Test
 
 public class ScriptParserTest extends TestBase {
@@ -86,7 +74,7 @@ public class ScriptParserTest extends TestBase {
 	public void testForLoopParsingParsing() {
 		final ASTNode body = new ForStatement(
 				new VarDeclarationStatement(Variable.Scope.VAR,
-						new VarInitialization("i", IntegerLiteral.ZERO, 0, 0, null)),
+						new VarInitialization("i", IntegerLiteral.ZERO, 0, 0, null, null)),
 							new BinaryOp(Operator.Smaller, new AccessVar("i"),
 								new IntegerLiteral(100)), new UnaryOp(Operator.Increment, Placement.Postfix, new AccessVar("i")),
 								new Block(new SimpleStatement(
