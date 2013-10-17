@@ -92,7 +92,8 @@ public enum Problem {
 		Messages.CAM_Arg, Messages.CAM_Par, Messages.CAM_Callee, Messages.CAM_Expected, Messages.CAM_Got),
 	DeclarationNotFound(Messages.DeclarationNotFound, Messages.DNF_DeclarationName, Messages.DNF_Container),
 	LoopVariableUsedInMultipleLoops(Messages.LoopVariableUsedInMultipleLoops, Messages.LoopVariableName),
-	LeadsToErrors(Messages.LeadsToErrors);
+	LeadsToErrors(Messages.LeadsToErrors),
+	LocalOverridesParameter(Messages.LocalOverridesParameter);
 
 	private String message;
 	private String[] formatArgumentDescriptions;

@@ -145,6 +145,7 @@ public class Messages extends NLS {
 	public static String OnlySomeTypesSupportFunction;
 	public static String Arg_SupportingTypes;
 	public static String Arg_NonSupportingTypes;
+	public static String LocalOverridesParameter;
 
 	static {
 		// initialize resource bundle

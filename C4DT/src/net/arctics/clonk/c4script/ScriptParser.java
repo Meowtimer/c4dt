@@ -728,10 +728,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				fragmentOffset()+bt, fragmentOffset()+this.offset, comment);
 			if (staticType != null)
 				staticType.setTarget(var);
-			if (staticType != null) {
-				var.assignType(staticType.type(), true);
-				staticType.setTarget(var);
-			}
+			if (staticType != null)
+				if (var.scope() == Scope.PARAMETER)
+					error(Problem.LocalOverridesParameter, s, s+var.name().length(), Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, var.name());
+				else {
+					var.assignType(staticType.type(), true);
+					staticType.setTarget(var);
+				}
 			this.currentDeclaration = var;
 			VarInitialization varInitialization;
 			ASTNode initializationExpression = null;
