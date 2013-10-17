@@ -1761,10 +1761,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					case AssignMultiply: case AssignModulo: case AssignDivide:
 						visitor.expert(left).assignment(left, right, visitor);
 						break;
-					case Equal: case NotEqual:
-						if (node.parent(IfStatement.class) != null && runtimeTypeCheck(visitor, left, right, true))
-							return;
-						break;
 					case JumpNotNil:
 						expectedLeft = visitor.ty(right);
 						expectedRight = null;
@@ -1790,26 +1786,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.incompatibleTypesMarker(node, left, op.firstArgType(), visitor.ty(left));
 					if (unifyDeclaredAndGiven(right, op.secondArgType(), visitor) == null)
 						visitor.incompatibleTypesMarker(node, right, op.secondArgType(), visitor.ty(right));
-				}
-				private boolean runtimeTypeCheck(Visitor visitor, ASTNode left, ASTNode right, boolean checkReverse) {
-					if (
-						left instanceof CallDeclaration &&
-						((CallDeclaration)left).params().length >= 1 &&
-						((CallDeclaration)left).name().equals("GetType") && //$NON-NLS-1$
-						right instanceof AccessVar &&
-						((AccessVar)right).name().startsWith("C4V_") //$NON-NLS-1$
-					) {
-						final IType type = PrimitiveType.fromString(((AccessVar)right).name().substring(4).toLowerCase());
-						if (type != null) {
-							visitor.judgment(
-								((CallDeclaration)left).params()[0],
-								typing.unify(PrimitiveType.ANY, type),
-								TypingJudgementMode.OVERWRITE
-							);
-							return true;
-						}
-					}
-					return checkReverse && runtimeTypeCheck(visitor, right, left, false);
 				}
 				@Override
 				public TypeVariable createTypeVariable(BinaryOp node, Visitor visitor) {
@@ -2107,12 +2083,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 						returnsAsFunctionWarning(node, visitor);
 					else if (declaration instanceof Variable)
 						variableAsFunctionWarning(node, visitor, cachedEngineDeclarations, declaration);
-					else if (declaration instanceof Function)
-						validateParameters(node, visitor, declaration, params, predecessor);
+					else if (declaration instanceof Function) {
+						runtimeTypeCheckLeniency(visitor, node);
+						validateParameters(visitor, node, declaration, params, predecessor);
+					}
 					else if (declaration == null)
 						maybeUnknownMarker(node, visitor, declarationName);
 				}
-				private void validateParameters(CallDeclaration node, Visitor visitor, final Declaration declaration, final ASTNode[] params, final ASTNode predecessor) throws ProblemException {
+				private void runtimeTypeCheckLeniency(Visitor visitor, CallDeclaration node) {
+					if (
+						node instanceof CallDeclaration &&
+						node.params().length >= 1 &&
+						node.name().equals("GetType") //$NON-NLS-1$
+					)
+						visitor.judgment(
+							node.params()[0],
+							typing.unify(PrimitiveType.ANY, visitor.ty(node.params()[0])),
+							TypingJudgementMode.UNIFY
+						);
+				}
+				private void validateParameters(Visitor visitor, CallDeclaration node, final Declaration declaration, final ASTNode[] params, final ASTNode predecessor) throws ProblemException {
 					final Function f = (Function)declaration;
 
 					if (f.visibility() == FunctionScope.GLOBAL || predecessor != null)
