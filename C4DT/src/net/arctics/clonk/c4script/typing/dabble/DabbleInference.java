@@ -1357,11 +1357,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				if (d instanceof Variable && ((Variable)d).staticallyTyped())
 					return ((Variable)d).type();
+				if (d instanceof Function)
+					return new FunctionType((Function)d);
 				final TypeVariable stored = findTypeVariable(node, visitor);
 				if (stored != null)
 					return stored.get();
-				if (d instanceof Function)
-					return new FunctionType((Function)d);
 				else if (d instanceof Variable) {
 					final Variable v = (Variable)d;
 					switch (v.scope()) {
