@@ -32,6 +32,7 @@ public abstract class KeywordStatement extends Statement {
 			builder.append('\n');
 			Conf.printIndent(builder, depth);
 		}
-		body.print(builder, depth);
+		if (body != null)
+			body.print(builder, depth);
 	}
 }
