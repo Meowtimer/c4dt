@@ -131,7 +131,7 @@ public aspect Profiling {
 			final Object r = proceed();
 			final long took = System.currentTimeMillis() - start;
 			if (parent != null)
-				parent.time -= took; 
+				parent.time -= took;
 			timer.time += took;
 			frame.timer = parent;
 			frame.addTime(thisJoinPoint.getSignature(), timer.time, 1);
@@ -168,16 +168,13 @@ public aspect Profiling {
 				return diff > 0 ? 1 : diff < 0 ? -1 : 0;
 			}
 		});
-		try {
-			final PrintWriter pw = new PrintWriter(csvFile(name));
-			try {
-				for (final Entry<Signature, SignatureProfile> s : list)
-					pw.print(String.format("%s,%s,%s\n",
-						s.getKey().toString().replaceAll(",", " "),
-						s.getValue().executionTime,
-						s.getValue().timesCalled
-						));
-			} finally { pw.close(); }
+		try (final PrintWriter pw = new PrintWriter(csvFile(name))) {
+			for (final Entry<Signature, SignatureProfile> s : list)
+				pw.print(String.format("%s,%s,%s\n",
+					s.getKey().toString().replaceAll(",", " "),
+					s.getValue().executionTime,
+					s.getValue().timesCalled
+					));
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
