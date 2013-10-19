@@ -178,6 +178,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			// populate parserMap with first batch of parsers for directly modified scripts
 			gatherScripts(proj, delta);
 			clearScripts(index);
+			index.populateResourceToScriptMap();
 			parseDeclarations(index);
 			markers.deploy();
 

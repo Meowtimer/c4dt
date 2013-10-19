@@ -1,6 +1,7 @@
 package net.arctics.clonk.index;
 
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,6 +61,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 
 /**
@@ -114,6 +116,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
 	protected transient Map<String, List<Declaration>> declarationMap = new HashMap<>();
+	protected transient Map<IResource, Script> resourceToScript;
 
 	public Index(File folder) {
 		this.folder = folder;
@@ -175,10 +178,15 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The definition or null if the folder is not linked to any object
 	 */
 	public Definition definitionAt(IContainer folder) {
+		if (resourceToScript != null) {
+			final Definition def = as(resourceToScript.get(folder), Definition.class);
+			return def;
+		}
 		try {
 			// fetch from session cache
-			if (folder.getSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID) != null)
-				return (Definition) folder.getSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID);
+			final Object prop = folder.getSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID);
+			if (prop != null)
+				return (Definition) prop;
 
 			// create session cache
 			if (folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID) == null) return null;
@@ -952,25 +960,52 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	private List<IndexEntity> newEntities;
 
-	public void endModification() {
-		synchronized (this) {
-			for (final IndexEntity e : newEntities)
-				if (e.loaded && e.saveCalledByIndex())
-					try {
-						e.save();
-					} catch (final IOException e1) {
-						e1.printStackTrace();
-					}
-			newEntities = null;
+	public void populateResourceToScriptMap() {
+		final ClonkProjectNature nature = nature();
+		if (nature != null) {
+			@SuppressWarnings("serial")
+			class ResourceToScriptMap extends HashMap<IResource, Script> implements IResourceVisitor {
+				@Override
+				public boolean visit(IResource resource) throws CoreException {
+					if (resource instanceof IContainer) {
+						final Definition def = definitionAt((IContainer) resource);
+						this.put(resource, def);
+					} else
+						this.put(resource, Script.get(resource, false));
+					return true;
+				}
+			};
+			final ResourceToScriptMap rts = new ResourceToScriptMap();
+			try {
+				nature.getProject().accept(rts);
+			} catch (final CoreException e) {
+				e.printStackTrace();
+			}
+			resourceToScript = rts;
 		}
 	}
 
-	public void beginModification() {
-		synchronized (this) {
-			newEntities = new LinkedList<IndexEntity>();
-			relevantIndexes = null; // force rebuild of list
-		}
+	public synchronized void beginModification() {
+		newEntities = new LinkedList<IndexEntity>();
+		relevantIndexes = null; // force rebuild of list
 	}
+
+	public synchronized void endModification() {
+		resourceToScript = null;
+		saveNewEntities();
+	}
+
+	private void saveNewEntities() {
+		for (final IndexEntity e : newEntities)
+			if (e.loaded && e.saveCalledByIndex())
+				try {
+					e.save();
+				} catch (final IOException e1) {
+					e1.printStackTrace();
+				}
+		newEntities = null;
+	}
+
 
 	public Object saveReplacementForEntityDeclaration(Declaration obj, IndexEntity entity) {
 		final Index objIndex = obj.index();
