@@ -1,15 +1,12 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.Flags.OUTPUTDABBLEPLAN;
-import static net.arctics.clonk.util.StringUtil.blockString;
-import static net.arctics.clonk.util.StringUtil.multiply;
-import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -200,57 +197,6 @@ class Plan {
 		}
 	}
 
-	class Cluster extends HashSet<Visit> implements Runnable {
-
-		StringBuilder log = DEBUG ? new StringBuilder() : null;
-
-		void print(int depth, Collection<Visit> layer, Set<Visit> catcher) {
-			for (final Visit v : layer) {
-				System.out.println(String.format("%s-> %s", multiply("\t", depth), v.toString()));
-				if (catcher.add(v))
-					print(depth+1, v.dependents, catcher);
-			}
-		}
-		void print() { print(0, this, new HashSet<Visit>()); }
-		void run(Visit v, int depth) {
-			if (log != null)
-				log.append(String.format("%sVisiting %s\n", multiply("\t", depth), v.toString()));
-			v.run();
-			for (final Visit d : v.dependents)
-				if (d.dependencies.remove(v) && d.dependencies.size() == 0)
-					run(d, depth+1);
-		}
-		@Override
-		public void run() {
-			for (final Visit v : this)
-				run(v, 0);
-		}
-		void find(Set<Visit> catcher, Visit start) {
-			if (catcher.add(start)) {
-				if (start.dependencies.size() == 0)
-					this.add(start);
-				for (final Visit v : start.dependencies)
-					find(catcher, v);
-				for (final Visit v : start.dependents)
-					find(catcher, v);
-			}
-		}
-		@Override
-		public String toString() {
-			return blockString("", "", ", ", this);
-		}
-		private void collect(Collection<Visit> col, Set<Visit> set) {
-			for (final Visit v : col)
-				if (set.add(v))
-					collect(v.dependents, set);
-		}
-		public Set<Visit> flatten() {
-			final Set<Visit> set = new HashSet<Visit>();
-			collect(this, set);
-			return set;
-		}
-	}
-
 	void populate() {
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.visits.values())
@@ -271,27 +217,19 @@ class Plan {
 			};
 			void run() {
 				int x = 0;
-				for (final Runnable r : roots) {
-					final Cluster c = as(r, Cluster.class);
-					if (c == null)
-						continue;
-					try (FileWriter writer = new FileWriter(new File(String.format("/Users/madeen/Desktop/DabbleInference/output%d.dot", ++x)))) {
-						writer.append("digraph G {bgcolor=white\n");
-						final Set<Visit> f = c.flatten();
-						for (final Visit v : f)
-							if (!v.dependencies.isEmpty() || !v.dependents.isEmpty())
-								writer.append(String.format("\tnode [ style=filled,shape=\"box\",fillcolor=\"antiquewhite:aquamarine\" ] \"%s\";\n", v.toString()));
-
-						for (final Visit v : f)
+				try (FileWriter writer = new FileWriter(new File(format("/Users/madeen/Desktop/DabbleInference/output%d.dot", ++x)))) {
+					writer.append("digraph G {bgcolor=white\n");
+					for (final VisitsByName vbn : visits.values())
+						for (final Visit v : vbn) {
+							writer.append(format("\tnode [ style=filled,shape=\"box\",fillcolor=\"antiquewhite:aquamarine\" ] \"%s\";\n", v.toString()));
 							for (final Visit d : v.dependents) {
 								final String col = randomColor();
-								writer.append(String.format("\t\"%s\" -> \"%s\" [color=\"#%s\"];\n", v, d, col));
+								writer.append(format("\t\"%s\" -> \"%s\" [color=\"#%s\"];\n", v, d, col));
 							}
-
-						writer.append("}");
-					} catch (final IOException e) {
-						e.printStackTrace();
-					}
+						}
+					writer.append("}");
+				} catch (final IOException e) {
+					e.printStackTrace();
 				}
 			}
 		}
