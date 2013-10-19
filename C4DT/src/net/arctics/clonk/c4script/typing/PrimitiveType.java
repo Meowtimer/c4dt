@@ -52,7 +52,8 @@ public enum PrimitiveType implements IType {
 	FUNCTION,
 	FLOAT,
 	NUM,
-	ERRONEOUS;
+	ERRONEOUS,
+	VOID;
 
 	public static final PrimitiveType[] NILLABLES = {
 		OBJECT,

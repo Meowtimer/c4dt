@@ -92,7 +92,7 @@ public enum Typing {
 					return b;
 				else
 					break;
-			case UNKNOWN:
+			case UNKNOWN: case VOID:
 				return b;
 			case ANY:
 				return Maybe.make(b);

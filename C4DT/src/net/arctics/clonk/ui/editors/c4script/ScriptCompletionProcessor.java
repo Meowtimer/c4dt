@@ -419,6 +419,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			if (ty instanceof IRefinedPrimitiveType)
 				ty = ((IRefinedPrimitiveType)ty).simpleType();
 			noStructure &=
+				eq(ty, PrimitiveType.VOID) ||
 				eq(ty, PrimitiveType.ARRAY) ||
 				eq(ty, PrimitiveType.BOOL) ||
 				eq(ty, PrimitiveType.INT) ||
