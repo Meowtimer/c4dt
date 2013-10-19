@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
@@ -29,6 +30,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.IEvaluationContext;
+import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
@@ -285,6 +287,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				}
 			} else {
 				final Object self = value(access.predecessor().evaluate(this));
+				if (self == null)
+					throw new IllegalStateException(format("%s yields null result",
+						access.predecessor().parent(Sequence.class).subSequenceIncluding(access.predecessor()).printed()));
 				try {
 					return new Constant(self.getClass().getMethod(access.name()).invoke(self));
 				} catch (final NoSuchMethodException n) {
