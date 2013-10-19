@@ -269,10 +269,15 @@ public class MatchingPlaceholder extends Placeholder {
 			default:
 				scanner.unread();
 				start = scanner.tell(); end = start;
-				while (!scanner.reachedEOF() && scanner.peek() != ',') {
-					scanner.read();
-					end++;
-				}
+				Loop: while (!scanner.reachedEOF())
+					switch (scanner.peek()) {
+					case ',': case '!':
+						break Loop;
+					default:
+						scanner.read();
+						end++;
+						break;
+					}
 				final String className = scanner.readStringAt(start, end);
 				if (className.length() == 0) {
 					scanner.read();
