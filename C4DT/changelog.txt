@@ -209,3 +209,6 @@ are then taken into account in various places
 -Refactoring
 -No progress whatsoever when it comes to actual features
 -Inserted completions for functions do not have brackets!
+1.8.9
+-OpenClonk: Debugging C4Scripts works with OpenClonk starting at git revision b6a01b62aaca66bf33a1a3671cc59c658766b80f
+-Bugs fixed, new bugs introduced
