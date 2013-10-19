@@ -1,9 +1,11 @@
 package net.arctics.clonk.c4script.typing;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.Iterator;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.util.Utilities;
 
@@ -13,11 +15,8 @@ import net.arctics.clonk.util.Utilities;
  *
  */
 public class ArrayType implements IRefinedPrimitiveType {
-
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
 	private final IType elementType;
-
 	/**
 	 * Construct a new ArrayType.
 	 * @param elmType The element type. When providing specific element types, this parameter should be null
@@ -37,17 +36,16 @@ public class ArrayType implements IRefinedPrimitiveType {
 	public String toString() { return typeName(true); }
 	@Override
 	public PrimitiveType primitiveType() { return PrimitiveType.ARRAY; }
-
 	/**
 	 * The type name of an array type will either describe the type in terms of its general element type or the specific element types.
 	 */
 	@Override
 	public String typeName(final boolean special) {
+		final String generalArray = PrimitiveType.ARRAY.typeName(false);
 		return !special
-			? PrimitiveType.ARRAY.typeName(false) :
-			String.format("%s[%s]", PrimitiveType.ARRAY.typeName(false), defaulting(elementType(), PrimitiveType.ANY).typeName(special));
+			? generalArray
+			: format("%s[%s]", generalArray, defaulting(elementType(), PrimitiveType.ANY).typeName(special));
 	}
-
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ArrayType) {
@@ -56,5 +54,4 @@ public class ArrayType implements IRefinedPrimitiveType {
 		} else
 			return false;
 	}
-
 }

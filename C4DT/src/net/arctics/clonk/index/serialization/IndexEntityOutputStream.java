@@ -1,5 +1,7 @@
 package net.arctics.clonk.index.serialization;
 
+import static java.lang.String.format;
+
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -14,14 +16,12 @@ import net.arctics.clonk.index.serialization.replacements.IDeferredDeclaration;
 public class IndexEntityOutputStream extends ObjectOutputStream {
 	private final Index index;
 	private final IndexEntity entity;
-
 	public IndexEntityOutputStream(Index index, IndexEntity entity, OutputStream output) throws IOException {
 		super(output);
 		this.index = index;
 		this.entity = entity;
 		enableReplaceObject(true);
 	}
-
 	@Override
 	protected Object replaceObject(Object obj) throws IOException {
 		try {
@@ -29,7 +29,7 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 				final IDeferredDeclaration deferred = (IDeferredDeclaration)obj;
 				obj = deferred.saveReplacement(index);
 				if (obj == null || obj instanceof IDeferredDeclaration)
-					throw new IllegalStateException(String.format("Deferred declaration while serializing: %s", deferred.toString()));
+					throw new IllegalStateException(format("Deferred declaration while serializing: %s", deferred.toString()));
 			}
 			if (obj instanceof IReplacedWhenSaved)
 				return ((IReplacedWhenSaved)obj).saveReplacement(index);
@@ -48,5 +48,4 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 			return null;
 		}
 	}
-
 }

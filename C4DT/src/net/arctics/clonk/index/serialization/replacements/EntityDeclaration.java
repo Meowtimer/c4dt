@@ -1,5 +1,6 @@
 package net.arctics.clonk.index.serialization.replacements;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -17,25 +18,44 @@ import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 
+/**
+ * Placeholder for declaration in another entity used for serialization.
+ * @author madeen
+ *
+ */
 public class EntityDeclaration implements Serializable, IDeserializationResolvable {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final IndexEntity containingEntity;
 	private final String declarationPath;
 	private final Class<? extends Declaration> declarationClass;
 	private transient IndexEntity deserializee;
+
+	/**
+	 * Create placeholder
+	 * @param declaration Declaration to create the placeholder for
+	 * @param containingEntity Entity containing the declaration
+	 */
 	public EntityDeclaration(Declaration declaration, IndexEntity containingEntity) {
 		this.containingEntity = containingEntity;
 		this.declarationPath = declaration.pathRelativeToIndexEntity();
 		this.declarationClass = declaration.getClass();
 	}
+
 	@Override
 	public String toString() {
-		return String.format("%s::%s: %s",
+		return format("%s::%s: %s",
 			containingEntity != null ? containingEntity.toString() : "<Unknown>",
 			declarationPath,
 			declarationClass != null ? declarationClass.getSimpleName() : "<Unknown>"
 		);
 	}
+
+	/**
+	 * Attempt to resolve the original declaration the placeholder was created for.
+	 * If that does not work right away create a {@link IDeferredDeclaration} compatible to
+	 * the class of the original declaration which later needs to be truly resolved by
+	 * calling {@link IDeferredDeclaration#resolve()}
+	 */
 	@Override
 	public Declaration resolve(Index index, IndexEntity deserializee) {
 		Declaration result;
@@ -49,14 +69,14 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 			if (containingEntity != null)
 				return makeDeferred();
 			else if (DEBUG)
-				System.out.println(String.format("Giving up on resolving '%s::%s'",
+				System.out.println(format("Giving up on resolving '%s::%s'",
 					containingEntity != null ? containingEntity.qualifiedName() : "<null>",
 					declarationPath
 				));
 		return result;
 	}
 
-	Declaration makeDeferred() {
+	private Declaration makeDeferred() {
 		if (IType.class.isAssignableFrom(declarationClass))
 			return new DeferredType();
 		else if (Variable.class.isAssignableFrom(declarationClass))
@@ -67,10 +87,10 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 			return null;
 	}
 
-	Object resolveDeferred() {
+	private Object resolveDeferred() {
 		final Declaration d = containingEntity.findDeclarationByPath(declarationPath, declarationClass);
 		if (d == null && DEBUG)
-			System.out.println(String.format("%s: Failed to resolve %s::%s (%s)",
+			System.out.println(format("%s: Failed to resolve %s::%s (%s)",
 				deserializee != null ? deserializee.qualifiedName() : "<null>",
 				containingEntity.qualifiedName(),
 				declarationPath,
@@ -79,10 +99,10 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		return d;
 	}
 
-	String deferredDescription() { return String.format("Deferred: %s", toString()); }
+	private String deferredDescription() { return format("Deferred: %s", toString()); }
 
 	@SuppressWarnings("serial")
-	class DeferredVariable extends Variable implements IDeferredDeclaration {
+	private class DeferredVariable extends Variable implements IDeferredDeclaration {
 		@Override
 		public Object resolve() { return resolveDeferred(); }
 		@Override
@@ -92,7 +112,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 	}
 
 	@SuppressWarnings("serial")
-	class DeferredFunction extends Function implements IDeferredDeclaration {
+	private class DeferredFunction extends Function implements IDeferredDeclaration {
 		@Override
 		public Object resolve() { return resolveDeferred(); }
 		@Override
@@ -102,7 +122,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 	}
 
 	@SuppressWarnings("serial")
-	class DeferredType extends Declaration implements IType, IDeferredDeclaration {
+	private class DeferredType extends Declaration implements IType, IDeferredDeclaration {
 		@Override
 		public Object resolve() { return defaulting(resolveDeferred(), PrimitiveType.ANY); }
 		@Override

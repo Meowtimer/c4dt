@@ -265,9 +265,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		// so they will be present when the script gets parsed
 		try {
 			if (usedScripts != null)
-				for (final Script s : usedScripts)
+				for (final Iterator<Script> it = usedScripts.iterator(); it.hasNext();) {
+					final Script s = it.next();
 					if (s != null)
 						s.requireLoaded();
+					else
+						it.remove();
+				}
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}

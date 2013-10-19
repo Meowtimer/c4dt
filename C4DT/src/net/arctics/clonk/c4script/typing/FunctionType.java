@@ -12,22 +12,16 @@ import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
 public class FunctionType implements IRefinedPrimitiveType {
-
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
 	private final Function prototype;
-
+	public FunctionType(Function function) { this.prototype = function; }
 	public Function prototype() { return prototype; }
-
-	public FunctionType(Function function) {
-		this.prototype = function;
-	}
-
 	@Override
-	public Iterator<IType> iterator() {
-		return iterable(this, PrimitiveType.FUNCTION).iterator();
-	}
-
+	public Iterator<IType> iterator() { return iterable(this, PrimitiveType.FUNCTION).iterator(); }
+	@Override
+	public IType simpleType() { return PrimitiveType.FUNCTION; }
+	@Override
+	public PrimitiveType primitiveType() { return PrimitiveType.FUNCTION; }
 	@Override
 	public String typeName(boolean special) {
 		if (!special)
@@ -36,16 +30,8 @@ public class FunctionType implements IRefinedPrimitiveType {
 		builder.append(PrimitiveType.FUNCTION.typeName(false));
 		StringUtil.writeBlock(builder, "(", ")", ", ", map(this.prototype.parameters(), new IConverter<Variable, String>() {
 			@Override
-			public String convert(Variable from) {
-				return from.type().typeName(false);
-			}
+			public String convert(Variable from) { return from.type().typeName(false); }
 		}));
 		return builder.toString();
 	}
-
-	@Override
-	public IType simpleType() { return PrimitiveType.FUNCTION; }
-	@Override
-	public PrimitiveType primitiveType() { return PrimitiveType.FUNCTION; }
-
 }
