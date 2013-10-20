@@ -2,7 +2,6 @@ package net.arctics.clonk.c4script.typing.dabble;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeVariable;
 
 public class FunctionReturnTypeVariable extends TypeVariable {
@@ -12,7 +11,6 @@ public class FunctionReturnTypeVariable extends TypeVariable {
 		super();
 		this.function = function;
 		this.baseFunction = function.baseFunction();
-		set(PrimitiveType.VOID);
 	}
 	@Override
 	public String toString() {

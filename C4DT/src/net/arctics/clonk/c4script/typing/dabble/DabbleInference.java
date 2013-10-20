@@ -389,6 +389,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			public Visit(Function function) {
 				super(function);
 				hash = function.qualifiedName(script).hashCode();
+				if (typing == Typing.INFERRED)
+					set(PrimitiveType.VOID);
 			}
 
 			@SuppressWarnings("unchecked")
