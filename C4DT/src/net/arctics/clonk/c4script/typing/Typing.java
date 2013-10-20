@@ -29,6 +29,8 @@ public enum Typing {
 	STATIC {
 		@Override
 		public IType unifyNoChoice(IType a, IType b) {
+			if ((a == PrimitiveType.VOID || b == PrimitiveType.VOID) && a != b)
+				return null;
 			if (eq(a, b))
 				return a;
 			if (a instanceof Definition && b instanceof Definition) {
