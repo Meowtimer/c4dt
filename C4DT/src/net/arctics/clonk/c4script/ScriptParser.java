@@ -383,7 +383,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			function.storeBody(body, functionSource(function));
 			final TypeAnnotation annot = function.typeAnnotation();
 			if (annot != null)
-				annot.incrementLocation(-loc.start());
+				annot.offsetLocation(-loc.start());
 		} catch (final Exception e) {
 			function.storeBody(new FunctionBody(function), functionSource(function));
 		}

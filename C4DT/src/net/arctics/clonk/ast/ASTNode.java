@@ -127,7 +127,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param parent
 	 */
 	public void setParent(ASTNode parent) { this.parent = parent; }
-	
+
 	protected <T extends ASTNode> T tempSubElement(T node) {
 		node.setParent(this);
 		return node;
@@ -583,14 +583,14 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	/**
-	 * Increment {@link #start()} and {@link #end()} by the specified amount. Also call {@link #incrementLocation(int)} recursively for {@link #subElements()}
-	 * @param amount Amount to increment the location by
+	 * Offset {@link #start()} and {@link #end()} by the specified amount. Also call {@link #offsetLocation(int)} recursively for {@link #subElements()}
+	 * @param by Amount to offset the location by
 	 */
-	public void incrementLocation(int amount) {
-		setLocation(start+amount, start+amount);
+	public void offsetLocation(int by) {
+		setLocation(start+by, start+by);
 		for (final ASTNode e : traversalSubElements())
 			if (e != null)
-				e.incrementLocation(amount);
+				e.offsetLocation(by);
 	}
 
 	public static Object evaluateStatic(ASTNode element, IEvaluationContext context) {
