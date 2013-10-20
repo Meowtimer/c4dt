@@ -1,7 +1,7 @@
 package net.arctics.clonk.c4script;
 
 import java.util.EnumSet;
-import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -55,8 +55,7 @@ public class FunctionFragmentParser extends ScriptParser {
 				if (function instanceof InitializationFunction)
 					body = parseExpression();
 				else {
-					final LinkedList<ASTNode> statements = new LinkedList<ASTNode>();
-					parseStatementBlock(offset, statements, options, false);
+					final List<ASTNode> statements = parseStatements(offset, options, false);
 					body = new FunctionBody(function, statements);
 				}
 				if (function != null) {

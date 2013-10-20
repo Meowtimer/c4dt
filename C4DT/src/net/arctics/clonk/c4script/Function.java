@@ -1,7 +1,6 @@
 package net.arctics.clonk.c4script;
 
 import static java.lang.String.format;
-import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -11,6 +10,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -43,6 +43,7 @@ import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
@@ -61,6 +62,10 @@ import org.eclipse.jface.text.IRegion;
  */
 public class Function extends Structure implements Serializable, ITypeable, IHasUserDescription, IEvaluationContext, IHasCode, IASTSection {
 
+	/**
+	 * Typing assigned for a function, either inferred or defined via static type annotations.
+	 * @author madeen
+	 */
 	public static class Typing implements Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		public Typing(IType[] parameterTypes, IType returnType, IType[] nodeTypes) {
@@ -101,18 +106,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	private SourceLocation bodyLocation, header;
 	private int nameStart;
 
-	/**
-	 * Code block kept in memory for speed optimization
-	 */
+	/** Code block kept in memory for speed optimization */
 	private FunctionBody body;
-
-	/**
-	 * Hash code of the string the block was parsed from.
-	 */
+	/** Hash code of the string the block was parsed from. */
 	private int blockSourceHash;
-
 	private int totalNumASTNodes;
-
+	/** Number of {@link ASTNode}s in this function's {@link #body()}. */
 	public int totalNumASTNodes() { return totalNumASTNodes; }
 
 	/**
@@ -213,7 +212,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public IType returnType() {
 		if (returnType == null)
 			returnType = PrimitiveType.UNKNOWN;
-		return returnType;
+		return returnType instanceof TypeAnnotation ? ((TypeAnnotation)returnType).type() : returnType;
 	}
 
 	public IType returnType(Script script) {
@@ -236,24 +235,16 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return fallback && parameterIndex < numParameters() ? parameter(parameterIndex).type() : t;
 	}
 
-	/**
-	 * @return the visibility
-	 */
+	/** @return the visibility */
 	public FunctionScope visibility() { return visibility; }
-	/**
-	 * @param visibility the visibility to set
-	 */
+	/** @param visibility the visibility to set */
 	public void setVisibility(FunctionScope visibility) { this.visibility = visibility; }
-	/**
-	 * @return the description
-	 */
+	/** @return the description */
 	@Override
 	public String obtainUserDescription() { return description; }
 	@Override
 	public String userDescription() { return description; }
-	/**
-	 * @param description the description to set
-	 */
+	/** @param description the description to set */
 	@Override
 	public void setUserDescription(String description) { this.description = description; }
 	public String returnDescription() { return returnDescription; }
@@ -329,7 +320,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * The scope of a function.
 	 * @author ZokRadonh
-	 *
 	 */
 	public enum FunctionScope {
 		GLOBAL,
@@ -356,9 +346,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return lowerCaseName;
 		}
 
-		public Object toKeyword() {
-			return toString();
-		}
+		public Object toKeyword() { return toString(); }
 	}
 
 	/**
@@ -402,7 +390,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public String displayString(IIndexEntity context) {
-		return parameterString(new PrintParametersOptions(defaulting(as(context, Script.class), script()).typings().get(this), true, true, false));
+		return parameterString(new PrintParametersOptions(
+			defaulting(as(context, Script.class), script()).typings().get(this), true, true, false));
 	}
 
 	private void printParametersString(ASTNodePrinter output, final PrintParametersOptions options) {
@@ -439,24 +428,18 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the isCallback
 	 */
-	public boolean isCallback() {
-		return isCallback;
-	}
+	public boolean isCallback() { return isCallback; }
 
 	/**
 	 * Set the body location.
 	 * @param body the body location to set
 	 */
-	public void setBodyLocation(SourceLocation body) {
-		this.bodyLocation = body;
-	}
+	public void setBodyLocation(SourceLocation body) { this.bodyLocation = body; }
 
 	/**
 	 * @return the body the location.
 	 */
-	public SourceLocation bodyLocation() {
-		return bodyLocation;
-	}
+	public SourceLocation bodyLocation() { return bodyLocation; }
 
 	public SourceLocation wholeBody() {
 		if (bodyLocation == null)
@@ -546,17 +529,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return null;
 	}
 
-	public Variable findVariable(String variableName) {
-		return findDeclaration(variableName, Variable.class);
-	}
-
-	public boolean isOldStyle() {
-		return isOldStyle;
-	}
-
-	public void setOldStyle(boolean isOldStyle) {
-		this.isOldStyle = isOldStyle;
-	}
+	public Variable findVariable(String variableName) { return findDeclaration(variableName, Variable.class); }
+	public boolean isOldStyle() { return isOldStyle; }
+	public void setOldStyle(boolean isOldStyle) { this.isOldStyle = isOldStyle; }
 
 	private transient Function cachedInherited;
 
@@ -616,9 +591,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public Object[] subDeclarationsForOutline() {
-		return locals().toArray();
-	}
+	public Object[] subDeclarationsForOutline() { return locals().toArray(); }
 
 	/**
 	 * Create num generically named parameters (par1, par2, ...)
@@ -701,16 +674,17 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		return builder.toString();
 	}
 
-	/*+
-	 * Return the header string
-	 */
-	public String headerString() {
-		return headerString(isOldStyle());
-	}
+	/** Return the header string */
+	public String headerString() { return headerString(isOldStyle()); }
 
 	@Override
-	public IType type() {
-		return returnType();
+	public IType type() { return returnType(); }
+
+	public TypeAnnotation typeAnnotation() { return as(returnType, TypeAnnotation.class); }
+	public void setTypeAnnotation(TypeAnnotation annot) {
+		if (annot != null)
+			annot.setParent(this);
+		forceType(annot);
 	}
 
 	@Override
@@ -725,10 +699,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			this.returnType = returnType;
 			this.staticallyTyped = _static;
 		}
-	}
-
-	public void setObjectType(Definition object) {
-		//expectedContent = object;
 	}
 
 	/**
@@ -778,9 +748,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public boolean isGlobal() {
-		return visibility() == FunctionScope.GLOBAL;
-	}
+	public boolean isGlobal() { return visibility() == FunctionScope.GLOBAL; }
 
 	/**
 	 * Return whether num parameters are more than needed for this function
@@ -814,14 +782,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * Remove local variables.
 	 */
-	public void clearLocalVars() {
-		locals = null;
-	}
-
+	public void clearLocalVars() { locals = null; }
 	@Override
-	public boolean staticallyTyped() {
-		return staticallyTyped;
-	}
+	public boolean staticallyTyped() { return staticallyTyped; }
 
 	public void resetLocalVarTypes() {
 		for (final Variable v : locals())
@@ -909,9 +872,22 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public ASTNode code() { return body(); }
 	@Override
-	public ASTNode[] subElements() { return concat(super.subElements(), body()); }
+	public ASTNode[] subElements() {
+		final TypeAnnotation typeAnnotation = typeAnnotation();
+		final ASTNode[] sup = super.subElements();
+		final ASTNode[] nodes = new ASTNode[1+sup.length+1];
+		nodes[0] = typeAnnotation;
+		System.arraycopy(sup, 0, nodes, 1, sup.length);
+		nodes[nodes.length-1] = body();
+		return nodes;
+	}
 	@Override
-	public void setSubElements(ASTNode[] elms) { storeBody(elms[0], ""); }
+	public void setSubElements(ASTNode[] nodes) {
+		if (nodes[0] instanceof TypeAnnotation)
+			setTypeAnnotation((TypeAnnotation) nodes[0]);
+		super.setSubElements(Arrays.copyOfRange(nodes, 1, nodes.length-1));
+		storeBody(nodes[nodes.length-1], "");
+	}
 	@Override
 	public int absoluteOffset() { return bodyLocation().start(); }
 	@Override

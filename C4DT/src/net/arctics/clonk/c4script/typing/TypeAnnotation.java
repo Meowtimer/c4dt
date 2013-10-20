@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import net.arctics.clonk.ast.ASTNode;
@@ -20,7 +21,7 @@ import net.arctics.clonk.index.IIndexEntity;
  * @author madeen
  *
  */
-public final class TypeAnnotation extends ASTNode {
+public final class TypeAnnotation extends ASTNode implements IType {
 	private static final long serialVersionUID = 1L;
 	private ITypeable target;
 	private IType type;
@@ -72,7 +73,11 @@ public final class TypeAnnotation extends ASTNode {
 	@Override
 	public String toString() { return printed(); }
 	@Override
-	public boolean equalAttributes(ASTNode other) {
-		return super.equalAttributes(other);
-	}
+	public boolean equalAttributes(ASTNode other) { return super.equalAttributes(other); }
+	@Override
+	public Iterator<IType> iterator() { return null; }
+	@Override
+	public String typeName(boolean special) { return type.typeName(special); }
+	@Override
+	public IType simpleType() { return type.simpleType(); }
 }

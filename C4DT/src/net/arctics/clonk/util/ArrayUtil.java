@@ -25,7 +25,10 @@ public class ArrayUtil {
 			return b != null ? b : (T[])new Object[0];
 		if (blen == 0)
 			return a != null ? a : (T[])new Object[0];
-		final T[] result = (T[]) Array.newInstance(Utilities.baseClass(a.getClass().getComponentType(), b.getClass().getComponentType()), alen+blen);
+		final T[] result = (T[]) Array.newInstance(Utilities.baseClass(
+			a.getClass().getComponentType(),
+			b.getClass().getComponentType()
+		), alen+blen);
 		System.arraycopy(a, 0, result, 0, alen);
 		System.arraycopy(b, 0, result, alen, blen);
 		return result;
