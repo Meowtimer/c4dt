@@ -72,7 +72,7 @@ public class ASTSearchQuery extends SearchQuery {
 	protected IStatus doRun(final IProgressMonitor monitor) throws OperationCanceledException {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
-			public void receivedObject(ExecutorService item) {
+			public void receivedObject(ExecutorService pool) {
 				class ScriptSearcher implements Runnable, IASTVisitor<ScriptParser> {
 					private final ScriptParser parser;
 					private final Map<String, Match> matches = new HashMap<String, Match>();
@@ -124,7 +124,7 @@ public class ASTSearchQuery extends SearchQuery {
 				}
 				for (final Script s : scope)
 					if (s.file() != null)
-						item.execute(new ScriptSearcher(s));
+						pool.execute(new ScriptSearcher(s));
 			}
 		}, 20, scope.size());
 		return new Status(IStatus.OK, Core.PLUGIN_ID, 0, "C4Script Search Success", null);

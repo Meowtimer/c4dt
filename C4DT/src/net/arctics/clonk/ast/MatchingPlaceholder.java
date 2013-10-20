@@ -131,6 +131,7 @@ public class MatchingPlaceholder extends Placeholder {
 				"%s.c4script.ast.%sStatement",
 				"%s.c4script.ast.%sDeclaration",
 				"%s.c4script.ast.Access%s",
+				"%s.c4script.typing.%s",
 				"%s.index.%s"
 			};
 			synchronized (classCache) {
@@ -361,8 +362,6 @@ public class MatchingPlaceholder extends Placeholder {
 		return r;
 	}
 	private boolean internalSatisfied(ASTNode element) {
-		if (element == null)
-			System.out.println("here");
 		RequiredClass: if (requiredClass != null) {
 			// OC: references to definitions are not IDLiterals but AccessVars referring to proxy variables
 			final AccessVar av = as(element, AccessVar.class);
