@@ -19,6 +19,8 @@ public class IndexEntityInputStream extends ObjectInputStream {
 	}
 	@Override
 	protected Object resolveObject(Object obj) throws IOException {
+		if (obj instanceof String)
+			return ((String)obj).intern();
 		if (index == null && obj instanceof Index)
 			index = (Index)obj;
 		else if (obj instanceof IDeserializationResolvable)
