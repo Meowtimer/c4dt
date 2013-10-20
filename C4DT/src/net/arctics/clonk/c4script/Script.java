@@ -628,13 +628,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		final Class<? extends Declaration> decClass = info.declarationClass;
 		final String name = info.name;
 
-		// local variable?
-		if (info.recursion == 0)
-			if (info.contextFunction != null && (decClass == Declaration.class || decClass == null || decClass == Variable.class)) {
-				final Declaration v = info.contextFunction.findVariable(name);
-				if (v != null)
-					return v;
-			}
+		if (info.recursion == 0 && info.contextFunction != null &&
+			(decClass == Declaration.class || decClass == null || decClass == Variable.class)) {
+			final Declaration v = info.contextFunction.findVariable(name);
+			if (v != null)
+				return v;
+		}
 
 		final boolean knows = dictionary() == null || dictionary().contains(name);
 		if (knows) {
