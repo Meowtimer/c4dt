@@ -587,7 +587,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param by Amount to offset the location by
 	 */
 	public void offsetLocation(int by) {
-		setLocation(start+by, start+by);
+		setLocation(start+by, end+by);
 		for (final ASTNode e : traversalSubElements())
 			if (e != null)
 				e.offsetLocation(by);
