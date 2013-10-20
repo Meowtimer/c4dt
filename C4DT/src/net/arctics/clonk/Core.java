@@ -31,7 +31,6 @@ import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.UI;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -454,17 +453,14 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 			rememberCurrentVersion();
 			for (final Engine engine : loadedEngines.values())
 				engine.saveSettings();
-			for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects())
+			for (final IProject project : ClonkProjectNature.clonkProjectsInWorkspace())
 				try {
-					if (!project.isOpen())
-						continue;
 					clonkProj = ClonkProjectNature.get(project);
 					if (clonkProj != null)
 						clonkProj.saveIndex();
 				} catch (final Exception e) {
 					UI.informAboutException(Messages.ErrorWhileSavingIndex, e, project.getName());
 				}
-			removeOldIndexes();
 			break;
 		}
 	}
@@ -481,13 +477,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private void removeOldIndexes() {
-		final File stateDir = getStateLocation().toFile();
-		for (final String file : stateDir.list())
-			if (file.endsWith(ProjectIndex.INDEXFILE_SUFFIX) && ResourcesPlugin.getWorkspace().getRoot().findMember(file.substring(0, file.length()-ProjectIndex.INDEXFILE_SUFFIX.length())) == null)
-				Utilities.removeRecursively(new File(stateDir, file));
 	}
 
 	/**
