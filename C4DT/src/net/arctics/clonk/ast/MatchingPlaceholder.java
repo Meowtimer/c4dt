@@ -387,8 +387,13 @@ public class MatchingPlaceholder extends Placeholder {
 			return false;
 		}
 		if (code != null)
-			if (!eq(Boolean.TRUE, code.invoke(code.new FunctionInvocation(new Object[] {element}, code.script(), this))))
+			try {
+				if (!eq(Boolean.TRUE, code.invoke(code.new FunctionInvocation(new Object[] {element}, code.script(), this))))
+					return false;
+			} catch (final Exception e) {
+				//System.out.println(e.getMessage());
 				return false;
+			}
 		return true;
 	}
 
