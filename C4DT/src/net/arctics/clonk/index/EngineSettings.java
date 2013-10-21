@@ -207,7 +207,8 @@ public class EngineSettings extends SettingsBase {
 		final String urlFormatString = useDocsFromRepository
 			? "file://" + repositoryPath + "/docs/sdk/script/fn/%1$s.xml"
 			: docURLTemplate;
-		return String.format(urlFormatString, functionName, ClonkPreferences.getLanguagePrefForDocumentation());
+		final String pref = ClonkPreferences.languagePref();
+		return String.format(urlFormatString, functionName, pref.equals("DE") ? "de" : "en");
 	}
 
 	/**

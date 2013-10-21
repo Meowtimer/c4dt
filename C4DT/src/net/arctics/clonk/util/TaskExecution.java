@@ -5,9 +5,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import net.arctics.clonk.preferences.ClonkPreferences;
+
 public class TaskExecution {
 	public static final int THRESHOLD = 20;
-	public static int threadPoolSize = Runtime.getRuntime().availableProcessors();
+	public static int threadPoolSize() { return ClonkPreferences.integer(ClonkPreferences.TASKEXECUTION_THREADS); }
 	public static void threadPool(final Collection<? extends Runnable> runnables, int timeoutMinutes) {
 		if (runnables.size() < THRESHOLD)
 			for (final Runnable r : runnables)
@@ -36,7 +38,7 @@ public class TaskExecution {
 	}
 	public static ExecutorService newPool(Integer numWorkUnits) {
 		return numWorkUnits != null && numWorkUnits >= THRESHOLD
-			? Executors.newFixedThreadPool(threadPoolSize)
+			? Executors.newFixedThreadPool(threadPoolSize())
 			: Executors.newSingleThreadExecutor();
 	}
 }
