@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.Core;
@@ -311,18 +312,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 	}
 
-	Object runLock = new Object();
 	ExecutorService threadPool;
-	int remainingRuns;
+	AtomicInteger remainingRuns;
 
 	void runVisit(Visit visit) {
-		if (threadPool != null)
-			synchronized (threadPool) {
-				threadPool.execute(visit);
-				remainingRuns--;
-				if (remainingRuns == 0)
-					threadPool.shutdown();
-			}
+		if (threadPool != null) {
+			threadPool.execute(visit);
+			if (remainingRuns.decrementAndGet() == 0)
+				threadPool.shutdown();
+		}
 		else
 			visit.run();
 	}
@@ -333,7 +331,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		else {
 			threadPool = TaskExecution.newPool(plan.totalNumVisits);
 			try {
-				remainingRuns = plan.totalNumVisits;
+				remainingRuns = new AtomicInteger(plan.totalNumVisits);
 				for (final Visit r : plan.roots)
 					runVisit(r);
 				try {
@@ -379,11 +377,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public void run() {
 				visitor.visit();
-				for (final Visit d : dependents)
-					synchronized (runLock) {
-						if (d.dependencies.remove(this) && d.dependencies.size() == 0)
-							runVisit(d);
+				for (final Visit d : dependents) {
+					boolean doRun;
+					synchronized (d.dependencies) {
+						doRun = d.dependencies.remove(this) && d.dependencies.size() == 0;
 					}
+					if (doRun)
+						runVisit(d);
+				}
 			}
 
 			public Visit(Function function) {
