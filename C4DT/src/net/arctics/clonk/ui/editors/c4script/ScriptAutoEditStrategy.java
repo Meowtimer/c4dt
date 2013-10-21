@@ -48,7 +48,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 			this.flags = flags;
 		}
 
-		public boolean applies(DocumentCommand c, IDocument d, int situation) {
+		public boolean applies(IDocument d, DocumentCommand c, int situation) {
 			return (flags & situation) == flags && c.text.endsWith(start);
 		}
 	}
@@ -183,6 +183,13 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		return false;
 	}
 
+	private Autopair applyingAutopair(IDocument d, DocumentCommand c, int situation) {
+		for (final Autopair autopair : AUTOPAIRS)
+			if (autopair.applies(d, c, situation))
+				return autopair;
+		return null;
+	}
+
 	private void textAdded(IDocument d, DocumentCommand c) {
 		// user writes override region text himself - noop
 		boolean overrideRegionTrespassed = false;
@@ -203,14 +210,13 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 					situation |= Autopair.PRECEDESWHITESPACE;
 			} catch (final BadLocationException e) {}
 
-			for (final Autopair autopair : AUTOPAIRS)
-				if (autopair.applies(c, d, situation)) {
-					overrideRegions.add(0, newOne = new AutoInsertedRegion(c.offset+c.text.length(), autopair.end.length(), new MutableRegion(c.offset, c.text.length())));
-					c.text += autopair.end;
-					c.shiftsCaret = false;
-					c.caretOffset = c.offset+autopair.end.length();
-					break;
-				}
+			final Autopair autopair = applyingAutopair(d, c, situation);
+			if (autopair != null) {
+				overrideRegions.add(0, newOne = new AutoInsertedRegion(c.offset+c.text.length(), autopair.end.length(), new MutableRegion(c.offset, c.text.length())));
+				c.text += autopair.end;
+				c.shiftsCaret = false;
+				c.caretOffset = c.offset+autopair.end.length();
+			}
 		}
 
 		// inc offset of existing regions
