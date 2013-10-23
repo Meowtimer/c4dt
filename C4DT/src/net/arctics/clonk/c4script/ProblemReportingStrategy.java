@@ -155,20 +155,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	public void captureMarkers() {}
 
 	public void steer(Runnable runnable) {
-		synchronized (projectName) {
-			runnable.run();
-		}
-	}
-
-	public void perform() {
-		steer(new Runnable() {
-			@Override
-			public void run() {
-				ProblemReportingStrategy.this.run();
-				ProblemReportingStrategy.this.apply();
-				ProblemReportingStrategy.this.run2();
-			}
-		});
+		runnable.run();
 	}
 
 	protected String projectName;

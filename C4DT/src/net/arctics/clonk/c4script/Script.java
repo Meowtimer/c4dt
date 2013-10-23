@@ -130,10 +130,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			return typing != null ? typing.nodeTypes[node.localIdentifier()] : null;
 		}
 		public void update(Map<String, IType> variableTypes, Map<String, Function.Typing> functionTypings) {
-			for (final Entry<String, IType> x : variableTypes.entrySet())
-				this.variableTypes.put(x.getKey(), x.getValue());
-			for (final Entry<String, Function.Typing> x : functionTypings.entrySet())
-				this.functionTypings.put(x.getKey(), x.getValue());
+			synchronized (this) {
+				for (final Entry<String, IType> x : variableTypes.entrySet())
+					this.variableTypes.put(x.getKey(), x.getValue());
+				for (final Entry<String, Function.Typing> x : functionTypings.entrySet())
+					this.functionTypings.put(x.getKey(), x.getValue());
+			}
 		}
 	}
 	private transient Typings typings;

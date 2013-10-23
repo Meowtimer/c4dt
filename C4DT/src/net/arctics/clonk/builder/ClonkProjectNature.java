@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -121,11 +122,7 @@ public class ClonkProjectNature implements IProjectNature {
 	@Override
 	public void setProject(IProject project) { this.project = project; }
 	public List<ProblemReportingStrategy> problemReportingStrategies() {
-		synchronized (lock) {
-			if (problemReportingStrategies == null)
-				instantiateProblemReportingStrategies(0);
-		}
-		return problemReportingStrategies;
+		return instantiateProblemReportingStrategies(0);
 	}
 
 	/**
@@ -365,12 +362,10 @@ public class ClonkProjectNature implements IProjectNature {
 			return null;
 	}
 
-	public void instantiateProblemReportingStrategies(int requiredCapabilities) {
+	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(int requiredCapabilities) {
 		try {
-			if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true)) {
-				problemReportingStrategies = Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
-				return;
-			}
+			if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
+				return Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
 			final Collection<ProblemReportingStrategyInfo> classes = settings().problemReportingStrategies();
 			final List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
 			for (final ProblemReportingStrategyInfo c : classes) {
@@ -386,9 +381,9 @@ public class ClonkProjectNature implements IProjectNature {
 					continue;
 				}
 			}
-			problemReportingStrategies = instances;
+			return instances;
 		} catch (final Exception e) {
-			problemReportingStrategies = Arrays.asList();
+			return Collections.emptyList();
 		}
 	}
 

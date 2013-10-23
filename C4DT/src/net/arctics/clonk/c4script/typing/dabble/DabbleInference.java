@@ -210,12 +210,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	@Override
 	public void run() {
-		synchronized (projectName) {
-			subTask(Messages.ComputingGraph);
-			final Plan plan = new Plan(this);
-			subTask(Messages.RunInference);
-			plan.run();
-		}
+		subTask(Messages.ComputingGraph);
+		final Plan plan = new Plan(this);
+		subTask(Messages.RunInference);
+		plan.run();
 	}
 
 	@Override
@@ -363,6 +361,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			Visitor visitor;
 			IType[] inferredTypes;
 			Expert<?>[] experts;
+			Declaration[] declarations;
 			boolean doubleTake;
 
 			final Set<Visit> dependents = new HashSet<>();
@@ -403,6 +402,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				visitor = new Visitor(this);
 				inferredTypes = new IType[function.totalNumASTNodes()];
 				experts = new Expert<?>[function.totalNumASTNodes()];
+				declarations = new Declaration[function.totalNumASTNodes()];
 				function.body().traverse(new IASTVisitor<Void>() {
 					final boolean owns = function.containedIn(script);
 					@Override
@@ -1274,18 +1274,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 			internalObtainDeclaration(node, visitor);
 		}
 		protected final Declaration internalObtainDeclaration(T node, Visitor visitor) {
-			if (visitor.script() == node.parent(Script.class)) {
-				Declaration d = node.declaration();
-				if (d == null)
-					d = obtainDeclaration(node, visitor);
-				if (d == null) {
-					visitor.script().index().loadScriptsContainingDeclarationsNamed(node.name());
-					d = obtainDeclaration(node, visitor);
-				}
+			Declaration d = declaration(node, visitor);
+			if (d == null)
+				d = obtainDeclaration(node, visitor);
+			if (d == null) {
+				visitor.script().index().loadScriptsContainingDeclarationsNamed(node.name());
+				d = obtainDeclaration(node, visitor);
+			}
+			setDeclaration(node, visitor, d);
+			if (visitor.script() == node.parent(Script.class))
 				node.setDeclaration(d);
-				return d;
-			} else
-				return obtainDeclaration(node, visitor);
+			return d;
+		}
+		private void setDeclaration(T node, Visitor visitor, Declaration d) {
+			final int x = node.localIdentifier();
+			if (x != -1)
+				visitor.visit.declarations[x] = d;
+		}
+		private Declaration declaration(T node, Visitor visitor) {
+			final int x = node.localIdentifier();
+			return x > -1 ? visitor.visit.declarations[x] : null;
 		}
 		@Override
 		public TypeVariable createTypeVariable(T node, Visitor visitor) {
