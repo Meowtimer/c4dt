@@ -63,7 +63,7 @@ class Plan {
 
 	static boolean requires(Visit testDependent, Visit testRequirement, Set<Visit> catcher) {
 		if (!catcher.add(testDependent))
-			return true;
+			return false;
 		if (testDependent.dependencies.contains(testRequirement))
 			return true;
 		else for (final Visit td_ : testDependent.dependencies)
