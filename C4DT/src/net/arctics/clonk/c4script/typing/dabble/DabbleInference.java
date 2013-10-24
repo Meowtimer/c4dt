@@ -212,8 +212,28 @@ public class DabbleInference extends ProblemReportingStrategy {
 	public void run() {
 		subTask(Messages.ComputingGraph);
 		final Plan plan = new Plan(this);
-		subTask(Messages.RunInference);
-		plan.run();
+		// prepare
+		TaskExecution.threadPool(plan.visits.values(), 3);
+		if (plan.total > 0) {
+			subTask(Messages.RunInference);
+			threadPool = TaskExecution.newPool(plan.total);
+			try {
+				remainingRuns = new AtomicInteger(plan.total);
+				for (final Visit r : plan.roots)
+					runVisit(r);
+				try {
+					threadPool.awaitTermination(3, TimeUnit.MINUTES);
+				} catch (final InterruptedException e) {
+					e.printStackTrace();
+				}
+			} finally {
+				threadPool = null;
+			}
+		}
+		// double takes
+		for (final Visit v : plan.doubleTakes)
+			v.doubleTake = false;
+		TaskExecution.threadPool(plan.doubleTakes, 3);
 	}
 
 	@Override
@@ -324,12 +344,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	void runPlan(Plan plan) {
-		if (plan.totalNumVisits == 0)
-			return;
-		else {
-			threadPool = TaskExecution.newPool(plan.totalNumVisits);
+		if (plan.total > 0) {
+			subTask(Messages.RunInference);
+			threadPool = TaskExecution.newPool(plan.total);
 			try {
-				remainingRuns = new AtomicInteger(plan.totalNumVisits);
+				remainingRuns = new AtomicInteger(plan.total);
 				for (final Visit r : plan.roots)
 					runVisit(r);
 				try {
