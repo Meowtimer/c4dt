@@ -173,8 +173,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					a.setParent(this);
 	}
 
-	public Map<String, List<CallDeclaration>> callMap() { return callMap; }
-	public Map<String, List<AccessVar>> varReferences() { return varReferencesMap; }
+	public Map<String, List<CallDeclaration>> callMap() { return defaulting(callMap, Collections.<String, List<CallDeclaration>>emptyMap()); }
+	public Map<String, List<AccessVar>> varReferences() { return defaulting(varReferencesMap, Collections.<String, List<AccessVar>>emptyMap()); }
 
 	/**
 	 * The script's dictionary contains names of variables and functions defined in it.
@@ -1202,27 +1202,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			return true;
 	}
 
-	private static final IASTVisitor<Script> NODEMAPS_POPULATOR = new IASTVisitor<Script>() {
-		@Override
-		public TraversalContinuation visitNode(ASTNode node, Script script) {
-			if (node instanceof CallDeclaration) {
-				final CallDeclaration call = (CallDeclaration)node;
-				List<CallDeclaration> list = script.callMap.get(call.name());
-				if (list == null)
-					script.callMap.put(call.name(), list = new ArrayList<>(3));
-				list.add(call);
-			}
-			else if (node instanceof AccessVar) {
-				final AccessVar var = (AccessVar)node;
-				List<AccessVar> list = script.varReferencesMap.get(var.name());
-				if (list == null)
-					script.varReferencesMap.put(var.name(), list = new ArrayList<>(3));
-				list.add(var);
-			}
-			return TraversalContinuation.Continue;
-		}
-	};
-
 	/**
 	 * Populate various helper structures and caches with information derived from the truth
 	 * read from the source. These things include:
@@ -1246,17 +1225,41 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		generateNodeMaps();
 	}
 
+	static class NodeMapsPopulator implements IASTVisitor<Script> {
+		final Map<String, List<CallDeclaration>> callMap = new HashMap<>();
+		final Map<String, List<AccessVar>> varReferencesMap = new HashMap<>();
+		@Override
+		public TraversalContinuation visitNode(ASTNode node, Script script) {
+			if (node instanceof CallDeclaration) {
+				final CallDeclaration call = (CallDeclaration)node;
+				List<CallDeclaration> list = callMap.get(call.name());
+				if (list == null)
+					callMap.put(call.name(), list = new ArrayList<>(3));
+				list.add(call);
+			}
+			else if (node instanceof AccessVar) {
+				final AccessVar var = (AccessVar)node;
+				List<AccessVar> list = varReferencesMap.get(var.name());
+				if (list == null)
+					varReferencesMap.put(var.name(), list = new ArrayList<>(3));
+				list.add(var);
+			}
+			return TraversalContinuation.Continue;
+		}
+	};
+
 	private void generateNodeMaps() {
-		callMap = new HashMap<>();
-		varReferencesMap = new HashMap<>();
+		final NodeMapsPopulator populator = new NodeMapsPopulator();
 		if (functions != null && index() != null)
 			for (final Function f : functions())
-				detectMapNodesInFunction(f, false);
+				f.traverse(populator, this);
+		this.callMap = Collections.unmodifiableMap(populator.callMap);
+		this.varReferencesMap = Collections.unmodifiableMap(populator.varReferencesMap);
 	}
 
 	private void generateFindDeclarationCache(final List<Script> conglo) {
-		cachedFunctionMap = new HashMap<>();
-		cachedVariableMap = new HashMap<>();
+		final Map<String, Function> cachedFunctionMap = new HashMap<>();
+		final Map<String, Variable> cachedVariableMap = new HashMap<>();
 		for (final Script i : conglo)
 			if (i instanceof Script) {
 				final Script s = i;
@@ -1273,27 +1276,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					for (final Variable v : s.variables)
 						cachedVariableMap.put(v.name(), v);
 			}
-	}
-
-	private static <T extends ASTNode> void clearNodes(ASTNode container, Map<String, List<T>> map) {
-		for (final Iterator<List<T>> it = map.values().iterator(); it.hasNext();) {
-			final List<T> list = it.next();
-			for (final Iterator<T> it2 = list.iterator(); it2.hasNext();)
-				if (it2.next().containedIn(container))
-					it2.remove();
-			if (list.size() == 0)
-				it.remove();
-		}
-	}
-
-	public void detectMapNodesInFunction(Function function, boolean clearOld) {
-		synchronized (callMap) {
-			if (clearOld) {
-				clearNodes(function, callMap);
-				clearNodes(function, varReferencesMap);
-			}
-			function.traverse(NODEMAPS_POPULATOR, this);
-		}
+		this.cachedFunctionMap = cachedFunctionMap;
+		this.cachedVariableMap = cachedVariableMap;
 	}
 
 	@Override
