@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
+import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -316,25 +317,30 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 					final SearchResultPage page = as(view.getActivePage(), SearchResultPage.class);
 					if (page != null) {
 						final SearchResult result = (SearchResult)page.getInput();
-						for (final Object element : result.getElements()) {
-							final Script script = as(element, Script.class);
-							if (script == null)
-								continue;
-							final Match[] matches = result.getMatches(element);
-							final List<ASTNode> replacements = new LinkedList<ASTNode>();
-							for (final Match m : matches)
-								if (m instanceof ASTSearchQuery.Match) {
-									final ASTSearchQuery.Match qm = (ASTSearchQuery.Match) m;
-									final ASTNode replacement = query.replacement();
-									ASTNode repl = replacement.transform(qm.subst(), null);
-									if (repl == replacement)
-										repl = repl.clone();
-									repl.setLocation(qm.getOffset(), qm.getOffset()+qm.getLength());
-									repl.setParent(qm.matched().parent());
-									replacements.add(repl);
+						runWithoutAutoBuild(new Runnable() {
+							@Override
+							public void run() {
+								for (final Object element : result.getElements()) {
+									final Script script = as(element, Script.class);
+									if (script == null)
+										continue;
+									final Match[] matches = result.getMatches(element);
+									final List<ASTNode> replacements = new LinkedList<ASTNode>();
+									for (final Match m : matches)
+										if (m instanceof ASTSearchQuery.Match) {
+											final ASTSearchQuery.Match qm = (ASTSearchQuery.Match) m;
+											final ASTNode replacement = query.replacement();
+											ASTNode repl = replacement.transform(qm.subst(), null);
+											if (repl == replacement)
+												repl = repl.clone();
+											repl.setLocation(qm.getOffset(), qm.getOffset()+qm.getLength());
+											repl.setParent(qm.matched().parent());
+											replacements.add(repl);
+										}
+									script.saveNodes(replacements, false);
 								}
-							script.saveNodes(replacements, false);
-						}
+							}
+						});
 					}
 				}
 			}
