@@ -377,7 +377,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			final FunctionBody body = new FunctionBody(function, statements);
 			loc.setEnd(
 				function.isOldStyle() && statements.size() > 0
-					? loc.start() + statements.get(statements.size() - 1).end()
+					? (loc.start() + statements.get(statements.size() - 1).end())
 					: this.offset - 1
 			);
 			function.storeBody(body, functionSource(function));
