@@ -865,7 +865,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 								if (t != null)
 									for (final IType t2 : t)
 										if (t2 instanceof Script) {
-											context  = (Script)t2;
+											context = (Script)t2;
 											break ContextSelection;
 										}
 							}

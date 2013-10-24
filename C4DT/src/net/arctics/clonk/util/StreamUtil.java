@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 
 public class StreamUtil {
+
 	public static String stringFromReader(Reader reader) {
 		final char[] buffer = new char[1024];
 		int read;
@@ -108,14 +109,22 @@ public class StreamUtil {
 	}
 
 	public static String stringFromStorage(IStorage storage) {
-		try (InputStream s = storage.getContents()) {
-			return stringFromInputStream(s);
-		} catch (IOException | CoreException e) {
-			e.printStackTrace();
-			return "";
-		}
+		if (storage instanceof IFile)
+			return Core.instance().performActionsOnFileDocument(storage, new IDocumentAction<String>() {
+				@Override
+				public String run(IDocument document) {
+					return document.get();
+				}
+			}, false);
+		else
+			try (InputStream s = storage.getContents()) {
+				return stringFromInputStream(s);
+			} catch (IOException | CoreException e) {
+				e.printStackTrace();
+				return "";
+			}
 	}
-	
+
 	public static String stringFromFileDocument(IFile file) {
 		return Core.instance().performActionsOnFileDocument(file, new IDocumentAction<String>() {
 			@Override
@@ -124,9 +133,11 @@ public class StreamUtil {
 			}
 		}, false);
 	}
+
 	public interface StreamWriteRunnable {
 		void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException;
 	}
+
 	public static void writeToFile(File file, StreamWriteRunnable runnable) throws IOException {
 		final FileOutputStream s = new FileOutputStream(file);
 		try {
@@ -140,12 +151,14 @@ public class StreamUtil {
 			s.close();
 		}
 	}
+
 	public static void transfer(InputStream source, OutputStream dest) throws IOException {
 		final byte[] buffer = new byte[1024];
 		int read;
 		while ((read = source.read(buffer)) != -1)
 			dest.write(buffer, 0, read);
 	}
+
 	public static FilenameFilter patternFilter(final String pattern) {
 		return new FilenameFilter() {
 			private final Pattern p = StringUtil.patternFromRegExOrWildcard(pattern);
