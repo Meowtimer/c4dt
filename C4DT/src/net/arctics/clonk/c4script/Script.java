@@ -1127,13 +1127,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return script;
 	}
 
-	/**
-	 * Return script the passed type is associated with (or is literally)
-	 * @param type Type to return a script from
-	 * @return Associated script or null, if type is some primitive type or what have you
-	 */
-	public static Script scriptFrom(IType type) { return as(type, Script.class); }
-
 	@Override
 	public String typeName(boolean special) {
 		return special ? name() : PrimitiveType.OBJECT.typeName(false);

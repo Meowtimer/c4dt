@@ -442,7 +442,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				else if (t instanceof MetaDefinition)
 					structure = ((MetaDefinition)t).definition();
 				else
-					structure = Script.scriptFrom(t);
+					structure = as(t, Script.class);
 				if (structure != null)
 					contextStructures.add(structure);
 			}

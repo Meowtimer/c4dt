@@ -1340,7 +1340,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				if (type == null)
 					return null;
 				for (final IType t : type) {
-					final Script scriptToLookIn = Definition.scriptFrom(t);
+					final Script scriptToLookIn = as(t, Script.class);
 					if (scriptToLookIn != null) {
 						final FindDeclarationInfo info = new FindDeclarationInfo(node.name(), visitor.script().index());
 						info.searchOrigin(scriptToLookIn);
@@ -2775,7 +2775,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	 * @param region The region describing the string table reference in question
 	 * @param node Node in which the reference to the string table entry is contained
 	 */
-	public static void reportMissingStringTblEntries(ProblemReporter context, EntityRegion region, ASTNode node) {
+	private static void reportMissingStringTblEntries(ProblemReporter context, EntityRegion region, ASTNode node) {
 		StringBuilder miss = null;
 		try {
 			for (final IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {
