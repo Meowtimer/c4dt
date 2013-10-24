@@ -3,5 +3,5 @@ Bundle-ManifestVersion: 2
 Bundle-Name: C4DT German
 Bundle-SymbolicName: net.arctics.clonk.nl_de;singleton:=true
 Bundle-Version: 1.8.9.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Fragment-Host: net.arctics.clonk
