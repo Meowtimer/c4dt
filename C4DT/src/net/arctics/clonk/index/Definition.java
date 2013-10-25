@@ -115,15 +115,14 @@ public class Definition extends Script implements IProplistDeclaration {
 	@Override
 	protected Declaration representingDeclaration(String name, FindDeclarationInfo info) {
 		final Class<?> cls = info.declarationClass;
-		boolean variableRequired = false;
-		if (
-			cls == null ||
-			cls == Definition.class ||
-			(engine() != null && engine().settings().definitionsHaveProxyVariables && (variableRequired = Variable.class.isAssignableFrom(cls)))
-		)
-			if (id != null && id.stringValue().equals(name))
-				return variableRequired ? this.proxyVar() : this;
-		return null;
+		final boolean variableRequired = cls != null && Variable.class.isAssignableFrom(cls);
+		final Engine ngn = engine();
+		final boolean clsCompatible =
+			cls == null || cls == Definition.class ||
+			(variableRequired && ngn != null && ngn.settings().definitionsHaveProxyVariables);
+		return clsCompatible && id != null && id.stringValue().equals(name)
+			? (variableRequired ? this.proxyVar() : this)
+			: null;
 	}
 
 	private static Pattern langNamePairPattern = Pattern.compile("(..):(.*)"); //$NON-NLS-1$
