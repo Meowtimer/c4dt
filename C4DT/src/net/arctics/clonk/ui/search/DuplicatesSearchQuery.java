@@ -11,8 +11,8 @@ import net.arctics.clonk.ast.ASTComparisonDelegate;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.InitializationFunction;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.SynthesizedFunction;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.BinaryOp;
@@ -142,7 +142,7 @@ public class DuplicatesSearchQuery extends SearchQuery {
 
 	private void fillFunctionMapWithFunctionList(List<Function> functions) {
 		for (final Function f : functions) {
-			if (f.body() == null || f instanceof InitializationFunction)
+			if (f.body() == null || f instanceof SynthesizedFunction)
 				continue;
 			List<Function> list = functionsToBeChecked.get(f.name());
 			if (list == null) {

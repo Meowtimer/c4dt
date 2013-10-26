@@ -19,8 +19,8 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IHasCode;
-import net.arctics.clonk.c4script.InitializationFunction;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.SynthesizedFunction;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.FunctionBody;
@@ -73,7 +73,7 @@ public abstract class CodeConverter {
 			});
 			for (final Declaration d : decs)
 				try {
-					if (d instanceof InitializationFunction)
+					if (d instanceof SynthesizedFunction)
 						continue;
 					final ASTNode elms = codeFor(d);
 					if (d instanceof Function) {

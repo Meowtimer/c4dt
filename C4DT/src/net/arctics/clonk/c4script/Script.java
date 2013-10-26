@@ -1021,7 +1021,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		final List<Object> all = new LinkedList<Object>();
 		for (final Script c : conglomerate())
 			for (final Declaration sd : c.subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|(c==this?DeclMask.DIRECTIVES:0))) {
-				if (sd instanceof InitializationFunction)
+				if (sd instanceof SynthesizedFunction)
 					continue;
 				if (sd instanceof Function && !seesFunction(((Function)sd)))
 					continue;

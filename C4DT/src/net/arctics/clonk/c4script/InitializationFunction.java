@@ -10,7 +10,7 @@ import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 
-public class InitializationFunction extends Function {
+public class InitializationFunction extends SynthesizedFunction {
 	public static final class VarInitializationAccess extends AccessVar {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		public VarInitializationAccess(Declaration declaration) { super(declaration); }
