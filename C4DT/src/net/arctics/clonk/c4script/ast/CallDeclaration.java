@@ -98,7 +98,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	 * @param parms Parameter expressions
 	 */
 	public CallDeclaration(Function function, ASTNode... parms) {
-		this(function.name());
+		this(function.name(), parms);
 		this.declaration = function;
 		assignParentToSubElements();
 	}
