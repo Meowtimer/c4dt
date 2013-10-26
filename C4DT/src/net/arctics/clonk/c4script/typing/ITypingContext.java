@@ -54,4 +54,10 @@ public interface ITypingContext {
 	 * @return True if modifiable, false if not.
 	 */
 	boolean isModifiable(ASTNode node);
+	/**
+	 * Return declaration a node refers to.
+	 * @param node The node
+	 * @return The referred-to declaration
+	 */
+	Declaration declarationOf(ASTNode node);
 }

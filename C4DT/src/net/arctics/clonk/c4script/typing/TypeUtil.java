@@ -3,6 +3,7 @@ package net.arctics.clonk.c4script.typing;
 import static net.arctics.clonk.util.Utilities.as;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProblemReporter;
@@ -55,6 +56,15 @@ public class TypeUtil {
 			public boolean isModifiable(ASTNode node) { return false; }
 			@Override
 			public Function function() { return null; }
+			@Override
+			public Declaration declarationOf(ASTNode node) {
+				final ASTNode last = node instanceof Sequence ? ((Sequence)node).lastElement() : node;
+				if (last instanceof AccessDeclaration) {
+					final AccessDeclaration ad = (AccessDeclaration) last;
+					return ad.declaration();
+				}
+				return null;
+			}
 		};
 	}
 	public static Definition definition(IType type) {

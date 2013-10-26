@@ -906,6 +906,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return null;
 			}
 
+			@Override
+			public Declaration declarationOf(ASTNode node) {
+				if (visit != null) {
+					final ASTNode last = node instanceof Sequence ? ((Sequence)node).lastElement() : node;
+					if (last instanceof AccessDeclaration) {
+						final AccessDeclaration ad = (AccessDeclaration) last;
+						return ((AccessDeclarationExpert<? super AccessDeclaration>)expert(ad)).declaration(ad, this);
+					}
+				}
+				return null;
+			}
+
 			void log(String msg, Object... args) {
 				final StringBuilder b = new StringBuilder(10+msg.length()+args.length*5);
 				b.append(this.toString());
@@ -1310,7 +1322,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			if (x != -1)
 				visitor.visit.declarations[x] = d;
 		}
-		private Declaration declaration(T node, Visitor visitor) {
+		public Declaration declaration(T node, Visitor visitor) {
 			final int x = node.localIdentifier();
 			return x > -1 ? visitor.visit.declarations[x] : null;
 		}
