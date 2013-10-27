@@ -36,7 +36,7 @@ public abstract class StructureCompletionProcessor<StateClass
 	implements IContentAssistProcessor, ICompletionProposalSorter, Comparator<ICompletionProposal> {
 
 	protected Image defIcon;
-	protected ProposalsSite pl;
+	protected ProposalsSite site;
 	protected StateClass state;
 
 	protected static class CategoryOrdering {
@@ -89,27 +89,27 @@ public abstract class StructureCompletionProcessor<StateClass
 		return null;
 	}
 
-	protected void proposalForDefinition(ProposalsSite pl, Definition def) {
+	protected void proposalForDefinition(ProposalsSite site, Definition def) {
 		try {
 			if (def == null || def.id() == null)
 				return;
 
-			if (pl.prefix != null)
+			if (site.prefix != null)
 				if (!(
-					stringMatchesPrefix(def.localizedName(), pl.prefix) ||
-					stringMatchesPrefix(def.name(), pl.prefix)
+					stringMatchesPrefix(def.localizedName(), site.prefix) ||
+					stringMatchesPrefix(def.name(), site.prefix)
 					/* // also check if the user types in the folder name
 					(def instanceof Definition && def.definitionFolder() != null &&
 					 stringMatchesPrefix(def.definitionFolder().getName(), prefix))*/
 				))
 					return;
 			final String displayString = definitionDisplayString(def);
-			final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
+			final int replacementLength = site.prefix != null ? site.prefix.length() : 0;
 
-			final DeclarationProposal prop = new DeclarationProposal(def, def, def.id().stringValue(), pl.wordOffset, replacementLength, def.id().stringValue().length(),
-				defIcon, displayString.trim(), null, null, String.format(": %s", PrimitiveType.ID.typeName(true)), pl); //$NON-NLS-1$
+			final DeclarationProposal prop = new DeclarationProposal(def, def, def.id().stringValue(), site.wordOffset, replacementLength, def.id().stringValue().length(),
+				defIcon, displayString.trim(), null, null, String.format(": %s", PrimitiveType.ID.typeName(true)), site); //$NON-NLS-1$
 			prop.setCategory(cats.Definitions);
-			pl.addProposal(prop);
+			site.addProposal(prop);
 		} catch (final Exception e) {}
 	}
 
@@ -122,49 +122,49 @@ public abstract class StructureCompletionProcessor<StateClass
 
 	protected IFile pivotFile() { return state().structure().file(); }
 
-	protected void proposalsForIndexedDefinitions(ProposalsSite pl, Index index) {
+	protected void proposalsForIndexedDefinitions(ProposalsSite site, Index index) {
 		for (final Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
-			proposalForDefinition(pl, obj);
+			proposalForDefinition(site, obj);
 	}
 
 	protected boolean stringMatchesPrefix(String name, String lowercasedPrefix) {
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
 
-	protected DeclarationProposal proposalForFunc(ProposalsSite pl, Declaration target, Function func) {
+	protected DeclarationProposal proposalForFunc(ProposalsSite site, Declaration target, Function func) {
 		if (func instanceof SynthesizedFunction)
 			return null;
-		if (pl.prefix != null)
-			if (!stringMatchesPrefix(func.name(), pl.prefix))
+		if (site.prefix != null)
+			if (!stringMatchesPrefix(func.name(), site.prefix))
 				return null;
-		final int replacementLength = pl.prefix != null ? pl.prefix.length() : 0;
+		final int replacementLength = site.prefix != null ? site.prefix.length() : 0;
 		final String replacement = func.name(); //$NON-NLS-1$ //$NON-NLS-2$
 		final IType returnType = func.returnType(target.script());
 		final String postInfo = returnType == PrimitiveType.UNKNOWN ? "" : ": " + returnType.typeName(true);
 		final DeclarationProposal prop = new DeclarationProposal(
-			func, target, replacement, pl.offset, replacementLength,
-			UI.functionIcon(func), null/*contextInformation*/, null, postInfo, pl
+			func, target, replacement, site.offset, replacementLength,
+			UI.functionIcon(func), null/*contextInformation*/, null, postInfo, site
 		);
 		prop.setCategory(cats.Functions);
-		pl.addProposal(prop);
+		site.addProposal(prop);
 		return prop;
 	}
 
-	protected DeclarationProposal proposalForVar(ProposalsSite pl, Declaration target, Variable var) {
-		if (pl.prefix != null && !stringMatchesPrefix(var.name(), pl.prefix))
+	protected DeclarationProposal proposalForVar(ProposalsSite site, Declaration target, Variable var) {
+		if (site.prefix != null && !stringMatchesPrefix(var.name(), site.prefix))
 			return null;
 		final String displayString = var.name();
 		int replacementLength = 0;
-		if (pl.prefix != null)
-			replacementLength = pl.prefix.length();
+		if (site.prefix != null)
+			replacementLength = site.prefix.length();
 		final DeclarationProposal prop = new DeclarationProposal(
 			var, target,
-			var.name(), pl.offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
-			null, null, ": " + var.type(defaulting(as(target, Script.class), pl.script)).typeName(true), //$NON-NLS-1$
-			pl
+			var.name(), site.offset, replacementLength, var.name().length(), UI.variableIcon(var), displayString,
+			null, null, ": " + var.type(defaulting(as(target, Script.class), site.script)).typeName(true), //$NON-NLS-1$
+			site
 		);
 		setVariableCategory(var, prop);
-		pl.addProposal(prop);
+		site.addProposal(prop);
 		return prop;
 	}
 
@@ -229,7 +229,7 @@ public abstract class StructureCompletionProcessor<StateClass
 				return cb.category() > ca.category() ? -diff : +diff;
 			}
 			int bonus = 0;
-			final String pfx = pl != null ? pl.untamperedPrefix : "";
+			final String pfx = site != null ? site.untamperedPrefix : "";
 			final String pfxlo = pfx.toLowerCase();
 			if (pfx != null) {
 				class Match {
