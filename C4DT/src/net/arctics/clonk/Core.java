@@ -441,12 +441,13 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	@Override
 	public void saving(ISaveContext context) throws CoreException {
-		ClonkProjectNature clonkProj;
 		switch (context.getKind()) {
 		case ISaveContext.PROJECT_SAVE:
-			clonkProj = ClonkProjectNature.get(context.getProject());
-			if (clonkProj != null)
-				clonkProj.saveIndex();
+			{
+				final ClonkProjectNature cpn = ClonkProjectNature.get(context.getProject());
+				if (cpn != null)
+					cpn.saveIndex();
+			}
 			break;
 		case ISaveContext.SNAPSHOT:
 		case ISaveContext.FULL_SAVE:
@@ -455,9 +456,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				engine.saveSettings();
 			for (final IProject project : ClonkProjectNature.clonkProjectsInWorkspace())
 				try {
-					clonkProj = ClonkProjectNature.get(project);
-					if (clonkProj != null)
-						clonkProj.saveIndex();
+					final ClonkProjectNature cpn = ClonkProjectNature.get(project);
+					if (cpn != null)
+						cpn.saveIndex();
 				} catch (final Exception e) {
 					UI.informAboutException(Messages.ErrorWhileSavingIndex, e, project.getName());
 				}
