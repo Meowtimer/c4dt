@@ -388,7 +388,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final int hash;
 
 			@Override
-			public int hashCode() { return super.hashCode(); }
+			public int hashCode() { return hash; }
 			public Input input() { return Input.this; }
 			@Override
 			public String toString() { return function.qualifiedName(script); }

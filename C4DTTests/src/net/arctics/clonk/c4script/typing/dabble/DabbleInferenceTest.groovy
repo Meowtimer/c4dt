@@ -5,7 +5,7 @@ import net.arctics.clonk.TestBase
 import net.arctics.clonk.c4script.ScriptParserTest
 import net.arctics.clonk.c4script.Variable
 import net.arctics.clonk.c4script.typing.ArrayType
-import net.arctics.clonk.c4script.typing.Maybe;
+import net.arctics.clonk.c4script.typing.Maybe
 import net.arctics.clonk.c4script.typing.PrimitiveType
 import net.arctics.clonk.c4script.typing.TypeChoice
 import net.arctics.clonk.index.Definition
@@ -31,6 +31,13 @@ public class DabbleInferenceTest extends TestBase {
 			index.refresh()
 			this.scripts.each { it.deriveInformation() }
 			inference.initialize(inferenceMarkers, new NullProgressMonitor(), this.scripts)
+		}
+		void performInference() {
+			inference.steer({
+				inference.run()
+				inference.apply()
+				inference.run2()
+			})
 		}
 	}
 
@@ -452,12 +459,27 @@ func Type() { return Clonk; }
 		] as DefinitionInfo[]
 
 		def setup = new Setup(definitions)
-		setup.inference.perform()
+		setup.performInference()
 
 		Assert.assertEquals(
 			new ArrayType(setup.scripts[2]),
 			setup.scripts[1].typings().variableTypes['items']
 		);
 		Assert.assertEquals(new ArrayType(setup.scripts[2]), setup.scripts[1].typings().functionTypings['ToArray'].returnType);
+	}
+
+	@Test
+	public void testDabbleInferencePlan() {
+		def definitions = [
+			new DefinitionInfo(
+				name:'Tangled',source:
+				"""
+				func A(x) { B(123); }
+				func B(x) { return A(321); }
+				"""
+			)
+		] as DefinitionInfo[]
+		def setup = new Setup(definitions)
+		setup.performInference()
 	}
 }

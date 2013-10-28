@@ -1,13 +1,20 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.util.Utilities.any;
+import static net.arctics.clonk.util.Utilities.as;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTVisitor;
@@ -22,6 +29,9 @@ import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visit;
+import net.arctics.clonk.util.IPredicate;
+import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.TaskExecution;
 
 @SuppressWarnings("serial")
 class Plan {
@@ -43,7 +53,7 @@ class Plan {
 									final Function fun = ref.parent(Function.class);
 									final Visit other = v.input().visits.get(fun);
 									if (other != null)
-										addDependency(v, other);
+										addEdge(other, v);
 									/*	final List<CallDeclaration> calls = s.callMap().get(fun.name());
 										if (calls != null)
 											for (final CallDeclaration cd : calls) {
@@ -86,7 +96,7 @@ class Plan {
 				final List<Visit> calledVisits = visits.get(cd.name());
 				if (calledVisits != null)
 					for (final Visit cv : calledVisits)
-						addDependency(v, cv);
+						addEdge(cv, v);
 			}
 			return TraversalContinuation.Continue;
 		}
@@ -105,26 +115,82 @@ class Plan {
 		}
 	}
 
-	final DabbleInference inference;
-	final Map<String, VisitsByName> visits = new HashMap<>();
-	int total;
-	final Set<Visit> doubleTakes = new HashSet<>();
-	final List<Visit> roots = new LinkedList<>();
-	final IASTVisitor<Visit> resultUsedRequirementsDetector = new ResultUsedDependencyDetector();
-	final IASTVisitor<Visit> variableInitializationsRequirementsVisitor = new VariableInitializationDependenciesVisitor();
-
-	Plan(DabbleInference inference) {
-		this.inference = inference;
-		populateVisitsMap();
-		determineDependencies();
-		populate();
+	private static class DependencyTester extends HashSet<Visit> implements IPredicate<Visit> {
+		final Visit dependency;
+		public DependencyTester(Visit dependency) { this.dependency = dependency; }
+		@Override
+		public boolean test(Visit dependent) {
+			return
+				!add(dependent) ||
+				dependent.dependencies.contains(dependency) ||
+				any(dependent.dependencies, this);
+		}
 	}
 
-	void populateVisitsMap() {
-		total = 0;
+	private static class Edge {
+		Visit a, b;
+		public Edge(Visit a, Visit b) {
+			super();
+			this.a = a;
+			this.b = b;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			final Edge o = as(obj, Edge.class);
+			if (o == null)
+				return false;
+			return o.a == a && o.b == b;
+		}
+		@Override
+		public int hashCode() {
+		    int hash = 7;
+		    hash = 71 * hash + a.hashCode();
+		    hash = 71 * hash + b.hashCode();
+		    return hash;
+		}
+		@Override
+		public String toString() {
+			return format("%s -> %s", a.toString(), b.toString());
+		}
+	}
+
+	private static class ASTVisitorRunnable implements Runnable {
+		final Visit target;
+		final IASTVisitor<Visit> visitor;
+		public ASTVisitorRunnable(Visit target, IASTVisitor<Visit> visitor) {
+			super();
+			this.target = target;
+			this.visitor = visitor;
+		}
+		@Override
+		public void run() {
+			target.function.traverse(visitor, target);
+		}
+	}
+
+	final DabbleInference inference;
+	final Map<String, VisitsByName> visits;
+	final Visit[] linear;
+	final int total;
+	final Set<Visit> doubleTakes = new HashSet<>();
+	final List<Visit> roots = new LinkedList<>();
+	final IASTVisitor<Visit> resultUsedDependencyDetector = new ResultUsedDependencyDetector();
+	final IASTVisitor<Visit> variableInitializationsDependencyVisitor = new VariableInitializationDependenciesVisitor();
+
+	public Plan(DabbleInference inference) {
+		this.inference = inference;
+		this.visits = visitsMap();
+		this.linear = linear();
+		this.total = linear.length;
+		determineDependencies();
+		transferEdges();
+		findRoots();
+	}
+
+	private Map<String, VisitsByName> visitsMap() {
+		final Map<String, VisitsByName> visits = new HashMap<>();
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.visits.values()) {
-				total++;
 				VisitsByName list = visits.get(v.function.name());
 				if (list == null) {
 					list = new VisitsByName();
@@ -132,34 +198,37 @@ class Plan {
 				}
 				list.add(v);
 			}
+		return visits;
 	}
 
-	static boolean requires(Visit testDependent, Visit testRequirement, Set<Visit> catcher) {
-		if (!catcher.add(testDependent))
-			return false;
-		if (testDependent.dependencies.contains(testRequirement))
-			return true;
-		else for (final Visit td_ : testDependent.dependencies)
-			if (requires(td_, testRequirement, catcher))
-				return true;
-		return false;
+	private Visit[] linear() {
+		int num = 0;
+		for (final Input i : inference.input.values())
+			num += i.visits.size();
+		final Visit[] result = new Visit[num];
+		num = 0;
+		for (final Input i : inference.input.values())
+			for (final Visit v : i.visits.values())
+				result[num++] = v;
+		return result;
 	}
 
-	void addDependency(Visit dependent, Visit requirement) {
-		if (requirement == dependent)
+	private final Set<Edge> edges = Collections.synchronizedSet(new HashSet<Edge>());
+
+	private void addEdge(Visit dependency, Visit dependent) {
+		if (dependency == dependent)
 			return;
-		if (!requires(requirement, dependent, new HashSet<Visit>())) {
-			dependent.dependencies.add(requirement);
-			requirement.dependents.add(dependent);
-		} else {
-			if (DEBUG)
-				System.out.println(String.format("Not adding requirement %s to %s", requirement.toString(), dependent.toString()));
-			dependent.doubleTake = true;
-			doubleTakes.add(dependent);
-		}
+		edges.add(new Edge(dependency, dependent));
 	}
 
-	void determineDependencies() {
+	private Collection<Runnable> visitorRunnables(IASTVisitor<Visit> visitor) {
+		final List<Runnable> list = new ArrayList<>(total);
+		for (final Visit v : linear)
+			list.add(new ASTVisitorRunnable(v, visitor));
+		return list;
+	}
+
+	private void determineDependencies() {
 
 		switch (inference.typing) {
 		case STATIC: case DYNAMIC:
@@ -169,40 +238,63 @@ class Plan {
 		}
 
 		// callee -> caller if callee's result used
-		for (final Input i : inference.input.values())
-			for (final Visit v : i.visits.values())
-				v.function.traverse(resultUsedRequirementsDetector, v);
+		TaskExecution.threadPool(visitorRunnables(resultUsedDependencyDetector), 3);
 
 		// caller -> callee
-		for (final Input i : inference.input.values())
-			for (final Visit v : i.visits.values()) {
-				final int numParameters = v.function().numParameters();
-				if (i.shouldTypeFromCalls(v.function)) {
-					final List<CallDeclaration> calls = inference.index().callsTo(v.function.name());
-					if (calls != null)
-						for (final CallDeclaration call : calls) {
-							if (call.params().length != numParameters)
-								continue;
-							final Function caller = call.parent(Function.class);
-							final List<Visit> callerVisits = visits.get(caller.name());
-							if (callerVisits != null)
-								for (final Visit callerVisit : callerVisits)
-									if (callerVisit.function == caller)
-										addDependency(v, callerVisit);
-						}
-				}
+		TaskExecution.threadPool(new Sink<ExecutorService>() {
+			@Override
+			public void receivedObject(ExecutorService item) {
+				for (final Input i : inference.input.values())
+					for (final Visit v : i.visits.values())
+						item.execute(new Runnable() {
+							@Override
+							public void run() {
+								final int numParameters = v.function().numParameters();
+								if (i.shouldTypeFromCalls(v.function)) {
+									final List<CallDeclaration> calls = inference.index().callsTo(v.function.name());
+									if (calls != null)
+										for (final CallDeclaration call : calls) {
+											if (call.params().length != numParameters)
+												continue;
+											final Function caller = call.parent(Function.class);
+											final List<Visit> callerVisits = visits.get(caller.name());
+											if (callerVisits != null)
+												for (final Visit callerVisit : callerVisits)
+													if (callerVisit.function == caller)
+														addEdge(callerVisit, v);
+										}
+								}
+							};
+						});
 			}
+		}, 3, total);
 
 		// functions containing initialization of used variable -> variable user
-		for (final Input i : inference.input.values())
-			for (final Visit v : i.visits.values())
-				v.function.traverse(variableInitializationsRequirementsVisitor, v);
+		TaskExecution.threadPool(visitorRunnables(variableInitializationsDependencyVisitor), 3);
 	}
 
-	void populate() {
+	private void transferEdges() {
+		synchronized (edges) {
+			for (final Edge edge : edges) {
+				final Visit dependency = edge.a;
+				final Visit dependent = edge.b;
+				if (!new DependencyTester(dependent).test(dependency)) {
+					dependent.dependencies.add(dependency);
+					dependency.dependents.add(dependent);
+				} else {
+					if (DEBUG)
+						System.out.println(format("Not adding requirement %s to %s", dependency.toString(), dependent.toString()));
+					dependent.doubleTake = true;
+					doubleTakes.add(dependent);
+				}
+			}
+		}
+	}
+
+	private void findRoots() {
 		for (final Input i : inference.input.values())
 			for (final Visit v : i.visits.values())
-				if (v.dependencies.size() == 0)
+				if (v.dependencies.isEmpty())
 					roots.add(v);
 	}
 }
