@@ -120,10 +120,9 @@ class Plan {
 		public DependencyTester(Visit dependency) { this.dependency = dependency; }
 		@Override
 		public boolean test(Visit dependent) {
-			return
-				!add(dependent) ||
-				dependent.dependencies.contains(dependency) ||
-				any(dependent.dependencies, this);
+			return add(dependent) &&
+				(dependent.dependencies.contains(dependency) ||
+				 any(dependent.dependencies, this));
 		}
 	}
 
