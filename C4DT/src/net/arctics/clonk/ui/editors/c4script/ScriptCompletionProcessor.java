@@ -302,7 +302,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 
 		functionLocalProposals(site);
 		structureProposals(site);
-		definitionProposals(site);
+		globalIndexProposals(site);
 		engineProposals(site);
 		ruleBasedProposals(site, parser);
 		keywordProposals(site);
@@ -347,10 +347,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			}
 	}
 
-	private void definitionProposals(ProposalsSite site) {
-		if ((site.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
-			for (final Index i : site.index.relevantIndexes())
-				proposalsForIndex(site, i);
+	private void globalIndexProposals(ProposalsSite site) {
+		for (final Index i : site.index.relevantIndexes())
+			proposalsForIndex(site, i);
 	}
 
 	@SuppressWarnings("serial")
