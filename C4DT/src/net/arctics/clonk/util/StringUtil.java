@@ -85,9 +85,9 @@ public class StringUtil {
 		return sBuilder.toString();
 	}
 
-	public static String wildcardToRegex(String wildcard){
+	public static String wildcardToRegex(String wildcard) {
         final StringBuffer s = new StringBuffer(wildcard.length());
-        s.append('^');
+        //s.append('^');
         for (int i = 0, is = wildcard.length(); i < is; i++) {
             final char c = wildcard.charAt(i);
             switch(c) {
@@ -109,7 +109,7 @@ public class StringUtil {
                     break;
             }
         }
-        s.append('$');
+       // s.append('$');
         return(s.toString());
     }
 
