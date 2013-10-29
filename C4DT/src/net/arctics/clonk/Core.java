@@ -223,20 +223,18 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		if (engineName == null || engineName.equals("")) //$NON-NLS-1$
 			return null;
 		synchronized (loadedEngines) {
-			Engine result = loadedEngines.get(engineName);
-			if (result != null)
-				return result;
-			IStorageLocation[] locations;
-			if (getBundle() != null)
+			final Engine loaded = loadedEngines.get(engineName);
+			if (loaded != null)
+				return loaded;
+			final IStorageLocation[] locations = getBundle() != null
 				// bundle given; assume the usual storage locations (workspace and plugin bundle contents) are present
-				locations = storageLocations(engineName);
-			else
+				? storageLocations(engineName)
 				// no bundle? seems to run headlessly
-				locations = headlessStorageLocations(engineName);
-			result = Engine.loadFromStorageLocations(locations);
-			if (result != null)
-				loadedEngines.put(engineName, result);
-			return result;
+				: headlessStorageLocations(engineName);
+			final Engine ngn = Engine.loadFromStorageLocations(locations);
+			if (ngn != null)
+				loadedEngines.put(engineName, ngn);
+			return ngn;
 		}
 	}
 
@@ -339,7 +337,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	@Override
 	@SuppressWarnings("deprecation")
 	public void stop(BundleContext context) throws Exception {
-		//saveExternIndex(); clean build causes save
 		try {
 			APIReflection.call(ResourcesPlugin.getWorkspace(), "removeSaveParticipant", PLUGIN_ID);
 		} catch (NoSuchMethodException | SecurityException e) {
