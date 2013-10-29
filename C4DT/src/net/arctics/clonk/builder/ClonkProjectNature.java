@@ -109,8 +109,6 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	private ProjectSettings settings;
 
-	private List<ProblemReportingStrategy> problemReportingStrategies;
-
 	public ClonkProjectNature() {}
 
 	@Override
@@ -149,7 +147,6 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	public ProjectIndex forceIndexRecreation() {
 		synchronized (lock) {
-			problemReportingStrategies = null;
 			index = null;
 			loadSettings();
 			final File indexFolder = indexFolder();

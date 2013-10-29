@@ -165,29 +165,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 						e.loadDeclarations();
 			}
 		});
-
-		if (wasUpdated())
-			informAboutUpdate(versionFromLastRun, getBundle().getVersion());
-	}
-
-	private static boolean versionAtLeast(Version version, int major, int minor, int micro) {
-		return
-			version.getMajor() >= major &&
-			(minor == -1 || version.getMinor() >= minor) &&
-			(micro == -1 || version.getMicro() >= micro);
-	}
-
-	private static boolean versionGap(Version oldVersion, Version newVersion, int baselineMajor, int baselineMinor, int baselineMicro) {
-		return
-			versionAtLeast(newVersion, baselineMajor, baselineMinor, baselineMicro) &&
-			!versionAtLeast(oldVersion, baselineMajor, baselineMinor, baselineMicro);
-	}
-
-	private void informAboutUpdate(Version oldVersion, Version newVersion) {
-		// only if there are projects at all
-		if (ClonkProjectNature.clonkProjectsInWorkspace().length > 0)
-			if (versionGap(oldVersion, newVersion, 1, 5, 9))
-				UI.message(Messages.UpdateNotes_1_5_9);
 	}
 
 	private void registerStructureClasses() {
