@@ -173,8 +173,6 @@ class Plan {
 	final int total;
 	final Set<Visit> doubleTakes = new HashSet<>();
 	final List<Visit> roots = new LinkedList<>();
-	final IASTVisitor<Visit> resultUsedDependencyDetector = new ResultUsedDependencyDetector();
-	final IASTVisitor<Visit> variableInitializationsDependencyVisitor = new VariableInitializationDependenciesVisitor();
 
 	public Plan(DabbleInference inference) {
 		this.inference = inference;
@@ -235,6 +233,9 @@ class Plan {
 		default:
 			break;
 		}
+
+		final IASTVisitor<Visit> resultUsedDependencyDetector = new ResultUsedDependencyDetector();
+		final IASTVisitor<Visit> variableInitializationsDependencyVisitor = new VariableInitializationDependenciesVisitor();
 
 		// callee -> caller if callee's result used
 		TaskExecution.threadPool(visitorRunnables(resultUsedDependencyDetector), 3);
