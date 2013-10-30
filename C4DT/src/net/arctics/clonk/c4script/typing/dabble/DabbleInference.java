@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.Utilities.as;
@@ -73,6 +74,7 @@ import net.arctics.clonk.c4script.ast.ConditionalStatement;
 import net.arctics.clonk.c4script.ast.ContinueStatement;
 import net.arctics.clonk.c4script.ast.FloatLiteral;
 import net.arctics.clonk.c4script.ast.ForStatement;
+import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.FunctionDescription;
 import net.arctics.clonk.c4script.ast.GarbageStatement;
 import net.arctics.clonk.c4script.ast.IDLiteral;
@@ -106,6 +108,7 @@ import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.c4script.typing.TypeChoice;
 import net.arctics.clonk.c4script.typing.TypeVariable;
 import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
@@ -667,6 +670,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							DabbleInference.this.markers().take(this);
 						}
 						env = endTypeEnvironment();
+						typeUntypedParametersByUsage(parTypes);
 					}
 					endTypeEnvironment();
 					warnAboutUnusedLocals(function, statements);
@@ -678,29 +682,60 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			}
 
+			private void typeUntypedParametersByUsage(TypeVariable[] parTypes) {
+				class CallsIntersectionAssigner implements IASTVisitor<Void> {
+					final Declaration parameter;
+					final Set<String> requiredMethods = new HashSet<>();
+					@Override
+					public TraversalContinuation visitNode(ASTNode node, Void _) {
+						final ASTNode pred = node.predecessor();
+						if (node instanceof CallDeclaration && pred != null) {
+							final Declaration dec = declarationOf(pred);
+							if (dec == parameter)
+								requiredMethods.add(((CallDeclaration) node).name());
+						}
+						return TraversalContinuation.Continue;
+					}
 
+					private Set<Script> scriptsSupporting(String name) {
+						if (index.engine().findFunction(name) != null || index.findGlobal(Function.class, name) != null)
+							return Collections.emptySet();
+						final List<Function> funcs = script.index().declarationsWithName(name, Function.class);
+						final Set<Script> scripts = new HashSet<>(funcs.size());
+						for (final Function f : funcs)
+							scripts.add(f.script());
+						return scripts;
+					}
 
-//			private void typeUntypedCallTargets(Function function) {
-//				function.body().traverse(new IASTVisitor<Visitor>() {
-//					final IType[] types = visit.inferredTypes;
-//					@Override
-//					public TraversalContinuation visitNode(ASTNode node, Visitor context) {
-//						final ASTNode pred = node.predecessorInSequence();
-//						if (node instanceof CallDeclaration && pred != null) {
-//							final CallDeclaration cd = (CallDeclaration) node;
-//							final IType predTy = types[pred.localIdentifier()];
-//							if (predTy instanceof CallTargetType) {
-//								IType unified = null;
-//								for (final Function f : script.index().declarationsWithName(cd.name(), Function.class))
-//									unified = typing.unify(unified, f.script());
-//								if (unified instanceof Script && ((Script)unified).findFunction(cd.name()) != null)
-//									judgement(pred, unified, TypingJudgementMode.UNIFY);
-//							}
-//						}
-//						return TraversalContinuation.Continue;
-//					}
-//				}, this);
-//			}
+					public CallsIntersectionAssigner(TypeVariable tyVar, ASTNode body) {
+						this.parameter = tyVar.declaration();
+						body.traverse(this, null);
+						Set<Script> remaining = null;
+						for (final String m : requiredMethods) {
+							final Set<Script> supporting = scriptsSupporting(m);
+							remaining = remaining != null ? intersection(remaining, supporting) : supporting;
+						}
+						if (remaining != null && !remaining.isEmpty()) {
+							final IType ty = TypeChoice.make(remaining);
+							if (!eq(ty, PrimitiveType.UNKNOWN)) {
+								System.out.println(format("%s: %s", parameter.qualifiedName(), ty.typeName(true)));
+								tyVar.set(ty);
+							}
+						}
+					}
+					private <T> Set<T> intersection(Set<T> a, Set<T> b) {
+						final Set<T> tmp = new HashSet<T>();
+						for (final T x : a)
+							if (b.contains(x))
+								tmp.add(x);
+						return tmp;
+					}
+				};
+				final FunctionBody body = visit.function().body();
+				for (final TypeVariable parTy : parTypes)
+					if (eq(parTy.get(), PrimitiveType.OBJECT))
+						new CallsIntersectionAssigner(parTy, body);
+			}
 
 			private void createFunctionLocalsTypeVariables(final Function function) {
 				for (final Variable l : function.locals()) {
@@ -905,10 +940,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 				return null;
 			}
 
+			private ASTNode lastNonMemberOperator(Sequence seq) {
+				final ASTNode[] subs = seq.subElements();
+				for (int i = subs.length - 1; i >= 0; i--) {
+					final ASTNode s = subs[i];
+					if (!(s instanceof MemberOperator))
+						return s;
+				}
+				return null;
+			}
+
 			@Override
 			public Declaration declarationOf(ASTNode node) {
 				if (visit != null) {
-					final ASTNode last = node instanceof Sequence ? ((Sequence)node).lastElement() : node;
+					final ASTNode last =
+						node instanceof MemberOperator ? ((MemberOperator)node).predecessor()
+						: node instanceof Sequence ? lastNonMemberOperator((Sequence) node)
+						: node;
 					if (last instanceof AccessDeclaration) {
 						final AccessDeclaration ad = (AccessDeclaration) last;
 						return ((AccessDeclarationExpert<? super AccessDeclaration>)expert(ad)).declaration(ad, this);
