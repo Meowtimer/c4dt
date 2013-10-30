@@ -591,16 +591,20 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param declarationClass The class of the declarations to return
 	 * @return An Iterable to iterate over the matching declarations
 	 */
-	public <T extends Declaration> Iterable<T> declarationsWithName(String name, final Class<T> declarationClass) {
+	@SuppressWarnings("unchecked")
+	public <T extends Declaration> List<T> declarationsWithName(String name, final Class<T> declarationClass) {
 		List<Declaration> list;
 		synchronized (declarationMap) {
 			list = this.declarationMap.get(name);
-			if (list != null)
-				list = new ArrayList<>(list);
-			else
-				list = new ArrayList<>();
+			if (list != null) {
+				final ArrayList<T> result = new ArrayList<>(list.size());
+				for (final Declaration d : list)
+					if (declarationClass.isInstance(d))
+						result.add((T)d);
+				return result;
+			} else
+				return Collections.emptyList();
 		}
-		return ArrayUtil.filteredIterable(list, declarationClass);
 	}
 
 	/**
