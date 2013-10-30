@@ -756,8 +756,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					controlFlow = old;
 				}
 				endRoaming();
-				if (function.containedIn(script))
-					function.traverse(CLEAR_DECLARATION_REFERENCES_VISITOR, null);
+				visit.declarations = new Declaration[visit.declarations.length];
 				preliminary = false;
 			}
 
@@ -1105,15 +1104,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public String toString() { return script.name(); }
 	}
 
-	private static final IASTVisitor<Void> CLEAR_DECLARATION_REFERENCES_VISITOR = new IASTVisitor<Void>() {
-		@Override
-		public TraversalContinuation visitNode(ASTNode node, Void _) {
-			if (node instanceof AccessDeclaration)
-				((AccessDeclaration)node).setDeclaration(null);
-			return TraversalContinuation.Continue;
-		}
-	};
-
 	/**
 	 * An object that knows how to answer various questions about nodes of type T.
 	 * These questions span
@@ -1313,7 +1303,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				d = obtainDeclaration(node, visitor);
 			}
 			setDeclaration(node, visitor, d);
-			if (visitor.script() == node.parent(Script.class))
+			if (!visitor.preliminary && visitor.script() == node.parent(Script.class))
 				node.setDeclaration(d);
 			return d;
 		}
