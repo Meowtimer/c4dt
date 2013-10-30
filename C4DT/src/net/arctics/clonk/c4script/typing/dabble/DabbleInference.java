@@ -519,7 +519,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			private void typeParameterFromCalls(Function function, Variable par, TypeVariable parTyVar, List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors) {
 				IType result = PrimitiveType.UNKNOWN;
 				for (final IType t : callTypes)
-					if (t != null)
+					if (t != null && t != PrimitiveType.VOID)
 						result = typing.unify(result, t);
 				parTyVar.set(result);
 				//IType result;
