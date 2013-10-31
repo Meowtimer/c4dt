@@ -1353,21 +1353,19 @@ public class DabbleInference extends ProblemReportingStrategy {
 				node.setDeclaration(d);
 			return d;
 		}
-		private void setDeclaration(T node, Visitor visitor, Declaration d) {
+		void setDeclaration(T node, Visitor visitor, Declaration d) {
 			final int x = node.localIdentifier();
 			if (x != -1)
 				visitor.visit.declarations[x] = d;
 		}
-		public Declaration declaration(T node, Visitor visitor) {
+		Declaration declaration(T node, Visitor visitor) {
 			final int x = node.localIdentifier();
 			return x > -1 ? visitor.visit.declarations[x] : null;
 		}
 		@Override
 		public TypeVariable createTypeVariable(T node, Visitor visitor) {
-			if (node.declaration() instanceof ITypeable && ((ITypeable)node.declaration()).staticallyTyped())
-				return null;
-			else
-				return super.createTypeVariable(node, visitor);
+			final Declaration d = declaration(node, visitor);
+			return d instanceof ITypeable && ((ITypeable)d).staticallyTyped() ? null : super.createTypeVariable(node, visitor);
 		}
 		@Override
 		public IType type(T node, Visitor visitor) {
@@ -1604,8 +1602,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			@Override
-			public boolean isModifiable(AccessVar node, Visitor visitor) {
-				final Declaration declaration = node.declaration();
+			public boolean isModifiable(T node, Visitor visitor) {
+				final Declaration declaration = declaration(node, visitor);
 				final ASTNode pred = node.predecessor();
 				if (pred == null)
 					return declaration == null || ((Variable)declaration).scope() != Scope.CONST;
@@ -1673,11 +1671,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public boolean judgment(VarInitializationAccess node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
 					super.judgment(node, type, origin, visitor, mode);
-					if (origin != null)
-						if (node.declaration() instanceof Variable && ((Variable)node.declaration()).scope() == Scope.CONST && !origin.isConstant())
+					if (origin != null) {
+						final Declaration d = declaration(node, visitor);
+						if (d instanceof Variable && ((Variable)d).scope() == Scope.CONST && !origin.isConstant())
 							try {
 								visitor.markers().error(visitor, Problem.NonConstGlobalVarAssignment, origin, origin, Markers.NO_THROW);
 							} catch (final ProblemException e) { }
+					}
 					return true;
 				}
 				@Override
@@ -2115,7 +2115,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 							pred = pred.predecessor();
 					// allow this->Unknown()
 					final AccessDeclaration ad = as(pred, AccessDeclaration.class);
-					if (ad != null && (ad.declaration() == Variable.THIS || ad.declaration() == visitor.cachedEngineDeclarations().This))
+					final Declaration d = ((AccessDeclarationExpert<? super AccessDeclaration>)visitor.expert(ad)).declaration(ad, visitor);
+					if (ad != null && (d == Variable.THIS || d == visitor.cachedEngineDeclarations().This))
 						return null;
 					boolean anyScripts = false;
 					for (final IType t : predType)
@@ -2230,7 +2231,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public TypeVariable createTypeVariable(CallDeclaration node, Visitor visitor) {
-					final Declaration d = node.declaration();
+					final Declaration d = declaration(node, visitor);
 					if (d instanceof Function) {
 						final Function f = (Function) d;
 						if (f.staticallyTyped() || f.isEngineDeclaration() || f != node.parent(Function.class))
@@ -2245,7 +2246,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public boolean isModifiable(CallDeclaration node, Visitor visitor) {
-					final Declaration declaration = node.declaration();
+					final Declaration declaration = declaration(node, visitor);
 					final IType t = declaration instanceof Function ? ((Function)declaration).returnType() : PrimitiveType.UNKNOWN;
 					return
 						typing.compatible(t, PrimitiveType.REFERENCE) ||
@@ -2281,8 +2282,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 						final Function function = node.parent(Function.class);
 						final Function inh = function.inheritedFunction();
-						node.setDeclaration(inh);
-						if (node.declaration() == null && !node.failsafe())
+						setDeclaration(node, visitor, inh);
+						if (inh == null && !node.failsafe())
 							visitor.markers().error(visitor, Problem.NoInheritedFunction, node, node, Markers.NO_THROW, function.name());
 					}
 				}
