@@ -1261,22 +1261,20 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private void generateFindDeclarationCache(final List<Script> conglo) {
 		final Map<String, Function> cachedFunctionMap = new HashMap<>();
 		final Map<String, Variable> cachedVariableMap = new HashMap<>();
-		for (final Script i : conglo)
-			if (i instanceof Script) {
-				final Script s = i;
-				if (s.functions != null)
-					for (final Function f1 : s.functions) {
-						// prefer putting non-global functions into the map so when in doubt the object function is picked
-						// for cases where one script defines two functions with same name that differ in their globality (Power.ocd)
-						final Function existing = cachedFunctionMap.get(f1.name());
-						if (existing != null && existing.script() == i && f1.isGlobal() && !existing.isGlobal())
-							continue;
-						cachedFunctionMap.put(f1.name(), f1);
-					}
-				if (s.variables != null)
-					for (final Variable v : s.variables)
-						cachedVariableMap.put(v.name(), v);
-			}
+		for (final Script i : conglo) {
+			if (i.functions != null)
+				for (final Function f1 : i.functions) {
+					// prefer putting non-global functions into the map so when in doubt the object function is picked
+					// for cases where one script defines two functions with same name that differ in their globality (Power.ocd)
+					final Function existing = cachedFunctionMap.get(f1.name());
+					if (existing != null && existing.script() == i && f1.isGlobal() && !existing.isGlobal())
+						continue;
+					cachedFunctionMap.put(f1.name(), f1);
+				}
+			if (i.variables != null)
+				for (final Variable v : i.variables)
+					cachedVariableMap.put(v.name(), v);
+		}
 		this.cachedFunctionMap = cachedFunctionMap;
 		this.cachedVariableMap = cachedVariableMap;
 	}
