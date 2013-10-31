@@ -9,14 +9,13 @@ import java.lang.reflect.Field;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ini.CustomIniUnit;
 
-public abstract class SettingsBase implements Cloneable {		
-
+public abstract class SettingsBase implements Cloneable {
 	public SettingsBase() {
 		try {
-			for (Field f : getClass().getFields())
+			for (final Field f : getClass().getFields())
 				if (f.getType() == String.class)
 					f.set(this, "");
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -26,13 +25,13 @@ public abstract class SettingsBase implements Cloneable {
 			return true;
 		if (obj.getClass() != this.getClass())
 			return false;
-		for (Field f : getClass().getFields())
+		for (final Field f : getClass().getFields())
 			try {
-				Object fVal = f.get(this);
-				Object objVal = f.get(obj);
+				final Object fVal = f.get(this);
+				final Object objVal = f.get(obj);
 				if (!Utilities.eq(fVal, objVal))
 					return false;
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 				return false;
 			}
@@ -41,7 +40,7 @@ public abstract class SettingsBase implements Cloneable {
 	public void loadFrom(InputStream stream) {
 		try {
 			CustomIniUnit.load(stream, this);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -50,16 +49,16 @@ public abstract class SettingsBase implements Cloneable {
 			try (Writer writer = new OutputStreamWriter(stream)) {
 				CustomIniUnit.save(new AppendableBackedExprWriter(writer), this, defaults);
 			}
-		} catch (Exception e) {
-			e.printStackTrace(); 
+		} catch (final Exception e) {
+			e.printStackTrace();
 		}
 	}
 	public static <T extends SettingsBase> T createFrom(Class<T> cls, InputStream stream) {
 		try {
-			T settings = cls.newInstance();
+			final T settings = cls.newInstance();
 			settings.loadFrom(stream);
 			return settings;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return null;
 		}
 	}
@@ -67,7 +66,7 @@ public abstract class SettingsBase implements Cloneable {
 	public SettingsBase clone() {
 		try {
 			return (SettingsBase)super.clone();
-		} catch (CloneNotSupportedException e) {
+		} catch (final CloneNotSupportedException e) {
 			return null;
 		}
 	}
