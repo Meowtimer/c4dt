@@ -1,6 +1,5 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
-import static java.lang.String.format;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.Utilities.as;
@@ -717,10 +716,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 						if (remaining != null && !remaining.isEmpty()) {
 							final IType ty = TypeChoice.make(remaining);
-							if (!eq(ty, PrimitiveType.UNKNOWN)) {
-								System.out.println(format("%s: %s", parameter.qualifiedName(), ty.typeName(true)));
+							if (!eq(ty, PrimitiveType.UNKNOWN))
+								//System.out.println(format("%s: %s", parameter.qualifiedName(), ty.typeName(true)));
 								tyVar.set(ty);
-							}
 						}
 					}
 					private <T> Set<T> intersection(Set<T> a, Set<T> b) {
