@@ -145,10 +145,29 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private Set<Script> usedScripts;
 	protected List<Directive> directives;
 
+	@SuppressWarnings("serial")
+	private static final class CachedIncludes extends HashSet<Script> {
+		private final int indexHash;
+		private final int originHash;
+		private final int options;
+		boolean matches(Index index, Script origin, int options) {
+			final int indexHash = index != null ? index.hashCode() : 0;
+			final int originHash = origin != null ? origin.hashCode() : 0;
+			return this.indexHash == indexHash && this.originHash == originHash && this.options == options;
+		}
+		public CachedIncludes(Script script, Index index, Script origin, int options) {
+			this.indexHash = index != null ? index.hashCode() : 0;
+			this.originHash = origin != null ? origin.hashCode() : 0;
+			this.options = options;
+			script.gatherIncludes(index, origin, this, options);
+			remove(script);
+		}
+	}
+
 	// cache all the things
 	private transient Map<String, Function> cachedFunctionMap;
 	private transient Map<String, Variable> cachedVariableMap;
-	private transient Collection<Script> includes;
+	private transient CachedIncludes includes;
 	private transient Scenario scenario;
 	private transient Map<String, List<CallDeclaration>> callMap = new HashMap<>();
 	private transient Map<String, List<AccessVar>> varReferencesMap = new HashMap<>();
@@ -456,21 +475,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			return includes(index(), this, options);
 	}
 
-	private transient int _lastIncludesIndex;
-	private transient int _lastIncludesOrigin;
-	private transient int _lastIncludesOptions;
-
 	@Override
-	public synchronized Collection<Script> includes(Index index, Script origin, int options) {
-		final int indexHash = index != null ? index.hashCode() : 0;
-		final int originHash = origin != null ? origin.hashCode() : 0;
-		if (includes != null && indexHash == _lastIncludesIndex && originHash == _lastIncludesOrigin && options == _lastIncludesOptions)
-			return includes;
-		//System.out.println(this.name() + ": reget");
-		_lastIncludesIndex = indexHash;
-		_lastIncludesOrigin = originHash;
-		_lastIncludesOptions = options;
-		return includes = IHasIncludes.Default.includes(index, this, origin, options);
+	public Collection<Script> includes(Index index, Script origin, int options) {
+		return includes != null && index == index() && origin == this && options == GatherIncludesOptions.Recursive
+			? includes : new CachedIncludes(this, index, origin, options);
 	}
 
 	public boolean directlyIncludes(Definition other) {
@@ -1206,7 +1214,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * </ol>
 	 */
 	public synchronized void deriveInformation() {
-		_lastIncludesIndex = -5;
+		includes = new CachedIncludes(this, index(), this, GatherIncludesOptions.Recursive);
 		if (file() != null)
 			pinTo(file());
 		findScenario();
