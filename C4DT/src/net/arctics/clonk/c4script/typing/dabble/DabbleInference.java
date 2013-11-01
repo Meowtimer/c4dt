@@ -93,6 +93,7 @@ import net.arctics.clonk.c4script.ast.ReturnStatement;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
+import net.arctics.clonk.c4script.ast.This;
 import net.arctics.clonk.c4script.ast.Tuple;
 import net.arctics.clonk.c4script.ast.UnaryOp;
 import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
@@ -1409,8 +1410,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			protected Declaration obtainDeclaration(AccessVar node, Visitor visitor) {
 				final ASTNode p = node.predecessor();
-				if (p == null && node.name().equals(Variable.THIS.name()))
-					return Variable.THIS;
 				if (p == null) {
 					final Function f = node.parent(Function.class);
 					if (f != null) {
@@ -1425,12 +1424,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public IType type(T node, Visitor visitor) {
 				final Declaration d = internalObtainDeclaration(node, visitor);
-				if (d == Variable.THIS) {
-					final Function fn = node.parent(Function.class);
-					return fn != null && fn.isGlobal()
-						? CallTargetType.INSTANCE // global func - don't assume this to be typed as this script
-						: visitor.input().thisType;
-				}
 				if (d instanceof Variable && ((Variable)d).staticallyTyped())
 					return ((Variable)d).type();
 				if (d instanceof Function)
@@ -1523,8 +1516,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public boolean judgment(T node, IType type, ASTNode origin, Visitor visitor, TypingJudgementMode mode) {
 				final Declaration declaration = internalObtainDeclaration(node, visitor);
-				if (declaration == Variable.THIS)
-					return true;
 				if (declaration == null && origin != null) {
 					final IType predType = predecessorType(node, visitor);
 					if (predType != null) {
@@ -2052,7 +2043,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return tyvar.get();
 
 					// calling this() as function -> return object type belonging to script
-					if (node.params().length == 0 && d != null && (d == visitor.cachedEngineDeclarations().This || d == Variable.THIS))
+					if (node.params().length == 0 && d != null && (d == visitor.cachedEngineDeclarations().This))
 						return node.parent(Function.class).isGlobal() ? CallTargetType.INSTANCE : visitor.input().thisType;
 
 					if (d instanceof Function) {
@@ -2114,9 +2105,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						else
 							pred = pred.predecessor();
 					// allow this->Unknown()
-					final AccessDeclaration ad = as(pred, AccessDeclaration.class);
-					final Declaration d = ((AccessDeclarationExpert<? super AccessDeclaration>)visitor.expert(ad)).declaration(ad, visitor);
-					if (ad != null && (d == Variable.THIS || d == visitor.cachedEngineDeclarations().This))
+					if (pred instanceof This)
 						return null;
 					boolean anyScripts = false;
 					for (final IType t : predType)
@@ -2219,7 +2208,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final IType type = declarationType(node, visitor);
 					// no warning when in #strict mode
 					if (visitor.input().strictLevel >= 2)
-						if (declaration != cachedEngineDeclarations.This && declaration != Variable.THIS && !typing.compatible(PrimitiveType.FUNCTION, type))
+						if (declaration != cachedEngineDeclarations.This && !typing.compatible(PrimitiveType.FUNCTION, type))
 							visitor.markers().warning(visitor, Problem.VariableCalled, node, node, 0, declaration.name(), type.typeName(false));
 				}
 				private void returnsAsFunctionWarning(CallDeclaration node, Visitor visitor) throws ProblemException {
@@ -2350,6 +2339,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (!visitor.script().engine().settings().supportsNil)
 						visitor.markers().error(visitor, Problem.NotSupported, node, node, Markers.NO_THROW, Keywords.Nil, visitor.script().engine().name());
 				}
+			},
+
+			new Expert<This>(This.class) {
+				@Override
+				public IType type(This node, net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visitor visitor) {
+					final Function fn = node.parent(Function.class);
+					return fn != null && fn.isGlobal()
+						? CallTargetType.INSTANCE // global func - don't assume this to be typed as this script
+						: visitor.input().thisType;
+				}
+				@Override
+				public boolean isModifiable(This node, Visitor visitor) { return false; }
 			},
 
 			new LiteralExpert<StringLiteral>(StringLiteral.class) {

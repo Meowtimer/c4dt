@@ -65,6 +65,7 @@ import net.arctics.clonk.c4script.ast.ReturnStatement;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
+import net.arctics.clonk.c4script.ast.This;
 import net.arctics.clonk.c4script.ast.True;
 import net.arctics.clonk.c4script.ast.Tuple;
 import net.arctics.clonk.c4script.ast.UnaryOp;
@@ -1360,8 +1361,25 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						final ASTNode expr = parseExpression();
 						elm = new CastExpression(targetType, expr);
 					}
+					else if (word.equals(Keywords.True))
+						elm = new True();
+					else if (word.equals(Keywords.False))
+						elm = new False();
+					else if (word.equals(Keywords.Nil))
+						elm = new Nil();
+					else if (word.equals(Keywords.This)) {
+						elm = new This();
+						final int bt = this.offset;
+						eatWhitespace();
+						// allow old this() syntax
+						if (read() == '(') {
+							eatWhitespace();
+							expect(')');
+						} else
+							seek(bt);
+					}
 					else {
-						final int beforeWhitespace = this.offset;
+						final int bt = this.offset;
 						this.eatWhitespace();
 						if (read() == '(') {
 							final int s = this.offset;
@@ -1379,17 +1397,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							callFunc.setParmsRegion(s-sectionOffset(), this.offset-1-sectionOffset());
 							elm = callFunc;
 						} else {
-							this.seek(beforeWhitespace);
-							// bool
-							if (word.equals(Keywords.True))
-								elm = new True();
-							else if (word.equals(Keywords.False))
-								elm = new False();
-							else if (word.equals(Keywords.Nil))
-								elm = new Nil();
-							else
-								// variable
-								elm = new AccessVar(word);
+							this.seek(bt);
+							// variable
+							elm = new AccessVar(word);
 						}
 					}
 			}
