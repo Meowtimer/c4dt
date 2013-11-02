@@ -99,7 +99,7 @@ public enum Typing {
 			case ANY:
 				return Maybe.make(b);
 			case REFERENCE:
-				return b;
+				return PrimitiveType.REFERENCE;
 			default:
 				break;
 			}
