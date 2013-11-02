@@ -761,6 +761,8 @@ global func int _inherited();
 global func int CastInt(any par0);
 global func string GetPlrControlName(int player, int key);
 global func bool SetLeaguePerformance(int par0);
+global func any SetLeagueProgressData(string data, int plr_id);
+global func any GetLeagueProgressData(int plr_id);
 global func object GetViewCursor(int par0);
 global func string GetTexture(int par0, int par1);
 global func int FxFireStart(object par0, int par1, int par2, int par3, bool par4, object par5);
