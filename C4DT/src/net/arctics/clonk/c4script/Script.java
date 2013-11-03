@@ -1279,6 +1279,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		this.cachedVariableMap = cachedVariableMap;
 	}
 
+	public Function function(String name) { return cachedFunctionMap != null ? cachedFunctionMap.get(name) : null; }
+	public Variable variable(String name) { return cachedVariableMap != null ? cachedVariableMap.get(name) : null; }
+	public Map<String, Function> functionMap() { return cachedFunctionMap; }
+
 	@Override
 	public String qualifiedName() {
 		if (resource() == null)

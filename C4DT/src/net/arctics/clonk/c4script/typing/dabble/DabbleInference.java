@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.Utilities.as;
@@ -1018,31 +1019,71 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean erroneous = false;
 
 		public Script script() { return script; }
-
+		
 		private HashMap<Function, Visit> makeVisits(Function[] restrict) {
 			final HashMap<Function, Visit> result = new LinkedHashMap<>();
-			if (restrict != null && restrict.length > 0)
-				for (final Function f : restrict) {
+			if (restrict != null && restrict.length > 0) {
+				for (final Function f : restrict)
 					if (f.body() != null)
 						result.put(f, new Visit(f));
-				}
-			else {
-				for (final Script s : conglomerate)
-					if (s != script)
-						for (final Function f : s.functions())
-							if (f.body() != null && script.seesFunction(f)) {
-								f.findInherited();
-								result.put(f, new Visit(f));
+			} else {
+				@SuppressWarnings({ "serial" })
+				class Revisitor extends HashSet<String> implements IASTVisitor<Function> {
+					private TraversalContinuation revisit(Function f) {
+						if (DEBUG)
+							System.out.println(format("%s: Revisiting %s", script.qualifiedName(), f.qualifiedName()));
+						add(f.name());
+						f.findInherited();
+						result.put(f, new Visit(f));
+						return TraversalContinuation.Cancel;
+					}
+					@Override
+					public TraversalContinuation visitNode(ASTNode node, Function context) {
+						if (node instanceof This)
+							return revisit(context);
+						if (node instanceof CallDeclaration && node.predecessor() == null) {
+							final CallDeclaration cd = (CallDeclaration) node;
+							final String name = cd.name();
+							switch (name) {
+							case "GetID":
+								if (cd.params().length == 0)
+									return revisit(context);
+								break;
+							default:
+								final Function fn = script.function(name);
+								if (fn != null && (fn.script() == script || contains(fn.name())))
+									return revisit(context);
 							}
-				for (final Function f : script.functions()) {
-					if (f.body() == null)
-						continue;
-					f.findInherited();
-					result.put(f, new Visit(f));
+						}
+						return TraversalContinuation.Continue;
+					}
+					public void maybeRevisit(Function function) {
+						if (!contains(function.name()))
+							function.traverse(this, function);
+					}
+					public void loop(Collection<Function> functions) {
+						int old; 
+						do {
+							old = size();
+							for (final Function f : functions) {
+								if (f.body() == null || f.script() == script)
+									continue;
+								maybeRevisit(f);
+							}
+						}
+						while (old != size());
+					}
 				}
+				new Revisitor().loop(script.functionMap().values());
+				for (final Function f : script.functions())
+					if (f.body() != null) {
+						f.findInherited();
+						result.put(f, new Visit(f));
+					}
 			}
 			return result;
 		}
+
 
 		boolean setParameterTypesBasedOnRules(Function function, TypeVariable[] parameterTypeVariables) {
 			if (rules != null)
