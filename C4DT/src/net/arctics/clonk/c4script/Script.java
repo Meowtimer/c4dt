@@ -147,18 +147,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@SuppressWarnings("serial")
 	private static final class CachedIncludes extends HashSet<Script> {
-		private final int indexHash;
-		private final int originHash;
-		private final int options;
-		boolean matches(Index index, Script origin, int options) {
-			final int indexHash = index != null ? index.hashCode() : 0;
-			final int originHash = origin != null ? origin.hashCode() : 0;
-			return this.indexHash == indexHash && this.originHash == originHash && this.options == options;
-		}
 		public CachedIncludes(Script script, Index index, Script origin, int options) {
-			this.indexHash = index != null ? index.hashCode() : 0;
-			this.originHash = origin != null ? origin.hashCode() : 0;
-			this.options = options;
 			script.gatherIncludes(index, origin, this, options);
 			remove(script);
 		}
