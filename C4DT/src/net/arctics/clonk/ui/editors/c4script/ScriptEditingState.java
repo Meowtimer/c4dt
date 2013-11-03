@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Timer;
@@ -18,7 +17,6 @@ import java.util.TimerTask;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.ast.ASTComparisonDelegate;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
@@ -94,7 +92,6 @@ import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
@@ -105,15 +102,12 @@ import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
-import org.eclipse.jface.text.source.Annotation;
-import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
 
 /**
  * C4Script-specific specialization of {@link StructureEditingState} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
@@ -659,70 +653,6 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					strategy.apply();
 				}
 			});
-	}
-
-	private void annotateAddedNodes(final Function function) {
-		final IAnnotationModel am = editors.get(0).getDocumentProvider().getAnnotationModel(editors.get(0).getEditorInput());
-		if (oldFunctionBody != null && oldFunctionBody.owner().latestVersion() == function.latestVersion()) {
-			class Differ extends ASTComparisonDelegate {
-				final List<ASTNode> added = new LinkedList<>();
-				public Differ(ASTNode rightTop) { super(rightTop); }
-				@Override
-				public boolean acceptRightExtraElement(ASTNode rightNode) {
-					added.add(rightNode);
-					return true;
-				}
-				@Override
-				public boolean acceptLeftExtraElement(ASTNode leftNode) {
-					return leftNode instanceof Comment;
-				}
-				void prune() {
-					for (final Iterator<ASTNode> it = added.iterator(); it.hasNext();) {
-						final ASTNode a = it.next();
-						boolean remove = false;
-						for (final ASTNode b : added)
-							if (b != a && a.containedIn(b)) {
-								remove = true;
-								break;
-							}
-						if (remove)
-							it.remove();
-					}
-				}
-			};
-			final Differ differ = new Differ(function.body());
-			oldFunctionBody.compare(function.body(), differ);
-			differ.prune();
-			for (final ASTNode add : differ.added) try {
-				final IMarker addedMarker = file().createMarker(Core.MARKER_ADDEDASTNODE);
-				final IRegion region = add.absolute();
-				addedMarker.setAttribute(IMarker.SEVERITY, 0);
-				addedMarker.setAttribute(IMarker.CHAR_START, region.getOffset());
-				addedMarker.setAttribute(IMarker.CHAR_END, region.getOffset()+region.getLength());
-				final SimpleMarkerAnnotation annot = new SimpleMarkerAnnotation(addedMarker);
-				am.connect(document);
-				am.addAnnotation(annot, new Position(region.getOffset(), region.getLength()));
-				am.disconnect(document);
-			} catch (final CoreException ce) {}
-		}
-	}
-
-	private void clearAnnotations() {
-		final IAnnotationModel am = editors.get(0).getDocumentProvider().getAnnotationModel(editors.get(0).getEditorInput());
-		try {
-			file().deleteMarkers(Core.MARKER_ADDEDASTNODE, true, IResource.DEPTH_INFINITE);
-			am.connect(document);
-			for (
-				@SuppressWarnings("unchecked")
-				final Iterator<Annotation> it = am.getAnnotationIterator();
-				it.hasNext();
-			) {
-				final Annotation a = it.next();
-				if (a.getType().equals("net.arctics.clonk.addedastnodeannotation"))
-					am.removeAnnotation(a);
-			}
-			am.disconnect(document);
-		} catch (final CoreException e) {}
 	}
 
 	private boolean errorsWhileTypingDisabled() {
