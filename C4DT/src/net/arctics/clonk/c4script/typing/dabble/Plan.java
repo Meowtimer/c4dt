@@ -3,11 +3,9 @@ package net.arctics.clonk.c4script.typing.dabble;
 import static java.lang.String.format;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.Utilities.any;
-import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -128,33 +126,6 @@ class Plan {
 		}
 	}
 
-	private static class Edge {
-		Visit a, b;
-		public Edge(Visit a, Visit b) {
-			super();
-			this.a = a;
-			this.b = b;
-		}
-		@Override
-		public boolean equals(Object obj) {
-			final Edge o = as(obj, Edge.class);
-			if (o == null)
-				return false;
-			return o.a == a && o.b == b;
-		}
-		@Override
-		public int hashCode() {
-		    int hash = 7;
-		    hash = 71 * hash + a.hashCode();
-		    hash = 71 * hash + b.hashCode();
-		    return hash;
-		}
-		@Override
-		public String toString() {
-			return format("%s -> %s", a.toString(), b.toString());
-		}
-	}
-
 	private static class ASTVisitorRunnable implements Runnable {
 		final Visit target;
 		final IASTVisitor<Visit> visitor;
@@ -211,13 +182,13 @@ class Plan {
 				result[num++] = v;
 		return result;
 	}
-
-	private final Set<Edge> edges = Collections.synchronizedSet(new HashSet<Edge>());
+	
+	private final Object edgeLock = new Object();
 
 	private void addEdge(Visit dependency, Visit dependent) {
 		if (dependency == dependent)
 			return;
-		synchronized (edges) {
+		synchronized (edgeLock) {
 			if (!new DependencyTester(dependent).test(dependency)) {
 				dependent.dependencies.add(dependency);
 				dependency.dependents.add(dependent);
@@ -301,24 +272,6 @@ class Plan {
 
 		// functions containing initialization of used variable -> variable user
 		TaskExecution.threadPool(visitorRunnables(variableInitializationsDependencyVisitor), 3);
-	}
-
-	private void transferEdges() {
-		synchronized (edges) {
-			for (final Edge edge : edges) {
-				final Visit dependency = edge.a;
-				final Visit dependent = edge.b;
-				if (!new DependencyTester(dependent).test(dependency)) {
-					dependent.dependencies.add(dependency);
-					dependency.dependents.add(dependent);
-				} else {
-					if (DEBUG)
-						System.out.println(format("Not adding requirement %s to %s", dependency.toString(), dependent.toString()));
-					dependent.doubleTake = true;
-					doubleTakes.add(dependent);
-				}
-			}
-		}
 	}
 
 	private void findRoots() {
