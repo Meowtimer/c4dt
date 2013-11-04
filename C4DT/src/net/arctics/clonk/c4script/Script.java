@@ -147,7 +147,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@SuppressWarnings("serial")
 	private static final class CachedIncludes extends HashSet<Script> {
+		final Script origin;
+		final Index index;
+		final int options;
 		public CachedIncludes(Script script, Index index, Script origin, int options) {
+			this.origin = origin;
+			this.index = index;
+			this.options = options;
 			script.gatherIncludes(index, origin, this, options);
 			remove(script);
 		}
@@ -466,8 +472,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public Collection<Script> includes(Index index, Script origin, int options) {
-		return includes != null && index == index() && origin == this && options == GatherIncludesOptions.Recursive
-			? includes : new CachedIncludes(this, index, origin, options);
+		CachedIncludes x = includes;
+		if (x == null || x.index != index || x.origin != origin || x.options != options)
+			x = new CachedIncludes(this, index, origin, options);
+		includes = x;
+		return x;
 	}
 
 	public boolean directlyIncludes(Definition other) {
