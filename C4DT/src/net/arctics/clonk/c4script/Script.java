@@ -1126,7 +1126,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			return null;
 		script = SystemScript.pinned(resource, false);
 		if (script == null)
-			script = Definition.definitionCorrespondingToFolder(resource.getParent());
+			script = Definition.at(resource.getParent());
 		// there can only be one script oO (not ScriptDE or something)
 		if (onlyForScriptFile && (script == null || script.source() == null || !script.source().equals(resource)))
 			return null;

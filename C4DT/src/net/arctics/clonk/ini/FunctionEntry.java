@@ -18,7 +18,7 @@ public class FunctionEntry extends NamedReference implements ISelfValidatingIniE
 		final IniUnit iniUnit = context.unit();
 		final IFile f = iniUnit.file();
 		if (f != null) {
-			final Definition obj = Definition.definitionCorrespondingToFolder(f.getParent());
+			final Definition obj = Definition.at(f.getParent());
 			if (obj != null && obj.findFunction(this.toString()) == null)
 				markers.marker(new IniUnitParser(context.parent(IniUnit.class)), Problem.UndeclaredIdentifier, context, context.start(), context.end(), Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, IMarker.SEVERITY_ERROR, toString());
 		}

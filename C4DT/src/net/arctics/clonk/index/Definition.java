@@ -365,7 +365,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @param folder The folder to return the Definition object of
 	 * @return The Definition object
 	 */
-	public static Definition definitionCorrespondingToFolder(IContainer folder) {
+	public static Definition at(IContainer folder) {
 		final ProjectIndex index = ProjectIndex.fromResource(folder);
 		final Definition obj = index != null ? index.definitionAt(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>

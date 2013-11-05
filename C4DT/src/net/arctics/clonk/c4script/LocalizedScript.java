@@ -34,5 +34,5 @@ public class LocalizedScript extends SystemScript {
 	}
 	private final String language;
 	public String language() { return language; }
-	public Definition definition() { return Definition.definitionCorrespondingToFolder(file().getParent()); }
+	public Definition definition() { return Definition.at(file().getParent()); }
 }

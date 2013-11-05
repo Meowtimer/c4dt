@@ -64,7 +64,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		if (defCore == null && scenario == null && script == null)
 			return null;
 		try {
-			Definition def = Definition.definitionCorrespondingToFolder(folder);
+			Definition def = Definition.at(folder);
 			if (defCore != null) {
 				final DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
 				if (def == null)
@@ -146,7 +146,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			Definition definition;
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
-				definition = Definition.definitionCorrespondingToFolder(container);
+				definition = Definition.at(container);
 				if (definition != null) {
 					definition.setDefinitionFolder(container);
 					obsoleted.remove(definition);
@@ -226,7 +226,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				return new SystemScript(builder.index(), file);
 			else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
 				return new MapScript(builder.index(), file);
-			else if (LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.definitionCorrespondingToFolder(resource.getParent()) != null)
+			else if (LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.at(resource.getParent()) != null)
 				return new LocalizedScript(builder.index(), file);
 		}
 		return null;

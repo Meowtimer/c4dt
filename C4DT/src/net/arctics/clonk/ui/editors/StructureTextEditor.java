@@ -203,7 +203,7 @@ public class StructureTextEditor extends TextEditor {
 				ed = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.resource(), descriptor.getId());
 			}
 			else if (location.resource() instanceof IContainer) {
-				final Definition def = Definition.definitionCorrespondingToFolder((IContainer) location.resource());
+				final Definition def = Definition.at((IContainer) location.resource());
 				if (def != null)
 					ed = openDeclaration(def);
 			}

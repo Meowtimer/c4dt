@@ -191,7 +191,7 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 	}
 
 	private void proposalsForFunctionEntry(ProposalsSite pl) {
-		final Definition obj = Definition.definitionCorrespondingToFolder(state().structure().file().getParent());
+		final Definition obj = Definition.at(state().structure().file().getParent());
 		if (obj != null)
 			for (final Script include : obj.conglomerate()) {
 				final Script script = Utilities.as(include, Script.class);

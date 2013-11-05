@@ -87,7 +87,7 @@ public class Scenario extends Definition {
 	}
 
 	public static Scenario get(IContainer folder) {
-		final Definition obj = definitionCorrespondingToFolder(folder);
+		final Definition obj = at(folder);
 		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
 

@@ -102,7 +102,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 									declaration = index.definitionNearestTo(r, ID.get(value));
 								}
 								else if (entryClass == FunctionEntry.class) {
-									final Definition obj = Definition.definitionCorrespondingToFolder(structure().file().getParent());
+									final Definition obj = Definition.at(structure().file().getParent());
 									if (obj != null)
 										declaration = obj.findFunction(value);
 								}

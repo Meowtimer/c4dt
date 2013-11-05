@@ -16,7 +16,7 @@ class ResourceCounterAndCleaner extends ResourceCounter {
 	@Override
 	public boolean visit(IResource resource) throws CoreException {
 		if (resource instanceof IContainer) {
-			Definition obj = Definition.definitionCorrespondingToFolder((IContainer) resource);
+			Definition obj = Definition.at((IContainer) resource);
 			if (obj != null)
 				obj.setDefinitionFolder(null);
 		}
