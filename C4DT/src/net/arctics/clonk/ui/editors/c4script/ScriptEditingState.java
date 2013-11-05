@@ -50,7 +50,6 @@ import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.IType;
-import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
@@ -185,11 +184,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			return messageBuilder.toString();
 		}
 		private void appendEntityInfo(ITextViewer viewer, IRegion region, final StringBuilder messageBuilder) {
-			if (entityLocator != null && entityLocator.entity() != null) {
-				final ASTNode pred = entityLocator.expressionAtRegion() != null ? entityLocator.expressionAtRegion().predecessor() : null;
-				final Script context = pred == null ? structure() : as(TypeUtil.inferredType(pred), Script.class);
-				messageBuilder.append(entityLocator.entity().infoText(context));
-			}
+			if (entityLocator != null && entityLocator.entity() != null)
+				messageBuilder.append(entityLocator.infoText());
 			else {
 				final String superInfo = super.getHoverInfo(viewer, region);
 				if (superInfo != null)

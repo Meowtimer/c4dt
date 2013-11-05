@@ -246,14 +246,17 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	@Override
 	public String infoText(IIndexEntity context) {
-		final IType t = type(as(context, Script.class));
+		return infoText(type(as(context, Script.class)));
+	}
+
+	public String infoText(final IType type) {
 		final String format = Messages.C4Variable_InfoTextFormatOverall;
 		final String valueFormat = scope == Scope.CONST
 			? Messages.C4Variable_InfoTextFormatConstValue
 			: Messages.C4Variable_InfoTextFormatDefaultValue;
 		final String descriptionFormat = Messages.C4Variable_InfoTextFormatUserDescription;
 		return String.format(format,
-			StringUtil.htmlerize((t == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : t).typeName(true)),
+			StringUtil.htmlerize((type == PrimitiveType.UNKNOWN ? PrimitiveType.ANY : type).typeName(true)),
 				name(),
 				initializationExpression != null
 					? String.format(valueFormat, initializationExpression.toString())
