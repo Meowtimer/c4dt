@@ -17,7 +17,9 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.IProplistDeclaration;
+import net.arctics.clonk.c4script.LocalizedScript;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.IDLiteral;
@@ -182,12 +184,23 @@ public class Definition extends Script implements IProplistDeclaration {
 	public  boolean gatherIncludes(Index contextIndex, Script origin, final Collection<Script> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
-		final Scenario originScenario = origin instanceof Script
-			? origin.scenario()
-				: origin instanceof IHasRelatedResource
-			? Scenario.containingScenario(((IHasRelatedResource)origin).resource())
-				: null;
-		if ((options & GatherIncludesOptions.NoAppendages) == 0)
+		if ((options & GatherIncludesOptions.NoAppendages) == 0) {
+			try {
+				final IContainer defFolder = definitionFolder();
+				if (defFolder != null)
+					for (final IResource r : defFolder.members()) {
+						final LocalizedScript ls = as(SystemScript.pinned(r, false), LocalizedScript.class);
+						if (ls != null)
+							set.add(ls);
+					}
+			} catch (final CoreException e) {
+				e.printStackTrace();
+			}
+			final Scenario originScenario = origin instanceof Script
+				? origin.scenario()
+					: origin instanceof IHasRelatedResource
+					? Scenario.containingScenario(((IHasRelatedResource)origin).resource())
+						: null;
 			for (final Index i : contextIndex.relevantIndexes()) {
 				final List<Script> appendages = i.appendagesOf(Definition.this);
 				if (appendages != null)
@@ -201,6 +214,7 @@ public class Definition extends Script implements IProplistDeclaration {
 							s.gatherIncludes(i, origin, set, options | GatherIncludesOptions.NoAppendages);
 					}
 			}
+		}
 		return true;
 	}
 

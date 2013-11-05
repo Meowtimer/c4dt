@@ -11,6 +11,7 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4script.LocalizedScript;
 import net.arctics.clonk.c4script.MapScript;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
@@ -218,17 +219,16 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		final SystemScript pinned = SystemScript.pinned(resource, true);
 		if (pinned != null)
 			return pinned;
-		if (resource instanceof IFile)
-			if (
-				resource.getName().toLowerCase().endsWith(".c") && //$NON-NLS-1$
-				isSystemGroup(resource.getParent())
-			)
-				return new SystemScript(builder.index(), (IFile) resource);
-			else if (
-				resource.getName().toLowerCase().equals("map.c") && //$NON-NLS-1$
-				Scenario.get(resource.getParent()) != null
-			)
-				return new MapScript(builder.index(), (IFile) resource);
+		if (resource instanceof IFile) {
+			final String ln = resource.getName().toLowerCase();
+			final IFile file = (IFile) resource;
+			if (ln.endsWith(".c") && isSystemGroup(resource.getParent())) //$NON-NLS-1$
+				return new SystemScript(builder.index(), file);
+			else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
+				return new MapScript(builder.index(), file);
+			else if (LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.definitionCorrespondingToFolder(resource.getParent()) != null)
+				return new LocalizedScript(builder.index(), file);
+		}
 		return null;
 	}
 	public boolean isMapScript(IResource resource) {
