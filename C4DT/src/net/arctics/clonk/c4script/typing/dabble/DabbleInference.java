@@ -246,19 +246,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	static class ParameterValidation {
-		final Script script;
 		final Function called;
 		final CallDeclaration node;
-		void regularParameterValidation(DabbleInference inference, Visitor v) {
+		final Visitor visitor;
+		public ParameterValidation(Visitor visitor, CallDeclaration node, Function called) {
+			super();
+			this.visitor = visitor;
+			this.node = node;
+			this.called = called;
+		}
+		void validateTypes() {
 			final ASTNode[] params = node.params();
-			IType[] nodeTypes;
-			if (v == null) {
-				final Function.Typing typing = script.typings().get(node.parent(Function.class));
-				if (typing == null)
-					return;
-				nodeTypes = typing.nodeTypes;
-			} else
-				nodeTypes = v.visit.inferredTypes;
+			final Script script = visitor.script();
+			final DabbleInference inference = visitor.inference();
+			final IType[] nodeTypes = visitor.visit.inferredTypes;
 			final IType pred = node.predecessor() != null
 				? nodeTypes[node.predecessor().localIdentifier()]
 				: script;
@@ -278,21 +279,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 							parmTy.typeName(true), givenTy.typeName(true)
 						);
 					} catch (final ProblemException e) {}
-				else if (v != null && givenTy == PrimitiveType.UNKNOWN)
-					v.judgment(given, unified, TypingJudgementMode.UNIFY);
+				else if (visitor != null && givenTy == PrimitiveType.UNKNOWN)
+					visitor.judgment(given, unified, TypingJudgementMode.UNIFY);
 			}
 			if (inference.noticeParameterCountMismatch)
-				validateParameterCount(inference);
+				validateParameterCount();
 		}
-		public ParameterValidation(CallDeclaration node, Function called, Script script) {
-			super();
-			this.node = node;
-			this.script = script;
-			this.called = called;
-		}
-		private void validateParameterCount(DabbleInference inference) {
+		private void validateParameterCount() {
 			final Function f = node.parent(Function.class);
 			final ASTNode[] params = node.params();
+			final Script script = visitor.script();
+			final DabbleInference inference = visitor.inference();
 			if (f.index() == script.index() && params.length != f.numParameters() && !(f.script() instanceof Engine))
 				try {
 					inference.markers().error(script, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
@@ -314,7 +311,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 	private void validateParameters() {
 		for (final ParameterValidation pv : parameterValidations)
 			try {
-				pv.regularParameterValidation(this, null);
+				pv.validateTypes();
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
@@ -360,9 +357,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				} catch (final InterruptedException e) {
 					e.printStackTrace();
 				}
-			} finally {
-				threadPool = null;
-			}
+			} finally { threadPool = null; }
 		}
 	}
 
@@ -892,7 +887,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private final void startRoaming() { roaming++; }
-			private final void endRoaming() { --roaming; }
+			private final void endRoaming()   { --roaming; }
 
 			@Override
 			public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
@@ -1019,7 +1014,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean erroneous = false;
 
 		public Script script() { return script; }
-		
+
 		private HashMap<Function, Visit> makeVisits(Function[] restrict) {
 			final HashMap<Function, Visit> result = new LinkedHashMap<>();
 			if (restrict != null && restrict.length > 0) {
@@ -1062,7 +1057,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							function.traverse(this, function);
 					}
 					public void loop(Collection<Function> functions) {
-						int old; 
+						int old;
 						do {
 							old = size();
 							for (final Function f : functions) {
@@ -1625,12 +1620,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public TypeVariable createTypeVariable(T node, Visitor visitor) {
 				final Declaration dec = internalObtainDeclaration(node, visitor);
-				if (dec instanceof ProxyVar)
-					return null;
-				else if (dec instanceof Variable)
-					return new VariableTypeVariable((Variable) dec);
-				else
-					return null;
+				return dec instanceof Variable && !(dec instanceof ProxyVar)
+					? new VariableTypeVariable((Variable) dec) : null;
 			}
 
 			@Override
@@ -2221,9 +2212,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (!visitor.preliminary && !visitor.visit.doubleTake)
 						if (!applyRuleBasedValidation(node, visitor, params))
 							if (node.params().length > 0 && visitor.visit.function.script() == visitor.script()) {
-								final ParameterValidation pv = new ParameterValidation(node, f, visitor.script());
+								final ParameterValidation pv = new ParameterValidation(visitor, node, f);
 								if (f.baseFunction() instanceof EngineFunction)
-									pv.regularParameterValidation(visitor.inference(), visitor);
+									pv.validateTypes();
 								else
 									parameterValidations.add(pv);
 							}
