@@ -317,6 +317,7 @@ global func object CreateConstruction(id object_id, int xoffset, int yoffset, in
 global func object CreateContents(id id, int count);
 global func bool CreateMenu(id symbol, object command_object, int extra, string caption, int extra_data, int style, bool permanent, id menu_id);
 global func object CreateObject(id id, int xoffset, int yoffset, int owner);
+global func bool CreateParticleEx(string name, int x, int y, any speedX, any speedY, any lifetime, proplist properties, int amount, int attachment);
 global func bool CreateParticle(string szName, int x, int y, int xdir, int ydir, int a, int b, object target, bool behind_target);
 global func bool CreateParticleAtBone(string szName, string szBoneName, array pos, array dir, int a, int b, object target, bool behind_target);
 global func bool CreateScriptPlayer(string name, int color, int team, int flags, id extra_data);
@@ -777,6 +778,11 @@ static const int GUI_FitChildren;
 static const int GUI_Multiple;
 static const int GUI_IgnoreMouse;
 static const int GUI_NoCrop;
+
+global func array PV_Linear(any startValue, any endValue);
+global func array PV_Direction(any factor);
+global func array PV_Step(any step, any startValue, any endValue);
+global func array PV_KeyFrames(any pars);
 
 global func int CustomGuiOpen(proplist menu);
 global func bool CustomGuiSetTag(string tag, int menuID, int childID, object target);
