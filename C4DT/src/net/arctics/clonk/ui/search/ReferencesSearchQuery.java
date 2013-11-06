@@ -68,6 +68,12 @@ public class ReferencesSearchQuery extends SearchQuery {
 		}
 		@Override
 		public TraversalContinuation visitNode(ASTNode node, Structure context) {
+			if (node instanceof Function) {
+				final Function fn = (Function) node;
+				final Function base = fn.baseFunction();
+				if (base != null && base == declaration)
+					result.addMatch(context, fn.nameStart(), fn.name().length(), false, true);
+			}
 			if (node instanceof AccessDeclaration) {
 				final AccessDeclaration accessDeclExpr = (AccessDeclaration) node;
 				Declaration dec = accessDeclExpr.declaration();
