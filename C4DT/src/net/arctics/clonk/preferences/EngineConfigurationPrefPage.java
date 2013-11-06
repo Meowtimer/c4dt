@@ -1,6 +1,5 @@
 package net.arctics.clonk.preferences;
 
-import java.beans.Beans;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +48,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 	private final List<FieldEditor> enginePrefs = new ArrayList<FieldEditor>(10);
 	private EngineConfigPrefStore engineConfigPrefStore;
 	private BooleanFieldEditor readDocumentationFromRepositoryEditor;
-	
+
 	private class GamePathEditor extends DirectoryFieldEditor {
 
 		public GamePathEditor(Composite parent, String name, String labelText) {
@@ -64,9 +63,9 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		}
 
 		public void setFile(IPath gamePath, String gamePathText, FileFieldEditor editor, String... values) {
-			String val = editor.getStringValue();
+			final String val = editor.getStringValue();
 			if (val.equals("") || !new File(val).exists())
-				for (String s : values) {
+				for (final String s : values) {
 					File f;
 					if ((f = gamePath.append(s).toFile()).exists()) {
 						editor.setStringValue(f.getAbsolutePath());
@@ -78,8 +77,8 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		@Override
 		protected void valueChanged() {
 			super.valueChanged();
-			String gamePathText = getTextControl().getText();
-			IPath gamePath = new Path(gamePathText);
+			final String gamePathText = getTextControl().getText();
+			final IPath gamePath = new Path(gamePathText);
 			setFile(gamePath, gamePathText, c4groupEditor(), c4GroupAccordingToOS());
 			setFile(gamePath, gamePathText, engineExecutableEditor(), Engine.possibleEngineNamesAccordingToOS());
 			//previousGamePath = gamePathText.toLowerCase();
@@ -97,7 +96,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 		@Override
 		protected String changePressed() {
-			FileDialog dialog = new FileDialog(getShell(), SWT.OPEN | SWT.SHEET);
+			final FileDialog dialog = new FileDialog(getShell(), SWT.OPEN | SWT.SHEET);
 			dialog.setFilterPath(gamePathEditor().getStringValue());
 			if (extensions != null)
 				dialog.setFilterExtensions(extensions);
@@ -112,7 +111,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 		@Override
 		protected String changePressed() {
-			String selection = super.changePressed();
+			final String selection = super.changePressed();
 			if (selection != null) {
 				File d = new File(selection);
 				if (Util.isMac() && d.isDirectory() && d.getName().endsWith(".app"))
@@ -132,7 +131,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		public void setValue(String name, String value) {
 			try {
 				settings.getClass().getField(name).set(settings, value);
-			} catch (Exception e1) {
+			} catch (final Exception e1) {
 				e1.printStackTrace();
 			}
 		}
@@ -140,7 +139,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		private Object val(EngineSettings settings, String attrName) {
 			try {
 				return settings.getClass().getField(attrName).get(settings);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				return null;
 			}
 		}
@@ -149,7 +148,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		public void setValue(String name, boolean value) {
 			try {
 				settings.getClass().getField(name).set(settings, value);
-			} catch (Exception e1) {
+			} catch (final Exception e1) {
 				e1.printStackTrace();
 			}
 		}
@@ -165,7 +164,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		}
 
 		@Override
-		public String getDefaultString(String name) { 
+		public String getDefaultString(String name) {
 			return (String)val(Core.instance().loadEngine(myEngine).settings(), name);
 		}
 
@@ -201,38 +200,37 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 	@Override
 	protected void createFieldEditors() {
-		Composite engineConfigurationComposite = new Composite(getFieldEditorParent(), SWT.NO_SCROLL);
+		final Composite engineConfigurationComposite = new Composite(getFieldEditorParent(), SWT.NO_SCROLL);
 		engineConfigurationComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		if (!Beans.isDesignTime())
-			setPreferenceStore(engineConfigPrefStore);
+		setPreferenceStore(engineConfigPrefStore);
 
 		addField(
 			gamePathEditor = new GamePathEditor(engineConfigurationComposite, "gamePath", Messages.GamePath) //$NON-NLS-1$
-			);
+		);
 		addField(
 			c4GroupEditor = new EngineRelatedFileFieldEditor(
 				"c4GroupPath", Messages.C4GroupExecutable, //$NON-NLS-1$
 				engineConfigurationComposite,
 				appExtensions(false)
-				)
-			);
+			)
+		);
 		addField(
 			engineExecutableEditor = new EngineExecutableEditor("engineExecutablePath", Messages.EngineExecutable, //$NON-NLS-1$
 				engineConfigurationComposite, appExtensions(true))
-			);
+		);
 		addField(
 			repositoryPathEditor = new DirectoryFieldEditor(
 				"repositoryPath", //$NON-NLS-1$
 				Messages.OpenClonkRepo,
 				engineConfigurationComposite
-				)
-			);
+			)
+		);
 		addField(
 			new StringButtonFieldEditor(
 				"docURLTemplate", //$NON-NLS-1$
 				Messages.DocumentURLTemplate,
 				engineConfigurationComposite
-				) {
+			) {
 				private Button checker;
 				@Override
 				protected Button getChangeControl(Composite parent) {
@@ -282,7 +280,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 			)
 		);
 
-		GridLayout gridLayout = new GridLayout();
+		final GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 3;
 		engineConfigurationComposite.setLayout(gridLayout);
 	}
@@ -316,7 +314,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 			return false;
 		}
 		setValid(true);
-		boolean result = super.performOk();
+		final boolean result = super.performOk();
 		if (result)
 			engineConfigPrefStore.apply();
 		return result;
@@ -330,7 +328,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 	@Override
 	protected void initialize() {
 		super.initialize();
-		for (FieldEditor e : this.enginePrefs) {
+		for (final FieldEditor e : this.enginePrefs) {
 			e.setPreferenceStore(engineConfigPrefStore);
 			e.load();
 		}

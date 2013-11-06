@@ -919,7 +919,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
 		printHeader(output);
-		Conf.blockPrelude(output, depth);
-		body.print(output, depth);
+		if (body != null) {
+			Conf.blockPrelude(output, depth);
+			body.print(output, depth);
+		} else
+			output.append(';');
 	}
 }

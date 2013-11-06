@@ -26,12 +26,19 @@ import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectConverter;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.typing.ITypeable;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.StaticTypingUtil;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.index.XMLDocImporter;
+import net.arctics.clonk.index.XMLDocImporter.ExtractedDeclarationDocumentation;
+import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.EntityHyperlink;
 import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.util.Sink;
@@ -316,6 +323,32 @@ public class Command {
 				nat.index().traverse(output, null);
 			} catch (final IOException e) {
 				e.printStackTrace();
+			}
+		}
+		@CommandFunction
+		public static void XmlDefinition(Object context, String _name) {
+			final Engine oc = Core.instance().loadEngine("OpenClonk");
+			final XMLDocImporter importer = oc.docImporter();
+			importer.initialize();
+			for (final String name : _name.split(";")) {
+				final ExtractedDeclarationDocumentation doc = importer
+					.extractDeclarationInformationFromFunctionXml(name, ClonkPreferences.languagePref(), XMLDocImporter.SIGNATURE);
+				final Declaration declaration = doc.isVariable ? new Variable(name, PrimitiveType.ANY) : new Function(name, FunctionScope.GLOBAL);
+				final SelfContainedScript s = new SelfContainedScript("_", "", new Index() {
+					@Override
+					public Engine engine() {
+						return oc;
+					}
+				});
+				s.addDeclaration(declaration);
+				if (declaration instanceof Function) {
+					final Function f = (Function)declaration;
+					if (doc.parameters != null)
+						f.setParameters(doc.parameters);
+				}
+				if (doc.returnType != null && declaration instanceof ITypeable)
+					((ITypeable)declaration).forceType(doc.returnType);
+				System.out.println(declaration.printed());
 			}
 		}
 	}

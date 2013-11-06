@@ -84,6 +84,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	private Scenario templateScenario;
 	private final transient XMLDocImporter xmlDocImporter = new XMLDocImporter();
 
+	public XMLDocImporter docImporter() { return xmlDocImporter; }
+
 	/**
 	 * Return the {@link SpecialEngineRules} object associated with this engine. It is an instance of specialEngineRules_&lt;name&gt;
 	 * @return The {@link SpecialEngineRules} object
