@@ -318,16 +318,14 @@ global func object CreateConstruction(id object_id, int xoffset, int yoffset, in
 global func object CreateContents(id id, int count);
 global func bool CreateMenu(id symbol, object command_object, int extra, string caption, int extra_data, int style, bool permanent, id menu_id);
 global func object CreateObject(id id, int xoffset, int yoffset, int owner);
-global func bool CreateParticleEx(string name, int x, int y, any speedX, any speedY, any lifetime, proplist properties, int amount, int attachment);
 global func bool CreateParticle(string szName, int x, int y, int xdir, int ydir, int a, int b, object target, bool behind_target);
-global func bool CreateParticle(string szName, int x, int y, int xdir, int ydir, int a, int b, object target, bool behind_target);
-global func proplist CreateParticleEx(string particle_name, int x, int y, int speed_x, int speed_y, int lifetime, proplist properties, int amount);
-global func array PV_Linear(start_value, end_value);
-global func array PV_Random(start_value, end_value, reroll_interval);
-global func array PV_Direction(factor);
-global func array PV_Step(step, start_value, delay);
-global func array PV_KeyFrames(smoothing, position1, value1, position2, value2);
-global func array PV_Speed(factor, start_value);
+global func bool CreateParticleEx(string particle_name, int x, int y, int speed_x, int speed_y, int lifetime, proplist properties, int amount);
+global func array PV_Linear(any start_value, any end_value);
+global func array PV_Random(any start_value, any end_value, any reroll_interval);
+global func array PV_Direction(any factor);
+global func array PV_Step(any step, any start_value, any delay);
+global func array PV_KeyFrames(any smoothing, any position1, any value1, any position2, any value2);
+global func array PV_Speed(any factor, any start_value);
 global func bool CreateParticleAtBone(string szName, string szBoneName, array pos, array dir, int a, int b, object target, bool behind_target);
 global func bool CreateScriptPlayer(string name, int color, int team, int flags, id extra_data);
 global func bool CustomMessage(string message, object obj, int plr, int offset_x, int offset_y, int color, id deco, any portrait, int flags);
@@ -787,11 +785,6 @@ static const int GUI_FitChildren;
 static const int GUI_Multiple;
 static const int GUI_IgnoreMouse;
 static const int GUI_NoCrop;
-
-global func array PV_Linear(any startValue, any endValue);
-global func array PV_Direction(any factor);
-global func array PV_Step(any step, any startValue, any endValue);
-global func array PV_KeyFrames(any pars);
 
 global func int CustomGuiOpen(proplist menu);
 global func bool CustomGuiSetTag(string tag, int menuID, int childID, object target);
