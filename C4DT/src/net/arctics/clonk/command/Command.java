@@ -334,11 +334,10 @@ public class Command {
 				final ExtractedDeclarationDocumentation doc = importer
 					.extractDeclarationInformationFromFunctionXml(name, ClonkPreferences.languagePref(), XMLDocImporter.SIGNATURE);
 				final Declaration declaration = doc.isVariable ? new Variable(name, PrimitiveType.ANY) : new Function(name, FunctionScope.GLOBAL);
+				@SuppressWarnings("serial")
 				final SelfContainedScript s = new SelfContainedScript("_", "", new Index() {
 					@Override
-					public Engine engine() {
-						return oc;
-					}
+					public Engine engine() { return oc; }
 				});
 				s.addDeclaration(declaration);
 				if (declaration instanceof Function) {

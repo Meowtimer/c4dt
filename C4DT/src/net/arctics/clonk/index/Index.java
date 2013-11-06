@@ -19,11 +19,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -37,6 +39,7 @@ import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
+import net.arctics.clonk.c4script.IncludesParameters;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.c4script.Variable;
@@ -290,6 +293,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param postLoad true if called from {@link #postLoad()}. Will not clear some state in that case since it's assumed that it was properly loaded from the index file.
 	 */
 	public synchronized void refresh(final boolean postLoad) {
+		cachedIncludes = new ConcurrentHashMap<IncludesParameters, Collection<Script>>();
 		relevantIndexes = null;
 		// delete old cache
 		if (globalFunctions == null)
@@ -1082,5 +1086,21 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	@Override
 	public Typing typing() { return Typing.INFERRED; }
+
+	private transient ConcurrentHashMap<IncludesParameters, Collection<Script>> cachedIncludes;
+
+	public Collection<Script> includes(IncludesParameters parms) {
+		Map<IncludesParameters, Collection<Script>> map = cachedIncludes;
+		if (map == null)
+			map = cachedIncludes = new ConcurrentHashMap<IncludesParameters, Collection<Script>>();
+		Collection<Script> result = map.get(parms);
+		if (result == null) {
+			result = new HashSet<Script>();
+			parms.script.gatherIncludes(this, parms.origin, result, parms.options);
+			result.remove(parms.script);
+			map.put(parms, result);
+		}
+		return result;
+	}
 
 }

@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -146,24 +145,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private Set<Script> usedScripts;
 	protected List<Directive> directives;
 
-	@SuppressWarnings("serial")
-	private static final class CachedIncludes extends HashSet<Script> {
-		final Script origin;
-		final Index index;
-		final int options;
-		public CachedIncludes(Script script, Index index, Script origin, int options) {
-			this.origin = origin;
-			this.index = index;
-			this.options = options;
-			script.gatherIncludes(index, origin, this, options);
-			remove(script);
-		}
-	}
-
 	// cache all the things
 	private transient Map<String, Function> cachedFunctionMap;
 	private transient Map<String, Variable> cachedVariableMap;
-	private transient WeakReference<CachedIncludes> includes;
 	private transient Scenario scenario;
 	private transient Map<String, List<CallDeclaration>> callMap = new HashMap<>();
 	private transient Map<String, List<AccessVar>> varReferencesMap = new HashMap<>();
@@ -473,12 +457,15 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public Collection<Script> includes(Index index, Script origin, int options) {
-		WeakReference<CachedIncludes> w = includes;
-		CachedIncludes x = w != null ? w.get() : null;
-		if (x == null || x.index != index || x.origin != origin || x.options != options)
-			w = new WeakReference<>(x = new CachedIncludes(this, index, origin, options));
-		includes = w;
-		return x;
+		final Index ndx = index;
+		if (ndx != null)
+			return ndx.includes(new IncludesParameters(this, origin, options));
+		else {
+			final HashSet<Script> result = new HashSet<Script>();
+			gatherIncludes(ndx, origin, result, options);
+			result.remove(this);
+			return result;
+		}
 	}
 
 	public boolean directlyIncludes(Definition other) {
@@ -1214,7 +1201,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * </ol>
 	 */
 	public synchronized void deriveInformation() {
-		includes = null;
 		if (file() != null)
 			pinTo(file());
 		findScenario();
