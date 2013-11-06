@@ -1,6 +1,8 @@
 package net.arctics.clonk.c4script.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.filter;
+import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -18,6 +20,9 @@ import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectResource;
@@ -176,5 +181,22 @@ public class EntityLocator extends ExpressionLocator<Void> {
 			}
 		}, null);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
+	}
+
+	public String infoText() {
+		final IIndexEntity entity = entity();
+		final ASTNode expr = expressionAtRegion();
+		if (entity == null || expr == null)
+			return null;
+		if (entity instanceof Variable && expr instanceof AccessVar) {
+			final Function f = expr.parent(Function.class);
+			final Script s = f.script();
+			final Function.Typing typing = s.typings().get(f);
+			return ((Variable)entity).infoText(defaulting(typing.nodeTypes[expr.localIdentifier()], PrimitiveType.UNKNOWN));
+		} else {
+			final ASTNode pred = expr.predecessor();
+			final Script context = pred == null ? expr.parent(Script.class) : as(TypeUtil.inferredType(pred), Script.class);
+			return entity.infoText(context);
+		}
 	}
 }

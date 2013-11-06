@@ -12,50 +12,31 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IRegion;
 
 public class DeclarationLocation implements Serializable, IIndexEntity, IHasRelatedResource {
-
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
 	private final Declaration declaration;
 	private final IRegion location;
 	private transient IResource resource;
-	
-	@Override
-	public IResource resource() {
-		return resource;
-	}
-	public Declaration declaration() {
-		return declaration;
-	}
-	public IRegion location() {
-		return location;
-	}
-	public DeclarationLocation(Declaration declaration) {
-		this(declaration, declaration, declaration.resource());
-	}
 	public DeclarationLocation(Declaration declaration, IRegion location, IResource resource) {
 		super();
 		this.declaration = declaration;
 		this.location = location;
 		this.resource = resource;
 	}
-	@Override
-	public String toString() {
-		return declaration.name();
+	public DeclarationLocation(Declaration declaration) {
+		this(declaration, declaration, declaration.resource());
 	}
 	@Override
-	public String name() {
-		return declaration.name();
-	}
+	public IResource resource() { return resource; }
+	public Declaration declaration() { return declaration; }
+	public IRegion location() { return location; }
 	@Override
-	public boolean matchedBy(Matcher matcher) {
-		return declaration.matchedBy(matcher);
-	}
+	public String toString() { return declaration.name(); }
 	@Override
-	public String infoText(IIndexEntity context) {
-		return declaration.infoText(context);
-	}
+	public String name() { return declaration.name(); }
 	@Override
-	public Index index() {
-		return declaration.index();
-	}
+	public boolean matchedBy(Matcher matcher) { return declaration.matchedBy(matcher); }
+	@Override
+	public String infoText(IIndexEntity context) { return declaration.infoText(context); }
+	@Override
+	public Index index() { return declaration.index(); }
 }

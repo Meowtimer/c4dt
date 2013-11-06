@@ -2650,7 +2650,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					{
 						if (loopVariable != null) {
 							loopVariable.setUsed(true);
-							visitor.judgment(AccessVar.temp(loopVariable, node), elmType, TypingJudgementMode.UNIFY);
+							visitor.judgment(AccessVar.temp(loopVariable, node), elmType, TypingJudgementMode.OVERWRITE);
 						}
 						visitor.visit(node.body(), true);
 					}
