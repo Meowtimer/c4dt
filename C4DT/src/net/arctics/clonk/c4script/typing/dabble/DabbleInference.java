@@ -1505,9 +1505,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				else if (declaration instanceof Variable) {
 					final Variable var = (Variable) declaration;
 					handleVariable(node, visitor, pred, var);
-				} else if (declaration instanceof Function)
+				} else if (declaration instanceof Function) {
 					if (!visitor.script().engine().settings().supportsFunctionRefs)
 						visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
+					if (pred instanceof MemberOperator && !((MemberOperator)pred).dotNotation())
+						visitor.markers().error(visitor, Problem.FunctionRefAfterArrow, node, node, Markers.NO_THROW, node.name());
+				}
 			}
 			private void handleVariable(T node, Visitor visitor, final ASTNode pred, final Variable var) throws ProblemException {
 				var.setUsed(true);

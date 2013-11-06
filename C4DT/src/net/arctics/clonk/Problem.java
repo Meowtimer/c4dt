@@ -93,7 +93,8 @@ public enum Problem {
 	DeclarationNotFound(Messages.DeclarationNotFound, Messages.DNF_DeclarationName, Messages.DNF_Container),
 	LoopVariableUsedInMultipleLoops(Messages.LoopVariableUsedInMultipleLoops, Messages.LoopVariableName),
 	LeadsToErrors(Messages.LeadsToErrors),
-	LocalOverridesParameter(Messages.LocalOverridesParameter);
+	LocalOverridesParameter(Messages.LocalOverridesParameter),
+	FunctionRefAfterArrow(Messages.FunctionRefAfterArrow);
 
 	private String message;
 	private String[] formatArgumentDescriptions;
