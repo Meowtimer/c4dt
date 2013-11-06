@@ -155,7 +155,11 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	public void captureMarkers() {}
 
 	public void steer(Runnable runnable) {
-		runnable.run();
+		try {
+			runnable.run();
+		} catch (final Exception e) {
+			e.printStackTrace(); // silly
+		}
 	}
 
 	protected String projectName;
