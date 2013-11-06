@@ -254,6 +254,7 @@ static const int C4AVP_SinR;
 static const int C4AVP_CosV;
 static const int C4AVP_SinV;
 static const int C4AVP_Action;
+static const int C4AVP_Linear;
 static const int ANIM_Loop;
 static const int ANIM_Hold;
 static const int ANIM_Remove;
