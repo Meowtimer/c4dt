@@ -290,10 +290,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final ASTNode[] params = node.params();
 			final Script script = visitor.script();
 			final DabbleInference inference = visitor.inference();
-			if (f.index() == script.index() && params.length != f.numParameters() && !(f.script() instanceof Engine))
+			if (f.index() == script.index() && params.length != called.numParameters() && !(called.script() instanceof Engine))
 				try {
 					inference.markers().error(script, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
-						f.numParameters(), params.length, f.name());
+						called.numParameters(), params.length, called.name());
 				} catch (final ProblemException e) {}
 		}
 		@Override
