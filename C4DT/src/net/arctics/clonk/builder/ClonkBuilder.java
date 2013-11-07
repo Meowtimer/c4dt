@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -137,7 +138,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				// validate files related to the scripts that have been parsed
 				for (final Script script : scripts)
 					validateRelatedFiles(script);
-				
+
 				EngineLaunch.scriptsBuilt(scripts);
 
 				return new IProject[] { proj };
@@ -326,7 +327,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			System.out.println(String.format("%s: Reporting problems", getProject().getName()));
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
-		for (final ProblemReportingStrategy strategy : index.nature().problemReportingStrategies())
+		final List<ProblemReportingStrategy> strats = index.nature().problemReportingStrategies();
+		for (final ProblemReportingStrategy strategy : strats)
 			strategy.steer(new Runnable() {
 				@Override
 				public void run() {
@@ -350,7 +352,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 			});
 		} finally {
-			for (final ProblemReportingStrategy strategy : index.nature().problemReportingStrategies())
+			for (final ProblemReportingStrategy strategy : strats)
 				strategy.steer(new Runnable() {
 					@Override
 					public void run() {
