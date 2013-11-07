@@ -578,11 +578,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (t == script)
 								break RelevanceCheck;
 							if (t instanceof Script) {
-								final Script s = (Script)t;
-								if (script.doesInclude(index, s))
+								final Script calledOn = (Script)t;
+								if (script.doesInclude(index, calledOn))
 									break RelevanceCheck;
-								if (s.doesInclude(index, script) && s.seesFunction(function))
-									break RelevanceCheck;
+								//if (calledOn.seesFunction(function) && calledOn.doesInclude(index, script))
+								//	break RelevanceCheck;
 							}
 						}
 						continue;
@@ -1021,31 +1021,43 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (f.body() != null)
 						result.put(f, new Visit(f));
 			} else {
+				final List<? extends Function> localFuncs = script.functions();
 				@SuppressWarnings({ "serial" })
 				class Revisitor extends HashSet<String> implements IASTVisitor<Function> {
+					public Revisitor() { super(localFuncs.size()); }
 					private TraversalContinuation revisit(Function f) {
 						if (DEBUG)
 							System.out.println(format("%s: Revisiting %s", script.qualifiedName(), f.qualifiedName()));
 						add(f.name());
+						for (final List<AccessVar> vrs : f.script().varReferences().values())
+							for (final AccessVar vr : vrs)
+								if (vr.predecessor() == null && vr.containedIn(f) && inAssignment(vr))
+									add(vr.name());
 						f.findInherited();
 						result.put(f, new Visit(f));
-						return TraversalContinuation.Cancel;
+						return TraversalContinuation.Continue;
+					}
+					private boolean inAssignment(AccessVar vr) {
+						for (BinaryOp bop = vr.parent(BinaryOp.class); bop != null; bop = bop.parent(BinaryOp.class))
+							if (bop.operator().isAssignment() && vr.containedIn(bop.leftSide()))
+								return true;
+						return false;
 					}
 					@Override
 					public TraversalContinuation visitNode(ASTNode node, Function context) {
 						if (node instanceof This)
 							return revisit(context);
-						if (node instanceof CallDeclaration && node.predecessor() == null) {
-							final CallDeclaration cd = (CallDeclaration) node;
-							final String name = cd.name();
+						if (node.predecessor() == null && node instanceof AccessDeclaration) {
+							final AccessDeclaration ad = (AccessDeclaration) node;
+							final String name = ad.name();
 							switch (name) {
 							case "GetID":
-								if (cd.params().length == 0)
+								if (ad instanceof CallDeclaration && ((CallDeclaration)ad).params().length == 0)
 									return revisit(context);
 								break;
 							default:
-								final Function fn = script.function(name);
-								if (fn != null && (fn.script() == script || contains(fn.name())))
+								final Declaration d = ad instanceof CallDeclaration ? script.function(name) : script.variable(name);
+								if (d != null && contains(d.name()))
 									return revisit(context);
 							}
 						}
@@ -1055,7 +1067,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (!contains(function.name()))
 							function.traverse(this, function);
 					}
-					public void loop(Collection<Function> functions) {
+					public void loop() {
+						for (final Function f : localFuncs)
+							this.add(f.name());
+						final Collection<Function> functions = script.functionMap().values();
 						int old;
 						do {
 							old = size();
@@ -1068,8 +1083,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						while (old != size());
 					}
 				}
-				new Revisitor().loop(script.functionMap().values());
-				for (final Function f : script.functions())
+				new Revisitor().loop();
+				for (final Function f : localFuncs)
 					if (f.body() != null) {
 						f.findInherited();
 						result.put(f, new Visit(f));
