@@ -94,7 +94,9 @@ public enum Problem {
 	LoopVariableUsedInMultipleLoops(Messages.LoopVariableUsedInMultipleLoops, Messages.LoopVariableName),
 	LeadsToErrors(Messages.LeadsToErrors),
 	LocalOverridesParameter(Messages.LocalOverridesParameter),
-	FunctionRefAfterArrow(Messages.FunctionRefAfterArrow);
+	FunctionRefAfterArrow(Messages.FunctionRefAfterArrow),
+	FunctionCallAfterDot(Messages.FunctionCallAfterDot),
+	GlobalFunctionInAppendTo(Messages.GlobalFunctionInAppendTo);
 
 	private String message;
 	private String[] formatArgumentDescriptions;

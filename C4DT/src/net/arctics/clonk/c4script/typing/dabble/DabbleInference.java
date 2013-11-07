@@ -2175,6 +2175,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final ASTNode[] params = node.params();
 					final ASTNode predecessor = node.predecessor();
 
+					if (predecessor instanceof MemberOperator && ((MemberOperator)predecessor).dotNotation())
+						visitor.error(visitor, Problem.FunctionCallAfterDot, node, node, Markers.NO_THROW, node.name());
+
 					if (predecessor != null && !typing.compatible(visitor.ty(predecessor), PrimitiveType.PROPLIST)) {
 						final ASTNode loc = predecessor instanceof MemberOperator ? predecessor.predecessor() : predecessor;
 						if (loc != null)

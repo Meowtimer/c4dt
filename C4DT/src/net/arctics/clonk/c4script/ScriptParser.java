@@ -430,9 +430,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		if (directive != null)
 			return directive;
 
-		final FunctionHeader functionHeader = FunctionHeader.parse(this, true);
-		if (functionHeader != null) {
-			final Function f = parseFunctionDeclaration(functionHeader);
+		final FunctionHeader funHeader = FunctionHeader.parse(this, true);
+		if (funHeader != null) {
+			if (funHeader.scope == FunctionScope.GLOBAL && script().hasAppendTo())
+				error(Problem.GlobalFunctionInAppendTo, funHeader.nameStart, funHeader.nameStart + funHeader.name.length(),
+					Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, funHeader.name);
+			final Function f = parseFunctionDeclaration(funHeader);
 			if (f != null)
 				return f;
 		}
