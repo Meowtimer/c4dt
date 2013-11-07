@@ -120,7 +120,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	private BufferedReader socketReader;
 	private boolean suspended;
 	private final IResource scenario;
-	
+
 	private final List<ILineReceivedListener> lineReceiveListeners = new LinkedList<ILineReceivedListener>();
 
 	/**

@@ -131,22 +131,37 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 
 	/**
 	 * Send exec request to the running engine and put a watch expression listener in place informing the Debug system about the result.
-	 *  
+	 *
 	 */
 	@Override
 	public void evaluateExpression(final String expression, final IDebugElement context, final IWatchExpressionListener listener) {
 		final Target target = (Target) context.getDebugTarget();
-		target.requestLineReceivedListener(new ICreate<EvaluationResultListener>() {
-			@Override
-			public Class<EvaluationResultListener> cls() {
-				return EvaluationResultListener.class;
-			}
-			@Override
-			public EvaluationResultListener create() {
-				return new EvaluationResultListener(context);
-			}
-		}).add(expression, listener);
-		target.send(Commands.EXEC + " " + expression); //$NON-NLS-1$
+		if (target.isDisconnected())
+			listener.watchEvaluationFinished(new IWatchExpressionResult() {
+				@Override
+				public boolean hasErrors() { return false; }
+				@Override
+				public IValue getValue() { return null; }
+				@Override
+				public String getExpressionText() { return expression; }
+				@Override
+				public DebugException getException() { return null; }
+				@Override
+				public String[] getErrorMessages() { return null; }
+			});
+		else {
+			target.requestLineReceivedListener(new ICreate<EvaluationResultListener>() {
+				@Override
+				public Class<EvaluationResultListener> cls() {
+					return EvaluationResultListener.class;
+				}
+				@Override
+				public EvaluationResultListener create() {
+					return new EvaluationResultListener(context);
+				}
+			}).add(expression, listener);
+			target.send(Commands.EXEC + " " + expression); //$NON-NLS-1$
+		}
 	}
 
 }
