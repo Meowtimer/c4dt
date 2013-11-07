@@ -286,11 +286,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 				validateParameterCount();
 		}
 		private void validateParameterCount() {
-			final Function f = node.parent(Function.class);
 			final ASTNode[] params = node.params();
 			final Script script = visitor.script();
 			final DabbleInference inference = visitor.inference();
-			if (f.index() == script.index() && params.length != called.numParameters() && !(called.script() instanceof Engine))
+			if (called.index() == script.index() && params.length > called.numParameters() && !(called.script() instanceof Engine))
 				try {
 					inference.markers().error(script, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
 						called.numParameters(), params.length, called.name());
