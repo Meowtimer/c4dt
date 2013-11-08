@@ -21,10 +21,12 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Utilities;
@@ -188,11 +190,17 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		final ASTNode expr = expressionAtRegion();
 		if (entity == null || expr == null)
 			return null;
-		if (entity instanceof Variable && expr instanceof AccessVar) {
+		if (entity instanceof Variable && expr instanceof AccessDeclaration) {
 			final Function f = expr.parent(Function.class);
 			final Script s = f.script();
 			final Function.Typing typing = s.typings().get(f);
 			return ((Variable)entity).infoText(defaulting(typing.nodeTypes[expr.localIdentifier()], PrimitiveType.UNKNOWN));
+		} else if (entity instanceof Function && expr instanceof AccessDeclaration) {
+			final ASTNode pred = expr.predecessor();
+			final IType contextTy = pred == null ? expr.parent(Script.class) : TypeUtil.inferredType(pred);
+			final Script context = contextTy instanceof MetaDefinition ? ((MetaDefinition)contextTy).definition() : as(contextTy, Script.class);
+			final Function.Typing typing = context != null ? context.typings().get((Function)entity) : null;
+			return ((Function)entity).infoText(typing);
 		} else {
 			final ASTNode pred = expr.predecessor();
 			final Script context = pred == null ? expr.parent(Script.class) : as(TypeUtil.inferredType(pred), Script.class);
