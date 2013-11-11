@@ -12,10 +12,10 @@ import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Standalone;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.Statement.Attachment;
+import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 
@@ -40,22 +40,34 @@ public class ASTSearchQuery extends SearchQuery {
 		}
 	}
 
-	private void addMatch(ASTNode match, ScriptParser parser, int s, int l, Map<String, Object> subst) {
-		final Match m = match(match, parser, s, l, subst);
+	private void addMatch(ASTNode match, Script script, int s, int l, Map<String, Object> subst) {
+		final Match m = match(match, script, s, l, subst);
 		result.addMatch(m);
 	}
 
-	protected static Match match(ASTNode match, ScriptParser parser, int s, int l, Map<String, Object> subst) {
-		final IRegion lineRegion = parser.regionOfLineContainingRegion(new Region(s, l));
-		final String line = parser.bufferSubstringAtRegion(lineRegion);
-		final Match m = new Match(line, lineRegion.getOffset(), parser.script(), s, l, match, subst);
+	protected Match match(ASTNode match, Script script, int s, int l, Map<String, Object> subst) {
+		final BufferedScanner scanner = scanner(script);
+		final IRegion lineRegion = scanner.regionOfLineContainingRegion(new Region(s, l));
+		final String line = scanner.bufferSubstringAtRegion(lineRegion);
+		final Match m = new Match(line, lineRegion.getOffset(), script, s, l, match, subst);
 		return m;
+	}
+
+	protected BufferedScanner scanner(Script script) {
+		synchronized (scanners) {
+			BufferedScanner scanner = scanners.get(script);
+			if (scanner == null)
+				scanner = new BufferedScanner(script.file());
+			scanners.put(script, scanner);
+			return scanner;
+		}
 	}
 
 	private final String templateText;
 	private final ASTNode template;
 	private final ASTNode replacement;
 	private final Collection<Script> scope;
+	private final Map<Script, BufferedScanner> scanners = new HashMap<>();
 
 	public ASTNode replacement() { return replacement; }
 	public ASTNode template() { return template; }
@@ -73,24 +85,19 @@ public class ASTSearchQuery extends SearchQuery {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
-				class ScriptSearcher implements Runnable, IASTVisitor<ScriptParser> {
-					private final ScriptParser parser;
+				class ScriptSearcher implements Runnable, IASTVisitor<Script> {
+					private final Script script;
 					private final Map<String, Match> matches = new HashMap<String, Match>();
 					public ScriptSearcher(Script script) {
-						ScriptParser p = null;
-						try {
-							p = new ScriptParser(script);
-						} catch (final Exception e) {
-							System.out.println(String.format("Creating parser failed for '%s'", script));
-						}
-						parser = p;
+						script.requireLoaded();
+						this.script = script;
 					}
 					@Override
 					public void run() {
-						if (parser == null || monitor.isCanceled())
+						if (monitor.isCanceled())
 							return;
 						try {
-							parser.script().traverse(this, parser);
+							script.traverse(this, script);
 							commitMatches();
 						} catch (final Exception e) {
 							e.printStackTrace();
@@ -102,13 +109,13 @@ public class ASTSearchQuery extends SearchQuery {
 						matches.clear();
 					}
 					@Override
-					public TraversalContinuation visitNode(ASTNode expression, ScriptParser parser) {
+					public TraversalContinuation visitNode(ASTNode expression, Script script) {
 						if (monitor.isCanceled())
 							return TraversalContinuation.Cancel;
 						final Map<String, Object> subst = template.match(expression);
 						if (subst != null) {
 							final IRegion r = expression.absolute();
-							addMatch(expression, parser, r.getOffset(), r.getLength(), subst);
+							addMatch(expression, script, r.getOffset(), r.getLength(), subst);
 							return TraversalContinuation.SkipSubElements;
 						} else {
 							if (expression instanceof Statement) {
@@ -116,7 +123,7 @@ public class ASTSearchQuery extends SearchQuery {
 								if (stmt.attachments() != null)
 									for (final Attachment a : stmt.attachments())
 										if (a instanceof ASTNode)
-											visitNode((ASTNode)a, parser);
+											visitNode((ASTNode)a, script);
 							}
 							return TraversalContinuation.Continue;
 						}
