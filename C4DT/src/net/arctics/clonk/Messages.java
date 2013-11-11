@@ -149,6 +149,7 @@ public class Messages extends NLS {
 	public static String FunctionRefAfterArrow;
 	public static String FunctionCallAfterDot;
 	public static String GlobalFunctionInAppendTo;
+	public static String NoopAssignment;
 
 	static {
 		// initialize resource bundle

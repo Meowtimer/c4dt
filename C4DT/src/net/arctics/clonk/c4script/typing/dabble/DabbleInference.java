@@ -1875,8 +1875,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 
 					switch (op) {
-					case Assign: case AssignAdd: case AssignSubtract:
-					case AssignMultiply: case AssignModulo: case AssignDivide:
+					case Assign:
+						if (left instanceof AccessVar && right instanceof AccessVar && visitor.declarationOf(left) == visitor.declarationOf(right))
+							if (visitor.declarationOf(left) != null)
+								visitor.warning(visitor, Problem.NoopAssignment, left, left, Markers.NO_THROW, left.printed());
+						//$FALL-THROUGH$
+					case AssignAdd:
+					case AssignSubtract:
+					case AssignMultiply:
+					case AssignModulo:
+					case AssignDivide:
 						visitor.expert(left).assignment(left, right, visitor);
 						break;
 					case JumpNotNil:

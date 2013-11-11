@@ -96,7 +96,8 @@ public enum Problem {
 	LocalOverridesParameter(Messages.LocalOverridesParameter),
 	FunctionRefAfterArrow(Messages.FunctionRefAfterArrow),
 	FunctionCallAfterDot(Messages.FunctionCallAfterDot),
-	GlobalFunctionInAppendTo(Messages.GlobalFunctionInAppendTo);
+	GlobalFunctionInAppendTo(Messages.GlobalFunctionInAppendTo),
+	NoopAssignment(Messages.NoopAssignment);
 
 	private String message;
 	private String[] formatArgumentDescriptions;
