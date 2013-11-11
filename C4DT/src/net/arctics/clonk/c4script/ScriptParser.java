@@ -5,6 +5,7 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -25,6 +26,7 @@ import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Function.FunctionScope;
+import net.arctics.clonk.c4script.Script.Typings;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -224,6 +226,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @throws ProblemException
 	 */
 	public void parse() throws ProblemException {
+		script().setTypings(new Typings(Collections.<String, IType>emptyMap(), Collections.<String, Function.Typing>emptyMap()));
 		script().setTypeAnnotations(null);
 		clear();
 		parseDeclarations();
