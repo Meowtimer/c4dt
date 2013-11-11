@@ -46,6 +46,7 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.typing.Typing;
+import net.arctics.clonk.index.IndexEntity.Loaded;
 import net.arctics.clonk.index.serialization.IndexEntityInputStream;
 import net.arctics.clonk.index.serialization.IndexEntityOutputStream;
 import net.arctics.clonk.index.serialization.replacements.EngineRef;
@@ -170,7 +171,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			}
 		for (final IndexEntity e : entities()) {
 			e.index = this;
-			e.loaded = false;
+			e.loaded = Loaded.No;
 		}
 		refresh(true);
 	}
@@ -322,7 +323,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		allScripts(new Sink<Script>() {
 			@Override
 			public void receivedObject(Script item) {
-				if (item.loaded)
+				if (item.loaded == Loaded.Yes)
 					counts[2]++;
 				if (item instanceof Definition)
 					counts[0]++;
@@ -1005,7 +1006,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	private void saveNewEntities() {
 		for (final IndexEntity e : newEntities)
-			if (e.loaded && e.saveCalledByIndex())
+			if (e.loaded == Loaded.Yes && e.saveCalledByIndex())
 				try {
 					e.save();
 				} catch (final IOException e1) {

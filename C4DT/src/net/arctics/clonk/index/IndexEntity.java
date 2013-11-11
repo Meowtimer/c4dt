@@ -23,15 +23,19 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 
 	public static abstract class LoadedEntitiesSink<T extends IndexEntity> extends Sink<T> {
 		@Override
-		public boolean filter(T item) {
-			return item.loaded;
-		}
+		public boolean filter(T item) { return item.loaded == Loaded.Yes; }
+	}
+
+	protected enum Loaded {
+		No,
+		Pending,
+		Yes
 	}
 
 	/**
 	 * Flag indicating whether the entity was loaded already loaded from disk or not.
 	 */
-	protected transient boolean loaded = true;
+	protected transient Loaded loaded = Loaded.Yes;
 	protected transient Index index;
 	protected long entityId;
 
@@ -50,25 +54,21 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	 * Require this entity to be loaded. If {@link #loaded} is false it is set to true and {@link Index#loadEntity(IndexEntity)} is called.
 	 */
 	public final void requireLoaded() {
-		if (index == null)
+		if (index == null || loaded == Loaded.Yes)
 			return;
-		boolean needLoad = false;
 		synchronized (index.loadSynchronizer()) {
-			if (!loaded)
-				needLoad = loaded = true;
-		}
-		if (needLoad)
-			try {
-				index.loadEntity(this);
-			} catch (final Exception e) {
-				if (e instanceof FileNotFoundException)
-					System.out.println("Entity file for " + this.toString() + " not found");
-				e.printStackTrace();
+			if (loaded == Loaded.No) {
+				loaded = Loaded.Pending;
+				try {
+					index.loadEntity(this);
+				} catch (final Exception e) {
+					if (e instanceof FileNotFoundException)
+						System.out.println("Entity file for " + this.toString() + " not found");
+					e.printStackTrace();
+				}
+				loaded = Loaded.Yes;
 			}
-	}
-
-	public final boolean loaded() {
-		return loaded;
+		}
 	}
 
 	/**

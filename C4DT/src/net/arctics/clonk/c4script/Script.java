@@ -779,7 +779,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	public synchronized void clearDeclarations() {
-		loaded = true;
+		loaded = Loaded.Yes;
 		usedScripts = null;
 		directives = null;
 		functions = null;
