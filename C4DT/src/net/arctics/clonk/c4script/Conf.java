@@ -67,7 +67,7 @@ public abstract class Conf {
 	private static void configureByEditorPreferences() {
 		final boolean tabsToSpaces = EditorsUI.getPreferenceStore().getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
 		if (tabsToSpaces)
-			indentString = StringUtil.repetitions(" ", EditorsUI.getPreferenceStore().getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH));
+			indentString = StringUtil.multiply(" ", EditorsUI.getPreferenceStore().getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH));
 		else
 			indentString = "\t";
 		final boolean javaStyleBlocks = Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.JAVA_STYLE_BLOCKS);

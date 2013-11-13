@@ -76,7 +76,7 @@ public class StaticTypingUtil {
 			final StringBuilder builder = new StringBuilder(text);
 			for (int i = annotations.size()-1; i >= 0; i--) {
 				final IRegion loc = annotations.get(i).absolute();
-				builder.replace(loc.getOffset(), loc.getOffset()+loc.getLength(), StringUtil.repetitions(" ", loc.getLength()));
+				builder.replace(loc.getOffset(), loc.getOffset()+loc.getLength(), StringUtil.multiply(" ", loc.getLength()));
 			}
 
 			// cast expressions

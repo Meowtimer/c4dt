@@ -23,18 +23,6 @@ public class StringUtil {
 		return Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}
 	/**
-	 * Return a string consisting of times repetitions of s
-	 * @param s The string to repeat
-	 * @param times The number of repititions
-	 * @return The string containing the repititions
-	 */
-	public static String repetitions(String s, int times) {
-		StringBuilder builder = new StringBuilder(s.length()*times);
-		for (int i = 0; i < times; i++)
-			builder.append(s);
-		return builder.toString();
-	}
-	/**
 	 * Write a block of items, consisting of a start string, an end string, a delimiter string and the elements which are obtained from some {@link Iterable}
 	 * @param output The {@link Appendable} the resulting string will be appended to
 	 * @param startBlock The start block string
@@ -48,13 +36,13 @@ public class StringUtil {
 		CharSequence startBlock, CharSequence endBlock, CharSequence delimiter,
 		Iterable<?> enumeration
 	) {
-		boolean returnString = output == null;
+		final boolean returnString = output == null;
 		if (returnString)
 			output = new StringBuilder();
 		try {
 			output.append(startBlock);
 			boolean started = false;
-			for (Object obj : enumeration) {
+			for (final Object obj : enumeration) {
 				if (obj == null)
 					continue;
 				if (started)
@@ -64,7 +52,7 @@ public class StringUtil {
 				output.append(obj.toString());
 			}
 			output.append(endBlock);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 		return returnString ? output.toString() : null;
@@ -80,8 +68,8 @@ public class StringUtil {
 	 * @return The str with escapes evaluated
 	 */
 	public static String evaluateEscapes(String str) {
-		StringBuilder sBuilder = new StringBuilder(str.length());
-		int len = str.length();
+		final StringBuilder sBuilder = new StringBuilder(str.length());
+		final int len = str.length();
 		for (int i = 0; i < len; i++) {
 			if (i < len-1) switch (str.charAt(i)) {
 			case '\\':
@@ -98,10 +86,10 @@ public class StringUtil {
 	}
 
 	public static String wildcardToRegex(String wildcard){
-        StringBuffer s = new StringBuffer(wildcard.length());
+        final StringBuffer s = new StringBuffer(wildcard.length());
         s.append('^');
         for (int i = 0, is = wildcard.length(); i < is; i++) {
-            char c = wildcard.charAt(i);
+            final char c = wildcard.charAt(i);
             switch(c) {
                 case '*':
                     s.append(".*");
@@ -128,10 +116,10 @@ public class StringUtil {
 	public static Pattern patternFromRegExOrWildcard(String pattern) {
 		try {
 			return Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			try {
 				return Pattern.compile(StringUtil.wildcardToRegex(pattern), Pattern.CASE_INSENSITIVE);
-			} catch (Exception e2) {
+			} catch (final Exception e2) {
 				return Pattern.compile("ponies");
 			}
 		}
@@ -139,18 +127,18 @@ public class StringUtil {
 
 	public static String rawFileName(String s) {
 
-	    String separator = System.getProperty("file.separator");
+	    final String separator = System.getProperty("file.separator");
 	    String filename;
 
 	    // Remove the path upto the filename.
-	    int lastSeparatorIndex = s.lastIndexOf(separator);
+	    final int lastSeparatorIndex = s.lastIndexOf(separator);
 	    if (lastSeparatorIndex == -1)
 			filename = s;
 		else
 			filename = s.substring(lastSeparatorIndex + 1);
 
 	    // Remove the extension.
-	    int extensionIndex = filename.lastIndexOf(".");
+	    final int extensionIndex = filename.lastIndexOf(".");
 	    if (extensionIndex == -1)
 	        return filename;
 
@@ -177,7 +165,7 @@ public class StringUtil {
 					public boolean hasNext() {
 						try {
 							return (line = bufferedReader.readLine()) != null;
-						} catch (IOException e) {
+						} catch (final IOException e) {
 							e.printStackTrace();
 							return false;
 						}
@@ -209,12 +197,12 @@ public class StringUtil {
 	 */
 	public static int similarityOf(String name1, String name2) {
 		if (name1.length() > name2.length()) {
-			String tmp= name1;
+			final String tmp= name1;
 			name1= name2;
 			name2= tmp;
 		}
-		int name1len= name1.length();
-		int name2len= name2.length();
+		final int name1len= name1.length();
+		final int name2len= name2.length();
 
 		int nMatched= 0;
 
@@ -225,7 +213,7 @@ public class StringUtil {
 		}
 
 		int k= name1len;
-		int diff= name2len - name1len;
+		final int diff= name2len - name1len;
 		while (k > i && StringUtil.isSimilarChar(name1.charAt(k - 1), name2.charAt(k + diff - 1))) {
 			k--;
 			nMatched++;
@@ -237,14 +225,20 @@ public class StringUtil {
 		if (name2len - nMatched > nMatched)
 			return -1;
 
-		int tolerance= name2len / 4 + 1;
+		final int tolerance= name2len / 4 + 1;
 		return (tolerance - (k - i)) * 256 / tolerance;
 	}
 	static boolean isSimilarChar(char ch1, char ch2) {
 		return Character.toLowerCase(ch1) == Character.toLowerCase(ch2);
 	}
+	/**
+	 * Return a string consisting of times repetitions of s
+	 * @param s The string to repeat
+	 * @param times The number of repetitions
+	 * @return The string containing the repetitions
+	 */
 	public static String multiply(String s, int times) {
-		StringBuilder builder = new StringBuilder(s.length()*times);
+		final StringBuilder builder = new StringBuilder(s.length()*times);
 		for (int i = 0; i < times; i++)
 			builder.append(s);
 		return builder.toString();
