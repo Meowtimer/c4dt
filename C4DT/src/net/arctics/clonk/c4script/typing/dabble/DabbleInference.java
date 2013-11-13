@@ -1135,7 +1135,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			this.script = script;
 			this.conglomerate = script.conglomerate();
 			this.rules = script.engine().specialRules();
-			this.cachedEngineDeclarations = this.script.engine().cachedDeclarations();
+			this.cachedEngineDeclarations = script.engine().cachedDeclarations();
 			this.strictLevel = script.strictLevel();
 			this.thisType = script instanceof Definition ? script : typing.unify(filteredIterable(script.includes(0), Definition.class));
 			this.fragmentOffset = sourceFragmentOffset;
@@ -2037,9 +2037,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 				 */
 				private Declaration findUsingType(
 					Visitor visitor,
-					CallDeclaration node, String functionName,
+					CallDeclaration node,
 					IType type
 				) {
+					final String functionName = node.name();
 					final IType lookIn = type != null ? type : visitor.script();
 					if (lookIn != null) for (final IType ty : lookIn) {
 						Script script = as(ty, Script.class);
@@ -2089,7 +2090,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (declarationName.equals(Keywords.Return))
 						return null;
 					final ASTNode p = node.predecessor();
-					return findUsingType(visitor, node, declarationName, p != null ? visitor.ty(p) : visitor.script());
+					return findUsingType(visitor, node, p != null ? visitor.ty(p) : visitor.script());
 				}
 				private IType declarationType(CallDeclaration node, Visitor visitor) {
 					final Declaration d = internalObtainDeclaration(node, visitor);
