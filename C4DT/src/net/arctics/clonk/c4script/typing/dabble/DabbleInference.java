@@ -2333,6 +2333,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final Function function = node.parent(Function.class);
 						final Function inh = function.inheritedFunction();
 						setDeclaration(node, visitor, inh);
+						if (!visitor.preliminary && visitor.script() == node.parent(Script.class))
+							node.setDeclaration(inh);
 						if (inh == null && !node.failsafe())
 							visitor.markers().error(visitor, Problem.NoInheritedFunction, node, node, Markers.NO_THROW, function.name());
 					}
