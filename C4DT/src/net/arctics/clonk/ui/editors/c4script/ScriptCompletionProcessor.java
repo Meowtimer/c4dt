@@ -30,7 +30,6 @@ import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IHasIncludes;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.SpecialEngineRules;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.c4script.Variable;
@@ -231,9 +230,8 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private boolean computeProposalsInsideFunction(ProposalsSite site) {
 		site.pos(site.offset - (site.function != null ? site.function.bodyLocation().start() : 0));
 		final ScriptEditingState state = state();
-		final ScriptParser parser = site.script != null && state != null
-			? state.updateFunctionFragment(site.function, site, true)
-			: null;
+		if (site.script != null && state != null)
+			state.updateFunctionFragment(site.function, site, true);
 
 		if (!checkProposalConditions(site))
 			return false;
@@ -243,7 +241,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		if (!skipProposalsInFunction(site.contextExpression)) {
 			final boolean restrictedProposals = computeStringProposals(site) || varInitializationProposals(site) || proplistKeyProposals(site);
 			if (!restrictedProposals)
-				innerProposalsInFunction(site, parser);
+				innerProposalsInFunction(site);
 			return true;
 		} else
 			return false;
@@ -297,14 +295,14 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		return true;
 	}
 
-	private void innerProposalsInFunction(ProposalsSite site, ScriptParser parser) {
+	private void innerProposalsInFunction(ProposalsSite site) {
 		setCategoryOrdering(site);
 
 		functionLocalProposals(site);
 		structureProposals(site);
 		globalIndexProposals(site);
 		engineProposals(site);
-		ruleBasedProposals(site, parser);
+		ruleBasedProposals(site);
 		keywordProposals(site);
 		removeProposalForVariableBeingDeclared(site);
 	}
@@ -498,12 +496,12 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private void ruleBasedProposals(ProposalsSite site, ScriptParser parser) {
+	private void ruleBasedProposals(ProposalsSite site) {
 		if (site.contextExpression == null)
 			return;
 		final CallDeclaration innermostCallFunc = site.contextExpression.thisOrParent(CallDeclaration.class);
 		if (innermostCallFunc != null) {
-			final SpecialEngineRules rules = parser.specialEngineRules();
+			final SpecialEngineRules rules = site.script.engine().specialRules();
 			if (rules != null) {
 				final SpecialFuncRule funcRule = rules.funcRuleFor(innermostCallFunc.name(), SpecialEngineRules.FUNCTION_PARM_PROPOSALS_CONTRIBUTOR);
 				if (funcRule != null) {
@@ -576,24 +574,24 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	 * Generate a list of proposals for some expression.
 	 * This static standalone version internally creates a {@link ScriptCompletionProcessor} instance and lets it do the things it does when invoking Content Assist normally.
 	 * It is used for computing the list of similarly named declarations when invoking Quick Fix for unknown identifiers.
-	 * @param expression The expression preceding the location for which proposals should be generated
-	 * @param function The function containing the expression/function from which local variable definitions are pulled
-	 * @param parser Parser serving as context
 	 * @param document The {@link IDocument} the expression was read from
+	 * @param function The function containing the expression/function from which local variable definitions are pulled
+	 * @param expression The expression preceding the location for which proposals should be generated
 	 * @return A list of proposals that (hopefully) represent a valid continuation of the given expression
 	 */
 	public static List<ICompletionProposal> computeProposalsForExpression
-		(ASTNode expression, Function function, ScriptParser parser, IDocument document) {
+		(IDocument document, Function function, ASTNode expression) {
 		final List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
-		final ScriptEditingState state = new ScriptEditingState(Core.instance().getPreferenceStore());
-		state.set(null, parser.script(), document);
-		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(state);
+		new ScriptEditingState(Core.instance().getPreferenceStore()).set(null, function.script(), document);
+		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(
+			new ScriptEditingState(Core.instance().getPreferenceStore())
+		);
 		final ProposalsSite site = new ProposalsSite(
 			null, expression != null ? expression.end() : 0,
-			0, document, "", result, function.index(), function, parser.script(),
+			0, document, "", result, function.index(), function, function.script(),
 			expression, expression.parent(Sequence.class), PrimitiveType.UNKNOWN
 		);
-		processor.innerProposalsInFunction(site, parser);
+		processor.innerProposalsInFunction(site);
 		return result;
 	}
 

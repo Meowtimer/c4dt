@@ -543,7 +543,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					} else
 						expr = offendingExpression;
 					final List<ICompletionProposal> possible = ScriptCompletionProcessor.computeProposalsForExpression
-						(expr, func, parser, document);
+						(document, func, expr);
 					for (final ICompletionProposal p : possible)
 						if (p instanceof DeclarationProposal) {
 							final DeclarationProposal clonkProposal = (DeclarationProposal) p;
