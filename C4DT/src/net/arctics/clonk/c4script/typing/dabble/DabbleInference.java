@@ -2082,7 +2082,29 @@ public class DabbleInference extends ProblemReportingStrategy {
 						if (declaration != null && numCandidates == 1)
 							return declaration;
 					}
+
+					// find engine function
+					final Function global = visitor.script().index().engine().findFunction(functionName);
+					if (global != null) {
+						final int numCandidates = globalCompetitors(visitor, global);
+						// only return found global function if it's the only choice
+						if (numCandidates == 0)
+							return global;
+					} else {
+						final Declaration indexGlobal = visitor.script().index().findGlobal(Declaration.class, functionName);
+						if (indexGlobal != null)
+							return indexGlobal;
+					}
 					return null;
+				}
+				private int globalCompetitors(Visitor visitor, final Function global) {
+					int num = 0;
+					final List<Declaration> allFromLocalIndex = visitor.script().index().declarationMap().get(global.name());
+					if (allFromLocalIndex != null)
+						for (final Declaration d : allFromLocalIndex)
+							if (d instanceof Function && ((Function)d).baseFunction() != global)
+								num++;
+					return num;
 				}
 				@Override
 				protected Declaration obtainDeclaration(CallDeclaration node, Visitor visitor) {
