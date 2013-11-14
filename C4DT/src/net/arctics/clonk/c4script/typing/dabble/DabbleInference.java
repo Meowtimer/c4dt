@@ -581,8 +581,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 								final Script calledOn = (Script)t;
 								if (script.doesInclude(index, calledOn))
 									break RelevanceCheck;
-								//if (calledOn.seesFunction(function) && calledOn.doesInclude(index, script))
-								//	break RelevanceCheck;
+								if (calledOn.seesFunction(function) && calledOn.doesInclude(index, script))
+									break RelevanceCheck;
 							}
 						}
 						continue;
