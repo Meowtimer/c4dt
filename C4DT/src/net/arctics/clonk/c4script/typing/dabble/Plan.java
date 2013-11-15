@@ -24,6 +24,7 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.ast.CallInherited;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.effect.EffectFunction;
@@ -91,13 +92,22 @@ class Plan {
 	private final class ResultUsedDependencyDetector implements IASTVisitor<Visit> {
 		@Override
 		public TraversalContinuation visitNode(ASTNode node, Visit v) {
-			if (node instanceof CallDeclaration && resultNeeded(node)) {
-				final CallDeclaration cd = (CallDeclaration) node;
-				final List<Visit> calledVisits = visits.get(cd.name());
-				if (calledVisits != null)
-					for (final Visit cv : calledVisits)
-						addEdge(cv, v);
-			}
+			if (resultNeeded(node))
+				if (node instanceof CallInherited) {
+					final Function inh = v.function.inheritedFunction();
+					if (inh != null) {
+						final Visit inhv = inference.visitFor(inh, v.input().script());
+						if (inhv != null)
+							addEdge(inhv, v);
+					}
+				}
+				else if (node instanceof CallDeclaration) {
+					final CallDeclaration cd = (CallDeclaration) node;
+					final List<Visit> calledVisits = visits.get(cd.name());
+					if (calledVisits != null)
+						for (final Visit cv : calledVisits)
+							addEdge(cv, v);
+				}
 			return TraversalContinuation.Continue;
 		}
 
@@ -182,7 +192,7 @@ class Plan {
 				result[num++] = v;
 		return result;
 	}
-	
+
 	private final Object edgeLock = new Object();
 
 	private void addEdge(Visit dependency, Visit dependent) {
@@ -264,6 +274,8 @@ class Plan {
 													if (callerVisit.function == caller)
 														addEdge(callerVisit, v);
 										}
+									if (v.inheritor != null)
+										addEdge(v.inheritor, v);
 								}
 							};
 						});

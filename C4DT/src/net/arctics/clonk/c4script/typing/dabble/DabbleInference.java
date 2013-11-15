@@ -15,7 +15,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -380,6 +379,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			Expert<?>[] experts;
 			Declaration[] declarations;
 			boolean doubleTake;
+			List<CallInherited> inheritedCalls;
+			Visit inheritor, inherited;
 
 			final Set<Visit> dependents = new HashSet<>();
 			final Set<Visit> dependencies = new HashSet<>();
@@ -405,14 +406,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			public Visit(Function function) {
 				super(function);
-				hash = function.qualifiedName(script).hashCode();
 				if (typing == Typing.INFERRED)
 					set(PrimitiveType.VOID);
-			}
-
-			@SuppressWarnings("unchecked")
-			public final <N extends ASTNode, T extends Expert<? super N>> T expert(N node, Class<T> cast) {
-				return (T) experts[node.localIdentifier()];
+				this.hash = function.qualifiedName(script).hashCode();
 			}
 
 			void prepare() {
@@ -500,51 +496,26 @@ public class DabbleInference extends ProblemReportingStrategy {
 			private void typeParametersFromCalls(Function function, Function baseFunction, TypeVariable[] parameterTypes) {
 				final List<CallDeclaration> calls = index.callsTo(function.name());
 				if (calls != null) {
-
+					if (visit.inheritedCalls != null)
+						calls.addAll(visit.inheritedCalls);
 					final IType[][] types = new IType[parameterTypes.length][calls.size()];
-					final Visitor[] visitors = new Visitor[calls.size()];
-					gatherCallTypes(function, baseFunction, parameterTypes, calls, types, visitors);
+					gatherCallTypes(function, baseFunction, parameterTypes, calls, types);
 
 					for (int pa = 0; pa < parameterTypes.length; pa++) {
 						final Variable par = function.parameter(pa);
 						if (par.staticallyTyped())
 							continue;
-						typeParameterFromCalls(function, par, parameterTypes[pa], calls, types[pa], visitors);
+						parameterTypes[pa].set(typing, types[pa]);
 					}
 				}
-			}
-
-			private void typeParameterFromCalls(Function function, Variable par, TypeVariable parTyVar, List<CallDeclaration> calls, IType[] callTypes, Visitor[] callVisitors) {
-				IType result = PrimitiveType.UNKNOWN;
-				for (final IType t : callTypes)
-					if (t != null && t != PrimitiveType.VOID)
-						result = typing.unify(result, t);
-				parTyVar.set(result);
-				//IType result;
-				//final boolean lenient = false; //parTyVar.get() == PrimitiveType.UNKNOWN;
-				//final PrimitiveType bestSeed = findBestTypingSeed(parTyVar, calls, callTypes);
-                //
-				//if (bestSeed != null)
-				//	result = unifyFromSeed(function, par, parTyVar, calls, callTypes, callVisitors, lenient, bestSeed);
-				//else if (!lenient) {
-				//	warnAtAllCalls(function, par, parTyVar, calls, callTypes, callVisitors);
-				//	result = parTyVar.get();
-				//}
-				//else
-				//	result = PrimitiveType.ANY;
-                //
-				//if (lenient)
-				//	result = typing.unify(result, PrimitiveType.ANY);
-				//parTyVar.set(result);
 			}
 
 			private void gatherCallTypes(
 				Function function,
 				Function baseFunction,
 				TypeVariable[] parameterTypes,
-				final List<CallDeclaration> calls,
-				final IType[][] types,
-				final Visitor[] visitors
+				final List<? extends CallDeclaration> calls,
+				final IType[][] types
 			) {
 				final Function base = (Function) function.baseFunction().latestVersion();
 				for (int ci = 0; ci < calls.size(); ci++) {
@@ -556,8 +527,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Script ds = call.predecessor() == null && conglomerate.contains(other) ? script : other;
 					final Visit v = visitFor(f, ds);
 					final Visitor vtor = v != null ? v.visitor : null;
-
-					visitors[ci] = vtor;
 
 					Function ref = as(call.declaration(), Function.class);
 					if (ref == null)
@@ -581,8 +550,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 								final Script calledOn = (Script)t;
 								if (script.doesInclude(index, calledOn))
 									break RelevanceCheck;
-								if (calledOn.seesFunction(function) && calledOn.doesInclude(index, script))
-									break RelevanceCheck;
+								//if (calledOn.seesFunction(function) && calledOn.doesInclude(index, script))
+								//	break RelevanceCheck;
 							}
 						}
 						continue;
@@ -1015,7 +984,33 @@ public class DabbleInference extends ProblemReportingStrategy {
 		public Script script() { return script; }
 
 		private HashMap<Function, Visit> makeVisits(Function[] restrict) {
-			final HashMap<Function, Visit> result = new LinkedHashMap<>();
+			@SuppressWarnings("serial")
+			class Result extends HashMap<Function, Visit> {
+				void visitInherited(Visit visit) {
+					final Function inh = visit.function.inheritedFunction();
+					if (inh != null && inh.body() != null) {
+						final ASTNodeGatherer<CallInherited> gatherer = ASTNodeGatherer.create(CallInherited.class);
+						visit.function.traverse(gatherer, null);
+						if (!gatherer.isEmpty()) {
+							Visit inhv = this.get(inh);
+							if (inhv == null)
+								this.put(inh, inhv = new Visit(inh));
+							else if (inhv.inherited != null)
+								return;
+							inhv.inheritedCalls = gatherer;
+							inhv.inheritor = visit;
+							visit.inherited = inhv;
+							visitInherited(inhv);
+						}
+					}
+				}
+				void visitInheriteds() {
+					final List<Visit> vs= new ArrayList<>(this.values());
+					for (final Visit v : vs)
+						visitInherited(v);
+				}
+			}
+			final Result result = new Result();
 			if (restrict != null && restrict.length > 0) {
 				for (final Function f : restrict)
 					if (f.body() != null)
@@ -1090,9 +1085,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 						result.put(f, new Visit(f));
 					}
 			}
+			result.visitInheriteds();
 			return result;
 		}
-
 
 		boolean setParameterTypesBasedOnRules(Function function, TypeVariable[] parameterTypeVariables) {
 			if (rules != null)
@@ -1176,10 +1171,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final TypeVariable retTy = typeEnvironment.get(fun);
 			IType[] parameterTypes;
 			if (erroneous && typing == Typing.INFERRED) {
-				final Function.Typing oldTyping = script.typings().get(fun);
-				parameterTypes = oldTyping != null ? oldTyping.parameterTypes : new IType[0];
-			}
-			else {
+				final Function.Typing old = script.typings().get(fun);
+				parameterTypes = old != null ? old.parameterTypes : new IType[0];
+			} else {
 				parameterTypes = new IType[fun.numParameters()];
 				final List<Variable> parms = fun.parameters();
 				for (int i = 0; i < parms.size(); i++) {
@@ -2329,21 +2323,22 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new AccessDeclarationExpert<CallInherited>(CallInherited.class) {
 				@Override
 				public IType type(CallInherited node, Visitor visitor) {
-					final TypeVariable tyVar = findTypeVariable(node, visitor);
-					if (tyVar != null)
-						return tyVar.get();
-					final Function fn = node.parent(Function.class);
-					final Function inherited = fn.inheritedFunction();
-					if (inherited != null && !inherited.inheritsFrom(fn, new HashSet<Function>()))
-						if (inherited.body() != null) {
-							final Visit inhv = visitor.input().new Visit(inherited);
-							inhv.prepare();
-							inhv.run();
-							visitor.judgment(node, inhv.get(), TypingJudgementMode.OVERWRITE);
-							return inhv.get();
+					if (visitor.visit.inherited != null) {
+						final IType inhTy = visitor.visit.inherited.get();
+						return inhTy;
+					} else {
+						final Function inh = visitor.visit.function.inheritedFunction();
+						if (inh != null) {
+							final SpecialFuncRule rule = visitor.script().engine().specialRules().funcRuleFor(inh.name(), SpecialEngineRules.RETURNTYPE_MODIFIER);
+							if (rule != null) {
+								final IType type = rule.returnType(visitor, node);
+								if (type != null)
+									return type;
+							}
+							return inh.returnType();
 						} else
-							return inherited.returnType();
-					return PrimitiveType.UNKNOWN;
+							return PrimitiveType.UNKNOWN;
+					}
 				}
 				@Override
 				public void visit(CallInherited node, Visitor visitor) throws ProblemException {
