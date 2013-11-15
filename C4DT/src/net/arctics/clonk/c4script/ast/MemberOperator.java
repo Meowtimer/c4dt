@@ -88,7 +88,12 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	 * MemberOperators are never valid when not preceded by another {@link ASTNode}
 	 */
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) { return predecessor != null; }
+	public boolean isValidInSequence(ASTNode predecessor) {
+		return
+			predecessor instanceof AccessDeclaration ||
+			predecessor instanceof This ||
+			predecessor instanceof ArrayElementExpression;
+	}
 	@Override
 	public boolean isValidAtEndOfSequence() { return false; }
 
