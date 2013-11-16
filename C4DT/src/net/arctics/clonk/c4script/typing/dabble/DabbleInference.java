@@ -577,16 +577,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Visitor visitor,
 				final ASTNode node
 			) {
-				final int id = node.localIdentifier();
-				final IType ty = containingVisit != null ? containingVisit.inferredTypes[id] : null;
-				if (ty != null)
-					return ty;
-				else {
+				IType ty = containingVisit != null ? containingVisit.inferredTypes[node.localIdentifier()] : null;
+				if (ty == null) {
 					final Function.Typing typing = other.typings().get(containing);
-					return typing != null && id < typing.nodeTypes.length
-						? typing.nodeTypes[id]
-						: PrimitiveType.UNKNOWN;
+					if (typing != null)
+						ty = typing.nodeTypes[node.localIdentifier()];
 				}
+				return ty;
 			}
 
 			public Visit visit() {
@@ -1089,12 +1086,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 			}
 			result.visitInheriteds();
-			//System.out.println(script().name() + ": " + blockString("[", "]", ", ", map(result.keySet(), new IConverter<Function, String>() {
-			//	@Override
-			//	public String convert(Function from) {
-			//		return from.name();
-			//	}
-			//})));
 			return result;
 		}
 
@@ -1172,8 +1163,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 								variableTypes.put(v.name(), tyVar.get());
 						}
 			for (final Visit entry : visits.values())
-				if (entry.inheritor == null)
-					putFunctionTyping(functionTypings, entry);
+				putFunctionTyping(functionTypings, entry);
 		}
 
 		private void putFunctionTyping(final Map<String, Function.Typing> functionTypings, Visit visit) {
