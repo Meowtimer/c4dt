@@ -92,7 +92,8 @@ public class MemberOperator extends ASTNode implements ITidyable {
 		return
 			predecessor instanceof AccessDeclaration ||
 			predecessor instanceof This ||
-			predecessor instanceof ArrayElementExpression;
+			predecessor instanceof ArrayElementExpression ||
+			predecessor instanceof Parenthesized;
 	}
 	@Override
 	public boolean isValidAtEndOfSequence() { return false; }
