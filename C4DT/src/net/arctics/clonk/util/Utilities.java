@@ -27,16 +27,7 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.console.ConsolePlugin;
-import org.eclipse.ui.console.IConsole;
-import org.eclipse.ui.console.IConsoleConstants;
-import org.eclipse.ui.console.IConsoleManager;
-import org.eclipse.ui.console.IConsoleView;
-import org.eclipse.ui.console.MessageConsole;
-import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.part.FileEditorInput;
 
 /**
@@ -44,52 +35,6 @@ import org.eclipse.ui.part.FileEditorInput;
  *
  */
 public abstract class Utilities {
-
-	private static MessageConsole clonkConsole = null;
-	private static MessageConsoleStream debugConsoleStream = null;
-
-	public static MessageConsole clonkConsole() {
-		if (clonkConsole == null)
-			clonkConsole = consoleWithName(Messages.Utilities_ClonkConsole);
-		return clonkConsole;
-	}
-
-	public static MessageConsole consoleWithName(String name) {
-		final ConsolePlugin plugin = ConsolePlugin.getDefault();
-		final IConsoleManager conMan = plugin.getConsoleManager();
-		final IConsole[] existing = conMan.getConsoles();
-		for (int i = 0; i < existing.length; i++)
-			if (name.equals(existing[i].getName()))
-				return (MessageConsole) existing[i];
-		//no console found, so create a new one
-		final MessageConsole console = new MessageConsole(name, null);
-		conMan.addConsoles(new IConsole[]{console});
-		return console;
-	}
-
-	public static MessageConsoleStream debugStream() {
-		if (debugConsoleStream == null)
-			debugConsoleStream = consoleWithName(Messages.Utilities_DebugConsole).newMessageStream();
-		return debugConsoleStream;
-	}
-
-	public static void displayClonkConsole() {
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				final IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				final String id = IConsoleConstants.ID_CONSOLE_VIEW;
-
-				// show console
-				try {
-					final IConsoleView view = (IConsoleView) page.showView(id);
-					view.display(clonkConsole());
-				} catch (final PartInitException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 
 	public static IFile fileEditedBy(IEditorPart editor) {
 		final IEditorInput editorInput = editor.getEditorInput();

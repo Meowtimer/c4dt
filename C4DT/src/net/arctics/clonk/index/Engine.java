@@ -45,6 +45,7 @@ import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.Console;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.SettingsBase;
@@ -704,7 +705,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					@Override
 					public void run() {
 						try {
-							final IOConsoleOutputStream stream = Utilities.clonkConsole().newOutputStream();
+							final IOConsoleOutputStream stream = Console.clonkConsole().newOutputStream();
 							final byte[] buffer = new byte[1024];
 							int bytesRead;
 							while ((bytesRead = p.getInputStream().read(buffer)) > 0)

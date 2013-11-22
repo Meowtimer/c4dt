@@ -13,9 +13,9 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.Console;
 import net.arctics.clonk.util.FileOperations;
 import net.arctics.clonk.util.Pair;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -113,9 +113,9 @@ public class C4GroupExporter implements IRunnableWithProgress {
 							MessageConsoleStream out = null;
 							if (showExportLog) {
 								// get console
-								MessageConsole myConsole = Utilities.clonkConsole();
+								MessageConsole myConsole = Console.clonkConsole();
 								out = myConsole.newMessageStream();
-								Utilities.displayClonkConsole();
+								Console.display();
 								// show command line in console
 								StringBuilder cmdLine = new StringBuilder();
 								cmdLine.append(Messages.ExporterCommandlineTitle);

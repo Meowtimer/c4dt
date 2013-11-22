@@ -1,5 +1,6 @@
 package net.arctics.clonk.command;
 
+import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.StringUtil.multiply;
 
 import java.io.File;
@@ -12,6 +13,8 @@ import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
@@ -349,6 +352,18 @@ public class Command {
 					((ITypeable)declaration).forceType(doc.returnType);
 				System.out.println(declaration.printed());
 			}
+		}
+		@CommandFunction
+		public static void AllDefinitions(Object context, String proj, final String format) {
+			final ClonkProjectNature cpn = ClonkProjectNature.get(proj);
+			final List<String> defs = new LinkedList<>();
+			cpn.index().allDefinitions(new Sink<Definition>() {
+				@Override
+				public void receivedObject(Definition item) {
+					defs.add(String.format(format, item.id().stringValue()));
+				}
+			});
+			System.out.println(blockString("", "", ";", defs));
 		}
 	}
 
