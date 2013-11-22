@@ -99,6 +99,8 @@ public class StructureTextEditor extends TextEditor {
 			outlinePage.clear();
 	}
 
+	public final ISourceViewer sourceViewer() { return getSourceViewer(); }
+
 	/**
 	 * Refresh the outline so the new contents of the {@link #structure()} will be shown.
 	 */
