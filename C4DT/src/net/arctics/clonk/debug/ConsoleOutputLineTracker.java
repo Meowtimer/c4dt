@@ -40,7 +40,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 	private IProject project;
 	private ClonkProjectNature nature;
 	private List<IResource> resourcesInRelevantProjects;
-	
+
 	@Override
 	public void init(IConsole console) {
 		this.console = console;
@@ -60,24 +60,19 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 			}
 		}), null);
 	}
-	
+
 	private static class FileHyperlink implements IHyperlink {
-		
 		private final IFile file;
 		private final int line;
-
 		public FileHyperlink(IFile file, int line) {
 			super();
 			this.file = file;
 			this.line = line;
 		}
-
 		@Override
 		public void linkEntered() {}
-
 		@Override
 		public void linkExited() {}
-
 		@Override
 		public void linkActivated() {
 			try {
@@ -89,9 +84,8 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 				e.printStackTrace();
 			}
 		}
-		
 	}
-	
+
 	private static List<IResource> getSubResourcesFromResourceCollection(Iterable<IResource> parentResources, String parentName) {
 		if (parentName != null)
 			parentName = parentName.toUpperCase();
@@ -124,7 +118,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 	/**
 	 * Create resource links in the specified line.
 	 * @param lineStr The console output line as a string
-	 * @param resourcesInRelevantProjects List of top-level resources whose contained files are considered valid link targets. Those would include all top-level folders in relevant projects. 
+	 * @param resourcesInRelevantProjects List of top-level resources whose contained files are considered valid link targets. Those would include all top-level folders in relevant projects.
 	 * @param console The {@link IConsole} links will be added to
 	 * @param lineRegion Region of the line in the console's text
 	 */
@@ -187,8 +181,5 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 	}
 
 	@Override
-	public void dispose() {
-		console = null;
-	}
-
+	public void dispose() { console = null; }
 }
