@@ -564,8 +564,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		// search in #included scripts
 		final Collection<Script> includesCollection = script().includes(0);
 		final Script[] includes = includesCollection.toArray(new Script[includesCollection.size()]);
+		final boolean globalFn = this.isGlobal();
 		for (int i = includes.length-1; i >= 0; i--) {
-			final Function fun = includes[i].findFunction(name());
+			final Function fun = (globalFn || includes[i] instanceof Definition) ? includes[i].findFunction(name()) : null;
 			if (fun != null && fun != this)
 				return fun;
 		}
