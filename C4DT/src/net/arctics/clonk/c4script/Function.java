@@ -938,4 +938,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		} else
 			output.append(';');
 	}
+	
+	@Override
+	public int identifierLength() { return name().length(); }
+	@Override
+	public int identifierStart() { return nameStart(); }
 }

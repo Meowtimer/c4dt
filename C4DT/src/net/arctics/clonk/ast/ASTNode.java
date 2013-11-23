@@ -200,13 +200,13 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public int getOffset() { return start(); }
 	/**
 	 * If this node has an identifier return its offset relative to the {@link #sectionOffset()} (same as {@link #start()}).
-	 * The default limplementation just returns {@link #start()}.
+	 * The default implementation just returns {@link #start()}.
 	 * @return Identifier offset
 	 */
 	public int identifierStart() { return start(); }
 	/**
 	 * If this node has an identifier return its length.
-	 * The default limplementation just returns {@link #getLength()}.
+	 * The default implementation just returns {@link #getLength()}.
 	 * @return The identifier length
 	 */
 	public int identifierLength() { return getLength(); }

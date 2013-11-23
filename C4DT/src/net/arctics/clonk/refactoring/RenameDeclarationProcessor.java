@@ -15,12 +15,14 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.ast.CallInherited;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ui.search.ReferencesSearchQuery;
 import net.arctics.clonk.ui.search.SearchMatch;
 import net.arctics.clonk.ui.search.SearchResult;
 import net.arctics.clonk.util.IConverter;
+import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -112,7 +114,12 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 				for (final Match m : searchResult.getMatches(reverseLookup.get(file))) {
 					final SearchMatch match = (SearchMatch) m;
 					try {
-						fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
+						if (!(match.node() instanceof CallInherited)) {
+							final String s = StreamUtil.stringFromFile(file);
+							if (match.getOffset() < 0 || match.getOffset()+match.getLength() >= s.length())
+								throw new IllegalStateException();
+							fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
+						}
 					} catch (final MalformedTreeException e) {
 						// gonna ignore that; there is one case where it's even normal this is thrown (for (e in a) ... <- e is reference and declaration)
 					}

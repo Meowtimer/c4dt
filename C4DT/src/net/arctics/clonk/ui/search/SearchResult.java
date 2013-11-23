@@ -12,7 +12,6 @@ import net.arctics.clonk.parser.BufferedScanner;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 import org.eclipse.search.ui.ISearchQuery;
 import org.eclipse.search.ui.text.AbstractTextSearchResult;
 import org.eclipse.search.ui.text.IEditorMatchAdapter;
@@ -44,14 +43,13 @@ public class SearchResult extends AbstractTextSearchResult {
 	@Override
 	public String getTooltip() { return null; }
 	/**
-	 * Add a match of the query which was found in a {@link Structure}.
-	 * @param structure The structure
-	 * @param charStart Absolute character offset where the match starts
-	 * @param charLength Length of the match
+	 * Add a match described by an {@link ASTNode}.
+	 * @param structure The {@link Structure} in which the match was found
+	 * @param match Node. Relevant properties describing the location of the match are {@link ASTNode#identifierStart()}, {@link ASTNode#identifierLength()} plus {@link ASTNode#sectionOffset()}.
 	 * @param potential Flag indicating that the match is only potential and not definite
 	 * @param indirect Flag indicating whether the match indirectly refers to the declaration references were searched for.
 	 */
-	public void addMatch(Structure structure, int charStart, int charLength, boolean potential, boolean indirect) {
+	public void addMatch(Structure structure, ASTNode node, boolean potential, boolean indirect) {
 		BufferedScanner scanner;
 		synchronized (scanners) {
 			scanner = scanners.get(structure);
@@ -63,19 +61,9 @@ public class SearchResult extends AbstractTextSearchResult {
 				scanners.put(structure, scanner);
 			}
 		}
-		final IRegion lineRegion = scanner.regionOfLineContainingRegion(new Region(charStart, charLength));
+		final IRegion lineRegion = scanner.regionOfLineContainingRegion(node.absolute());
 		final String line = scanner.bufferSubstringAtRegion(lineRegion);
-		addMatch(new SearchMatch(line, lineRegion.getOffset(), structure, charStart, charLength, potential, indirect));
-	}
-	/**
-	 * Add a match described by an {@link ASTNode}.
-	 * @param structure The {@link Structure} in which the match was found
-	 * @param match Node. Relevant properties describing the location of the match are {@link ASTNode#identifierStart()}, {@link ASTNode#identifierLength()} plus {@link ASTNode#sectionOffset()}.
-	 * @param potential Flag indicating that the match is only potential and not definite
-	 * @param indirect Flag indicating whether the match indirectly refers to the declaration references were searched for.
-	 */
-	public void addMatch(Structure structure, ASTNode match, boolean potential, boolean indirect) {
-		addMatch(structure, match.sectionOffset() + match.identifierStart(), match.identifierLength(), potential, indirect);
+		addMatch(new SearchMatch(line, lineRegion.getOffset(), structure, node, potential, indirect));
 	}
 	/**
 	 * Clear internally maintained list of {@link BufferedScanner}s that were created for each file in which a match was found.

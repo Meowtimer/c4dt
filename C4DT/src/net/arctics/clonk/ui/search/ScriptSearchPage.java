@@ -334,7 +334,7 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 											if (repl == replacement)
 												repl = repl.clone();
 											repl.setLocation(qm.getOffset(), qm.getOffset()+qm.getLength());
-											repl.setParent(qm.matched().parent());
+											repl.setParent(qm.node().parent());
 											replacements.add(repl);
 										}
 									script.saveNodes(replacements, false);

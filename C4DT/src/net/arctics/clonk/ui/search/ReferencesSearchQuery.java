@@ -72,7 +72,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 				final Function fn = (Function) node;
 				final Function base = fn.baseFunction();
 				if (base != null && base == declaration)
-					result.addMatch(context, fn.nameStart(), fn.name().length(), false, true);
+					result.addMatch(context, fn, false, true);
 			}
 			if (node instanceof AccessDeclaration) {
 				final AccessDeclaration accessDeclExpr = (AccessDeclaration) node;

@@ -24,32 +24,28 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 
 public class ASTSearchQuery extends SearchQuery {
 
 	public static class Match extends SearchMatch {
-		private final ASTNode matched;
 		private final Map<String, Object> subst;
-		public ASTNode matched() { return matched; }
 		public Map<String, Object> subst() { return subst; }
-		public Match(String line, int lineOffset, Object element, int offset, int length, ASTNode matched, Map<String, Object> subst) {
-			super(line, lineOffset, element, offset, length, false, false);
-			this.matched = matched;
+		public Match(String line, int lineOffset, Object element, ASTNode matched, Map<String, Object> subst) {
+			super(line, lineOffset, element, matched, false, false);
 			this.subst = subst;
 		}
 	}
 
 	private void addMatch(ASTNode match, Script script, int s, int l, Map<String, Object> subst) {
-		final Match m = match(match, script, s, l, subst);
+		final Match m = match(match, script, subst);
 		result.addMatch(m);
 	}
 
-	protected Match match(ASTNode match, Script script, int s, int l, Map<String, Object> subst) {
+	protected Match match(ASTNode match, Script script, Map<String, Object> subst) {
 		final BufferedScanner scanner = scanner(script);
-		final IRegion lineRegion = scanner.regionOfLineContainingRegion(new Region(s, l));
+		final IRegion lineRegion = scanner.regionOfLineContainingRegion(match.absolute());
 		final String line = scanner.bufferSubstringAtRegion(lineRegion);
-		final Match m = new Match(line, lineRegion.getOffset(), script, s, l, match, subst);
+		final Match m = new Match(line, lineRegion.getOffset(), script, match, subst);
 		return m;
 	}
 
