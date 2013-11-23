@@ -94,6 +94,7 @@ import net.arctics.clonk.c4script.ast.ReturnStatement;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
+import net.arctics.clonk.c4script.ast.TempAccessVar;
 import net.arctics.clonk.c4script.ast.This;
 import net.arctics.clonk.c4script.ast.Tuple;
 import net.arctics.clonk.c4script.ast.UnaryOp;
@@ -529,12 +530,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 					Function ref = as(call.declaration(), Function.class);
 					if (ref == null)
 						continue;
-					if (ref != null) {
-						// not related - short circuit skip
-						ref = (Function)ref.latestVersion();
-						if (ref.baseFunction().latestVersion() != base)
-							continue;
-					}
+					// not related - short circuit skip
+					ref = (Function)ref.latestVersion();
+					if (ref.baseFunction().latestVersion() != base)
+						continue;
 					RelevanceCheck: if (ref != null) {
 						final IType predTy = call.predecessor() != null
 							? nodeType(f, other, v, vtor, call.predecessor())
@@ -700,7 +699,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			private void createFunctionLocalsTypeVariables(final Function function) {
 				for (final Variable l : function.locals()) {
-					final AccessVar av = AccessVar.temp(l, function.body());
+					final AccessVar av = new TempAccessVar(l, function.body());
 					final TypeVariable ti = expert(av).requestTypeVariable(av, this);
 					if (ti != null)
 						ti.set(PrimitiveType.UNKNOWN);
@@ -1084,7 +1083,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean shouldTypeFromCalls(final Function function) {
 			final boolean typeFromCalls =
 				typing == Typing.INFERRED &&
-				script instanceof Definition &&
+				//script instanceof Definition &&
 				function.numParameters() > 0 &&
 				(function.typeFromCallsHint() || !allParametersStaticallyTyped(function));
 			function.setTypeFromCallsHint(typeFromCalls);
@@ -1371,12 +1370,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				node.setDeclaration(d);
 			return d;
 		}
-		void setDeclaration(T node, Visitor visitor, Declaration d) {
+		final void setDeclaration(T node, Visitor visitor, Declaration d) {
 			final int x = node.localIdentifier();
 			if (x != -1)
 				visitor.visit.declarations[x] = d;
 		}
-		Declaration declaration(T node, Visitor visitor) {
+		final Declaration declaration(T node, Visitor visitor) {
 			final int x = node.localIdentifier();
 			return x > -1 ? visitor.visit.declarations[x] : null;
 		}
@@ -1689,6 +1688,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public boolean isModifiable(VarInitializationAccess node, Visitor visitor) { return true; /* sudo */ }
+			},
+			
+			new AccessVarExpert<TempAccessVar>(TempAccessVar.class) {
+				@Override
+				protected Declaration obtainDeclaration(AccessVar node, Visitor visitor) { return node.declaration(); }
 			},
 
 			new Expert<ArrayExpression>(ArrayExpression.class) {
@@ -2542,7 +2546,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 										initialization.variable.type(), initializationType
 									);
 								else {
-									final AccessVar av = AccessVar.temp(initialization.variable, initialization);
+									final AccessVar r = new TempAccessVar(initialization.variable, initialization);
+									final AccessVar av = r;
 									visitor.judgment(av, initializationType, TypingJudgementMode.OVERWRITE);
 								}
 							}
@@ -2555,15 +2560,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return node.definedDeclaration();
 				}
 				@Override
+				public boolean skipReportingProblemsForSubElements() { return true; }
+				@Override
 				public void visit(PropListExpression node, Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					if (!visitor.script().engine().settings().supportsProplists)
 						visitor.markers().error(visitor, Problem.NotSupported, node, node, Markers.NO_THROW,
 							"",
 							visitor.script().engine().name());
+					
 					for (final Variable v : node.components())
-						if (v.initializationExpression() != null)
-							visitor.judgment(AccessVar.temp(v, node), visitor.ty(v.initializationExpression()), TypingJudgementMode.UNIFY);
+						if (v.initializationExpression() != null) {
+							visitor.visit(v.initializationExpression(), true);
+							visitor.judgment(new TempAccessVar(v, node), visitor.ty(v.initializationExpression()), TypingJudgementMode.UNIFY);
+						}
 				}
 				@Override
 				public boolean isModifiable(PropListExpression node, Visitor visitor) { return false; }
@@ -2670,7 +2680,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					{
 						if (loopVariable != null) {
 							loopVariable.setUsed(true);
-							visitor.judgment(AccessVar.temp(loopVariable, node), elmType, TypingJudgementMode.OVERWRITE);
+							visitor.judgment(new TempAccessVar(loopVariable, node), elmType, TypingJudgementMode.OVERWRITE);
 						}
 						visitor.visit(node.body(), true);
 					}

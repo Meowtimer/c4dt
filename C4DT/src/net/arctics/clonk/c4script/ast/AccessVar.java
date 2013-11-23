@@ -32,12 +32,6 @@ public class AccessVar extends AccessDeclaration {
 		this.declaration = declaration;
 	}
 
-	public static AccessVar temp(Declaration declaration, ASTNode parent) {
-		final AccessVar r = new AccessVar(declaration);
-		r.setParent(parent);
-		return r;
-	}
-
 	@Override
 	public boolean isValidInSequence(ASTNode predecessor) {
 		return
