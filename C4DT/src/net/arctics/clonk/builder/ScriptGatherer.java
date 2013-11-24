@@ -105,7 +105,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 					else
 						script = createDefinition(delta.getResource().getParent());
 				} else {
-					if (file.getName().endsWith(".c"))
+					if (Script.looksLikeScriptFile(file.getName()))
 						script.setScriptFile(file); // ensure files match up
 					else {
 						final Structure s = Structure.pinned(file, true, true);
@@ -222,7 +222,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		if (resource instanceof IFile) {
 			final String ln = resource.getName().toLowerCase();
 			final IFile file = (IFile) resource;
-			if (ln.endsWith(".c") && isSystemGroup(resource.getParent())) //$NON-NLS-1$
+			if (Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent())) //$NON-NLS-1$
 				return new SystemScript(builder.index(), file);
 			else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
 				return new MapScript(builder.index(), file);

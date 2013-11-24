@@ -104,7 +104,7 @@ public class SystemScript extends Script implements Serializable {
 		registerStructureFactory(new IStructureFactory() {
 			@Override
 			public Structure create(IResource resource, boolean duringBuild) {
-				if (!resource.getName().endsWith(".c"))
+				if (!Script.looksLikeScriptFile(resource.getName()))
 					return null;
 				final ProjectIndex index = ProjectIndex.fromResource(resource);
 				if (index != null)

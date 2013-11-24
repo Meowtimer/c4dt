@@ -93,6 +93,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	protected transient Map<String, Effect> effects;
 	protected transient Map<String, ProplistDeclaration> proplistDeclarations;
 
+	public static boolean looksLikeScriptFile(String name) {
+		return name.endsWith(".c");
+	}
+	
 	/**
 	 * Typing judgments on variables and function return types.
 	 * @author madeen

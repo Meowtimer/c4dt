@@ -3,6 +3,7 @@ package net.arctics.clonk.ui.navigator;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.util.INode;
@@ -33,7 +34,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		if (element instanceof IProject)
 			return super.getImage(element);
 		else if (element instanceof IFile) {
-			if (element.toString().endsWith(".c"))
+			if (Script.looksLikeScriptFile(element.toString()))
 				return UI.SCRIPT_ICON;
 			if (element.toString().endsWith(".txt"))
 				return UI.TEXT_ICON;
