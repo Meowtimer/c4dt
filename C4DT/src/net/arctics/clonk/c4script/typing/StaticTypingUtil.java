@@ -68,6 +68,15 @@ public class StaticTypingUtil {
 	}
 
 	public static String eraseTypeAnnotations(final Script script) {
+		try {
+			return internalErase(script);
+		} catch (final Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static String internalErase(final Script script) {
 		final List<TypeAnnotation> annotations = allTypeAnnotations(script);
 		if (annotations != null) {
 
@@ -145,7 +154,7 @@ public class StaticTypingUtil {
 					} catch (final IOException e1) {
 						e1.printStackTrace();
 					}
-				else if (linkFiles)
+				else if (linkFiles && !Script.looksLikeScriptFile(originalFile.getName()))
 					try {
 						Files.createSymbolicLink(destinationFile.toPath(), originalFile.toPath());
 					} catch (final IOException e) {
