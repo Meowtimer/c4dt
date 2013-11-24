@@ -3,6 +3,8 @@ package net.arctics.clonk.ui.search;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
@@ -66,12 +68,18 @@ public class ReferencesSearchQuery extends SearchQuery {
 			}
 			return false;
 		}
+		private boolean related(Function fn) {
+			final Set<Function> catcher = new HashSet<>();
+			for (Function inh = fn; inh != null && catcher.add(inh); inh = inh.inheritedFunction())
+				if (inh == declaration)
+					return true;
+			return false;
+		}
 		@Override
 		public TraversalContinuation visitNode(ASTNode node, Structure context) {
 			if (node instanceof Function) {
 				final Function fn = (Function) node;
-				final Function base = fn.baseFunction();
-				if (base != null && base == declaration)
+				if (related(fn))
 					result.addMatch(context, fn, false, true);
 			}
 			if (node instanceof AccessDeclaration) {
@@ -83,7 +91,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 					result.addMatch(context, node, false, accessDeclExpr.indirectAccess());
 				else if (
 					dec instanceof Function && declaration instanceof Function &&
-					((Function)dec).baseFunction() == ((Function)declaration).baseFunction()
+					related((Function)dec)
 				)
 					result.addMatch(context, node, false, true);
 				else if (potentiallyReferencedByObjectCall(node)) {
