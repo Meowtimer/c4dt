@@ -113,7 +113,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 		File tf = null;
 		if (nature.settings().typing.allowsNonParameterAnnotations())
 			try {
-				tf = Files.createTempDirectory("c4dt").toFile(); //$NON-NLS-1$
+				tf = Files.createTempDirectory("c4dt").toFile().getCanonicalFile(); //$NON-NLS-1$
 				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(StaticTypingUtil.toFile(nature.getProject()), tf, true);
 			} catch (final IOException e) {
 				e.printStackTrace();
