@@ -408,11 +408,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					if (options.engineCompatible && !par.isActualParm())
 						return null;
 					final String comment = par.userDescription() != null && options.parameterComments ? ("/* " + par.userDescription() + "*/ ") : "";
-					boolean includeType;
-					if (options.engineCompatible && (type == PrimitiveType.ANY || type == PrimitiveType.UNKNOWN))
-						includeType = false;
-					else
-						includeType = true;
+					final boolean includeType =
+						options.engineCompatible ? (type != PrimitiveType.ANY && type != PrimitiveType.UNKNOWN) :
+						Function.this.typing() != net.arctics.clonk.c4script.typing.Typing.DYNAMIC;
 					return comment + (includeType ? (type.typeName(!options.engineCompatible) + " ") : "") + par.name();
 				}
 			}));
@@ -938,7 +936,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		} else
 			output.append(';');
 	}
-	
+
 	@Override
 	public int identifierLength() { return name().length(); }
 	@Override
