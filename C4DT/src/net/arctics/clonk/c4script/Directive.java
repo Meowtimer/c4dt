@@ -171,7 +171,11 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		try {
 			switch (type()) {
 			case APPENDTO: case INCLUDE:
-				return new ASTNode[] { tempSubElement(new IDLiteral(contentAsID())) };
+				final ID id = contentAsID();
+				final IDLiteral lit = new IDLiteral(id);
+				final int idPos = this.absolute().getOffset()+1+type().name().length()+1;
+				lit.setLocation(idPos, idPos+id.length());
+				return new ASTNode[] { tempSubElement(lit) };
 			case STRICT:
 				return new ASTNode[] { tempSubElement(new IntegerLiteral(contents() != null ? Long.parseLong(contents()) : engine().settings().strictDefaultLevel)) };
 			default:
