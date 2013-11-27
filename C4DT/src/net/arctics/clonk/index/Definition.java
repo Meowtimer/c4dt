@@ -197,10 +197,8 @@ public class Definition extends Script implements IProplistDeclaration {
 				e.printStackTrace();
 			}
 			final Scenario originScenario = origin instanceof Script
-				? origin.scenario()
-					: origin instanceof IHasRelatedResource
-					? Scenario.containingScenario(((IHasRelatedResource)origin).resource())
-						: null;
+				? origin.scenario() : origin instanceof IHasRelatedResource
+				? Scenario.containingScenario(((IHasRelatedResource)origin).resource()) : null;
 			for (final Index i : contextIndex.relevantIndexes()) {
 				final List<Script> appendages = i.appendagesOf(Definition.this);
 				if (appendages != null)

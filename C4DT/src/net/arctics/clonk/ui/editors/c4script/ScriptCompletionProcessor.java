@@ -28,6 +28,7 @@ import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IHasIncludes;
+import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SpecialEngineRules;
@@ -376,8 +377,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 		if (structure instanceof IHasIncludes) {
 			@SuppressWarnings("unchecked")
-			final Iterable<? extends IHasIncludes<?>> includes =
-				((IHasIncludes<IHasIncludes<?>>)structure).includes(site.index, (IHasIncludes<?>) structure, 0);
+			final Iterable<? extends IHasIncludes<?>> includes = ((IHasIncludes<IHasIncludes<?>>)structure).includes(site.index, state.structure(), GatherIncludesOptions.Recursive);
 			for (final IHasIncludes<?> inc : includes)
 				recursiveProposalsForStructure(site, target, (Declaration) inc, distanceToTarget+1, catcher);
 		}
