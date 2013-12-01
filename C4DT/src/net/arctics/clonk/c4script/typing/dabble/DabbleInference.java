@@ -1440,8 +1440,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public IType type(T node, Visitor visitor) {
 				final Declaration d = internalObtainDeclaration(node, visitor);
-				if (d instanceof Variable && ((Variable)d).staticallyTyped())
-					return ((Variable)d).type();
+				//if (d instanceof Variable && ((Variable)d).staticallyTyped())
+				//	return ((Variable)d).type();
 				if (d instanceof Function)
 					return new FunctionType((Function)d);
 				final TypeVariable stored = findTypeVariable(node, visitor);
