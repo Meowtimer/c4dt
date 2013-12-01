@@ -19,6 +19,7 @@ import net.arctics.clonk.ui.editors.ExternalScriptsDocumentProvider;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
+import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.actions.c4script.EvaluateC4Script;
 import net.arctics.clonk.ui.editors.actions.c4script.FindDuplicatesAction;
 import net.arctics.clonk.ui.editors.actions.c4script.FindReferencesAction;
@@ -45,6 +46,7 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 /**
@@ -54,17 +56,39 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
  */
 public class C4ScriptEditor extends StructureTextEditor {
 
+	private boolean showParametersEnabled = true;
+	
 	private final class ShowContentAssistAtKeyUpListener implements MouseListener, KeyListener {
 		@Override
 		public void keyPressed(KeyEvent e) {}
+		@Override
+		public void keyReleased(KeyEvent e) {
+			if (showParametersEnabled)
+				showContentAssistance(); 
+		}
 		@Override
 		public void mouseDoubleClick(MouseEvent e) {}
 		@Override
 		public void mouseDown(MouseEvent e) {}
 		@Override
-		public void keyReleased(KeyEvent e) { showContentAssistance(); }
-		@Override
 		public void mouseUp(MouseEvent e) { showContentAssistance(); }
+	}
+
+	@CommandId(id="ui.editors.actions.ToggleParametersShown")
+	public static class ToggleParametersShown extends ClonkTextEditorAction {
+		private C4ScriptEditor ed() { return (C4ScriptEditor)getTextEditor(); }
+		public ToggleParametersShown(ResourceBundle bundle, String prefix, ITextEditor editor) {
+			super(bundle, prefix, editor);
+		}
+		@Override
+		public void run() {
+			final C4ScriptEditor ed = ed();
+			final boolean s = ed.showParametersEnabled = !ed.showParametersEnabled;
+			if (!s)
+				ed.state().assistant().hide();
+			else
+				ed.showContentAssistance();
+		}
 	}
 
 	private static final String ENABLE_BRACKET_HIGHLIGHT = Core.id("enableBracketHighlighting"); //$NON-NLS-1$
@@ -200,7 +224,8 @@ public class C4ScriptEditor extends StructureTextEditor {
 			FindDuplicatesAction.class,
 			ToggleCommentAction.class,
 			ScriptSearchAction.class,
-			EvaluateC4Script.class
+			EvaluateC4Script.class,
+			ToggleParametersShown.class
 		);
 	}
 

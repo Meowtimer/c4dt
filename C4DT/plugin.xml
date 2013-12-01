@@ -541,6 +541,11 @@
 			description="%ToggleComment_Desc"
 			id="net.arctics.clonk.ui.editors.actions.ToggleComment"
 			name="%ToggleComment_Name" />
+		
+		<command categoryId="net.arctics.clonk.commands"
+			description="%ToggleParametersShown_Desc"
+			id="net.arctics.clonk.ui.editors.actions.ToggleParametersShown"
+			name="%ToggleParametersShown_Name" />
 
 	</extension>
 
@@ -862,6 +867,12 @@
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			contextId="net.arctics.clonk.context"
 			sequence="M1+M2+C">
+		</key>
+		<key
+			commandId="net.arctics.clonk.ui.editors.actions.ToggleParametersShown"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="net.arctics.clonk.context"
+			sequence="M3+Esc">
 		</key>
 		<key
 			commandId="net.arctics.clonk.ui.editors.actions.FindDuplicates"
