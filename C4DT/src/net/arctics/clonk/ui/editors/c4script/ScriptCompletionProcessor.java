@@ -362,6 +362,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	};
 
+	@SuppressWarnings("unchecked")
 	private void recursiveProposalsForStructure(
 		ProposalsSite site,
 		Declaration target, Declaration structure, int distanceToTarget,
@@ -376,8 +377,14 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				p.setCategory(cats.SelfField);
 		}
 		if (structure instanceof IHasIncludes) {
-			@SuppressWarnings("unchecked")
-			final Iterable<? extends IHasIncludes<?>> includes = ((IHasIncludes<IHasIncludes<?>>)structure).includes(site.index, state.structure(), GatherIncludesOptions.Recursive);
+			Iterable<? extends IHasIncludes<?>> includes;
+			try {
+				includes = ((IHasIncludes<IHasIncludes<?>>)structure)
+					.includes(site.index, state.structure(), GatherIncludesOptions.Recursive);
+			} catch (final ClassCastException cast) {
+				includes = ((IHasIncludes<IHasIncludes<?>>)structure)
+					.includes(site.index, (IHasIncludes<IHasIncludes<?>>)structure, GatherIncludesOptions.Recursive);
+			}
 			for (final IHasIncludes<?> inc : includes)
 				recursiveProposalsForStructure(site, target, (Declaration) inc, distanceToTarget+1, catcher);
 		}
