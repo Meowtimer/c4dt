@@ -7,6 +7,7 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Statement;
@@ -21,25 +22,25 @@ import net.arctics.clonk.parser.IMarkerListener;
  *
  */
 public class Standalone {
-	
+
 	/** {@link Engine} the statement/expression is considered to be compatible with. */
 	public final Engine engine;
 	/** {@link Typing} mode */
 	public final Typing typing;
 	/** {@link Index}es which will be searched when determining referenced declarations. */
 	public final Index[] referencedIndices;
-	
+
 	/**
 	 * Create standalone context from a set of scripts. {@link #typing} and {@link #engine} will be to respective properties common to all scripts.
 	 * If scripts have different typings and/or engines an {@link IllegalArgumentException} will be thrown.
 	 * {@link #referencedIndices} will be set to the super set of all {@link Script#index()}.{@link Index#relevantIndexes()}.
 	 * @param scripts Scripts to create standalone context from
 	 */
-	public Standalone(Iterable<Script> scripts) {
+	public Standalone(Iterable<? extends Structure> scripts) {
 		Engine engine = null;
 		Typing typing = null;
 		final HashSet<Index> indices = new HashSet<>();
-		for (final Script s : scripts) {
+		for (final Structure s : scripts) {
 			if (engine == null)
 				engine = s.engine();
 			else if (engine != s.engine())
@@ -54,7 +55,7 @@ public class Standalone {
 		this.typing = typing;
 		this.referencedIndices = indices.toArray(new Index[indices.size()]);
 	}
-	
+
 	/**
 	 * Create standalone context from parameters.
 	 * @param engine Value of {@link #engine}
@@ -67,7 +68,7 @@ public class Standalone {
 		this.typing = typing;
 		this.referencedIndices = referencedIndices;
 	}
-	
+
 	/**
 	 * Create standalone context from an {@link Engine}. {@link #typing} will be set to the engine's {@link Engine#typing()}
 	 * while {@link #referencedIndices} will be set to an empty array.
@@ -78,7 +79,7 @@ public class Standalone {
 		this.typing = engine.typing();
 		this.referencedIndices = new Index[0];
 	}
-	
+
 	/**
 	 * Parse a stand-alone statement with an optional function context.
 	 * @param source The statement text to parse
@@ -127,7 +128,7 @@ public class Standalone {
 			result.traverse(visitor, context);
 		return result;
 	}
-	
+
 	/**
 	 * Parse a standalone statement. Shortcut for {@link #parse(String, Function, IASTVisitor, IMarkerListener, Object)} where all parameters except source are null.
 	 * @param source The source to parse

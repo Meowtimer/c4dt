@@ -18,7 +18,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,7 +28,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.DeclMask;
@@ -45,7 +43,6 @@ import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
-import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.evaluate.Constant;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.effect.Effect;
@@ -74,8 +71,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -96,7 +91,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public static boolean looksLikeScriptFile(String name) {
 		return name.endsWith(".c");
 	}
-	
+
 	/**
 	 * Typing judgments on variables and function return types.
 	 * @author madeen
@@ -1292,36 +1287,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public Scenario scenario() {
 		return scenario;
-	}
-
-	public void saveNodes(final Collection<? extends ASTNode> expressions, final boolean absoluteLocations) {
-		Core.instance().performActionsOnFileDocument(file(), new IDocumentAction<Boolean>() {
-			@Override
-			public Boolean run(IDocument document) {
-				try {
-					final List<ASTNode> l = new ArrayList<ASTNode>(expressions);
-					Collections.sort(l, new Comparator<ASTNode>() {
-						@Override
-						public int compare(ASTNode o1, ASTNode o2) {
-							final IRegion r1 = absoluteLocations ? o1.absolute() : o1;
-							final IRegion r2 = absoluteLocations ? o2.absolute() : o2;
-							return r2.getOffset() - r1.getOffset();
-						}
-					});
-					for (final ASTNode e : l) {
-						final IRegion region = absoluteLocations ? e.absolute() : e;
-						int depth;
-						ASTNode n;
-						for (depth = 0, n = e; n != null && !(n instanceof Declaration || n instanceof FunctionBody); depth++, n = n.parent());
-						document.replace(region.getOffset(), region.getLength(), e.printed(depth));
-					}
-					return true;
-				} catch (final BadLocationException e) {
-					e.printStackTrace();
-					return false;
-				}
-			}
-		}, true);
 	}
 
 	public Variable createVarInScope(

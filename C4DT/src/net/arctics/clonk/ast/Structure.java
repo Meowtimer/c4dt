@@ -1,12 +1,18 @@
 package net.arctics.clonk.ast;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.builder.ClonkBuilder;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
@@ -16,6 +22,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
@@ -234,5 +243,35 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public Declaration container() { return this; }
 	@Override
 	public int fragmentOffset() { return 0; }
+
+	public void saveNodes(final Collection<? extends ASTNode> expressions, final boolean absoluteLocations) {
+		Core.instance().performActionsOnFileDocument(file(), new IDocumentAction<Boolean>() {
+			@Override
+			public Boolean run(IDocument document) {
+				try {
+					final List<ASTNode> l = new ArrayList<ASTNode>(expressions);
+					Collections.sort(l, new Comparator<ASTNode>() {
+						@Override
+						public int compare(ASTNode o1, ASTNode o2) {
+							final IRegion r1 = absoluteLocations ? o1.absolute() : o1;
+							final IRegion r2 = absoluteLocations ? o2.absolute() : o2;
+							return r2.getOffset() - r1.getOffset();
+						}
+					});
+					for (final ASTNode e : l) {
+						final IRegion region = absoluteLocations ? e.absolute() : e;
+						int depth;
+						ASTNode n;
+						for (depth = 0, n = e; n != null && !(n instanceof Declaration || n instanceof FunctionBody); depth++, n = n.parent());
+						document.replace(region.getOffset(), region.getLength(), e.printed(depth));
+					}
+					return true;
+				} catch (final BadLocationException e) {
+					e.printStackTrace();
+					return false;
+				}
+			}
+		}, true);
+	}
 
 }

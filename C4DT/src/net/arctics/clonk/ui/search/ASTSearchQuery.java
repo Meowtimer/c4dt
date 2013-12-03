@@ -10,11 +10,12 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.IASTVisitor;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Standalone;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.Statement.Attachment;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
@@ -36,20 +37,20 @@ public class ASTSearchQuery extends SearchQuery {
 		}
 	}
 
-	private void addMatch(ASTNode match, Script script, int s, int l, Map<String, Object> subst) {
-		final Match m = match(match, script, subst);
+	private void addMatch(ASTNode match, Structure struct, int s, int l, Map<String, Object> subst) {
+		final Match m = match(match, struct, subst);
 		result.addMatch(m);
 	}
 
-	protected Match match(ASTNode match, Script script, Map<String, Object> subst) {
-		final BufferedScanner scanner = scanner(script);
+	protected Match match(ASTNode match, Structure struct, Map<String, Object> subst) {
+		final BufferedScanner scanner = scanner(struct);
 		final IRegion lineRegion = scanner.regionOfLineContainingRegion(match.absolute());
 		final String line = scanner.bufferSubstringAtRegion(lineRegion);
-		final Match m = new Match(line, lineRegion.getOffset(), script, match, subst);
+		final Match m = new Match(line, lineRegion.getOffset(), struct, match, subst);
 		return m;
 	}
 
-	protected BufferedScanner scanner(Script script) {
+	protected BufferedScanner scanner(Structure script) {
 		synchronized (scanners) {
 			BufferedScanner scanner = scanners.get(script);
 			if (scanner == null)
@@ -62,13 +63,13 @@ public class ASTSearchQuery extends SearchQuery {
 	private final String templateText;
 	private final ASTNode template;
 	private final ASTNode replacement;
-	private final Collection<Script> scope;
-	private final Map<Script, BufferedScanner> scanners = new HashMap<>();
+	private final Collection<Structure> scope;
+	private final Map<Structure, BufferedScanner> scanners = new HashMap<>();
 
 	public ASTNode replacement() { return replacement; }
 	public ASTNode template() { return template; }
 
-	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Collection<Script> scope) throws ProblemException {
+	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Collection<Structure> scope) throws ProblemException {
 		final Standalone stal = new Standalone(scope);
 		this.templateText = templateExpressionText;
 		this.template = ASTNodeMatcher.prepareForMatching(stal.parse(templateExpressionText));
@@ -81,11 +82,12 @@ public class ASTSearchQuery extends SearchQuery {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
 			public void receivedObject(ExecutorService pool) {
-				class ScriptSearcher implements Runnable, IASTVisitor<Script> {
-					private final Script script;
+				class ScriptSearcher implements Runnable, IASTVisitor<Structure> {
+					private final Structure script;
 					private final Map<String, Match> matches = new HashMap<String, Match>();
-					public ScriptSearcher(Script script) {
-						script.requireLoaded();
+					public ScriptSearcher(Structure script) {
+						if (script instanceof IndexEntity)
+							((IndexEntity)script).requireLoaded();
 						this.script = script;
 					}
 					@Override
@@ -105,7 +107,7 @@ public class ASTSearchQuery extends SearchQuery {
 						matches.clear();
 					}
 					@Override
-					public TraversalContinuation visitNode(ASTNode expression, Script script) {
+					public TraversalContinuation visitNode(ASTNode expression, Structure script) {
 						if (monitor.isCanceled())
 							return TraversalContinuation.Cancel;
 						final Map<String, Object> subst = template.match(expression);
@@ -125,7 +127,7 @@ public class ASTSearchQuery extends SearchQuery {
 						}
 					}
 				}
-				for (final Script s : scope)
+				for (final Structure s : scope)
 					if (s.file() != null)
 						pool.execute(new ScriptSearcher(s));
 			}

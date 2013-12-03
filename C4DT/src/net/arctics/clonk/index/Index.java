@@ -437,7 +437,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		return Decision.Continue;
 	}
 
-	public void allScripts(Sink<Script> sink) {
+	public void allScripts(Sink<? super Script> sink) {
 		startScriptIteration();
 		try {
 			if (allDefinitionsInternal(sink) == Decision.AbortIteration)

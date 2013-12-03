@@ -19,10 +19,10 @@ import java.util.regex.Pattern;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.util.IConverter;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IResource;
@@ -61,12 +61,12 @@ import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
 
-public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplacePage {
+public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePage {
 
-	public static final String PREF_TEMPLATE_TEXT = ScriptSearchPage.class.getSimpleName()+".templateText"; //$NON-NLS-1$
-	public static final String PREF_REPLACEMENT_TEXT = ScriptSearchPage.class.getSimpleName()+".replacementText"; //$NON-NLS-1$
-	public static final String PREF_SCOPE = ScriptSearchPage.class.getSimpleName()+".scope"; //$NON-NLS-1$
-	public static final String PREF_RECENTS = ScriptSearchPage.class.getSimpleName()+".recents"; //$NON-NLS-1$
+	public static final String PREF_TEMPLATE_TEXT = ASTSearchPage.class.getSimpleName()+".templateText"; //$NON-NLS-1$
+	public static final String PREF_REPLACEMENT_TEXT = ASTSearchPage.class.getSimpleName()+".replacementText"; //$NON-NLS-1$
+	public static final String PREF_SCOPE = ASTSearchPage.class.getSimpleName()+".scope"; //$NON-NLS-1$
+	public static final String PREF_RECENTS = ASTSearchPage.class.getSimpleName()+".recents"; //$NON-NLS-1$
 
 	private static final String RECENTS_SEPARATOR = "<>"; //$NON-NLS-1$
 
@@ -75,9 +75,9 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 	private ISearchPageContainer container;
 	private ComboViewer recentsCombo;
 
-	public ScriptSearchPage() {}
-	public ScriptSearchPage(String title) { super(title); }
-	public ScriptSearchPage(String title, ImageDescriptor image) { super(title, image); }
+	public ASTSearchPage() {}
+	public ASTSearchPage(String title) { super(title); }
+	public ASTSearchPage(String title, ImageDescriptor image) { super(title, image); }
 
 	@Override
 	public void createControl(Composite parent) {
@@ -216,13 +216,16 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 	private ASTSearchQuery newQuery() {
 		final ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
 		final ISelection sel = selectionService.getSelection();
-		final Set<Script> scope = new HashSet<Script>();
+		final Set<Structure> scope = new HashSet<Structure>();
 		final IResourceVisitor scopeVisitor = new IResourceVisitor() {
 			@Override
 			public boolean visit(IResource resource) throws CoreException {
-				final Script script = Script.get(resource, true);
+				final Structure script = Script.get(resource, true);
 				if (script != null)
-					scope.add(script);
+					return scope.add(script);
+				final Structure pinned = Structure.pinned(resource, true, false);
+				if (pinned != null)
+					return scope.add(pinned);
 				return true;
 			}
 		};
@@ -235,12 +238,7 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 				}
 			}))
 				if (nature != null)
-					nature.index().allScripts(new Sink<Script>() {
-						@Override
-						public void receivedObject(Script item) {
-							scope.add(item);
-						}
-					});
+					nature.index().allScripts(collectionSink(scope));
 			break;
 		case ISearchPageContainer.SELECTION_SCOPE: {
 			final IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
@@ -321,8 +319,8 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 							@Override
 							public void run() {
 								for (final Object element : result.getElements()) {
-									final Script script = as(element, Script.class);
-									if (script == null)
+									final Structure struct = as(element, Structure.class);
+									if (struct == null)
 										continue;
 									final Match[] matches = result.getMatches(element);
 									final List<ASTNode> replacements = new LinkedList<ASTNode>();
@@ -337,7 +335,7 @@ public class ScriptSearchPage extends DialogPage implements ISearchPage, IReplac
 											repl.setParent(qm.node().parent());
 											replacements.add(repl);
 										}
-									script.saveNodes(replacements, false);
+									struct.saveNodes(replacements, false);
 								}
 							}
 						});

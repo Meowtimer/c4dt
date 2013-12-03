@@ -694,7 +694,7 @@
 	</extension>
 	
 	<extension point="org.eclipse.search.searchPages">
-		<page class="net.arctics.clonk.ui.search.ScriptSearchPage"
+		<page class="net.arctics.clonk.ui.search.ASTSearchPage"
     		id="net.arctics.clonk.ui.C4ScriptSearchPage"
 			label="%SearchPage_Title"
 			icon="icons/c4scriptIcon.png"
