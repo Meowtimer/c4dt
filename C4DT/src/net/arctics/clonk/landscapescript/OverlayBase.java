@@ -34,7 +34,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	protected OverlayBase prev;
 
 	@Override
-	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
 		return null;
 	}
 
@@ -57,15 +57,15 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	}
 
 	@Override
-	public boolean subNodeOf(ITreeNode node) {
+	public boolean subNodeOf(final ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
 	@Override
-	public void addChild(ITreeNode node) {
+	public void addChild(final ITreeNode node) {
 	}
 
-	public boolean setAttribute(String attr, String valueLo, String valueHi) throws SecurityException, NoSuchFieldException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	public boolean setAttribute(final String attr, final String valueLo, final String valueHi) throws SecurityException, NoSuchFieldException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		final Field f = getClass().getField(attr);
 		if (f != null) {
 			if (f.getType().getSuperclass() == Enum.class)
@@ -85,12 +85,12 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 		return false;
 	}
 
-	public void copyFromTemplate(OverlayBase template) throws IllegalArgumentException, IllegalAccessException {
+	public void copyFromTemplate(final OverlayBase template) throws IllegalArgumentException, IllegalAccessException {
 		for (final Field field : getClass().getFields())
 			field.set(this, field.get(template));
 	}
 
-	public void setBody(SourceLocation body) {
+	public void setBody(final SourceLocation body) {
 		this.body = body;
 	}
 
@@ -110,7 +110,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		try {
 			final String type = typeName();
 			if (type != null) {

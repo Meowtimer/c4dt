@@ -15,28 +15,28 @@ public class EngineVariable extends Variable implements IReplacedWhenSaved {
 	protected static class Ticket implements Serializable, IDeserializationResolvable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final String name;
-		public Ticket(String name) {
+		public Ticket(final String name) {
 			super();
 			this.name = name;
 		}
 		@Override
-		public Object resolve(Index index, IndexEntity deserializee) {
+		public Object resolve(final Index index, final IndexEntity deserializee) {
 			return index.engine().findVariable(name);
 		}
 	}
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public EngineVariable(String name, IType type) { super(name, type); }
-	public EngineVariable(String name, Scope scope) { super(name, scope); }
+	public EngineVariable(final String name, final IType type) { super(name, type); }
+	public EngineVariable(final String name, final Scope scope) { super(name, scope); }
 	public EngineVariable() { super(); }
 	@Override
-	public Object saveReplacement(Index context) { return new Ticket(name()); }
+	public Object saveReplacement(final Index context) { return new Ticket(name()); }
 	@Override
-	public Object[] occurenceScope(Iterable<Index> indexes) {
+	public Object[] occurenceScope(final Iterable<Index> indexes) {
 		return super.occurenceScope(iterable(filter(
 			map(ClonkProjectNature.allInWorkspace(), Index.class, ClonkProjectNature.SELECT_INDEX),
 			new IPredicate<Index>() {
 				@Override
-				public boolean test(Index item) { return item.engine() == EngineVariable.this.engine(); }
+				public boolean test(final Index item) { return item.engine() == EngineVariable.this.engine(); }
 			})
 		));
 	}

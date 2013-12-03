@@ -14,7 +14,7 @@ public class WhileStatement extends ConditionalStatement implements ILoop {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public WhileStatement(ASTNode condition, ASTNode body) {
+	public WhileStatement(final ASTNode condition, final ASTNode body) {
 		super(condition, body);
 	}
 
@@ -29,7 +29,7 @@ public class WhileStatement extends ConditionalStatement implements ILoop {
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		Object ev = null;
 		while (true) {
 			if (condition != null && !TypeUtil.convertToBool(condition.evaluate(context)))

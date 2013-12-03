@@ -17,7 +17,7 @@ public class IfStatement extends ConditionalStatement {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode elseExpr;
 
-	public IfStatement(ASTNode condition, ASTNode body, ASTNode elseExpr) {
+	public IfStatement(final ASTNode condition, final ASTNode body, final ASTNode elseExpr) {
 		super(condition, body);
 		this.elseExpr = elseExpr;
 		assignParentToSubElements();
@@ -30,7 +30,7 @@ public class IfStatement extends ConditionalStatement {
 	public ASTNode elseExpression() { return elseExpr; }
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(keyword());
 		builder.append(" ("); //$NON-NLS-1$
 		condition.print(builder, depth);
@@ -50,7 +50,7 @@ public class IfStatement extends ConditionalStatement {
 	}
 
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		condition = elms[0];
 		body      = elms[1];
 		elseExpr  = elms[2];
@@ -58,7 +58,7 @@ public class IfStatement extends ConditionalStatement {
 
 	@Override
 	public EnumSet<ControlFlow> possibleControlFlows() {
-		EnumSet<ControlFlow> result = EnumSet.of(ControlFlow.Continue);
+		final EnumSet<ControlFlow> result = EnumSet.of(ControlFlow.Continue);
 		result.addAll(body.possibleControlFlows());
 		if (elseExpr != null)
 			result.addAll(elseExpr.possibleControlFlows());
@@ -68,13 +68,13 @@ public class IfStatement extends ConditionalStatement {
 	@Override
 	public ControlFlow controlFlow() {
 		// return most optimistic flow (the smaller ordinal() the more "continuy" the flow is)
-		ControlFlow ifCase = body.controlFlow();
-		ControlFlow elseCase = elseExpr != null ? elseExpr.controlFlow() : ControlFlow.Continue;
+		final ControlFlow ifCase = body.controlFlow();
+		final ControlFlow elseCase = elseExpr != null ? elseExpr.controlFlow() : ControlFlow.Continue;
 		return ifCase.ordinal() < elseCase.ordinal() ? ifCase : elseCase;
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		if (!condition.evaluate(context).equals(false))
 			return body.evaluate(context);
 		else if (elseExpr != null)

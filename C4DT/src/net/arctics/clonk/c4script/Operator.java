@@ -72,11 +72,11 @@ public enum Operator {
 		stringToOperatorMap = Collections.unmodifiableMap(workInProgress);
 	}
 
-	public static Operator get(String opName) { return stringToOperatorMap.get(opName); }
+	public static Operator get(final String opName) { return stringToOperatorMap.get(opName); }
 
-	private Operator(PrimitiveType firstArgType, PrimitiveType secondArgType,
-			PrimitiveType resultType, String operatorName, int priority,
-			String oldStyleFunctionEquivalent, int flags) {
+	private Operator(final PrimitiveType firstArgType, final PrimitiveType secondArgType,
+			final PrimitiveType resultType, final String operatorName, final int priority,
+			final String oldStyleFunctionEquivalent, int flags) {
 
 		if (name().startsWith("Assign")) //$NON-NLS-1$
 			flags |= RIGHTASSOCIATIVE;
@@ -90,13 +90,13 @@ public enum Operator {
 		this.flags = flags;
 	}
 
-	private Operator(PrimitiveType firstArgType, PrimitiveType secondArgType,
-			PrimitiveType resultType, String operatorName, int priority, String oldStyleFunctionEquivalent) {
+	private Operator(final PrimitiveType firstArgType, final PrimitiveType secondArgType,
+			final PrimitiveType resultType, final String operatorName, final int priority, final String oldStyleFunctionEquivalent) {
 		this(firstArgType, secondArgType, resultType, operatorName, priority, oldStyleFunctionEquivalent, 0);
 	}
 
-	private Operator(PrimitiveType firstArgType, PrimitiveType secondArgType,
-			PrimitiveType resultType, String operatorName, int priority) {
+	private Operator(final PrimitiveType firstArgType, final PrimitiveType secondArgType,
+			final PrimitiveType resultType, final String operatorName, final int priority) {
 		this(firstArgType, secondArgType, resultType, operatorName, priority, null, 0);
 	}
 
@@ -134,7 +134,7 @@ public enum Operator {
 			return false;
 		}
 	}
-	public static Operator oldStyleFunctionReplacement(String funcName) {
+	public static Operator oldStyleFunctionReplacement(final String funcName) {
 		for (final Operator o : values())
 			if (o.oldStyleFunctionEquivalent() != null && o.oldStyleFunctionEquivalent().equals(funcName))
 				return o;
@@ -142,7 +142,7 @@ public enum Operator {
 	}
 	public int priority() { return priority; }
 	public boolean isRightAssociative() { return (flags & RIGHTASSOCIATIVE) != 0; }
-	public boolean spaceNeededBetweenMeAnd(Operator other) {
+	public boolean spaceNeededBetweenMeAnd(final Operator other) {
 		return
 			((this == Add || this == Increment) && (other == Add || other == Increment)) ||
 			((this == Subtract || this == Decrement) && (other == Subtract || other == Decrement));

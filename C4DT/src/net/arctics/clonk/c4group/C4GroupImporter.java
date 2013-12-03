@@ -27,10 +27,10 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 
 	public static final String IMPORTING_FOLDER = "C4GroupImport";
 	
-	private File[] groupFiles;
-	private IContainer destination;
+	private final File[] groupFiles;
+	private final IContainer destination;
 
-	public C4GroupImporter(File[] groupsToImport, IContainer destination) {
+	public C4GroupImporter(final File[] groupsToImport, final IContainer destination) {
 		super();
 		groupFiles = groupsToImport;
 		this.destination = destination;
@@ -41,26 +41,25 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 	 * When importing a group inside the project folder the group file needs to be moved to some temporary location first and after importing deleted
 	 */
 	private void determineWhatGroupsNeedToBeMovedAndDeleted() {
-		File destinationFile = new File(destination.getLocation().toOSString());
+		final File destinationFile = new File(destination.getLocation().toOSString());
 		File importingFolder = null;
 		for (int i = 0; i < groupFiles.length; i++) {
-			File gf = groupFiles[i];
+			final File gf = groupFiles[i];
 			if (new File(destinationFile, gf.getName()).equals(gf)) {
 				if (importingFolder == null)
 					importingFolder = Core.instance().requestFolderInStateLocation(IMPORTING_FOLDER);
-				File fileMoveDestination = new File(importingFolder, gf.getName());
-				if (gf.renameTo(fileMoveDestination)) {
+				final File fileMoveDestination = new File(importingFolder, gf.getName());
+				if (gf.renameTo(fileMoveDestination))
 					groupFiles[i] = fileMoveDestination;
-				} else {
+				else
 					System.out.println("Failed to move " + gf.toString() + "!");
-				}
 			}
 		}
 	}
 
 	@Override
 	protected void execute(final IProgressMonitor monitor) throws CoreException, InvocationTargetException, InterruptedException {
-		C4Group[] groups = new C4Group[groupFiles.length];
+		final C4Group[] groups = new C4Group[groupFiles.length];
 		monitor.beginTask(Messages.C4GroupImporter_ImportingFiles, groups.length);
 		try {
 			for(int i = 0; i < groupFiles.length;i++) {
@@ -75,42 +74,41 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 						private C4Group currentGroup;
 
 						@Override
-						public boolean accepts(C4GroupEntryHeader header, C4Group context) {
+						public boolean accepts(final C4GroupEntryHeader header, final C4Group context) {
 							return true; // import whole group
 						}
 
 						@Override
-						public void processGroupItem(C4GroupItem item) throws CoreException {
+						public void processGroupItem(final C4GroupItem item) throws CoreException {
 							for (; currentGroup != item.parentGroup(); currentGroup = currentGroup.parentGroup(), currentContainer = currentContainer.getParent());
 							if (item instanceof C4Group) {
-								C4Group group = (C4Group)item;
+								final C4Group group = (C4Group)item;
 								/*if (group.getParentGroup() == null)
 									monitor.subTask(String.format(Messages.C4GroupImporter_ImportTask, group.getName()));*/
-								IFolder newFolder = currentContainer.getFolder(new Path(group.getName()));
+								final IFolder newFolder = currentContainer.getFolder(new Path(group.getName()));
 								if (!newFolder.exists())
 									newFolder.create(IResource.NONE, true, monitor);
 								currentContainer = newFolder;
 								currentGroup = group;
 							}
 							else {
-								C4GroupFile entry = (C4GroupFile)item;
-								IFile newFile = currentContainer.getFile(new Path(entry.getName()));
-								InputStream newContents = entry.getContents();
+								final C4GroupFile entry = (C4GroupFile)item;
+								final IFile newFile = currentContainer.getFile(new Path(entry.getName()));
+								final InputStream newContents = entry.getContents();
 								try {
 									try {
-										if (newFile.exists()) {
+										if (newFile.exists())
 											newFile.setContents(newContents, 0, monitor);
-										} else {
+										else
 											newFile.create(entry.getContents(), IResource.NONE, monitor);
-										}
-									} catch (CoreException e) {
+									} catch (final CoreException e) {
 										errorsWhileImporting.add(e.getLocalizedMessage());
 										e.printStackTrace();
 									}
 								} finally {
 									try {
 										newContents.close();
-									} catch (IOException e) {
+									} catch (final IOException e) {
 										e.printStackTrace();
 									}
 									entry.releaseData(); // release data to prevent heap overflow :S
@@ -118,7 +116,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 							}
 						}
 					});
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					Utilities.errorMessage(e, String.format(Messages.C4GroupImporter_ErrorImporting, groupFiles[i].toString()));
 					monitor.setCanceled(true);
 					e.printStackTrace();
@@ -127,14 +125,13 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 			}
 		}
 		finally {
-			for (C4Group group : groups) {
+			for (final C4Group group : groups)
 				if (group != null)
 					try {
 						group.close();
-					} catch (IOException e) {
+					} catch (final IOException e) {
 						e.printStackTrace();
 					}
-			}
 		}
 		monitor.done();
 

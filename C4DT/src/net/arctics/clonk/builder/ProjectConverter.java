@@ -50,13 +50,13 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	 * @param sourceProject Source project
 	 * @param destinationProject Destination project
 	 */
-	public ProjectConverter(IProject sourceProject, IProject destinationProject) {
+	public ProjectConverter(final IProject sourceProject, final IProject destinationProject) {
 		this.sourceProject = ClonkProjectNature.get(sourceProject);
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
 		this.configuration = destinationEngine().projectConversionConfigurationForEngine(sourceEngine());
 		assert(sourceEngine() != destinationEngine());
 	}
-	private IPath convertPath(IPath path) {
+	private IPath convertPath(final IPath path) {
 		IPath result = new Path("");
 		for (int i = 0; i < path.segmentCount(); i++) {
 			String segment = path.segment(i);
@@ -79,7 +79,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	 * Perform the conversion, reporting progress back to a {@link IProgressMonitor}
 	 * @param monitor The monitor to report progress to
 	 */
-	public void convert(IProgressMonitor monitor) {
+	public void convert(final IProgressMonitor monitor) {
 		this.monitor = monitor;
 		runWithoutAutoBuild(this);
 	}
@@ -87,7 +87,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	 * By letting this converter visit the source project the actual conversion is performed.
 	 */
 	@Override
-	public boolean visit(IResource other) throws CoreException {
+	public boolean visit(final IResource other) throws CoreException {
 		if (other instanceof IProject || skipResource(other))
 			return true;
 		//System.out.println(format("Copying %s", other.getFullPath()));
@@ -115,12 +115,12 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	}
 	private final CodeConverter codeConverter = new CodeConverter() {
 		@Override
-		protected ASTNode performConversion(ASTNode expression, Declaration declaration, final ICodeConverterContext context) {
+		protected ASTNode performConversion(final ASTNode expression, final Declaration declaration, final ICodeConverterContext context) {
 			if (configuration == null)
 				return expression;
 			ASTNode node = (ASTNode)(new ITransformer() {
 				@Override
-				public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
+				public Object transform(final ASTNode prev, final Object prevT, ASTNode expression) {
 					if (expression == null)
 						return null;
 					if (expression instanceof IDLiteral || (expression instanceof AccessVar && (((AccessVar)expression).proxiedDefinition()) != null)) {
@@ -151,15 +151,15 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			return node;
 		}
 	};
-	private boolean skipResource(IResource sourceResource) {
+	private boolean skipResource(final IResource sourceResource) {
 		return sourceResource.getName().equals(".project");
 	}
-	private void convertFileContents(IFile sourceFile, IFile destinationFile) throws CoreException {
+	private void convertFileContents(final IFile sourceFile, final IFile destinationFile) throws CoreException {
 		final Script sourceScript = Script.get(sourceFile, true);
 		if (sourceScript != null)
 			Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
 				@Override
-				public Object run(IDocument document) {
+				public Object run(final IDocument document) {
 					//final SelfContainedScript s = new SelfContainedScript(sourceScript.name(), document.get(), sourceScript.index());
 					// passing the original script here, be careful about modifying it
 					codeConverter.runOnDocument(sourceScript, document);

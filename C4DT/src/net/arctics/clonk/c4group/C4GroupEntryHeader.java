@@ -26,7 +26,7 @@ public class C4GroupEntryHeader implements Serializable {
     
     protected C4GroupEntryHeader() {}
     
-    public C4GroupEntryHeader(File file) {
+    public C4GroupEntryHeader(final File file) {
     	entryName = file.getName();
     	packed = false;
     	group = file.isDirectory();
@@ -37,8 +37,8 @@ public class C4GroupEntryHeader implements Serializable {
     	time = (int) file.lastModified();
     }
     
-    public static C4GroupEntryHeader createHeader(String name, boolean packed, boolean group, int size, int entrySize, int offset, int time) {
-    	C4GroupEntryHeader header = new C4GroupEntryHeader();
+    public static C4GroupEntryHeader createHeader(final String name, final boolean packed, final boolean group, final int size, final int entrySize, final int offset, final int time) {
+    	final C4GroupEntryHeader header = new C4GroupEntryHeader();
     	header.entryName = name;
     	header.packed = packed;
     	header.group = group;
@@ -54,8 +54,8 @@ public class C4GroupEntryHeader implements Serializable {
     	return header;
     }
     
-    public void writeTo(OutputStream stream) throws IOException {
-    	byte[] buffer = new byte[STORED_SIZE];
+    public void writeTo(final OutputStream stream) throws IOException {
+    	final byte[] buffer = new byte[STORED_SIZE];
     	arrayCopyTo(C4GroupHeader.stringToByte(entryName),buffer,0,260);
     	arrayCopyTo(C4GroupHeader.booleanToByte(packed),buffer,260,4);
     	arrayCopyTo(C4GroupHeader.booleanToByte(group),buffer,264,4);
@@ -68,9 +68,9 @@ public class C4GroupEntryHeader implements Serializable {
     	stream.write(buffer, 0, STORED_SIZE);
     }
     
-    public static C4GroupEntryHeader createFromStream(InputStream stream) throws C4GroupInvalidDataException {
-    	C4GroupEntryHeader header = new C4GroupEntryHeader();
-		byte[] buffer = new byte[STORED_SIZE];
+    public static C4GroupEntryHeader createFromStream(final InputStream stream) throws C4GroupInvalidDataException {
+    	final C4GroupEntryHeader header = new C4GroupEntryHeader();
+		final byte[] buffer = new byte[STORED_SIZE];
 		try {
 			int readCount = stream.read(buffer,0,STORED_SIZE);
 			while (readCount != STORED_SIZE)
@@ -88,7 +88,7 @@ public class C4GroupEntryHeader implements Serializable {
 //			}
 			header.crc = C4GroupHeader.byteToInt32(buffer, 285);
 
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			throw new C4GroupInvalidDataException("There was an IOException."); //$NON-NLS-1$
 		}
@@ -96,7 +96,7 @@ public class C4GroupEntryHeader implements Serializable {
     }
     
 	
-	public void skipData(InputStream stream) throws IOException {
+	public void skipData(final InputStream stream) throws IOException {
 		if (this.isGroup())
 			throw new IOException("skipData for groups not implemented"); //$NON-NLS-1$
 		else
@@ -156,15 +156,15 @@ public class C4GroupEntryHeader implements Serializable {
 	/**
 	 * @param offset the offset to set
 	 */
-	public void setOffset(int offset) {
+	public void setOffset(final int offset) {
 		this.offset = offset;
 	}
 
-	private static void arrayCopyTo(byte[] source, byte[] target, int dstOffset) {
+	private static void arrayCopyTo(final byte[] source, final byte[] target, final int dstOffset) {
     	arrayCopyTo(source, target, dstOffset, source.length);
     }
     
-    private static void arrayCopyTo(byte[] source, byte[] target, int dstOffset, int length) {
+    private static void arrayCopyTo(final byte[] source, final byte[] target, final int dstOffset, final int length) {
     	for(int i = 0;i < length;i++)
 			if (i >= source.length) target[dstOffset + i] = 0x0; // fill with zeros
     		else target[dstOffset + i] = source[i];

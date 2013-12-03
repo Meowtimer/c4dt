@@ -14,14 +14,14 @@ public class Parenthesized extends ASTNode implements ITidyable {
 	@Override
 	public ASTNode[] subElements() { return new ASTNode[] {innerExpr}; }
 	@Override
-	public void setSubElements(ASTNode[] elements) { innerExpr = elements[0]; }
-	public Parenthesized(ASTNode innerExpr) {
+	public void setSubElements(final ASTNode[] elements) { innerExpr = elements[0]; }
+	public Parenthesized(final ASTNode innerExpr) {
 		super();
 		this.innerExpr = innerExpr;
 		assignParentToSubElements();
 	}
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append("("); //$NON-NLS-1$
 		innerExpr.print(output, depth+1);
 		output.append(")"); //$NON-NLS-1$
@@ -39,7 +39,7 @@ public class Parenthesized extends ASTNode implements ITidyable {
 	}
 
 	@Override
-	public Object evaluateStatic(IEvaluationContext context) {
+	public Object evaluateStatic(final IEvaluationContext context) {
 		return innerExpr.evaluateStatic(context);
 	}
 

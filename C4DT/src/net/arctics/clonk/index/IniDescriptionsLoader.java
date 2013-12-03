@@ -18,9 +18,9 @@ public class IniDescriptionsLoader {
 
 	private final Engine engine;
 
-	public IniDescriptionsLoader(Engine engine) { this.engine = engine; }
+	public IniDescriptionsLoader(final Engine engine) { this.engine = engine; }
 
-	public void loadDescriptions(String language) {
+	public void loadDescriptions(final String language) {
 		final String fileName = String.format("Descriptions%s.ini", language); //$NON-NLS-1$
 		final IStorageLocation[] storageLocations = engine.storageLocations();
 		for (int i = storageLocations.length - 1; i >= 0; i--) {

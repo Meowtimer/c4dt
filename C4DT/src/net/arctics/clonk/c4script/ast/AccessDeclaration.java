@@ -35,27 +35,27 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * Assign a declaration. Called from obtainment logic
 	 * @param d The declaration to assign this node
 	 */
-	public void setDeclaration(Declaration d) { this.declaration = d; }
+	public void setDeclaration(final Declaration d) { this.declaration = d; }
 
 	/**
 	 * Create AccessDeclaration object using a declaration name.
 	 * @param declarationName
 	 */
-	public AccessDeclaration(String declarationName) {
+	public AccessDeclaration(final String declarationName) {
 		this.declarationName = declarationName;
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append(name());
 	}
 
-	public IRegion declarationRegion(int offset) {
+	public IRegion declarationRegion(final int offset) {
 		return new Region(offset+start(), name().length());
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		return new EntityRegion(declaration(), region(0));
 	}
 
@@ -69,7 +69,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	 * Set the declaration name.
 	 * @param declarationName The name
 	 */
-	public void setName(String declarationName) { this.declarationName = declarationName; }
+	public void setName(final String declarationName) { this.declarationName = declarationName; }
 	@Override
 	public int identifierLength() { return name().length(); }
 
@@ -82,7 +82,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	}
 
 	@Override
-	public boolean equalAttributes(ASTNode other) {
+	public boolean equalAttributes(final ASTNode other) {
 		if (!super.equalAttributes(other))
 			return false;
 		final AccessDeclaration otherDec = (AccessDeclaration) other;
@@ -100,7 +100,7 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	public String patternMatchingText() { return name(); }
 
 	@Override
-	public void postLoad(ASTNode parent) {
+	public void postLoad(final ASTNode parent) {
 		super.postLoad(parent);
 		if (declaration instanceof IDeferredDeclaration)
 			declaration = as(((IDeferredDeclaration)declaration).resolve(), Declaration.class);

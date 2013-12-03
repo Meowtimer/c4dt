@@ -30,16 +30,16 @@ public class VarDeclarationStatement extends KeywordStatement {
 	
 	public Scope scope() { return scope; }
 	
-	public VarDeclarationStatement(List<VarInitialization> varInitializations, Scope scope) {
+	public VarDeclarationStatement(final List<VarInitialization> varInitializations, final Scope scope) {
 		super();
 		this.varInitializations = varInitializations.toArray(new VarInitialization[varInitializations.size()]);
 		this.scope = scope;
 		assignParentToSubElements();
 	}
-	public VarDeclarationStatement(Scope scope, VarInitialization... varInitializations) {
+	public VarDeclarationStatement(final Scope scope, final VarInitialization... varInitializations) {
 		this(Arrays.asList(varInitializations), scope);
 	}
-	public VarDeclarationStatement(String varName, ASTNode initialization, int namePos, Scope scope) {
+	public VarDeclarationStatement(final String varName, final ASTNode initialization, final int namePos, final Scope scope) {
 		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos, namePos+varName.length(), null, null)), scope);
 	}
 	@Override
@@ -51,7 +51,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		return varInitializations;
 	}
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		final List<VarInitialization> inits = Arrays.asList(filter(elms, VarInitialization.class));
 		final VarInitialization[] newElms = new VarInitialization[inits.size()];
 		System.arraycopy(inits.toArray(), 0, newElms, 0, inits.size());
@@ -61,7 +61,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		return varInitializations;
 	}
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(keyword());
 		builder.append(" "); //$NON-NLS-1$
 		int counter = 0;
@@ -74,7 +74,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 	}
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(int offset, final ExpressionLocator<?> locator) {
 		final Function activeFunc = this.parent(Function.class);
 		if (activeFunc != null) {
 			final int addToMakeAbsolute = activeFunc.bodyLocation().start() + this.start();

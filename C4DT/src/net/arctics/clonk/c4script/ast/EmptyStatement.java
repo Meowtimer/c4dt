@@ -8,7 +8,7 @@ public class EmptyStatement extends Statement {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(";"); //$NON-NLS-1$
 	}
 }

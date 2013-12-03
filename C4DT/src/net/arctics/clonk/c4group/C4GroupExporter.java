@@ -39,12 +39,12 @@ public class C4GroupExporter implements IRunnableWithProgress {
 	private final String destinationPath;
 	private final int numTotal;
 	
-	private void divideInEngines(IContainer[] packs) {
+	private void divideInEngines(final IContainer[] packs) {
 		packsDividedInEngines.clear();
-		for (IContainer c : packs) {
+		for (final IContainer c : packs) {
 			if (c == null)
 				continue;
-			Engine engine = ClonkProjectNature.get(c).index().engine();
+			final Engine engine = ClonkProjectNature.get(c).index().engine();
 			List<Pair<IContainer, String>> list = packsDividedInEngines.get(engine);
 			if (list == null) {
 				list = new LinkedList<Pair<IContainer, String>>();
@@ -54,20 +54,20 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		}
 	}
 	
-	public C4GroupExporter(IContainer[] packs, String destinationPath) {
+	public C4GroupExporter(final IContainer[] packs, final String destinationPath) {
 		divideInEngines(packs);
 		this.numTotal = packs.length;
 		this.destinationPath = destinationPath;
 	}
 
 	public synchronized boolean selectDestPaths() {
-		for (Entry<Engine, List<Pair<IContainer, String>>> entry : packsDividedInEngines.entrySet()) {
-			List<Pair<IContainer, String>> packs = entry.getValue();
-			String destinationPath = this.destinationPath != null ? this.destinationPath : entry.getKey().settings().gamePath;
+		for (final Entry<Engine, List<Pair<IContainer, String>>> entry : packsDividedInEngines.entrySet()) {
+			final List<Pair<IContainer, String>> packs = entry.getValue();
+			final String destinationPath = this.destinationPath != null ? this.destinationPath : entry.getKey().settings().gamePath;
 			FileDialog fileDialog = null;
-			for (Pair<IContainer, String> toExport : packs) {
+			for (final Pair<IContainer, String> toExport : packs) {
 				String packPath;
-				boolean alwaysAskForPath = true;
+				final boolean alwaysAskForPath = true;
 				if (alwaysAskForPath || !(toExport.first().getParent() instanceof IProject)) {
 					if (fileDialog == null)
 						fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
@@ -85,12 +85,12 @@ public class C4GroupExporter implements IRunnableWithProgress {
 		return true;
 	}
 
-	public void export(IProgressMonitor monitor) {
+	public void export(final IProgressMonitor monitor) {
 		if (monitor != null)
 			monitor.beginTask(Messages.Exporting, numTotal);
-		IPreferencesService service = Platform.getPreferencesService();
+		final IPreferencesService service = Platform.getPreferencesService();
 		final boolean showExportLog = service.getBoolean(Core.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
-		for (Entry<Engine, List<Pair<IContainer, String>>> byEngine : packsDividedInEngines.entrySet()) {
+		for (final Entry<Engine, List<Pair<IContainer, String>>> byEngine : packsDividedInEngines.entrySet()) {
 			final String c4groupPath = byEngine.getKey().settings().c4GroupPath;
 			for(final Pair<IContainer, String> toExport : byEngine.getValue()) {
 				if (monitor != null)
@@ -102,37 +102,37 @@ public class C4GroupExporter implements IRunnableWithProgress {
 					oldFile.delete();
 				(new Job(String.format(Messages.ExportC4GroupJobTitle, toExport.first().getName())) {
 					@Override
-					protected IStatus run(IProgressMonitor monitor) {
+					protected IStatus run(final IProgressMonitor monitor) {
 						try {
 							// copy directory to destination and pack it in-place
 							FileOperations.copyDirectory(new File(toExport.first().getRawLocation().toOSString()), oldFile);
 							
 							// create c4group command line
-							String[] cmdArray = new String[] { c4groupPath, packPath, "-p" }; //$NON-NLS-1$
+							final String[] cmdArray = new String[] { c4groupPath, packPath, "-p" }; //$NON-NLS-1$
 
 							MessageConsoleStream out = null;
 							if (showExportLog) {
 								// get console
-								MessageConsole myConsole = Console.clonkConsole();
+								final MessageConsole myConsole = Console.clonkConsole();
 								out = myConsole.newMessageStream();
 								Console.display();
 								// show command line in console
-								StringBuilder cmdLine = new StringBuilder();
+								final StringBuilder cmdLine = new StringBuilder();
 								cmdLine.append(Messages.ExporterCommandlineTitle);
 								for (int _i = 0; _i < cmdArray.length; _i++) {
-									String cmdE = cmdArray[_i];
+									final String cmdE = cmdArray[_i];
 									cmdLine.append(" " + cmdE); //$NON-NLS-1$
 								}
 								out.println(cmdLine.toString());
 							}
 
 							// run c4group
-							Process c4group = Runtime.getRuntime().exec(cmdArray, null, oldFile.getParentFile());
+							final Process c4group = Runtime.getRuntime().exec(cmdArray, null, oldFile.getParentFile());
 							if (showExportLog) {
 								// pipe output to console
-								java.io.InputStream stream = c4group.getInputStream();
+								final java.io.InputStream stream = c4group.getInputStream();
 								int read = 0;
-								byte[] buffer = new byte[256];
+								final byte[] buffer = new byte[256];
 								c4group.waitFor();
 
 								while((read = stream.read(buffer, 0, 256)) > 0)
@@ -140,10 +140,10 @@ public class C4GroupExporter implements IRunnableWithProgress {
 							}
 							c4group.waitFor();
 							return Status.OK_STATUS;
-						} catch (IOException e) {
+						} catch (final IOException e) {
 							e.printStackTrace();
 							return Status.CANCEL_STATUS;
-						} catch (InterruptedException e) {
+						} catch (final InterruptedException e) {
 							e.printStackTrace();
 							return Status.CANCEL_STATUS;
 						}
@@ -159,7 +159,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 	}
 
 	@Override
-	public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+	public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 		export(monitor);
 	}
 

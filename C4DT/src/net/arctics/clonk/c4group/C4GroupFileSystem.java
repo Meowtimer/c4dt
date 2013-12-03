@@ -50,7 +50,7 @@ public class C4GroupFileSystem extends FileSystem {
 	};
 
 	// there should be some function to do that somewhere -.-
-	public static String replaceSpecialChars(String path) {
+	public static String replaceSpecialChars(final String path) {
 		return path.replace("[", "%5B").replace("]", "%5D"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	}
 
@@ -92,28 +92,28 @@ public class C4GroupFileSystem extends FileSystem {
 	 * Called when a linked resource in the workspace is about to be deleted.
 	 * @param group The group to delete
 	 */
-	public void removeGroupFromRegistry(C4Group group) {
+	public void removeGroupFromRegistry(final C4Group group) {
 		rootGroups.remove(group.origin());
 	}
 
 	private void purgeDeadEntries() {
 		List<File> markedForDeletion = null;
-		for (Map.Entry<File, WeakReference<C4Group>> entry : rootGroups.entrySet())
+		for (final Map.Entry<File, WeakReference<C4Group>> entry : rootGroups.entrySet())
 			if (entry.getValue().get() == null) {
 				if (markedForDeletion == null)
 					markedForDeletion = new LinkedList<File>();
 				markedForDeletion.add(entry.getKey());
 			}
 		if (markedForDeletion != null)
-			for (File f : markedForDeletion)
+			for (final File f : markedForDeletion)
 				rootGroups.remove(f);
 	}
 
 	@Override
-	public IFileStore getStore(URI uri) {
+	public IFileStore getStore(final URI uri) {
 		purgeDeadEntries();
-		String groupFilePath = uri.getSchemeSpecificPart();
-		File file = new File(groupFilePath);
+		final String groupFilePath = uri.getSchemeSpecificPart();
+		final File file = new File(groupFilePath);
 		File groupFile = file;
 
 		C4Group group = null;
@@ -126,7 +126,7 @@ public class C4GroupFileSystem extends FileSystem {
 		if (group == null) {
 			for (groupFile = file; groupFile != null && !groupFile.exists(); groupFile = groupFile.getParentFile());
 			if (groupFile != null && !groupFile.isDirectory()) {
-				WeakReference<C4Group> ref = rootGroups.get(groupFile);
+				final WeakReference<C4Group> ref = rootGroups.get(groupFile);
 				group = ref != null ? ref.get() : null;
 				if (group == null) {
 					try {
@@ -135,16 +135,16 @@ public class C4GroupFileSystem extends FileSystem {
 							group.readIntoMemory(true, new C4GroupHeaderFilterBase() {
 
 								@Override
-								public boolean accepts(C4GroupEntryHeader header, C4Group context) {
+								public boolean accepts(final C4GroupEntryHeader header, final C4Group context) {
 									return true;
 								}
 
 								@Override
-								public int flagsForEntry(C4GroupFile entry) {
-									for (String s : EXTENSIONS_TO_ALWAYS_LOAD)
+								public int flagsForEntry(final C4GroupFile entry) {
+									for (final String s : EXTENSIONS_TO_ALWAYS_LOAD)
 										if (entry.getName().endsWith(s))
 											return 0;
-									for (String s : FILES_TO_ALWAYS_LOAD)
+									for (final String s : FILES_TO_ALWAYS_LOAD)
 										if (entry.getName().equalsIgnoreCase(s))
 											return 0;
 									return C4GroupHeaderFilterBase.DONTREADINTOMEMORY;
@@ -154,34 +154,28 @@ public class C4GroupFileSystem extends FileSystem {
 							group.releaseStream();
 						}
 					}
-					catch (Exception e) {
+					catch (final Exception e) {
 						e.printStackTrace();
 						return invalidGroupFileStoreForFile(file);
 					}
 					rootGroups.put(groupFile, new WeakReference<C4Group>(group));
 				}
-			}
-			else {
-				if (file.isDirectory()) {
-					group = new C4GroupUncompressed(null, file.getName(), file);
-					rootGroups.put(file, new WeakReference<C4Group>(group));
-				}
+			} else if (file.isDirectory()) {
+				group = new C4GroupUncompressed(null, file.getName(), file);
+				rootGroups.put(file, new WeakReference<C4Group>(group));
 			}
 		}
 
-		if (file == groupFile) {
+		if (file == groupFile)
 			return group;
-		}
-		else if (group != null) {
+		else if (group != null)
 			return group.findChild(new Path(file.getAbsolutePath().substring(groupFile.getAbsolutePath().length())));
-		}
-		else {
+		else
 			return invalidGroupFileStoreForFile(file);
-		}
 	}
 
-	private IFileStore invalidGroupFileStoreForFile(File file) {
-		C4Group group = new C4GroupTopLevelCompressed(file.getName(), file);
+	private IFileStore invalidGroupFileStoreForFile(final File file) {
+		final C4Group group = new C4GroupTopLevelCompressed(file.getName(), file);
 		rootGroups.put(file, new WeakReference<C4Group>(group));
 		return group;
 	}

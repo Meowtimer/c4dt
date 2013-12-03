@@ -16,14 +16,14 @@ public class ExpressionLocator<T> implements IASTVisitor<T> {
 	// derived classes don't need to call the one-arg constructor
 	public ExpressionLocator() {}
 	public ASTNode topLevelInRegion() { return topLevelInRegion; }
-	public ExpressionLocator(IRegion exprRegion) { this.exprRegion = exprRegion; }
-	public ExpressionLocator(int pos) { this(new Region(pos, 0)); }
+	public ExpressionLocator(final IRegion exprRegion) { this.exprRegion = exprRegion; }
+	public ExpressionLocator(final int pos) { this(new Region(pos, 0)); }
 	public ASTNode expressionAtRegion() { return exprAtRegion; }
 	@Override
-	public TraversalContinuation visitNode(ASTNode expression, Object context) {
+	public TraversalContinuation visitNode(final ASTNode expression, final Object context) {
 		expression.traverse(new IASTVisitor<Object>() {
 			@Override
-			public TraversalContinuation visitNode(ASTNode expression, Object context) {
+			public TraversalContinuation visitNode(final ASTNode expression, final Object context) {
 				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() <= expression.end()) {
 					if (topLevelInRegion == null)
 						topLevelInRegion = expression;

@@ -8,7 +8,7 @@ public final class IncludesParameters {
 	public final Script script, origin;
 	public final int options;
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		final IncludesParameters other = as(o, IncludesParameters.class);
 		return
 			other != null &&
@@ -20,7 +20,7 @@ public final class IncludesParameters {
 	public int hashCode() {
 		return Arrays.hashCode(new int[] {script.hashCode(), origin != null ? origin.hashCode() : 0, options});
 	}
-	public IncludesParameters(Script script, Script origin, int options) {
+	public IncludesParameters(final Script script, final Script origin, final int options) {
 		this.script = script;
 		this.origin = origin;
 		this.options = options;

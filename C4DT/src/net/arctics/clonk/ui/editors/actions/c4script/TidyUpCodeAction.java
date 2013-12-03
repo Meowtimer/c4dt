@@ -16,7 +16,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 @CommandId(id="ui.editors.actions.TidyUpCode")
 public class TidyUpCodeAction extends ClonkTextEditorAction {
 
-	public TidyUpCodeAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
+	public TidyUpCodeAction(final ResourceBundle bundle, final String prefix, final ITextEditor editor) {
 		super(bundle, prefix, editor);
 	}
 
@@ -40,7 +40,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 	public static CodeConverter converter() {
 		return new CodeConverter() {
 			@Override
-			protected ASTNode performConversion(ASTNode expression, Declaration declaration, ICodeConverterContext context) {
+			protected ASTNode performConversion(final ASTNode expression, final Declaration declaration, final ICodeConverterContext context) {
 				try {
 					return new Tidy(declaration.script(), declaration.script().strictLevel()).tidyExhaustive(expression);
 				} catch (final CloneNotSupportedException e) {

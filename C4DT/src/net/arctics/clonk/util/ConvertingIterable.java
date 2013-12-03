@@ -5,7 +5,7 @@ import java.util.Iterator;
 public class ConvertingIterable<From, To> implements Iterable<To> {
 	private final IConverter<From, To> converter;
 	private final Iterable<? extends From> source;
-	public ConvertingIterable(IConverter<From, To> converter, Iterable<? extends From> source) {
+	public ConvertingIterable(final IConverter<From, To> converter, final Iterable<? extends From> source) {
 		this.converter = converter;
 		this.source = source;
 	}

@@ -8,11 +8,11 @@ import org.eclipse.debug.core.model.IVariable;
 
 public class DebugVariable extends DebugElement implements IVariable {
 
-	private StackFrame stackFrame;
-	private Variable variable;
-	private DebugVariableValue value;
+	private final StackFrame stackFrame;
+	private final Variable variable;
+	private final DebugVariableValue value;
 	
-	public DebugVariable(StackFrame stackFrame, Variable variable) {
+	public DebugVariable(final StackFrame stackFrame, final Variable variable) {
 		super(stackFrame.getTarget());
 		this.stackFrame = stackFrame;
 		this.variable = variable;
@@ -48,12 +48,12 @@ public class DebugVariable extends DebugElement implements IVariable {
 	}
 
 	@Override
-	public void setValue(String expression) throws DebugException {
+	public void setValue(final String expression) throws DebugException {
 		// not supported as of yet
 	}
 
 	@Override
-	public void setValue(IValue value) throws DebugException {
+	public void setValue(final IValue value) throws DebugException {
 		// not supported as of yet
 	}
 
@@ -63,12 +63,12 @@ public class DebugVariable extends DebugElement implements IVariable {
 	}
 
 	@Override
-	public boolean verifyValue(String expression) throws DebugException {
+	public boolean verifyValue(final String expression) throws DebugException {
 		return true;
 	}
 
 	@Override
-	public boolean verifyValue(IValue value) throws DebugException {
+	public boolean verifyValue(final IValue value) throws DebugException {
 		return true;
 	}
 

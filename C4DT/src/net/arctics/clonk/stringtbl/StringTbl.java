@@ -35,7 +35,7 @@ public class StringTbl extends Structure implements ITreeNode {
 
 
 	@Override
-	public void setFile(IFile file) {
+	public void setFile(final IFile file) {
 		this.file = file;
 		setName(file != null ? file.getName() : null);
 	}
@@ -46,7 +46,7 @@ public class StringTbl extends Structure implements ITreeNode {
 	public IResource resource() { return file; }
 	public Map<String, NameValueAssignment> map() { return map; }
 	@Override
-	public void addChild(ITreeNode node) {}
+	public void addChild(final ITreeNode node) {}
 	@Override
 	public Collection<? extends ITreeNode> childCollection() { return map.values(); }
 	@Override
@@ -56,29 +56,29 @@ public class StringTbl extends Structure implements ITreeNode {
 	@Override
 	public IPath path() { return ITreeNode.Default.path(this); }
 	@Override
-	public boolean subNodeOf(ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
+	public boolean subNodeOf(final ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
 	@Override
 	public boolean requiresScriptReparse() { return true; }
 
-	public void addTblEntry(String key, String value, int start, int end) {
+	public void addTblEntry(final String key, final String value, final int start, final int end) {
 		final NameValueAssignment nv = new NameValueAssignment(start, end, key, value);
 		nv.setParent(this);
 		map.put(key, nv);
 	}
 
 	@Override
-	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
 		if (declarationClass == NameValueAssignment.class)
 			return map.get(declarationName);
 		return null;
 	}
 
 	@Override
-	public Declaration findDeclaration(String declarationName) {
+	public Declaration findDeclaration(final String declarationName) {
 		return map.get(declarationName);
 	}
 
-	public static void readStringTbl(Reader reader, StringTbl tbl) {
+	public static void readStringTbl(final Reader reader, final StringTbl tbl) {
 		BufferedScanner scanner;
 		scanner = new BufferedScanner(reader);
 		while (!scanner.reachedEOF()) {
@@ -101,7 +101,7 @@ public class StringTbl extends Structure implements ITreeNode {
 		}
 	}
 
-	public void read(Reader reader) {
+	public void read(final Reader reader) {
 		readStringTbl(reader, this);
 	}
 
@@ -118,7 +118,7 @@ public class StringTbl extends Structure implements ITreeNode {
 		registerStructureFactory(new IStructureFactory() {
 			private final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$
 			@Override
-			public Structure create(IResource resource, boolean duringBuild) {
+			public Structure create(final IResource resource, final boolean duringBuild) {
 				if (resource instanceof IFile && stringTblFileMatcher.reset(resource.getName()).matches()) {
 					final IFile file = (IFile) resource;
 					final StringTbl tbl = new StringTbl();
@@ -139,7 +139,7 @@ public class StringTbl extends Structure implements ITreeNode {
 		});
 	}
 
-	public static EntityRegion entryRegionInString(String stringValue, int exprStart, int offset) {
+	public static EntityRegion entryRegionInString(final String stringValue, final int exprStart, final int offset) {
 		final int firstDollar = stringValue.lastIndexOf('$', offset-1);
 		final int secondDollar = stringValue.indexOf('$', offset);
 		if (firstDollar != -1 && secondDollar != -1) {
@@ -149,7 +149,7 @@ public class StringTbl extends Structure implements ITreeNode {
 		return null;
 	}
 
-	public static EntityRegion entryForLanguagePref(String stringValue, int exprStart, int offset, Declaration container, boolean returnNullIfNotFound) {
+	public static EntityRegion entryForLanguagePref(final String stringValue, final int exprStart, final int offset, final Declaration container, final boolean returnNullIfNotFound) {
 		EntityRegion result = entryRegionInString(stringValue, exprStart, offset);
 		if (result != null) {
 			final StringTbl stringTbl = container.localStringTblMatchingLanguagePref();
@@ -174,7 +174,7 @@ public class StringTbl extends Structure implements ITreeNode {
 	 * @param value The value to be evaluated
 	 * @return The evaluated string
 	 */
-	public static EvaluationResult evaluateEntries(Declaration context, String value, boolean evaluateEscapes) {
+	public static EvaluationResult evaluateEntries(final Declaration context, final String value, final boolean evaluateEscapes) {
 		final int valueLen = value.length();
 		final StringBuilder builder = new StringBuilder(valueLen*2);
 		// insert stringtbl entries

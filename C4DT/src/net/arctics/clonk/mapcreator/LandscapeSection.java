@@ -34,7 +34,7 @@ public class LandscapeSection {
 	@IniField public int MaterialZoom;
 	
 	public int[] GetMapSize(int iPlayerNum) {
-		int[] size = new int[] {MapWidth.Evaluate(), MapHeight.Evaluate()};
+		final int[] size = new int[] {MapWidth.Evaluate(), MapHeight.Evaluate()};
 		iPlayerNum = Math.max(iPlayerNum, 1 );
 		if (MapPlayerExtend > 0)
 			size[0] = Math.min(size[0] * Math.min(iPlayerNum, C4S_MaxMapPlayerExtend), MapWidth.Max);

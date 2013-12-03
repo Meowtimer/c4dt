@@ -19,19 +19,19 @@ public class ScenarioUnit extends IniUnit {
 		return FILENAME;
 	}
 
-	public ScenarioUnit(Object input) {
+	public ScenarioUnit(final Object input) {
 		super(input);
 	}
 
 	@Override
-	protected IniSectionDefinition sectionDataFor(IniSection section, IniSection parentSection) {
+	protected IniSectionDefinition sectionDataFor(final IniSection section, final IniSection parentSection) {
 		if (section.name().startsWith("Player")) //$NON-NLS-1$
 			return configuration().sections().get("Player"); //$NON-NLS-1$
 		return super.sectionDataFor(section, parentSection);
 	}
 
 	@Override
-	protected boolean isSectionNameValid(String name, IniSection parentSection) {
+	protected boolean isSectionNameValid(final String name, final IniSection parentSection) {
 		return (parentSection == null && name.matches("Player[1234]")) || super.isSectionNameValid(name, parentSection); //$NON-NLS-1$
 	}
 

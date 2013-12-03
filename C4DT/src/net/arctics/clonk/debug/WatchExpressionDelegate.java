@@ -38,7 +38,7 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 		 */
 		private final Map<String, IWatchExpressionListener> listeners = new HashMap<String, IWatchExpressionListener>();
 
-		EvaluationResultListener(IDebugElement context) {}
+		EvaluationResultListener(final IDebugElement context) {}
 
 		@Override
 		public String toString() {
@@ -55,7 +55,7 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 		 * @param expression The expression for which to add the listener
 		 * @param listener the watch expression listener
 		 */
-		public void add(String expression, IWatchExpressionListener listener) {
+		public void add(final String expression, final IWatchExpressionListener listener) {
 			synchronized (listeners) {
 				listeners.put(expression, listener);
 			}
@@ -65,7 +65,7 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 		 * Dispatch received line to the appropriate watch expression listener.
 		 */
 		@Override
-		public LineReceivedResult lineReceived(String line, Target target) throws IOException {
+		public LineReceivedResult lineReceived(final String line, final Target target) throws IOException {
 			String toRemove = null;
 			boolean processed = false;
 			List<Entry<String, IWatchExpressionListener>> cpy;

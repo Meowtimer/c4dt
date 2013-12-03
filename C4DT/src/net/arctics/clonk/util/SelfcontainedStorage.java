@@ -20,7 +20,7 @@ public class SelfcontainedStorage implements IStorage, Serializable {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final String name;
 	private final String contents;
-	public SelfcontainedStorage(String name, String contents) {
+	public SelfcontainedStorage(final String name, final String contents) {
 		this.name = name;
 		this.contents = contents;
 	}
@@ -35,5 +35,5 @@ public class SelfcontainedStorage implements IStorage, Serializable {
 	public boolean isReadOnly() { return true; }
 	@Override
 	@SuppressWarnings("rawtypes")
-	public Object getAdapter(Class cls) { return null; }
+	public Object getAdapter(final Class cls) { return null; }
 }

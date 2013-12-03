@@ -39,7 +39,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 		private static class CachedEntry {
 			public File file;
 			public long creationTime;
-			public CachedEntry(File file, long creationTime) {
+			public CachedEntry(final File file, final long creationTime) {
 				super();
 				this.file = file;
 				this.creationTime = creationTime;
@@ -51,18 +51,17 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 		
 		private final Map<C4GroupFile, CachedEntry> files = new HashMap<C4GroupFile, CachedEntry>();
 		
-		public File getCachedFile(C4GroupFile groupEntry) throws IOException, CoreException {
+		public File getCachedFile(final C4GroupFile groupEntry) throws IOException, CoreException {
 			CachedEntry e = files.get(groupEntry);
 			if (e == null || e.modified()) {
-				File f = File.createTempFile("c4dt", "c4groupcache"); //$NON-NLS-1$ //$NON-NLS-2$
-				FileOutputStream fileStream = new FileOutputStream(f);
+				final File f = File.createTempFile("c4dt", "c4groupcache"); //$NON-NLS-1$ //$NON-NLS-2$
+				final FileOutputStream fileStream = new FileOutputStream(f);
 				try {
-					ByteArrayInputStream contents = groupEntry.getContents();
-					byte[] buf = new byte[1024];
+					final ByteArrayInputStream contents = groupEntry.getContents();
+					final byte[] buf = new byte[1024];
 					int read;
-					while ((read = contents.read(buf)) != -1) {
+					while ((read = contents.read(buf)) != -1)
 						fileStream.write(buf, 0, read);
-					}
 				} finally {
 					fileStream.close();
 				}
@@ -87,7 +86,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 
 	private transient File exportFromFile;
 
-	public C4GroupFile(C4Group parentGroup, C4GroupEntryHeader header) {
+	public C4GroupFile(final C4Group parentGroup, final C4GroupEntryHeader header) {
 		this.parentGroup = parentGroup;
 		this.header = header;
 	}
@@ -96,8 +95,8 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 		completed = true;
 	}
 
-	public static C4GroupFile makeEntry(C4Group parent, C4GroupEntryHeader header, File exportFromFile) {
-		C4GroupFile entry = new C4GroupFile();
+	public static C4GroupFile makeEntry(final C4Group parent, final C4GroupEntryHeader header, final File exportFromFile) {
+		final C4GroupFile entry = new C4GroupFile();
 		entry.parentGroup = parent;
 		entry.header = header;
 		entry.contents = null;
@@ -106,23 +105,21 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	}
 
 	@Override
-	public void readIntoMemory(boolean recursively, C4GroupHeaderFilterBase filter, InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException {
+	public void readIntoMemory(final boolean recursively, final C4GroupHeaderFilterBase filter, final InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException {
 		if (completed) return;
 		completed = true;
 
-		if ((filter.flagsForEntry(this) & C4GroupHeaderFilterBase.DONTREADINTOMEMORY) == 0) {
+		if ((filter.flagsForEntry(this) & C4GroupHeaderFilterBase.DONTREADINTOMEMORY) == 0)
 			fetchContents(stream);
-		}
-		else {
+		else
 			stream.skip(getSize());
-		}
 
 		// process contents (contents could be null after this call)
 		filter.processGroupItem(this);
 
 	}
 
-	private void fetchContents(InputStream stream) {
+	private void fetchContents(final InputStream stream) {
 		//System.out.println("Fetching contents of " + this);
 		contents = new byte[getSize()];
 		try {
@@ -131,18 +128,18 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 				readCount != contents.length;
 				readCount += stream.read(contents, readCount, contents.length - readCount)
 			);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
 	public ByteArrayInputStream getContents() throws CoreException {
-		if (contents == null) {
+		if (contents == null)
 			try {
 				parentGroup().readFromStream(this, parentGroup().baseOffset() + header.offset(), new StreamReadCallback() {
 					@Override
-					public void readStream(InputStream stream) {
+					public void readStream(final InputStream stream) {
 						fetchContents(stream);
 					}
 				});
@@ -151,17 +148,16 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 				} finally {
 					contents = null; // don't store
 				}
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 				return null;
 			}
-		}
 		return new ByteArrayInputStream(contents);
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		for (C4GroupItem item = this; item != null; item = item.parentGroup()) {
 			builder.insert(0, item.getName());
 			builder.insert(0, '/');
@@ -254,7 +250,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	/**
 	 * @param contents the contents to set
 	 */
-	public void setContents(byte[] contents) {
+	public void setContents(final byte[] contents) {
 		this.contents = contents;
 	}
 
@@ -267,22 +263,20 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	}
 
 	@Override
-	public void extractToFileSystem(IContainer parent) throws CoreException {
+	public void extractToFileSystem(final IContainer parent) throws CoreException {
 		extractToFileSystem(parent, null);
 	}
 
 	@Override
-	public void extractToFileSystem(IContainer parent, IProgressMonitor monitor) throws CoreException {
+	public void extractToFileSystem(final IContainer parent, final IProgressMonitor monitor) throws CoreException {
 		IFile me = null;
-		if (parent instanceof IFolder) {
+		if (parent instanceof IFolder)
 			me = ((IFolder)parent).getFile(getName());
-		}
-		else if (parent instanceof IProject) {
+		else if (parent instanceof IProject)
 			me = ((IProject)parent).getFile(getName());
-		}
 		if (me != null) try {
 			me.create(getContents(), IResource.NONE, monitor);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 	}
@@ -301,16 +295,15 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	}
 
 	@Override
-	public void writeTo(OutputStream stream) throws IOException {
-		InputStream inStream = new java.io.FileInputStream(exportFromFile);
+	public void writeTo(final OutputStream stream) throws IOException {
+		final InputStream inStream = new java.io.FileInputStream(exportFromFile);
 		try {
-			byte[] buffer = new byte[1024];
+			final byte[] buffer = new byte[1024];
 			int read = 0;
 			try {
-				while((read = inStream.read(buffer)) > 0) {
+				while((read = inStream.read(buffer)) > 0)
 					stream.write(buffer, 0, read);
-				}
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 		} finally {
@@ -335,7 +328,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 
 	@Override
 	@SuppressWarnings("rawtypes")
-	public Object getAdapter(Class cls) {
+	public Object getAdapter(final Class cls) {
 		if (cls == C4GroupFile.class)
 			return this;
 		return null;
@@ -347,20 +340,20 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	}
 
 	@Override
-	public String[] childNames(int options, IProgressMonitor monitor) throws CoreException {
+	public String[] childNames(final int options, final IProgressMonitor monitor) throws CoreException {
 		return NO_CHILDNAMES;
 	}
 
 	@Override
-	public IFileInfo fetchInfo(int options, IProgressMonitor monitor) throws CoreException {
-		FileInfo fileInfo = new FileInfo(getName());
+	public IFileInfo fetchInfo(final int options, final IProgressMonitor monitor) throws CoreException {
+		final FileInfo fileInfo = new FileInfo(getName());
 		fileInfo.setExists(true);
 		fileInfo.setLastModified(parentGroup().lastModified());
 		return fileInfo;
 	}
 
 	@Override
-	public IFileStore getChild(String name) {
+	public IFileStore getChild(final String name) {
 		return null; // go away :c
 	}
 
@@ -370,15 +363,15 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	}
 
 	@Override
-	public InputStream openInputStream(int options, IProgressMonitor monitor) throws CoreException {
+	public InputStream openInputStream(final int options, final IProgressMonitor monitor) throws CoreException {
 		return getContents();
 	}
 	
 	@Override
-	public File toLocalFile(int options, IProgressMonitor monitor) throws CoreException {
+	public File toLocalFile(final int options, final IProgressMonitor monitor) throws CoreException {
 		try {
 			return CACHE.getCachedFile(this);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			return null;
 		}

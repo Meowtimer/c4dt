@@ -31,15 +31,15 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 	public static final String PREFERRED_LANGID_DEFAULT = "DE"; //$NON-NLS-1$
 	public static final String AUTHOR_DEFAULT = "<Insert Author>";
 
-	public static String value(String prefName) {
+	public static String value(final String prefName) {
 		return Core.instance().getPreferenceStore().getString(prefName);
 	}
 
-	public static boolean toggle(String toggleName, boolean defaultValue) {
+	public static boolean toggle(final String toggleName, final boolean defaultValue) {
 		return Core.instance().getPreferenceStore().getBoolean(toggleName);
 	}
 
-	public static int integer(String prefName) {
+	public static int integer(final String prefName) {
 		return Core.instance().getPreferenceStore().getInt(prefName);
 	}
 

@@ -9,12 +9,11 @@ public class BreakpointAdapterFactory implements IAdapterFactory {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public Object getAdapter(Object adaptableObject, Class adapterType) {
+	public Object getAdapter(final Object adaptableObject, final Class adapterType) {
 		if (adaptableObject instanceof C4ScriptEditor) {
-			IResource resource = (IResource) ((C4ScriptEditor)adaptableObject).getEditorInput().getAdapter(IResource.class);
-			if (resource != null) {
-				return new BreakpointAdapter();
-			} 
+			final IResource resource = (IResource) ((C4ScriptEditor)adaptableObject).getEditorInput().getAdapter(IResource.class);
+			if (resource != null)
+				return new BreakpointAdapter(); 
 		}
 		return null;
 	}

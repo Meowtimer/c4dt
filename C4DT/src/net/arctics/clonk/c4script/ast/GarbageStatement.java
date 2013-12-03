@@ -10,7 +10,7 @@ public class GarbageStatement extends Statement {
 	private String garbage;
 	public String garbage() { return garbage; }
 
-	public GarbageStatement(String garbageString, int start) {
+	public GarbageStatement(final String garbageString, final int start) {
 		garbage = garbageString;
 		setLocation(start, start+garbage.length());
 	}
@@ -20,11 +20,11 @@ public class GarbageStatement extends Statement {
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append(garbage);
 	}
 
-	public void setGarbage(String garbage) {
+	public void setGarbage(final String garbage) {
 		this.garbage = garbage;
 	}
 

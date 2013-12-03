@@ -14,7 +14,7 @@ public class CachedEngineDeclarations {
 
 	private final Engine engine;
 
-	private Function f(String name) {
+	private Function f(final String name) {
 		return engine.findFunction(name);
 	}
 
@@ -57,7 +57,7 @@ public class CachedEngineDeclarations {
 	 * Fields will be initialized by searching for respective functions and variables in the {@link Engine}.
 	 * @param engine The engine to create the object for
 	 */
-	public CachedEngineDeclarations(Engine engine) {
+	public CachedEngineDeclarations(final Engine engine) {
 		this.engine = engine;
 		try {
 			for (final Field f : CachedEngineDeclarations.class.getFields()) {

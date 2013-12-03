@@ -76,11 +76,11 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 	private ComboViewer recentsCombo;
 
 	public ASTSearchPage() {}
-	public ASTSearchPage(String title) { super(title); }
-	public ASTSearchPage(String title, ImageDescriptor image) { super(title, image); }
+	public ASTSearchPage(final String title) { super(title); }
+	public ASTSearchPage(final String title, final ImageDescriptor image) { super(title, image); }
 
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		createTextFields(parent);
 		readConfiguration();
 	}
@@ -88,13 +88,13 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 	public static class Recent {
 		public String template;
 		public String replacement;
-		public Recent(String template, String replacement) {
+		public Recent(final String template, final String replacement) {
 			super();
 			this.template = template;
 			this.replacement = replacement;
 		}
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			if (obj instanceof Recent) {
 				final Recent r = (Recent)obj;
 				return eq(template, r.template) && eq(replacement, r.replacement);
@@ -123,7 +123,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		final IPreferenceStore prefs = Core.instance().getPreferenceStore();
 		prefs.setValue(PREF_RECENTS, StringUtil.blockString("", "", "", map(list, new IConverter<Recent, String>() {
 			@Override
-			public String convert(Recent recent) {
+			public String convert(final Recent recent) {
 				return recent.template + RECENTS_SEPARATOR + recent.replacement + RECENTS_SEPARATOR;
 			}
 		})));
@@ -156,7 +156,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		super.dispose();
 	}
 
-	private void createTextFields(Composite parent) {
+	private void createTextFields(final Composite parent) {
 		final Composite ctrl = new Composite(parent, SWT.NONE);
 		setControl(ctrl);
 		final GridLayout gl_ctrl = new GridLayout(2, false);
@@ -174,7 +174,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		this.recentsCombo.setContentProvider(prov);
 		this.recentsCombo.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
+			public void selectionChanged(final SelectionChangedEvent event) {
 				final ISelection sel = event.getSelection();
 				if (!sel.isEmpty()) {
 					final Recent r = (Recent)((IStructuredSelection)sel).getFirstElement();
@@ -205,7 +205,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 	}
 
 	@Override
-	public void setVisible(boolean visible) {
+	public void setVisible(final boolean visible) {
 		super.setVisible(visible);
 		container.setActiveEditorCanProvideScopeSelection(true);
 		container.setPerformActionEnabled(true);
@@ -219,7 +219,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		final Set<Structure> scope = new HashSet<Structure>();
 		final IResourceVisitor scopeVisitor = new IResourceVisitor() {
 			@Override
-			public boolean visit(IResource resource) throws CoreException {
+			public boolean visit(final IResource resource) throws CoreException {
 				final Structure script = Script.get(resource, true);
 				if (script != null)
 					return scope.add(script);
@@ -233,7 +233,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		case ISearchPageContainer.SELECTED_PROJECTS_SCOPE:
 			for (final ClonkProjectNature nature : map(iterable(container.getSelectedProjectNames()), new IConverter<String, ClonkProjectNature>() {
 				@Override
-				public ClonkProjectNature convert(String from) {
+				public ClonkProjectNature convert(final String from) {
 					return ClonkProjectNature.get(from);
 				}
 			}))
@@ -347,5 +347,5 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 	}
 
 	@Override
-	public void setContainer(ISearchPageContainer container) { this.container = container; }
+	public void setContainer(final ISearchPageContainer container) { this.container = container; }
 }

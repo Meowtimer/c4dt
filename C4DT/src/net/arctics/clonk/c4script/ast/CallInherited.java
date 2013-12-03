@@ -8,7 +8,7 @@ public class CallInherited extends CallDeclaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final boolean failsafe;
 	public boolean failsafe() { return failsafe; }
-	public CallInherited(boolean failsafe, ASTNode[] parameters) {
+	public CallInherited(final boolean failsafe, final ASTNode[] parameters) {
 		super((String)null, parameters);
 		this.failsafe = failsafe;
 	}

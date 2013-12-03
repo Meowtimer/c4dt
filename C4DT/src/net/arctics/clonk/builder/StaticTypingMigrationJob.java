@@ -22,7 +22,7 @@ final class StaticTypingMigrationJob extends TypingMigrationJob {
 	private final ProjectSettings settings;
 	private final ScriptParser[] parsers;
 
-	StaticTypingMigrationJob(String name, ClonkProjectNature nature, ProjectSettings settings, ScriptParser[] parsers) {
+	StaticTypingMigrationJob(final String name, final ClonkProjectNature nature, final ProjectSettings settings, final ScriptParser[] parsers) {
 		super(name, nature);
 		this.settings = settings;
 		this.parsers = parsers;
@@ -46,7 +46,7 @@ final class StaticTypingMigrationJob extends TypingMigrationJob {
 	private void insertTypeAnnotations(final ScriptParser parser) {
 		Core.instance().performActionsOnFileDocument(parser.script().file(), new IDocumentAction<Object>() {
 			@Override
-			public Object run(IDocument document) {
+			public Object run(final IDocument document) {
 				final StringBuilder builder = new StringBuilder(document.get());
 				final List<TypeAnnotation> annotations = parser.typeAnnotations();
 				Collections.sort(annotations);

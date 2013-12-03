@@ -9,16 +9,16 @@ import org.eclipse.core.resources.IMarker;
 public class SignedInteger extends IniEntryValue implements IConvertibleToPrimitive {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected long number;
-	public SignedInteger(int i) { number = i; }
+	public SignedInteger(final int i) { number = i; }
 	public SignedInteger() {}
 	@Override
 	public String toString() { return String.valueOf(number); }
 	@Override
 	public Object convertToPrimitive() { return number; }
 	public long getNumber() { return number; }
-	public void setNumber(long number) throws IniParserException { this.number = number; }
+	public void setNumber(final long number) throws IniParserException { this.number = number; }
 	@Override
-	public void setInput(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+	public void setInput(String input, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		try {
 			input = input != null ? input.trim() : ""; //$NON-NLS-1$
 			final int inlineCommentStart = input.indexOf(';');
@@ -35,7 +35,7 @@ public class SignedInteger extends IniEntryValue implements IConvertibleToPrimit
 			throw exp;
 		}
 	}
-	protected void setNumberFromStringValue(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+	protected void setNumberFromStringValue(final String input, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		setNumber(Long.parseLong(input));
 	}
 }

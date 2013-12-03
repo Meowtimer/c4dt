@@ -134,7 +134,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 */
 	@SuppressWarnings("deprecation")
 	@Override
-	public void start(BundleContext context) throws Exception {
+	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 		try {
 			versionFromLastRun = new Version(StreamUtil.stringFromFile(new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE)));
@@ -157,7 +157,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		// react to active engine being changed
 		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 			@Override
-			public void propertyChange(PropertyChangeEvent event) {
+			public void propertyChange(final PropertyChangeEvent event) {
 				if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
 					setActiveEngineByName(ClonkPreferences.value(ClonkPreferences.ACTIVE_ENGINE));
 				else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID))
@@ -174,7 +174,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		SystemScript.register();
 	}
 
-	private String engineNameFromPath(String path) {
+	private String engineNameFromPath(final String path) {
 		final String folderName = path.endsWith("/") //$NON-NLS-1$
 			? path.substring(path.lastIndexOf('/', path.length()-2)+1, path.length()-1)
 			: path.substring(path.lastIndexOf('/')+1);
@@ -242,7 +242,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		return new IStorageLocation[] {
 			new FolderStorageLocation(engineName) {
 				@Override
-				protected IPath storageLocationForEngine(String engineName) {
+				protected IPath storageLocationForEngine(final String engineName) {
 					return workspaceStorageLocationForEngine(engineName);
 				}
 				@Override
@@ -253,7 +253,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 			new IStorageLocation() {
 				@Override
-				public URL locatorForEntry(String entryName, boolean create) {
+				public URL locatorForEntry(final String entryName, final boolean create) {
 					return create ? null : getBundle().getEntry(String.format("res/engines/%s/%s", engineName, entryName)); //$NON-NLS-1$
 				}
 				@Override
@@ -261,11 +261,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 					return engineName;
 				}
 				@Override
-				public OutputStream outputStreamForURL(URL storageURL) {
+				public OutputStream outputStreamForURL(final URL storageURL) {
 					return null;
 				}
 				@Override
-				public void collectURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
+				public void collectURLsOfContainer(String containerPath, final boolean recurse, final List<URL> listToAddTo) {
 					final Enumeration<URL> urls = Core.instance().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
 					containerPath = name() + "/" + containerPath;
 					if (urls != null)
@@ -282,12 +282,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		};
 	}
 
-	private IStorageLocation[] headlessStorageLocations(String engineName) {
+	private IStorageLocation[] headlessStorageLocations(final String engineName) {
 		return new IStorageLocation[] {
 			new FolderStorageLocation(engineName) {
 				private final IPath storageLocationPath = new Path(engineConfigurationFolder).append(this.engineName);
 				@Override
-				protected IPath storageLocationForEngine(String engineName) {
+				protected IPath storageLocationForEngine(final String engineName) {
 					return storageLocationPath;
 				}
 				@Override
@@ -306,7 +306,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		return workspaceStorageLocationForEngine(ClonkPreferences.value(ClonkPreferences.ACTIVE_ENGINE));
 	}
 
-	public IPath workspaceStorageLocationForEngine(String engineName) {
+	public IPath workspaceStorageLocationForEngine(final String engineName) {
 		IPath path = workspaceStorageLocationForEngines();
 		path = path.append(String.format("%s", engineName));
 		final File dir = path.toFile();
@@ -325,7 +325,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * @param name The name of the folder to create
 	 * @return Reference to the folder
 	 */
-	public File requestFolderInStateLocation(String name) {
+	public File requestFolderInStateLocation(final String name) {
 		final File result = new File(new File(getStateLocation().toOSString()), name);
 		return result.mkdirs() ? result : null;
 	}
@@ -336,7 +336,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 */
 	@Override
 	@SuppressWarnings("deprecation")
-	public void stop(BundleContext context) throws Exception {
+	public void stop(final BundleContext context) throws Exception {
 		try {
 			APIReflection.call(ResourcesPlugin.getWorkspace(), "removeSaveParticipant", PLUGIN_ID);
 		} catch (NoSuchMethodException | SecurityException e) {
@@ -357,7 +357,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	/** Whether the plugin runs in headless mode. */
 	public static boolean runsHeadless() { return runsHeadless; }
 
-	public static void headlessInitialize(String engineConfigurationFolder, String engine) {
+	public static void headlessInitialize(final String engineConfigurationFolder, final String engine) {
 		runsHeadless = true;
 		if (instance == null) {
 			instance = new Core();
@@ -373,7 +373,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * @param path the path
 	 * @return the image descriptor
 	 */
-	public static ImageDescriptor imageDescriptorFor(String path) {
+	public static ImageDescriptor imageDescriptorFor(final String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
@@ -383,7 +383,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 *
 	 * @param iconName Name of the icon
 	 */
-	public Image iconImageFor(String iconName) {
+	public Image iconImageFor(final String iconName) {
 
 		// Already exists?
 		final ImageRegistry reg = getImageRegistry();
@@ -397,7 +397,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		return img;
 	}
 
-	public ImageDescriptor iconImageDescriptorFor(String iconName) {
+	public ImageDescriptor iconImageDescriptorFor(final String iconName) {
 		ImageDescriptor descriptor = imageDescriptorFor("icons/" + iconName + ".png"); //$NON-NLS-1$ //$NON-NLS-2$
 		if(descriptor == null)
 			descriptor = ImageDescriptor.getMissingImageDescriptor();
@@ -405,16 +405,16 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 
 	@Override
-	public void doneSaving(ISaveContext context) {}
+	public void doneSaving(final ISaveContext context) {}
 
 	@Override
-	public void prepareToSave(ISaveContext context) throws CoreException {}
+	public void prepareToSave(final ISaveContext context) throws CoreException {}
 
 	@Override
-	public void rollback(ISaveContext context) {}
+	public void rollback(final ISaveContext context) {}
 
 	@Override
-	public void saving(ISaveContext context) throws CoreException {
+	public void saving(final ISaveContext context) throws CoreException {
 		switch (context.getKind()) {
 		case ISaveContext.PROJECT_SAVE:
 			{
@@ -445,7 +445,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		try {
 			StreamUtil.writeToFile(currentVersionMarker, new StreamWriteRunnable() {
 				@Override
-				public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
+				public void run(final File file, final OutputStream stream, final OutputStreamWriter writer) throws IOException {
 					writer.append(getBundle().getVersion().toString());
 				}
 			});
@@ -459,18 +459,18 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * @param id The parameter to make a full plugin-id from
 	 * @return The plugin id
 	 */
-	public static String id(String id) {
+	public static String id(final String id) {
 		return PLUGIN_ID + "." + id; //$NON-NLS-1$
 	}
 
 	/**
 	 * @param activeEngine the engineObject to set
 	 */
-	private void setActiveEngine(Engine activeEngine) {
+	private void setActiveEngine(final Engine activeEngine) {
 		this.activeEngine = activeEngine;
 	}
 
-	public void setActiveEngineByName(String engineName) {
+	public void setActiveEngineByName(final String engineName) {
 		final Engine e = loadEngine(engineName);
 		// make sure names are correct
 		if (e != null) {
@@ -490,7 +490,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		T run(IDocument document);
 	}
 
-	public <T> T performActionsOnFileDocument(IStorage file, IDocumentAction<T> action, boolean save) {
+	public <T> T performActionsOnFileDocument(final IStorage file, final IDocumentAction<T> action, final boolean save) {
 		final TextFileDocumentProvider provider = TextFileDocumentProviderThing.provider;
 		synchronized (provider) {
 			try {
@@ -517,7 +517,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 
 	@Override
-	public void resourceChanged(IResourceChangeEvent event) {
+	public void resourceChanged(final IResourceChangeEvent event) {
 		try {
 			switch (event.getType()) {
 			case IResourceChangeEvent.PRE_DELETE:

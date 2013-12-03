@@ -12,7 +12,7 @@ public class CastExpression extends ASTNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private TypeAnnotation targetTypeAnnotation;
 	private ASTNode expression;
-	public CastExpression(TypeAnnotation targetTypeAnnotation, ASTNode expression) {
+	public CastExpression(final TypeAnnotation targetTypeAnnotation, final ASTNode expression) {
 		super();
 		this.targetTypeAnnotation = targetTypeAnnotation;
 		this.expression = expression;
@@ -24,12 +24,12 @@ public class CastExpression extends ASTNode {
 	@Override
 	public ASTNode[] subElements() { return new ASTNode[] {targetTypeAnnotation, expression}; }
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		targetTypeAnnotation = (TypeAnnotation) elms[0];
 		expression = elms[1];
 	}
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append(Keywords.Cast);
 		output.append('[');
 		output.append(targetTypeAnnotation.printed());
@@ -40,5 +40,5 @@ public class CastExpression extends ASTNode {
 	@Override
 	public boolean isValidAtEndOfSequence() { return true; }
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) { return predecessor == null; }
+	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor == null; }
 }

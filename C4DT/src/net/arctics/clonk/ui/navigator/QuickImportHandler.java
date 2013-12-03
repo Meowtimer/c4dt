@@ -23,9 +23,9 @@ import org.eclipse.ui.handlers.HandlerUtil;
 public class QuickImportHandler extends ClonkResourceHandler {
 
 	@Override
-	public void addHandlerListener(IHandlerListener handlerListener) {}
+	public void addHandlerListener(final IHandlerListener handlerListener) {}
 	
-	public static File[] selectFiles(String title, IContainer container, boolean noMulti) {
+	public static File[] selectFiles(final String title, final IContainer container, final boolean noMulti) {
 		final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SHEET+SWT.OPEN+(noMulti?0:SWT.MULTI));
 		fileDialog.setFilterPath(ClonkProjectNature.engineFromResource(container).settings().gamePath);
 		fileDialog.setText(String.format(title, container.getName()));
@@ -47,29 +47,28 @@ public class QuickImportHandler extends ClonkResourceHandler {
 				final IStructuredSelection ssel = (IStructuredSelection) selection;
 				if (!(ssel.getFirstElement() instanceof IContainer))
 					return;
-				IContainer container = (IContainer) ssel.getFirstElement();
+				final IContainer container = (IContainer) ssel.getFirstElement();
 				
 				File[] files;
 				files = selectFiles(Messages.QuickImportAction_SelectFiles, container, false);
-				if (files != null) {
+				if (files != null)
 					importFiles(HandlerUtil.getActiveShell(event), container, files);
-				}
 			}
 		});
 		return null;
 	}
 	
-	public static void importFiles(final Shell shell, IContainer container, File... files) {
-		C4GroupImporter importer = new C4GroupImporter(files, container);
+	public static void importFiles(final Shell shell, final IContainer container, final File... files) {
+		final C4GroupImporter importer = new C4GroupImporter(files, container);
 		final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(shell);
 		try {
 			progressDialog.run(false, true, importer);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public void removeHandlerListener(IHandlerListener handlerListener) {}
+	public void removeHandlerListener(final IHandlerListener handlerListener) {}
 	
 }

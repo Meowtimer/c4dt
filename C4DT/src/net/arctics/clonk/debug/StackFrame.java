@@ -33,7 +33,7 @@ public class StackFrame extends DebugElement implements IStackFrame {
 		return -1;
 	}
 
-	public StackFrame(ScriptThread thread, Object function, int line) {
+	public StackFrame(final ScriptThread thread, final Object function, final int line) {
 		super(thread.getTarget());
 		this.thread = thread;
 		this.function = function;
@@ -67,7 +67,7 @@ public class StackFrame extends DebugElement implements IStackFrame {
 			return null;
 	}
 
-	public void setLine(int line) { this.line = line; }
+	public void setLine(final int line) { this.line = line; }
 	public Object getFunction() { return function; }
 	@Override
 	public int getCharEnd() throws DebugException { return -1; }
@@ -129,7 +129,7 @@ public class StackFrame extends DebugElement implements IStackFrame {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (obj instanceof StackFrame) {
 			final StackFrame other = (StackFrame) obj;
 			return other.function.equals(function) && other.line == line;

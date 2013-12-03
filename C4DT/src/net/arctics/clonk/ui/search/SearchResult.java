@@ -29,7 +29,7 @@ public class SearchResult extends AbstractTextSearchResult {
 	 * Create as the result of the specified query.
 	 * @param query The query the created object is to be the result of
 	 */
-	public SearchResult(SearchQuery query) { this.query = query; }
+	public SearchResult(final SearchQuery query) { this.query = query; }
 	@Override
 	public IEditorMatchAdapter getEditorMatchAdapter() { return query; }
 	@Override
@@ -49,14 +49,14 @@ public class SearchResult extends AbstractTextSearchResult {
 	 * @param potential Flag indicating that the match is only potential and not definite
 	 * @param indirect Flag indicating whether the match indirectly refers to the declaration references were searched for.
 	 */
-	public void addMatch(Structure structure, ASTNode node, boolean potential, boolean indirect) {
+	public void addMatch(final Structure structure, final ASTNode node, final boolean potential, final boolean indirect) {
 		BufferedScanner scanner;
 		synchronized (scanners) {
 			scanner = scanners.get(structure);
 			if (scanner == null) {
 				scanner = Core.instance().performActionsOnFileDocument(structure.file(), new IDocumentAction<BufferedScanner>() {
 					@Override
-					public BufferedScanner run(IDocument document) { return new BufferedScanner(document.get()); }
+					public BufferedScanner run(final IDocument document) { return new BufferedScanner(document.get()); }
 				}, false);
 				scanners.put(structure, scanner);
 			}

@@ -81,7 +81,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 */
 	public IniUnit(final Object input) { this.input = input; }
 
-	public void save(ASTNodePrinter writer, boolean discardEmptySections) {
+	public void save(final ASTNodePrinter writer, final boolean discardEmptySections) {
 		boolean started = false;
 		for (final IniSection section : sectionsList) {
 			if (started)
@@ -97,7 +97,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		if (file() != null)
 			Core.instance().performActionsOnFileDocument(file(), new IDocumentAction<Void>() {
 				@Override
-				public Void run(IDocument document) {
+				public Void run(final IDocument document) {
 					final StringWriter writer = new StringWriter();
 					save(new AppendableBackedExprWriter(writer), discardEmptySections);
 					document.set(writer.toString());
@@ -115,7 +115,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	@Override
 	public IFile file() { return as(input, IFile.class); }
 	@Override
-	public void setFile(IFile file) { input = file; }
+	public void setFile(final IFile file) { input = file; }
 
 	/**
 	 * Checks whether this section name is valid.<br>
@@ -123,7 +123,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * @param name
 	 * @return <tt>true</tt> if valid
 	 */
-	protected boolean isSectionNameValid(String name, IniSection parentSection) {
+	protected boolean isSectionNameValid(final String name, final IniSection parentSection) {
 		if (parentSection != null)
 			return parentSection.definition() == null || parentSection.definition().hasSection(name);
 		else {
@@ -132,7 +132,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		}
 	}
 
-	static Object createEntryValueFromString(Class<?> type, String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+	static Object createEntryValueFromString(final Class<?> type, String value, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		if (value == null)
 			value = ""; //$NON-NLS-1$
 		if (type.equals(IDLiteral.class))
@@ -162,7 +162,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * @param modifyMarkers
 	 * @return validated entry
 	 */
-	protected IniEntry validateEntry(IniEntry entry, IniSection section, boolean modifyMarkers) throws IniParserException {
+	protected IniEntry validateEntry(final IniEntry entry, final IniSection section, final boolean modifyMarkers) throws IniParserException {
 		final IniConfiguration configuration = configuration();
 		if (configuration == null)
 			return entry;
@@ -194,7 +194,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			throw new IniParserException(IMarker.SEVERITY_ERROR, String.format("No definition for ini entry '%s'", entry.key()));
 	}
 
-	public IniSection requestSection(String name, IniSectionDefinition sectionData) {
+	public IniSection requestSection(final String name, final IniSectionDefinition sectionData) {
 		IniSection result = sectionsMap.get(name);
 		if (result == null) {
 			result = new IniSection(name);
@@ -210,7 +210,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		sectionsMap.clear();
 	}
 
-	protected IniSectionDefinition sectionDataFor(IniSection section, IniSection parentSection) {
+	protected IniSectionDefinition sectionDataFor(final IniSection section, final IniSection parentSection) {
 		if (parentSection != null) {
 			if (parentSection.definition() != null) {
 				final IniDataBase dataItem = parentSection.definition().entryForKey(section.name());
@@ -244,7 +244,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return sectionsList.iterator();
 	}
 
-	public IniSection sectionWithName(String name, boolean create) {
+	public IniSection sectionWithName(final String name, final boolean create) {
 		IniSection s = sectionsMap.get(name);
 		if (s == null && create) {
 			final IniSection section = new IniSection(new SourceLocation(-1, -1), name);
@@ -255,16 +255,16 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return s;
 	}
 
-	public IniSection sectionMatching(IPredicate<IniSection> predicate) {
+	public IniSection sectionMatching(final IPredicate<IniSection> predicate) {
 		return Utilities.itemMatching(predicate, sectionsList);
 	}
 
-	public IniItem itemInSection(String section, String entry) {
+	public IniItem itemInSection(final String section, final String entry) {
 		final IniSection s = sectionsMap.get(section);
 		return s != null ? s.itemByKey(entry) : null;
 	}
 
-	public IniEntry entryInSection(String section, String entry) {
+	public IniEntry entryInSection(final String section, final String entry) {
 		final IniItem item = itemInSection(section, entry);
 		return item instanceof IniEntry ? (IniEntry)item : null;
 	}
@@ -284,7 +284,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public void addChild(ITreeNode node) {
+	public void addChild(final ITreeNode node) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -309,7 +309,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public boolean subNodeOf(ITreeNode node) {
+	public boolean subNodeOf(final ITreeNode node) {
 		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
@@ -318,11 +318,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return file();
 	}
 
-	public String sectionToString(IniSection section) {
+	public String sectionToString(final IniSection section) {
 		return "["+section.name()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
-	public IniSection sectionAtOffset(IniSection parent, int offset) {
+	public IniSection sectionAtOffset(final IniSection parent, final int offset) {
 		IniSection section = null;
 		for (final IniSection sec : parent == null ? ArrayUtil.iterable(this.sections()) : parent.sections()) {
 			final int start = sec.start();
@@ -333,7 +333,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return section == null ? parent : sectionAtOffset(section, offset);
 	}
 
-	public IniSection sectionAtOffset(int offset) {
+	public IniSection sectionAtOffset(final int offset) {
 		final IniSection sec = sectionAtOffset(null, offset);
 		return sec;
 	}
@@ -344,15 +344,15 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public Declaration findLocalDeclaration(String declarationName,
-			Class<? extends Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(final String declarationName,
+			final Class<? extends Declaration> declarationClass) {
 		if (declarationClass.isAssignableFrom(IniSection.class))
 			return findDeclaration(declarationName);
 		return null;
 	}
 
 	@Override
-	public Declaration findDeclaration(String declarationName) {
+	public Declaration findDeclaration(final String declarationName) {
 		return sectionWithName(declarationName, false);
 	}
 
@@ -372,7 +372,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	public static void register() {
 		Structure.registerStructureFactory(new IStructureFactory() {
 			@Override
-			public Structure create(IResource resource, boolean duringBuild) {
+			public Structure create(final IResource resource, final boolean duringBuild) {
 				if (resource instanceof IFile)
 					try {
 						final IniUnit unit = createAdequateIniUnit((IFile) resource);
@@ -387,7 +387,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		});
 	}
 
-	public static IniUnit createAdequateIniUnit(IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+	public static IniUnit createAdequateIniUnit(final IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 		final Class<? extends IniUnit> cls = iniUnitClassForResource(file);
 		if (cls == null)
 			return null;
@@ -412,7 +412,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 * @param resource the ini file to return an IniUnit class for
 	 * @return the IniUnit class or null if no suitable one could be found
 	 */
-	public static Class<? extends IniUnit> iniUnitClassForResource(IResource resource) {
+	public static Class<? extends IniUnit> iniUnitClassForResource(final IResource resource) {
 		try {
 			final IContentType contentType = resource.getProject().getContentTypeMatcher().findContentTypeFor(resource.getName());
 			if (contentType == null)
@@ -425,7 +425,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public void validate(Markers markers) throws ProblemException {
+	public void validate(final Markers markers) throws ProblemException {
 		// don't bother letting items complain if errors shouldn't be shown anyway (in linked groups)
 		if (C4GroupItem.groupItemBackingResource(file()) != null)
 			return;
@@ -454,7 +454,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
+	public List<? extends Declaration> subDeclarations(final Index contextIndex, final int mask) {
 		if ((mask & DeclMask.IMPLICIT) != 0)
 			return this.sectionsList;
 		else
@@ -462,7 +462,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter writer, int indentation) {
+	public void doPrint(final ASTNodePrinter writer, final int indentation) {
 		this.save(writer, false);
 	}
 
@@ -485,7 +485,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public String infoText(IIndexEntity context) {
+	public String infoText(final IIndexEntity context) {
 		return String.format(
 			INFO_FORMAT,
 			this.defaultName(), this.file().getProjectRelativePath().toOSString()
@@ -493,7 +493,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public <T extends Declaration> T addDeclaration(T declaration) {
+	public <T extends Declaration> T addDeclaration(final T declaration) {
 		if (declaration instanceof IniSection) {
 			final IniSection section = (IniSection) declaration;
 			declaration.setParent(this);
@@ -509,12 +509,12 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return false;
 	}
 
-	public void commit(Object object) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+	public void commit(final Object object) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
 		for (final IniSection section : this.sections())
 			section.commit(object, true);
 	}
 
-	public void parseAndCommitTo(Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+	public void parseAndCommitTo(final Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 		try {
 			new IniUnitParser(this).parse(false);
 		} catch (final ProblemException e) {
@@ -523,7 +523,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		commit(obj);
 	}
 
-	public void readObjectFields(Object object, Object defaults) throws IllegalAccessException {
+	public void readObjectFields(final Object object, final Object defaults) throws IllegalAccessException {
 		for (final Field f : object.getClass().getFields()) {
 			IniField annot;
 			if ((annot = f.getAnnotation(IniField.class)) != null) {
@@ -564,7 +564,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		}
 	}
 
-	public <T> T complexValue(String path, Class<T> cls) {
+	public <T> T complexValue(final String path, final Class<T> cls) {
 		final String[] p = path.split("\\.");
 		if (p.length < 2)
 			return null;

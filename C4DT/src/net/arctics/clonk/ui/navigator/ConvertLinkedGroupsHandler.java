@@ -23,22 +23,22 @@ import org.eclipse.ui.handlers.HandlerUtil;
 public class ConvertLinkedGroupsHandler extends ClonkResourceHandler {
 
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		try {
 			final ISelection selection = HandlerUtil.getCurrentSelection(event);
-			Map<IContainer, List<File>> filesToReimport = new HashMap<IContainer, List<File>>();
+			final Map<IContainer, List<File>> filesToReimport = new HashMap<IContainer, List<File>>();
 			if (UI.confirm(
 				HandlerUtil.getActiveShell(event),
 				Messages.ConvertLinkedGroupsHandler_ConfirmationText,
 				Messages.ConvertLinkedGroupsHandler_ConfirmationTitle
 			)) {
-				for (Object sel : ((IStructuredSelection)selection).toList())
+				for (final Object sel : ((IStructuredSelection)selection).toList())
 					if (sel instanceof IContainer) {
-						IContainer container = (IContainer) sel;
-						IFileStore store = EFS.getStore(container.getLocationURI());
+						final IContainer container = (IContainer) sel;
+						final IFileStore store = EFS.getStore(container.getLocationURI());
 						if (store instanceof C4Group) {
-							C4Group group = (C4Group) store;
-							IContainer parent = container.getParent();
+							final C4Group group = (C4Group) store;
+							final IContainer parent = container.getParent();
 							List<File> list = filesToReimport.get(parent);
 							if (list == null) {
 								list = new LinkedList<File>();
@@ -48,13 +48,13 @@ public class ConvertLinkedGroupsHandler extends ClonkResourceHandler {
 							container.delete(true, new NullProgressMonitor());
 						}
 					}
-				for (Map.Entry<IContainer, List<File>> entry : filesToReimport.entrySet())
+				for (final Map.Entry<IContainer, List<File>> entry : filesToReimport.entrySet())
 					QuickImportHandler.importFiles(
 							HandlerUtil.getActiveShell(event),
 							entry.getKey(), entry.getValue().toArray(new File[entry.getValue().size()])
 					);
 			}
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 		return null;

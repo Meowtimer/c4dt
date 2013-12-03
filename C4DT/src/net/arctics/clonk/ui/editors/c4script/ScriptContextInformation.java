@@ -30,7 +30,7 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 	private final Script context;
 
 	public Function function() { return function; }
-	public boolean valid(int offset) { return parmIndex != -1 && offset >= parmsStart(); }
+	public boolean valid(final int offset) { return parmIndex != -1 && offset >= parmsStart(); }
 	@Override
     public String getContextDisplayString() { return contextDisplayString; }
 	@Override
@@ -54,7 +54,7 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 	public int parmsEnd() { return parmsEnd; }
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (obj instanceof ScriptContextInformation) {
 			final ScriptContextInformation other = (ScriptContextInformation) obj;
 			return
@@ -65,9 +65,9 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 	}
 
 	public ScriptContextInformation(
-		Script context,
-		String contextDisplayString, Image image, Function function,
-		int parmIndex, int parmsStart, int parmsEnd
+		final Script context,
+		final String contextDisplayString, final Image image, final Function function,
+		final int parmIndex, final int parmsStart, final int parmsEnd
 	) {
 	    super();
 	    this.context = context;
@@ -84,7 +84,7 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 		return parameterDisplayStringRanges[Math.min(parameterDisplayStringRanges.length-1, parmIndex)];
 	}
 
-	private void makeDisplayString(Function function) {
+	private void makeDisplayString(final Function function) {
 		final boolean longParameterInfo = ClonkPreferences.toggle(ClonkPreferences.LONG_PARAMETER_INFO, false);
 		final StringBuilder builder = new StringBuilder();
 		final Function.Typing typing = context.typings().get(function);

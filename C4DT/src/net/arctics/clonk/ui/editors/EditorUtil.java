@@ -18,11 +18,11 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 
 public class EditorUtil {
-	public static Iterable<IEditorPart> clonkTextEditors(boolean restore) {
+	public static Iterable<IEditorPart> clonkTextEditors(final boolean restore) {
 		return clonkTextEditors(IEditorPart.class, restore);
 	}
 	@SuppressWarnings("unchecked")
-	public static <T extends IEditorPart> Iterable<T> clonkTextEditors(Class<T> c, boolean restore) {
+	public static <T extends IEditorPart> Iterable<T> clonkTextEditors(final Class<T> c, final boolean restore) {
 		final List<T> editors = new ArrayList<T>();
 		for (final IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows())
 			for (final IWorkbenchPage p : w.getPages())
@@ -45,7 +45,7 @@ public class EditorUtil {
 	public static Iterable<IEditorPart> editorPartsToBeSaved() {
 		return filter(clonkTextEditors(false), new IPredicate<IEditorPart>() {
 			@Override
-			public boolean test(IEditorPart item) {
+			public boolean test(final IEditorPart item) {
 				return item.isDirty();
 			}
 		});

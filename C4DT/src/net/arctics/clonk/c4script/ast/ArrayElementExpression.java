@@ -13,21 +13,21 @@ public class ArrayElementExpression extends ASTNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected ASTNode argument;
 
-	public ArrayElementExpression(ASTNode argument) {
+	public ArrayElementExpression(final ASTNode argument) {
 		super();
 		this.argument = argument;
 		assignParentToSubElements();
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append("["); //$NON-NLS-1$
 		argument().print(output, depth+1);
 		output.append("]"); //$NON-NLS-1$
 	}
 
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) {
+	public boolean isValidInSequence(final ASTNode predecessor) {
 		return predecessor != null;
 	}
 
@@ -37,7 +37,7 @@ public class ArrayElementExpression extends ASTNode {
 	}
 
 	@Override
-	public void setSubElements(ASTNode[] subElements) {
+	public void setSubElements(final ASTNode[] subElements) {
 		argument = subElements[0];
 	}
 
@@ -46,7 +46,7 @@ public class ArrayElementExpression extends ASTNode {
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		final Object array = value(predecessor().evaluate(context));
 		if (array instanceof List<?>)
 			return ((List<?>)array).get(((Number)argument.evaluate(context)).intValue());

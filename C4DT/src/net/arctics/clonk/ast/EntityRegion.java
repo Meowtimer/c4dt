@@ -26,7 +26,7 @@ public final class EntityRegion {
 	 * @param <T> Type to cast {@link #entity()} to.
 	 * @return {@link #entity()} cast to {@link Declaration} or null
 	 */
-	public <T> T entityAs(Class<T> cls) {
+	public <T> T entityAs(final Class<T> cls) {
 		return as(entity, cls);
 	}
 	/**
@@ -42,7 +42,7 @@ public final class EntityRegion {
 	 * @param region The text region
 	 * @param text The text
 	 */
-	public EntityRegion(IIndexEntity entity, IRegion region, String text) {
+	public EntityRegion(final IIndexEntity entity, final IRegion region, final String text) {
 		super();
 		this.entity = entity;
 		this.region = region;
@@ -53,7 +53,7 @@ public final class EntityRegion {
 	 * @param entity The entity
 	 * @param region The text region
 	 */
-	public EntityRegion(IIndexEntity entity, IRegion region) {
+	public EntityRegion(final IIndexEntity entity, final IRegion region) {
 		this(entity, region, null);
 	}
 	/**
@@ -62,9 +62,9 @@ public final class EntityRegion {
 	 * @param potentialEntities The list of potential {@link IIndexEntity}s
 	 * @param region The text region
 	 */
-	public EntityRegion(Set<? extends IIndexEntity> potentialEntities, IRegion region) {
+	public EntityRegion(final Set<? extends IIndexEntity> potentialEntities, final IRegion region) {
 		if (potentialEntities.size() == 1)
-			for (IIndexEntity d : potentialEntities) {
+			for (final IIndexEntity d : potentialEntities) {
 				this.entity = d;
 				break;
 			}
@@ -77,7 +77,7 @@ public final class EntityRegion {
 	 * Initialize a region with only {@link #entity()} set.
 	 * @param entity The entity
 	 */
-	public EntityRegion(IIndexEntity entity) {
+	public EntityRegion(final IIndexEntity entity) {
 		this(entity, null, null);
 	}
 	/**
@@ -98,7 +98,7 @@ public final class EntityRegion {
 	 * Set {@link #entity()}.
 	 * @param entity The entity to set {@link #entity()} to.
 	 */
-	public void setEntity(IIndexEntity entity) {
+	public void setEntity(final IIndexEntity entity) {
 		this.entity = entity;
 	}
 	/**
@@ -106,7 +106,7 @@ public final class EntityRegion {
 	 * @param offset The amount to increase by
 	 * @return Returns this.
 	 */
-	public EntityRegion incrementRegionBy(int offset) {
+	public EntityRegion incrementRegionBy(final int offset) {
 		region = new Region(region.getOffset()+offset, region.getLength());
 		return this;
 	}

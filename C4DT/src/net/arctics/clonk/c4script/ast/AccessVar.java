@@ -23,17 +23,17 @@ public class AccessVar extends AccessDeclaration {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public AccessVar(String varName) {
+	public AccessVar(final String varName) {
 		super(varName);
 	}
 
-	public AccessVar(Declaration declaration) {
+	public AccessVar(final Declaration declaration) {
 		this(declaration.name());
 		this.declaration = declaration;
 	}
 
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) {
+	public boolean isValidInSequence(final ASTNode predecessor) {
 		return
 			// either null or
 			predecessor == null ||
@@ -47,7 +47,7 @@ public class AccessVar extends AccessDeclaration {
 			predecessor instanceof MemberOperator;
 	}
 
-	private static Definition definitionProxiedBy(Declaration var) {
+	private static Definition definitionProxiedBy(final Declaration var) {
 		if (var instanceof Definition.ProxyVar)
 			return ((Definition.ProxyVar)var).definition();
 		else
@@ -70,7 +70,7 @@ public class AccessVar extends AccessDeclaration {
 				Object val = var.evaluateInitializationExpression(new EvaluationContextProxy(
 					var.initializationExpression().parent(Function.class)) {
 					@Override
-					public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {
+					public void reportOriginForExpression(final ASTNode expression, final IRegion location, final IFile file) {
 						if (expression == var.initializationExpression())
 							context.reportOriginForExpression(AccessVar.this, location, file);
 					}
@@ -90,7 +90,7 @@ public class AccessVar extends AccessDeclaration {
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		if (context != null)
 			return context.variable(this,
 				predecessor() != null ? value(predecessor().evaluate(context)) : context.self());

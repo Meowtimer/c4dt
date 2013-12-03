@@ -60,23 +60,23 @@ public class C4ScriptEditor extends StructureTextEditor {
 
 	private final class ShowContentAssistAtKeyUpListener implements MouseListener, KeyListener {
 		@Override
-		public void keyPressed(KeyEvent e) {}
+		public void keyPressed(final KeyEvent e) {}
 		@Override
-		public void keyReleased(KeyEvent e) {
+		public void keyReleased(final KeyEvent e) {
 			showParameters();
 		}
 		@Override
-		public void mouseDoubleClick(MouseEvent e) {}
+		public void mouseDoubleClick(final MouseEvent e) {}
 		@Override
-		public void mouseDown(MouseEvent e) {}
+		public void mouseDown(final MouseEvent e) {}
 		@Override
-		public void mouseUp(MouseEvent e) { showParameters(); }
+		public void mouseUp(final MouseEvent e) { showParameters(); }
 	}
 
 	@CommandId(id="ui.editors.actions.ToggleParametersShown")
 	public static class ToggleParametersShown extends ClonkTextEditorAction {
 		private C4ScriptEditor ed() { return (C4ScriptEditor)getTextEditor(); }
-		public ToggleParametersShown(ResourceBundle bundle, String prefix, ITextEditor editor) {
+		public ToggleParametersShown(final ResourceBundle bundle, final String prefix, final ITextEditor editor) {
 			super(bundle, prefix, editor);
 		}
 		@Override
@@ -119,7 +119,7 @@ public class C4ScriptEditor extends StructureTextEditor {
 	}
 
 	@Override
-	protected void setDocumentProvider(IEditorInput input) {
+	protected void setDocumentProvider(final IEditorInput input) {
 		if (input instanceof ScriptWithStorageEditorInput)
 			setDocumentProvider(new ExternalScriptsDocumentProvider(this));
 		else
@@ -127,7 +127,7 @@ public class C4ScriptEditor extends StructureTextEditor {
 	}
 
 	@Override
-	protected void doSetInput(IEditorInput input) throws CoreException {
+	protected void doSetInput(final IEditorInput input) throws CoreException {
 		try {
 			super.doSetInput(input);
 		} finally {
@@ -135,7 +135,7 @@ public class C4ScriptEditor extends StructureTextEditor {
 		}
 	}
 
-	private void setDocumentPartitioner(IEditorInput input) {
+	private void setDocumentPartitioner(final IEditorInput input) {
 		final IDocument document = getDocumentProvider().getDocument(input);
 		if (document.getDocumentPartitioner() == null) {
 			final IDocumentPartitioner partitioner =
@@ -166,7 +166,7 @@ public class C4ScriptEditor extends StructureTextEditor {
 	}
 
 	@Override
-	public IIndexEntity entityAtRegion(boolean fallbackToCurrentFunction, IRegion region) {
+	public IIndexEntity entityAtRegion(final boolean fallbackToCurrentFunction, final IRegion region) {
 		try {
 			final EntityLocator info = new EntityLocator(
 				script(),
@@ -201,7 +201,7 @@ public class C4ScriptEditor extends StructureTextEditor {
 	 * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#configureSourceViewerDecorationSupport(org.eclipse.ui.texteditor.SourceViewerDecorationSupport)
 	 */
 	@Override
-	protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
+	protected void configureSourceViewerDecorationSupport(final SourceViewerDecorationSupport support) {
 		super.configureSourceViewerDecorationSupport(support);
 		support.setCharacterPairMatcher(fBracketMatcher);
 		support.setMatchingCharacterPainterPreferenceKeys(ENABLE_BRACKET_HIGHLIGHT, BRACKET_HIGHLIGHT_COLOR);
@@ -212,7 +212,7 @@ public class C4ScriptEditor extends StructureTextEditor {
 	private final ShowContentAssistAtKeyUpListener showContentAssistAtKeyUpListener = new ShowContentAssistAtKeyUpListener();
 
 	@Override
-	public void createPartControl(Composite parent) {
+	public void createPartControl(final Composite parent) {
 		super.createPartControl(parent);
 		getSourceViewer().getTextWidget().addMouseListener(showContentAssistAtKeyUpListener);
 		getSourceViewer().getTextWidget().addKeyListener(showContentAssistAtKeyUpListener);
@@ -239,7 +239,7 @@ public class C4ScriptEditor extends StructureTextEditor {
 	 * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#editorContextMenuAboutToShow(org.eclipse.jface.action.IMenuManager)
 	 */
 	@Override
-	protected void editorContextMenuAboutToShow(IMenuManager menu) {
+	protected void editorContextMenuAboutToShow(final IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
 		if (script() != null) {
 			if (script().isEditable()) {
@@ -303,7 +303,7 @@ public class C4ScriptEditor extends StructureTextEditor {
 		return state != null ? state.structure() : null;
 	}
 
-	public void reparse(boolean onlyDeclarations) throws IOException, ProblemException {
+	public void reparse(final boolean onlyDeclarations) throws IOException, ProblemException {
 		if (script() == null)
 			return;
 		if (state != null)

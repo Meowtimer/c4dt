@@ -31,11 +31,11 @@ public class ClonkSorter extends ViewerSorter {
 		super();
 	}
 
-	public ClonkSorter(Collator collator) {
+	public ClonkSorter(final Collator collator) {
 		super(collator);
 	}
 	
-	private int getSortPriorityIgnoringTags(IResource resource) {
+	private int getSortPriorityIgnoringTags(final IResource resource) {
 		if (!resource.getProject().equals(cachedProject)) {
 			cachedProject = resource.getProject();
 			cachedEngine = ClonkProjectNature.engineFromResource(resource);
@@ -51,7 +51,7 @@ public class ClonkSorter extends ViewerSorter {
 		return sortPriorities.length+1;
 	}
 	
-	private synchronized int getSortPriority(IResource resource) {
+	private synchronized int getSortPriority(final IResource resource) {
 		final int simplePriority = getSortPriorityIgnoringTags(resource);
 		String relatedTag;
 		try {
@@ -71,7 +71,7 @@ public class ClonkSorter extends ViewerSorter {
 	}
 	
 	@Override
-	public int category(Object element) {
+	public int category(final Object element) {
 		if (element instanceof Declaration)
 			return ((Declaration) element).sortCategory();
 		else if (element instanceof IResource)
@@ -81,7 +81,7 @@ public class ClonkSorter extends ViewerSorter {
 	}
 	
 	@Override
-	public int compare(Viewer viewer, Object e1, Object e2) {
+	public int compare(final Viewer viewer, final Object e1, final Object e2) {
 		return super.compare(viewer, e1, e2);
 	}
 

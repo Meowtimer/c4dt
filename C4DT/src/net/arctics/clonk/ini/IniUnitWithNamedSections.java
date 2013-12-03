@@ -9,17 +9,17 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	
-	public IniUnitWithNamedSections(Object input) {
+	public IniUnitWithNamedSections(final Object input) {
 		super(input);
 	}
 	
-	public String nameOfEntryToTakeSectionNameFrom(IniSection section) {
+	public String nameOfEntryToTakeSectionNameFrom(final IniSection section) {
 		return "Name"; //$NON-NLS-1$
 	}
 
 	@Override
-	public String sectionToString(IniSection section) {
-		IniItem nameEntry = section.itemByKey(nameOfEntryToTakeSectionNameFrom(section));
+	public String sectionToString(final IniSection section) {
+		final IniItem nameEntry = section.itemByKey(nameOfEntryToTakeSectionNameFrom(section));
 		if (nameEntry instanceof IniEntry) {
 			String val = ((IniEntry) nameEntry).stringValue();
 			val = StringTbl.evaluateEntries(this, val, true).evaluated;
@@ -31,8 +31,8 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 	public IPredicate<IniSection> nameMatcherPredicate(final String value) {
 		return new IPredicate<IniSection>() {
 			@Override
-			public boolean test(IniSection section) {
-				IniItem entry = section.itemByKey(nameOfEntryToTakeSectionNameFrom(section)); 
+			public boolean test(final IniSection section) {
+				final IniItem entry = section.itemByKey(nameOfEntryToTakeSectionNameFrom(section)); 
 				return (entry instanceof IniEntry && ((IniEntry)entry).stringValue().equals(value));
 			}
 		};
@@ -40,10 +40,10 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends Declaration> T latestVersionOf(T from) {
+	public <T extends Declaration> T latestVersionOf(final T from) {
 		if (from instanceof IniSection) {
-			IniSection section = (IniSection) from;
-			IniEntry entry = (IniEntry) section.itemByKey(nameOfEntryToTakeSectionNameFrom(section.parentSection()));
+			final IniSection section = (IniSection) from;
+			final IniEntry entry = (IniEntry) section.itemByKey(nameOfEntryToTakeSectionNameFrom(section.parentSection()));
 			if (entry != null)
 				return (T) sectionMatching(nameMatcherPredicate(entry.stringValue()));
 			else

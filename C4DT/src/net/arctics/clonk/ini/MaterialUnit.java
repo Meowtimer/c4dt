@@ -11,7 +11,7 @@ public class MaterialUnit extends IniUnit {
 		return "Material.txt"; //$NON-NLS-1$
 	}
 	
-	public MaterialUnit(Object input) {
+	public MaterialUnit(final Object input) {
 		super(input);
 	}
 }

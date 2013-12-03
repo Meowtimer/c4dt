@@ -24,7 +24,7 @@ import org.eclipse.jface.text.IDocument;
 
 public class StreamUtil {
 
-	public static String stringFromReader(Reader reader) {
+	public static String stringFromReader(final Reader reader) {
 		final char[] buffer = new char[1024];
 		int read;
 		final StringBuilder builder = new StringBuilder(1024);
@@ -37,13 +37,13 @@ public class StreamUtil {
 		return builder.toString();
 	}
 
-	public static String stringFromInputStream(InputStream stream, String encoding) throws IOException {
+	public static String stringFromInputStream(final InputStream stream, final String encoding) throws IOException {
 		try (InputStreamReader inputStreamReader = new InputStreamReader(stream, encoding)) {
 			return stringFromReader(inputStreamReader);
 		}
 	}
 
-	public static String stringFromInputStream(InputStream stream) {
+	public static String stringFromInputStream(final InputStream stream) {
 		try {
 			return stringFromInputStream(stream, "UTF8"); //$NON-NLS-1$
 		} catch (final IOException e) {
@@ -52,7 +52,7 @@ public class StreamUtil {
 		}
 	}
 
-	public static String stringFromURL(URL url) {
+	public static String stringFromURL(final URL url) {
 		InputStream stream;
 		try {
 			stream = url.openStream();
@@ -71,7 +71,7 @@ public class StreamUtil {
 		}
 	}
 
-	public static String stringFromFile(IFile file) {
+	public static String stringFromFile(final IFile file) {
 		InputStream stream;
 		try {
 			stream = file.getContents();
@@ -90,7 +90,7 @@ public class StreamUtil {
 		}
 	}
 
-	public static String stringFromFile(File file) {
+	public static String stringFromFile(final File file) {
 		InputStream stream;
 		try {
 			stream = new FileInputStream(file);
@@ -108,11 +108,11 @@ public class StreamUtil {
 		}
 	}
 
-	public static String stringFromStorage(IStorage storage) {
+	public static String stringFromStorage(final IStorage storage) {
 		if (storage instanceof IFile)
 			return Core.instance().performActionsOnFileDocument(storage, new IDocumentAction<String>() {
 				@Override
-				public String run(IDocument document) {
+				public String run(final IDocument document) {
 					return document.get();
 				}
 			}, false);
@@ -125,10 +125,10 @@ public class StreamUtil {
 			}
 	}
 
-	public static String stringFromFileDocument(IFile file) {
+	public static String stringFromFileDocument(final IFile file) {
 		return Core.instance().performActionsOnFileDocument(file, new IDocumentAction<String>() {
 			@Override
-			public String run(IDocument document) {
+			public String run(final IDocument document) {
 				return document.get();
 			}
 		}, false);
@@ -138,7 +138,7 @@ public class StreamUtil {
 		void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException;
 	}
 
-	public static void writeToFile(File file, StreamWriteRunnable runnable) throws IOException {
+	public static void writeToFile(final File file, final StreamWriteRunnable runnable) throws IOException {
 		final FileOutputStream s = new FileOutputStream(file);
 		try {
 			final OutputStreamWriter writer = new OutputStreamWriter(s);
@@ -152,7 +152,7 @@ public class StreamUtil {
 		}
 	}
 
-	public static void transfer(InputStream source, OutputStream dest) throws IOException {
+	public static void transfer(final InputStream source, final OutputStream dest) throws IOException {
 		final byte[] buffer = new byte[1024];
 		int read;
 		while ((read = source.read(buffer)) != -1)
@@ -163,7 +163,7 @@ public class StreamUtil {
 		return new FilenameFilter() {
 			private final Pattern p = StringUtil.patternFromRegExOrWildcard(pattern);
 			@Override
-			public boolean accept(File dir, String name) {
+			public boolean accept(final File dir, final String name) {
 				return p.matcher(name).matches();
 			}
 		};

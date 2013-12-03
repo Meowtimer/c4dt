@@ -45,9 +45,9 @@ import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.IRefinedPrimitiveType;
 import net.arctics.clonk.c4script.typing.IType;
-import net.arctics.clonk.c4script.typing.Maybe;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeAnnotation;
+import net.arctics.clonk.c4script.typing.TypeChoice;
 import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -96,13 +96,13 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 
 	private ProposalCycle proposalCycle = null;
 
-	public ScriptCompletionProcessor(ScriptEditingState state) { super(state); }
+	public ScriptCompletionProcessor(final ScriptEditingState state) { super(state); }
 
 	@Override
-	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
+	public void selectionChanged(final ICompletionProposal proposal, final boolean smartToggle) {}
 
 	@Override
-	public void assistSessionStarted(ContentAssistEvent event) {
+	public void assistSessionStarted(final ContentAssistEvent event) {
 		final IContentAssistantExtension3 ex3 = as(event.assistant, IContentAssistantExtension3.class);
 		final IContentAssistantExtension2 ex2 = as(event.assistant, IContentAssistantExtension2.class);
 		if (ex2 != null) {
@@ -116,12 +116,12 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	}
 
 	@Override
-	public void assistSessionEnded(ContentAssistEvent event) {
+	public void assistSessionEnded(final ContentAssistEvent event) {
 		proposalCycle = null;
 	}
 
 	@Override
-	public void assistSessionRestarted(ContentAssistEvent event) {}
+	public void assistSessionRestarted(final ContentAssistEvent event) {}
 
 	/**
 	 * Add to an existing list the proposals originating from some {@link Index}. Those proposals are comprised of global functions, static variables and {@link Definition}s.
@@ -133,7 +133,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	 * @param flags Flags indicating what kind of proposals should be included. {@link DeclMask#STATIC_VARIABLES} needs to be or-ed to flags if {@link Definition} and static variable proposals are to be shown.
 	 * @param editorScript Script the proposals are invoked on.
 	 */
-	private void proposalsForIndex(ProposalsSite site, Index index) {
+	private void proposalsForIndex(final ProposalsSite site, final Index index) {
 		final int declarationsMask = site.declarationsMask();
 		if (site.function != null) {
 			final Scenario s2 = site.function.scenario();
@@ -159,7 +159,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			proposalsForIndexedDefinitions(site, index);
 	}
 
-	private ProposalsSite makeProposalsSite(ITextViewer viewer, int offset) {
+	private ProposalsSite makeProposalsSite(final ITextViewer viewer, int offset) {
 		int wordOffset;
 		final IDocument doc = viewer.getDocument();
 		for (wordOffset = offset - 1; wordOffset >= 0; wordOffset--)
@@ -190,7 +190,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	}
 
 	@Override
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+	public ICompletionProposal[] computeCompletionProposals(final ITextViewer viewer, final int offset) {
 		super.computeCompletionProposals(viewer, offset);
 		site = makeProposalsSite(viewer, offset);
 		if (site == null)
@@ -228,7 +228,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		state().assistant().setStatusMessage(proposalCycleMessage());
 	}
 
-	private boolean computeProposalsInsideFunction(ProposalsSite site) {
+	private boolean computeProposalsInsideFunction(final ProposalsSite site) {
 		site.pos(site.offset - (site.function != null ? site.function.bodyLocation().start() : 0));
 		final ScriptEditingState state = state();
 		if (site.script != null && state != null)
@@ -248,13 +248,13 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			return false;
 	}
 
-	private boolean proplistKeyProposals(ProposalsSite site) {
+	private boolean proplistKeyProposals(final ProposalsSite site) {
 		if (site.contextExpression instanceof PropListExpression)
 			return true;
 		return false;
 	}
 
-	private boolean checkProposalConditions(ProposalsSite site) {
+	private boolean checkProposalConditions(final ProposalsSite site) {
 		try {
 			boolean targetCall = false;
 			boolean whitespace = false;
@@ -296,7 +296,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		return true;
 	}
 
-	private void innerProposalsInFunction(ProposalsSite site) {
+	private void innerProposalsInFunction(final ProposalsSite site) {
 		setCategoryOrdering(site);
 
 		functionLocalProposals(site);
@@ -308,7 +308,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		removeProposalForVariableBeingDeclared(site);
 	}
 
-	private void removeProposalForVariableBeingDeclared(ProposalsSite site) {
+	private void removeProposalForVariableBeingDeclared(final ProposalsSite site) {
 		if (site.contextExpression != null) {
 			final VarInitialization init = site.contextExpression.parent(VarInitialization.class);
 			if (init != null && init.variable != null)
@@ -316,13 +316,13 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private boolean skipProposalsInFunction(ASTNode contextExpression) {
+	private boolean skipProposalsInFunction(final ASTNode contextExpression) {
 		return contextExpression instanceof Comment;
 	}
 
 	private static final Text WHITESPACE = new Text("");
 
-	private void engineProposals(ProposalsSite site) {
+	private void engineProposals(final ProposalsSite site) {
 		if (noStructureType(site))
 			return;
 		final Engine ngn = site.script.index().engine();
@@ -336,7 +336,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private void functionLocalProposals(ProposalsSite site) {
+	private void functionLocalProposals(final ProposalsSite site) {
 		if ((site.declarationsMask() & DeclMask.FUNCTIONS) != 0)
 			if (site.contextSequence == null && site.function != null) {
 				for (final Variable v : site.function.parameters())
@@ -346,7 +346,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			}
 	}
 
-	private void globalIndexProposals(ProposalsSite site) {
+	private void globalIndexProposals(final ProposalsSite site) {
 		for (final Index i : site.index.relevantIndexes())
 			proposalsForIndex(site, i);
 	}
@@ -357,16 +357,16 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		@Override
 		public int hashCode() { return name.hashCode(); }
 		@Override
-		public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
+		public List<? extends Declaration> subDeclarations(final Index contextIndex, final int mask) {
 			return Arrays.asList(hint);
 		}
 	};
 
 	@SuppressWarnings("unchecked")
 	private void recursiveProposalsForStructure(
-		ProposalsSite site,
-		Declaration target, Declaration structure, int distanceToTarget,
-		Set<Declaration> catcher
+		final ProposalsSite site,
+		final Declaration target, final Declaration structure, final int distanceToTarget,
+		final Set<Declaration> catcher
 	) {
 		if (!catcher.add(structure))
 			return;
@@ -390,7 +390,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private void structureProposals(ProposalsSite site) {
+	private void structureProposals(final ProposalsSite site) {
 		final Set<Declaration> proposalTypes = determineProposalTypes(site);
 		if (proposalTypes.size() > 0)
 			for (final Declaration s : proposalTypes)
@@ -399,7 +399,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			proposeAllTheThings(site);
 	}
 
-	public void proposeAllTheThings(ProposalsSite site) {
+	public void proposeAllTheThings(final ProposalsSite site) {
 		final List<DeclarationProposal> old = Arrays.asList(filter(site.proposals, DeclarationProposal.class));
 		final List<Index> relevantIndexes = site.index.relevantIndexes();
 		final int declarationMask = site.declarationsMask();
@@ -418,7 +418,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private boolean noStructureType(ProposalsSite site) {
+	private boolean noStructureType(final ProposalsSite site) {
 		boolean noStructure = true;
 		for (final IType t : site.precedingType()) {
 			IType ty = t;
@@ -436,7 +436,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		return noStructure;
 	}
 
-	private Set<Declaration> determineProposalTypes(ProposalsSite site) {
+	private Set<Declaration> determineProposalTypes(final ProposalsSite site) {
 		final Set<Declaration> contextStructures = new HashSet<Declaration>();
 		if (site.contextSequence != null) {
 			if (noStructureType(site))
@@ -458,7 +458,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		return contextStructures;
 	}
 
-	private void keywordProposals(ProposalsSite site) {
+	private void keywordProposals(final ProposalsSite site) {
 		if (site.contextSequence == null && (site.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0) {
 			final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 			final List<String> keywords = new ArrayList<>(BuiltInDefinitions.KEYWORDS);
@@ -475,7 +475,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private boolean varInitializationProposals(ProposalsSite site) {
+	private boolean varInitializationProposals(final ProposalsSite site) {
 		final VarInitialization vi = as(site.contextExpression, VarInitialization.class);
 		final TypeAnnotation annot = as(site.contextExpression, TypeAnnotation.class);
 		if (vi == null && annot == null)
@@ -503,7 +503,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private void ruleBasedProposals(ProposalsSite site) {
+	private void ruleBasedProposals(final ProposalsSite site) {
 		if (site.contextExpression == null)
 			return;
 		final CallDeclaration innermostCallFunc = site.contextExpression.thisOrParent(CallDeclaration.class);
@@ -519,7 +519,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private void setCategoryOrdering(ProposalsSite site) {
+	private void setCategoryOrdering(final ProposalsSite site) {
 		cats.defaultOrdering();
 		if (site.contextExpression == null)
 			return;
@@ -534,11 +534,11 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		else
 			parm = null;
 		if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN &&
-			(eq(parm.type(), PrimitiveType.ID) || Maybe.contained(parm.type(), MetaDefinition.class) != null))
+			(eq(parm.type(), PrimitiveType.ID) || TypeChoice.contained(parm.type(), MetaDefinition.class) != null))
 				cats.Definitions = cats.SelfField-cats.PAGE/2;
 	}
 
-	private boolean computeStringProposals(ProposalsSite site) {
+	private boolean computeStringProposals(final ProposalsSite site) {
 		// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 		if (site.contextExpression instanceof Placeholder || site.contextExpression instanceof StringLiteral) {
 			try {
@@ -587,7 +587,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	 * @return A list of proposals that (hopefully) represent a valid continuation of the given expression
 	 */
 	public static List<ICompletionProposal> computeProposalsForExpression
-		(IDocument document, Function function, ASTNode expression) {
+		(final IDocument document, final Function function, final ASTNode expression) {
 		final List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
 		new ScriptEditingState(Core.instance().getPreferenceStore()).set(null, function.script(), document);
 		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(
@@ -603,7 +603,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	}
 
 	private DeclarationProposal callbackProposal(
-		ProposalsSite site,
+		final ProposalsSite site,
 		final String callback,
 		final String nameFormat,
 		final String displayString,
@@ -620,7 +620,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			null, null, Messages.C4ScriptCompletionProcessor_Callback, site
 		) {
 			@Override
-			public boolean validate(IDocument document, int offset, DocumentEvent event) {
+			public boolean validate(final IDocument document, final int offset, final DocumentEvent event) {
 				final int replaceOffset = replacementOffset();
 				try {
 					final String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
@@ -633,7 +633,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				}
 			}
 			@Override
-			public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
+			public void apply(final ITextViewer viewer, final char trigger, final int stateMask, final int offset) {
 				final int replaceOffset = replacementOffset();
 				String cb = callback;
 				if (cb == null)
@@ -646,7 +646,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				cb = String.format(nameFormat, cb);
 				replacementString = funcSupplied
 					? cb
-					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, state().structure(), parameters); //$NON-NLS-1$
+					: Function.scaffoldTextRepresentation(cb, FunctionScope.PUBLIC, state().structure(), parameters);
 				cursorPosition = replacementString.length()-2;
 				super.apply(viewer, trigger, stateMask, offset);
 			}
@@ -657,7 +657,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		return prop;
 	}
 
-	private boolean computeProposalsOutsideFunction(ITextViewer viewer, ProposalsSite site) {
+	private boolean computeProposalsOutsideFunction(final ITextViewer viewer, final ProposalsSite site) {
 		proposalCycle = ProposalCycle.ALL;
 		// check whether func keyword precedes location (whole function blocks won't be created then)
 		final boolean funcSupplied = precededBy(viewer, site.offset, Keywords.Func);
@@ -696,13 +696,13 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		return true;
 	}
 
-	private void directiveDefinitionArgumentProposals(ProposalsSite site) {
+	private void directiveDefinitionArgumentProposals(final ProposalsSite site) {
 		// propose objects for #include or something
 		for (final Index i : site.index.relevantIndexes())
 			proposalsForIndex(site, i);
 	}
 
-	private void directiveProposals(ProposalsSite site) {
+	private void directiveProposals(final ProposalsSite site) {
 		// propose directives (#include, ...)
 		final Image directiveIcon = UI.imageForPath("icons/directive.png"); //$NON-NLS-1$
 		for(final Directive directive : Directive.CANONICALS) {
@@ -723,7 +723,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private void declaratorProposals(ProposalsSite site) {
+	private void declaratorProposals(final ProposalsSite site) {
 		// propose declaration keywords (var, static, ...)
 		for(final String declarator : BuiltInDefinitions.DECLARATORS) {
 			if (site.prefix != null)
@@ -732,13 +732,13 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			final Image declaratorImg = UI.imageForPath("icons/declarator.png"); //$NON-NLS-1$
 			int replacementLength = 0;
 			if (site.prefix != null) replacementLength = site.prefix.length();
-			final DeclarationProposal prop = new DeclarationProposal(null, null, declarator,site.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, site); //$NON-NLS-1$
+			final DeclarationProposal prop = new DeclarationProposal(null, null, declarator,site.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, site);
 			prop.setCategory(cats.Keywords);
 			site.addProposal(prop);
 		}
 	}
 
-	private void effectFunctionProposals(ProposalsSite site, final boolean funcSupplied) {
+	private void effectFunctionProposals(final ProposalsSite site, final boolean funcSupplied) {
 		// propose creating effect functions
 		for (final String s : EffectFunction.DEFAULT_CALLBACKS) {
 			final IType parameterTypes[] = Effect.parameterTypesForCallback(s, state().structure(), PrimitiveType.ANY);
@@ -751,13 +751,13 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private void newFunctionProposal(ProposalsSite site, final boolean funcSupplied) {
+	private void newFunctionProposal(final ProposalsSite site, final boolean funcSupplied) {
 		// propose to just create function with the name already typed
 		if (site.untamperedPrefix != null && site.untamperedPrefix.length() > 0)
 			callbackProposal(site, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied).setCategory(cats.NewFunction); //$NON-NLS-1$
 	}
 
-	private void standardCallbackProposals(ProposalsSite site, final boolean funcSupplied) {
+	private void standardCallbackProposals(final ProposalsSite site, final boolean funcSupplied) {
 		// propose creating functions for standard callbacks
 		for(final String callback : state().structure().engine().settings().callbackFunctions()) {
 			if (site.prefix != null)
@@ -767,7 +767,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 	}
 
-	private void overrideProposals(ProposalsSite site, final boolean funcSupplied) {
+	private void overrideProposals(final ProposalsSite site, final boolean funcSupplied) {
 		// propose overriding inherited functions
 		final Script script = state().structure();
 		final List<Script> cong = script.conglomerate();
@@ -781,7 +781,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				}
 	}
 
-	private static boolean precededBy(ITextViewer viewer, int offset, String what) {
+	private static boolean precededBy(final ITextViewer viewer, int offset, final String what) {
 		try {
 			do
 				if (offset >= what.length() + 1 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what))
@@ -801,7 +801,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			return "";
 	}
 
-	private List<DeclarationProposal> proposalsForStructure(ProposalsSite site, Declaration target, Declaration structure) {
+	private List<DeclarationProposal> proposalsForStructure(final ProposalsSite site, final Declaration target, final Declaration structure) {
 		final List<DeclarationProposal> result = new LinkedList<>();
 		for (final Declaration dec : structure.subDeclarations(site.index, site.declarationsMask())) {
 			if (!target.seesSubDeclaration(dec))
@@ -831,7 +831,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		return result;
 	}
 
-	private DeclarationProposal proposalForText(ProposalsSite site, Text text) {
+	private DeclarationProposal proposalForText(final ProposalsSite site, final Text text) {
 		final DeclarationProposal prop = new DeclarationProposal(text, site.script, "", site.offset, 0, 0);
 		site.addProposal(prop);
 		return prop;
@@ -840,15 +840,12 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private IContextInformation prevInformation;
 	private final ScriptContextInformationValidator contextInformationValidator = new ScriptContextInformationValidator();
 
-	Function functionFromCall(IFunctionCall call) {
-		if (call instanceof CallDeclaration)
-			return as(((CallDeclaration) call).declaration(), Function.class);
-		else
-			return null;
+	Function functionFromCall(final IFunctionCall call) {
+		return call instanceof CallDeclaration ? as(((CallDeclaration) call).declaration(), Function.class) : null;
 	}
 
 	@Override
-	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
+	public IContextInformation[] computeContextInformation(final ITextViewer viewer, final int offset) {
 		IContextInformation info = null;
 		try {
 			final Function cursorFunc = state().activeEditor().functionAtCursor();

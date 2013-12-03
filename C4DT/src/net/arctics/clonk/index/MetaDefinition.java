@@ -15,11 +15,11 @@ public class MetaDefinition implements IRefinedPrimitiveType {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Definition definition;
 	public Definition definition() { return definition; }
-	public MetaDefinition(Definition definition) { super(); this.definition = definition; }
+	public MetaDefinition(final Definition definition) { super(); this.definition = definition; }
 	@Override
 	public Iterator<IType> iterator() { return iterable(PrimitiveType.ID, this, definition).iterator(); }
 	@Override
-	public String typeName(boolean special) { return String.format("id[%s]", definition.typeName(special)); }
+	public String typeName(final boolean special) { return String.format("id[%s]", definition.typeName(special)); }
 	@Override
 	public IType simpleType() { return PrimitiveType.ID; }
 	@Override
@@ -27,7 +27,7 @@ public class MetaDefinition implements IRefinedPrimitiveType {
 	@Override
 	public PrimitiveType primitiveType() { return PrimitiveType.ID; }
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		final MetaDefinition other = as(obj, MetaDefinition.class);
 		return other != null && Utilities.eq(other.definition(), definition());
 	}

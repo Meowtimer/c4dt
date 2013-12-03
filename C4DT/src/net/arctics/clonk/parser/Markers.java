@@ -40,8 +40,8 @@ public class Markers implements Iterable<Marker> {
 	public static final String MARKER_EXPECTEDTYPE = "c4dtExpectedType";
 
 	public Markers() {}
-	public Markers(IMarkerListener listener) { this(); this.listener = listener; }
-	public Markers(boolean enabled) { this.enabled = enabled; }
+	public Markers(final IMarkerListener listener) { this(); this.listener = listener; }
+	public Markers(final boolean enabled) { this.enabled = enabled; }
 
 	private boolean enabled = true;
 	private final Set<Problem> disabledErrors = new HashSet<Problem>();
@@ -55,13 +55,13 @@ public class Markers implements Iterable<Marker> {
 		return r;
 	}
 
-	public void setListener(IMarkerListener markerListener) { this.listener = markerListener; }
+	public void setListener(final IMarkerListener markerListener) { this.listener = markerListener; }
 	public IMarkerListener listener() { return listener; }
 
 	public Marker last() { return last; }
 	public Marker first() { return first; }
 
-	public void discardFrom(Marker start) {
+	public void discardFrom(final Marker start) {
 		if (start == null) {
 			clear();
 			return;
@@ -89,7 +89,7 @@ public class Markers implements Iterable<Marker> {
 			}
 	}
 
-	private IMarker findCaptured(int start, int end) {
+	private IMarker findCaptured(final int start, final int end) {
 		if (captured == null)
 			return null;
 		for (final Iterator<IMarker> it = captured.iterator(); it.hasNext();) {
@@ -150,7 +150,7 @@ public class Markers implements Iterable<Marker> {
 		}.start();
 	}
 
-	public synchronized boolean add(Marker e) {
+	public synchronized boolean add(final Marker e) {
 		if (!errorEnabled(e.code))
 			return false;
 		if (last == null) {
@@ -166,7 +166,7 @@ public class Markers implements Iterable<Marker> {
 		return true;
 	}
 
-	public void take(Markers others) {
+	public void take(final Markers others) {
 		final Marker f = others.clear();
 		synchronized (this) {
 			for (Marker m = f, n; m != null; m = n) {
@@ -190,7 +190,7 @@ public class Markers implements Iterable<Marker> {
 	 * @param args Format arguments used when creating the marker message with the message from the error code as the format.
 	 * @throws ProblemException
 	 */
-	public void marker(IASTPositionProvider positionProvider, Problem code, ASTNode node, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
+	public void marker(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, int markerStart, int markerEnd, final int flags, final int severity, final Object... args) throws ProblemException {
 		if (!errorEnabled(code))
 			return;
 
@@ -222,20 +222,20 @@ public class Markers implements Iterable<Marker> {
 			throw new ProblemException(problem);
 	}
 
-	public void warning(IASTPositionProvider positionProvider, Problem code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) {
+	public void warning(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, final int errorStart, final int errorEnd, final int flags, final Object... args) {
 		try {
 			marker(positionProvider, code, node, errorStart, errorEnd, flags|Markers.NO_THROW, IMarker.SEVERITY_WARNING, args);
 		} catch (final ProblemException e) {
 			// won't happen
 		}
 	}
-	public void warning(IASTPositionProvider positionProvider, Problem code, ASTNode node, IRegion region, int flags, Object... args) {
+	public void warning(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, final IRegion region, final int flags, final Object... args) {
 		warning(positionProvider, code, node, region.getOffset(), region.getOffset()+region.getLength(), flags, args);
 	}
-	public void error(IASTPositionProvider positionProvider, Problem code, ASTNode node, IRegion errorRegion, int flags, Object... args) throws ProblemException {
+	public void error(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, final IRegion errorRegion, final int flags, final Object... args) throws ProblemException {
 		error(positionProvider, code, node, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
 	}
-	public void error(IASTPositionProvider positionProvider, Problem code, ASTNode node, int errorStart, int errorEnd, int flags, Object... args) throws ProblemException {
+	public void error(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, final int errorStart, final int errorEnd, final int flags, final Object... args) throws ProblemException {
 		marker(positionProvider, code, node, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
 	}
 
@@ -244,7 +244,7 @@ public class Markers implements Iterable<Marker> {
 	 * @param error The error to check the enabled status of
 	 * @return Return whether the error is enabled.
 	 */
-	public boolean errorEnabled(Problem error) {
+	public boolean errorEnabled(final Problem error) {
 		return enabled && !disabledErrors.contains(error);
 	}
 
@@ -254,7 +254,7 @@ public class Markers implements Iterable<Marker> {
 	 * @param region The region to convert
 	 * @return The relative region or the passed region, if there is no current function.
 	 */
-	public IRegion convertRelativeRegionToAbsolute(ASTNode node, int flags, IRegion region) {
+	public IRegion convertRelativeRegionToAbsolute(final ASTNode node, final int flags, final IRegion region) {
 		final int offset = node != null ? node.sectionOffset() : 0;
 		if (offset == 0 || (flags & ABSOLUTE_MARKER_LOCATION) == 0)
 			return region;
@@ -262,7 +262,7 @@ public class Markers implements Iterable<Marker> {
 			return new Region(offset+region.getOffset(), region.getLength());
 	}
 
-	public IMarker todo(IFile file, ASTNode node, String todoText, int markerStart, int markerEnd, int priority) {
+	public IMarker todo(final IFile file, final ASTNode node, final String todoText, final int markerStart, final int markerEnd, final int priority) {
 		if (file != null)
 			try {
 				final Declaration declaration = node.parent(Declaration.class);
@@ -282,17 +282,17 @@ public class Markers implements Iterable<Marker> {
 			return null;
 	}
 
-	public void enableErrors(Set<Problem> set, boolean doEnable) {
+	public void enableErrors(final Set<Problem> set, final boolean doEnable) {
 		if (doEnable)
 			disabledErrors.removeAll(set);
 		else
 			disabledErrors.addAll(set);
 	}
 
-	public void enabled(boolean value) { enabled = value; }
+	public void enabled(final boolean value) { enabled = value; }
 	public boolean enabled() { return enabled; }
 
-	public boolean enableError(Problem error, boolean doEnable) {
+	public boolean enableError(final Problem error, final boolean doEnable) {
 		final boolean result = errorEnabled(error);
 		if (doEnable)
 			disabledErrors.remove(error);
@@ -300,7 +300,7 @@ public class Markers implements Iterable<Marker> {
 			disabledErrors.add(error);
 		return result;
 	}
-	public void applyProjectSettings(Index index) {
+	public void applyProjectSettings(final Index index) {
 		disabledErrors.clear();
 		if (index instanceof ProjectIndex) {
 			final ProjectIndex projIndex = (ProjectIndex) index;
@@ -310,7 +310,7 @@ public class Markers implements Iterable<Marker> {
 		}
 	}
 
-	public static Problem problem(IMarker marker) {
+	public static Problem problem(final IMarker marker) {
 		try {
 			return Problem.values()[marker.getAttribute(MARKER_PROBLEM, -1)];
 		} catch (final ArrayIndexOutOfBoundsException e) {
@@ -318,7 +318,7 @@ public class Markers implements Iterable<Marker> {
 		}
 	}
 
-	public static PrimitiveType expectedType(IMarker marker) {
+	public static PrimitiveType expectedType(final IMarker marker) {
 		final String attr = marker.getAttribute(MARKER_EXPECTEDTYPE, null);
 		return attr != null ? PrimitiveType.fromString(attr) : PrimitiveType.ANY;
 	}
@@ -350,7 +350,7 @@ public class Markers implements Iterable<Marker> {
 		return count;
 	}
 
-	public static void clearMarkers(IResource resource) {
+	public static void clearMarkers(final IResource resource) {
 		if (resource == null)
 			return;
 		try {
@@ -361,14 +361,14 @@ public class Markers implements Iterable<Marker> {
 		}
 	}
 
-	public void capture(Collection<IMarker> markers) {
+	public void capture(final Collection<IMarker> markers) {
 		if (captured == null)
 			captured = new HashSet<>(markers);
 		else
 			captured.addAll(markers);
 	}
 
-	public void captureExistingMarkers(IResource resource) {
+	public void captureExistingMarkers(final IResource resource) {
 		if (resource == null)
 			return;
 		try {

@@ -80,16 +80,16 @@ public abstract class StructureCompletionProcessor<StateClass
 	protected final CategoryOrdering cats = new CategoryOrdering();
 
 	public StateClass state() { return state; }
-	public StructureCompletionProcessor(StateClass state) { this.state = state; }
+	public StructureCompletionProcessor(final StateClass state) { this.state = state; }
 
 	@Override
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+	public ICompletionProposal[] computeCompletionProposals(final ITextViewer viewer, final int offset) {
 		if (state != null)
 			this.defIcon = state.structure().engine().image(GroupType.DefinitionGroup);
 		return null;
 	}
 
-	protected void proposalForDefinition(ProposalsSite site, Definition def) {
+	protected void proposalForDefinition(final ProposalsSite site, final Definition def) {
 		try {
 			if (def == null || def.id() == null)
 				return;
@@ -113,7 +113,7 @@ public abstract class StructureCompletionProcessor<StateClass
 		} catch (final Exception e) {}
 	}
 
-	private String definitionDisplayString(Definition def) {
+	private String definitionDisplayString(final Definition def) {
 		if (def.engine().settings().definitionsHaveProxyVariables)
 			return def.id().stringValue();
 		else
@@ -122,23 +122,23 @@ public abstract class StructureCompletionProcessor<StateClass
 
 	protected IFile pivotFile() { return state().structure().file(); }
 
-	protected void proposalsForIndexedDefinitions(ProposalsSite site, Index index) {
+	protected void proposalsForIndexedDefinitions(final ProposalsSite site, final Index index) {
 		for (final Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
 			proposalForDefinition(site, obj);
 	}
 
-	protected boolean stringMatchesPrefix(String name, String lowercasedPrefix) {
+	protected boolean stringMatchesPrefix(final String name, final String lowercasedPrefix) {
 		return name.toLowerCase().contains(lowercasedPrefix);
 	}
 
-	protected DeclarationProposal proposalForFunc(ProposalsSite site, Declaration target, Function func) {
+	protected DeclarationProposal proposalForFunc(final ProposalsSite site, final Declaration target, final Function func) {
 		if (func instanceof SynthesizedFunction)
 			return null;
 		if (site.prefix != null)
 			if (!stringMatchesPrefix(func.name(), site.prefix))
 				return null;
 		final int replacementLength = site.prefix != null ? site.prefix.length() : 0;
-		final String replacement = func.name(); //$NON-NLS-1$ //$NON-NLS-2$
+		final String replacement = func.name(); 
 		final IType returnType = func.returnType(target.script());
 		final String postInfo = returnType == PrimitiveType.UNKNOWN ? "" : ": " + returnType.typeName(true);
 		final DeclarationProposal prop = new DeclarationProposal(
@@ -150,7 +150,7 @@ public abstract class StructureCompletionProcessor<StateClass
 		return prop;
 	}
 
-	protected DeclarationProposal proposalForVar(ProposalsSite site, Declaration target, Variable var) {
+	protected DeclarationProposal proposalForVar(final ProposalsSite site, final Declaration target, final Variable var) {
 		if (site.prefix != null && !stringMatchesPrefix(var.name(), site.prefix))
 			return null;
 		final String displayString = var.name();
@@ -168,7 +168,7 @@ public abstract class StructureCompletionProcessor<StateClass
 		return prop;
 	}
 
-	private void setVariableCategory(Variable var, final DeclarationProposal prop) {
+	private void setVariableCategory(final Variable var, final DeclarationProposal prop) {
 		switch (var.scope()) {
 		case CONST:
 			prop.setCategory(cats.Constants);
@@ -192,18 +192,18 @@ public abstract class StructureCompletionProcessor<StateClass
 
 	@SuppressWarnings("serial")
 	protected static class Text extends Declaration {
-		public Text(String value) { setName(value); }
+		public Text(final String value) { setName(value); }
 		@Override
 		public int hashCode() { return name.hashCode(); }
 	}
 
-	protected void guardedSort(ICompletionProposal[] proposals) {
+	protected void guardedSort(final ICompletionProposal[] proposals) {
 		if (proposals == null)
 			return;
 		class GuardedComparator implements Comparator<ICompletionProposal> {
 			ICompletionProposal a, b;
 			@Override
-			public int compare(ICompletionProposal a, ICompletionProposal b) {
+			public int compare(final ICompletionProposal a, final ICompletionProposal b) {
 				this.a = a;
 				this.b = b;
 				return StructureCompletionProcessor.this.compare(a, b);
@@ -220,7 +220,7 @@ public abstract class StructureCompletionProcessor<StateClass
 	}
 
 	@Override
-	public int compare(ICompletionProposal a, ICompletionProposal b) {
+	public int compare(final ICompletionProposal a, final ICompletionProposal b) {
 		final DeclarationProposal ca = as(a, DeclarationProposal.class);
 		final DeclarationProposal cb = as(b, DeclarationProposal.class);
 		if (ca != null && cb != null) {
@@ -234,7 +234,7 @@ public abstract class StructureCompletionProcessor<StateClass
 			if (pfx != null) {
 				class Match {
 					boolean startsWith, startsWithNonCase, match, matchNoCase, local;
-					Match(DeclarationProposal proposal) {
+					Match(final DeclarationProposal proposal) {
 						for (final String s : proposal.identifiers())
 							if (s.length() > 0)
 								if (s.startsWith(pfx)) {
@@ -297,7 +297,7 @@ public abstract class StructureCompletionProcessor<StateClass
 			forContextInformation = new char[] {'('};
 		}
 		@Override
-		public void propertyChange(PropertyChangeEvent event) {
+		public void propertyChange(final PropertyChangeEvent event) {
 			if (event.getProperty().equals(ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS))
 				configureActivation();
 		}

@@ -23,15 +23,15 @@ public class CategoriesValue extends IniEntryValue {
 	private List<String> constants = null;
 	private int summedValue;
 	public CategoriesValue() { this(0); }
-	public CategoriesValue(int value) { summedValue = value; }
-	public CategoriesValue(String value, Engine engine, String constantsPrefix) throws IniParserException {
+	public CategoriesValue(final int value) { summedValue = value; }
+	public CategoriesValue(final String value, final Engine engine, final String constantsPrefix) throws IniParserException {
 		this.setInput(value, engine, constantsPrefix);
 	}
 	public int summedValue() { return summedValue; }
-	public void setSummedValue(int summedValue) { this.summedValue = summedValue; }
+	public void setSummedValue(final int summedValue) { this.summedValue = summedValue; }
 	public List<String> constants() { return constants; }
 
-	public void setInput(String input, Engine engine, String constantsPrefix) throws IniParserException {
+	public void setInput(final String input, final Engine engine, final String constantsPrefix) throws IniParserException {
 		constants = null;
 		final String[] parts = input != null ? input.split("\\|") : new String[0]; //$NON-NLS-1$
 		if (parts.length == 1)
@@ -40,7 +40,7 @@ public class CategoriesValue extends IniEntryValue {
 			tryConstantInput(input, parts, engine, constantsPrefix);
 	}
 
-	private void tryIntegerInput(String input, String[] parts, Engine engine, String constantsPrefix) throws IniParserException {
+	private void tryIntegerInput(final String input, final String[] parts, final Engine engine, final String constantsPrefix) throws IniParserException {
 		try {
 			final int categories = Integer.parseInt(parts[0].trim());
 			summedValue = categories;
@@ -52,12 +52,12 @@ public class CategoriesValue extends IniEntryValue {
 
 	private static final IConverter<Variable, String> NAME_MAPPER = new IConverter<Variable, String>() {
 		@Override
-		public String convert(Variable from) {
+		public String convert(final Variable from) {
 			return from.name();
 		}
 	};
 
-	private void tryConstantInput(String input, String[] parts, Engine engine, String constantsPrefix) throws IniParserException {
+	private void tryConstantInput(final String input, final String[] parts, final Engine engine, final String constantsPrefix) throws IniParserException {
 		constants = new ArrayList<String>(4);
 		if (constantsPrefix != null) {
 			final Variable[] vars = engine.variablesWithPrefix(constantsPrefix);
@@ -92,7 +92,7 @@ public class CategoriesValue extends IniEntryValue {
 	}
 
 	@Override
-	public void setInput(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+	public void setInput(final String value, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		setInput(value, context.engine(), entryData.constantsPrefix());
 	}
 }

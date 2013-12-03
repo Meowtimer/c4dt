@@ -21,11 +21,11 @@ import org.eclipse.core.runtime.IPath;
 public abstract class ArrayValue<KeyType, ValueType> extends IniEntryValue implements IHasChildrenWithContext, ITreeNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final List<KeyValuePair<KeyType, ValueType>> components = new ArrayList<KeyValuePair<KeyType, ValueType>>();
-	public ArrayValue(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException { setInput(value, entryData, context); }
+	public ArrayValue(final String value, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException { setInput(value, entryData, context); }
 	public ArrayValue() {}
-	public void add(KeyType id, ValueType num) { components.add(new KeyValuePair<KeyType, ValueType>(id,num)); }
-	public void add(KeyValuePair<KeyType, ValueType> pair) { components.add(pair); }
-	public KeyValuePair<KeyType, ValueType> find(KeyType key) {
+	public void add(final KeyType id, final ValueType num) { components.add(new KeyValuePair<KeyType, ValueType>(id,num)); }
+	public void add(final KeyValuePair<KeyType, ValueType> pair) { components.add(pair); }
+	public KeyValuePair<KeyType, ValueType> find(final KeyType key) {
 		for (final KeyValuePair<KeyType, ValueType> kv : components)
 			if (kv.key().equals(key))
 				return kv;
@@ -36,17 +36,17 @@ public abstract class ArrayValue<KeyType, ValueType> extends IniEntryValue imple
 	@Override
 	public boolean hasChildren() { return components.size() > 0; }
 	@Override
-	public Object valueOfChildAt(int index) { return components.get(index); }
+	public Object valueOfChildAt(final int index) { return components.get(index); }
 	@Override
 	public String nodeName() { return null; }
 	@Override
-	public void addChild(ITreeNode node) {}
+	public void addChild(final ITreeNode node) {}
 	@Override
 	public ITreeNode parentNode() { return null; }
 	@Override
 	public IPath path() { return ITreeNode.Default.path(this); }
 	@Override
-	public boolean subNodeOf(ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
+	public boolean subNodeOf(final ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
 	@Override
 	public boolean isEmpty() { return components == null || components.size() == 0; }
 	@Override
@@ -63,7 +63,7 @@ public abstract class ArrayValue<KeyType, ValueType> extends IniEntryValue imple
 		return builder.toString();
 	}
 	@Override
-	public void setInput(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+	public void setInput(final String input, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		// CLNK=1;STIN=10;
 		components.clear();
 		final String[] parts = input.split(";|,"); //$NON-NLS-1$
@@ -93,11 +93,11 @@ public abstract class ArrayValue<KeyType, ValueType> extends IniEntryValue imple
 		assignParentToSubElements();
 		if (invalidParts != null)
 			throw new IniParserException(IMarker.SEVERITY_ERROR,
-				String.format(Messages.InvalidParts, StringUtil.blockString("", "", ",  ", invalidParts))); //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+				String.format(Messages.InvalidParts, StringUtil.blockString("", "", ",  ", invalidParts))); //$NON-NLS-2$ //$NON-NLS-3$ 
 	}
 
 	@Override
-	public IHasContext[] children(Object context) {
+	public IHasContext[] children(final Object context) {
 		final IHasContext[] result = new IHasContext[components.size()];
 		for (int i = 0; i < components.size(); i++)
 			result[i] = new EntrySubItem<ArrayValue<KeyType, ValueType>>(this, context, i);

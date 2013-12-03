@@ -22,7 +22,7 @@ import org.eclipse.jface.text.Region;
 public class NameValueAssignment extends Declaration implements IHasKeyAndValue<String, String>, ITreeNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected Object value;
-	public NameValueAssignment(int start, int end, String k, Object v) {
+	public NameValueAssignment(final int start, final int end, final String k, final Object v) {
 		super(start, end);
 		this.name = k;
 		value = v;
@@ -34,7 +34,7 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	@Override
 	public String toString() { return key() + "=" + stringValue(); } //$NON-NLS-1$
 	@Override
-	public void addChild(ITreeNode node) {}
+	public void addChild(final ITreeNode node) {}
 	@Override
 	public Collection<? extends INode> childCollection() { return null; }
 	@Override
@@ -44,11 +44,11 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	@Override
 	public IPath path() { return ITreeNode.Default.path(this); }
 	@Override
-	public boolean subNodeOf(ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
+	public boolean subNodeOf(final ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
 	@Override
 	public IRegion regionToSelect() { return new Region(start()+getLength()-stringValue().length(), stringValue().length()); }
 	@Override
-	public String infoText(IIndexEntity context) { return key() + "=" + stringValue(); } //$NON-NLS-1$
+	public String infoText(final IIndexEntity context) { return key() + "=" + stringValue(); } //$NON-NLS-1$
 	@Override
 	public ASTNode[] subElements() { return new ASTNode[] {as(value, ASTNode.class)}; }
 }

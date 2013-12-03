@@ -35,7 +35,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 public class LandscapeScriptEditingState extends StructureEditingState<LandscapeScriptEditor, LandscapeScript> {
-	public LandscapeScriptEditingState(IPreferenceStore store) { super(store); }
+	public LandscapeScriptEditingState(final IPreferenceStore store) { super(store); }
 	private final Object monitor = new Object();
 	public void silentReparse() {
 		final IFile file = structure().file();
@@ -81,7 +81,7 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 	}
 	public class LandscapeHyperlinkDetector implements IHyperlinkDetector {
 		@Override
-		public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region, boolean canShowMultipleHyperlinks) {
+		public IHyperlink[] detectHyperlinks(final ITextViewer textViewer, final IRegion region, final boolean canShowMultipleHyperlinks) {
 			final OverlayBase overlay = structure().overlayAt(region.getOffset());
 			// link to template (linking other things does not seem to make much sense)
 			if (overlay instanceof Overlay && ((Overlay)overlay).template() != null && region.getOffset()-overlay.start() < ((Overlay) overlay).template().name().length())
@@ -91,7 +91,7 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 	}
 	private final LandscapeScriptCodeScanner scanner = new LandscapeScriptCodeScanner(ColorManager.INSTANCE);
 	@Override
-	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
+	public IPresentationReconciler getPresentationReconciler(final ISourceViewer sourceViewer) {
 		final PresentationReconciler reconciler = new PresentationReconciler();
 		final ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT");
 
@@ -115,7 +115,7 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 		return reconciler;
 	}
 	@Override
-	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+	public IHyperlinkDetector[] getHyperlinkDetectors(final ISourceViewer sourceViewer) {
 		try {
 			return new IHyperlinkDetector[] {
 				new LandscapeHyperlinkDetector()

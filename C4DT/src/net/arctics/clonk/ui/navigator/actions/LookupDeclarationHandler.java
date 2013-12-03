@@ -17,7 +17,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 public class LookupDeclarationHandler extends AbstractHandler {
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final Set<Declaration> declarations = new HashSet<Declaration>();
 		for (final IProject p : ClonkProjectNature.clonkProjectsInWorkspace()) {
 			declarations.add(ClonkProjectNature.get(p).index());

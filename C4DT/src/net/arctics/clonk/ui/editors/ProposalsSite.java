@@ -32,7 +32,7 @@ public class ProposalsSite extends PrecedingExpression {
 	public final Map<Class<? extends Declaration>, Map<String, DeclarationProposal>> declarationProposals;
 	public final Index index;
 	public final Script script;
-	public void addProposal(ICompletionProposal proposal) {
+	public void addProposal(final ICompletionProposal proposal) {
 		final DeclarationProposal ccp = as(proposal, DeclarationProposal.class);
 		if (ccp != null && (ccp.declaration() instanceof Variable || ccp.declaration() instanceof Function)) {
 			Map<String, DeclarationProposal> decs = declarationProposals.get(ccp.declaration().getClass());
@@ -47,7 +47,7 @@ public class ProposalsSite extends PrecedingExpression {
 		}
 		proposals.add(proposal);
 	}
-	public void removeProposalForDeclaration(Declaration declaration) {
+	public void removeProposalForDeclaration(final Declaration declaration) {
 		final Map<String, DeclarationProposal> props = declarationProposals.get(declaration.getClass());
 		if (props != null) {
 			final DeclarationProposal proposal = props.get(declaration.name());
@@ -58,11 +58,11 @@ public class ProposalsSite extends PrecedingExpression {
 		}
 	}
 	public ProposalsSite(
-		StructureEditingState<?, ?> state,
-		int offset, int wordOffset, IDocument document,
-		String untamperedPrefix, List<ICompletionProposal> proposals,
-		Index index, Function function, Script script,
-		ASTNode contextExpression, Sequence contextSequence, IType precedingType
+		final StructureEditingState<?, ?> state,
+		final int offset, final int wordOffset, final IDocument document,
+		final String untamperedPrefix, final List<ICompletionProposal> proposals,
+		final Index index, final Function function, final Script script,
+		final ASTNode contextExpression, final Sequence contextSequence, final IType precedingType
 	) {
 		super(function, contextExpression, contextSequence, precedingType);
 		this.state = state;
@@ -83,7 +83,7 @@ public class ProposalsSite extends PrecedingExpression {
 		this.index = index;
 		this.script = script;
 	}
-	public ICompletionProposal[] finish(ProposalCycle cycle) {
+	public ICompletionProposal[] finish(final ProposalCycle cycle) {
 		if (proposals.size() > 0) {
 			if (cycle != ProposalCycle.ALL)
 				outcycle(cycle);
@@ -92,7 +92,7 @@ public class ProposalsSite extends PrecedingExpression {
 		else
 			return null;
 	}
-	private void outcycle(ProposalCycle cycle) {
+	private void outcycle(final ProposalCycle cycle) {
 		final Collection<DeclarationProposal> outcycled = new ArrayList<DeclarationProposal>(proposals.size());
 		for (final ICompletionProposal cp : proposals) {
 			final DeclarationProposal ccp = as(cp, DeclarationProposal.class);
@@ -108,7 +108,7 @@ public class ProposalsSite extends PrecedingExpression {
 		}
 		proposals.removeAll(outcycled);
 	}
-	public String updatePrefix(int currentOffset) {
+	public String updatePrefix(final int currentOffset) {
 		try {
 			untamperedPrefix = document.get(offset, currentOffset - offset);
 		} catch (final BadLocationException e) {

@@ -26,7 +26,7 @@ import org.eclipse.jface.text.Region;
 public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Serializable {
 
 	public ASTNode() {}
-	protected ASTNode(int start, int end) { super(start, end); }
+	protected ASTNode(final int start, final int end) { super(start, end); }
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -34,7 +34,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public static final ASTNode[] EMPTY_EXPR_ARRAY = new ASTNode[0];
 	public static final Object EVALUATION_COMPLEX = new Object() {
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			return false; // never!
 		};
 	};
@@ -69,7 +69,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		clone = (ASTNode) super.clone();
 		final ASTNode[] clonedElms = ArrayUtil.map(subElements(), ASTNode.class, new IConverter<ASTNode, ASTNode>() {
 			@Override
-			public ASTNode convert(ASTNode from) {
+			public ASTNode convert(final ASTNode from) {
 				if (from == null)
 					return null;
 				return from.clone();
@@ -91,13 +91,13 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return The first parent of the given class or null if such parent does not exist
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T parent(Class<T> cls) {
+	public <T> T parent(final Class<T> cls) {
 		ASTNode e;
 		for (e = parent(); e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;
 	}
 
-	public final boolean is(Class<? extends ASTNode> cls) {
+	public final boolean is(final Class<? extends ASTNode> cls) {
 		return cls.isInstance(this);
 	}
 
@@ -107,7 +107,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public final <T> T topLevelParent(Class<T> type) {
+	public final <T> T topLevelParent(final Class<T> type) {
 		T result = null;
 		for (ASTNode f = this; f != null; f = f.parent())
 			if (type.isAssignableFrom(f.getClass()))
@@ -116,7 +116,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T thisOrParent(Class<T> cls) {
+	public <T> T thisOrParent(final Class<T> cls) {
 		ASTNode e;
 		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;
@@ -126,9 +126,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * Set the parent of this expression.
 	 * @param parent
 	 */
-	public void setParent(ASTNode parent) { this.parent = parent; }
+	public void setParent(final ASTNode parent) { this.parent = parent; }
 
-	protected <T extends ASTNode> T tempSubElement(T node) {
+	protected <T extends ASTNode> T tempSubElement(final T node) {
 		node.setParent(this);
 		return node;
 	}
@@ -138,14 +138,14 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param output The output writer to print the prependix to
 	 * @param depth Print depth inherited from the underlying {@link #print(ASTNodePrinter, int)} call
 	 */
-	public void printPrefix(ASTNodePrinter output, int depth) {}
+	public void printPrefix(final ASTNodePrinter output, final int depth) {}
 
 	/**
 	 * Perform the actual intrinsic printing for this kind of expression
 	 * @param output Output writer
 	 * @param depth Depth inherited from {@link #print(ASTNodePrinter, int)}
 	 */
-	public void doPrint(ASTNodePrinter output, int depth) {}
+	public void doPrint(final ASTNodePrinter output, final int depth) {}
 
 	/**
 	 * Return the printed string for this node. Calls {@link #print(ASTNodePrinter, int)}.
@@ -162,7 +162,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param output Output writer
 	 * @param depth Depth inherited from {@link #print(ASTNodePrinter, int)}
 	 */
-	public void printSuffix(ASTNodePrinter output, int depth) {}
+	public void printSuffix(final ASTNodePrinter output, final int depth) {}
 
 	/**
 	 * Call all the printing methods in one bundle ({@link #printPrefix(ASTNodePrinter, int)}, {@link #doPrint(ASTNodePrinter, int)}, {@link #printSuffix(ASTNodePrinter, int)})
@@ -170,7 +170,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param output Output writer
 	 * @param depth Depth determining the indentation level of the output
 	 */
-	public final void print(ASTNodePrinter output, int depth) {
+	public final void print(final ASTNodePrinter output, final int depth) {
 		if (!output.doCustomPrinting(this, depth)) {
 			this.printPrefix(output, depth);
 			this.doPrint(output, depth);
@@ -179,13 +179,13 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	}
 
 	@Override
-	public final void print(final StringBuilder builder, int depth) {
+	public final void print(final StringBuilder builder, final int depth) {
 		print(new AppendableBackedExprWriter(builder), depth);
 	}
 
-	public boolean isValidInSequence(ASTNode predecessor) { return predecessor == null; }
+	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor == null; }
 	public boolean isValidAtEndOfSequence() { return true; }
-	public boolean allowsSequenceSuccessor(ASTNode successor) { return true; }
+	public boolean allowsSequenceSuccessor(final ASTNode successor) { return true; }
 
 	public boolean hasSideEffects() {
 		for (final ASTNode e : subElements())
@@ -215,9 +215,9 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return The identifier region
 	 */
 	public final IRegion identifierRegion() { return new Region(identifierStart(), identifierLength()); }
-	public void setLocation(int start, int end) { this.start = start; this.end = end; }
-	public void setLocation(IRegion r) { this.setLocation(r.getOffset(), r.getOffset()+r.getLength()); }
-	public void setPredecessor(ASTNode p) { predecessor = p; }
+	public void setLocation(final int start, final int end) { this.start = start; this.end = end; }
+	public void setLocation(final IRegion r) { this.setLocation(r.getOffset(), r.getOffset()+r.getLength()); }
+	public void setPredecessor(final ASTNode p) { predecessor = p; }
 	public ASTNode predecessor() { return predecessor; }
 
 	/**
@@ -231,7 +231,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * Set the sub elements. The passed arrays must contain elements in the same order as returned by {@link #subElements()}.
 	 * @param elms The array of elements to assign to this element as sub elements
 	 */
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		if (subElements().length > 0)
 			System.out.println("setSubElements should be implemented when subElements() is implemented ("+getClass().getName()+")"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
@@ -242,7 +242,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return Either this element if no transformation took place or a clone with select transformations applied
 	 * @throws CloneNotSupportedException
 	 */
-	public ASTNode transformSubElements(ITransformer transformer) {
+	public ASTNode transformSubElements(final ITransformer transformer) {
 		final ASTNode[] subElms = traversalSubElements();
 		ASTNode[] newSubElms = new ASTNode[subElms.length];
 		boolean differentSubElms = false, removal = false;
@@ -293,7 +293,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public ASTNode transformRecursively(final ITransformer transformer) {
 		Object result = new ITransformer() {
 			@Override
-			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
+			public Object transform(final ASTNode prev, final Object prevT, ASTNode expression) {
 				expression = expression != null ? expression.transformSubElements(this) : null;
 				return transformer.transform(prev, prevT, expression);
 			}
@@ -309,7 +309,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param context Context object
 	 * @return flow control for the calling function
 	 */
-	public final <T> TraversalContinuation traverse(IASTVisitor<T> listener, T context) {
+	public final <T> TraversalContinuation traverse(final IASTVisitor<T> listener, final T context) {
 		TraversalContinuation result = listener.visitNode(this, context);
 		switch (result) {
 		case Cancel:
@@ -342,7 +342,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param offset The offset. If 0 the expression itself will be returned since it implements {@link IRegion}
 	 * @return The region offset by the specified amount.
 	 */
-	public IRegion region(int offset) {
+	public IRegion region(final int offset) {
 		return offset == 0 ? this : new Region(offset+start(), end()-start());
 	}
 
@@ -352,7 +352,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param locator TODO
 	 * @return An object describing the referenced entity or null if no entity is referenced.
 	 */
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		return null;
 	}
 
@@ -361,7 +361,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param depth hint for indentation (only needed for statements)
 	 * @return the expression string
 	 */
-	public final String printed(int depth) {
+	public final String printed(final int depth) {
 		final StringBuilder builder = new StringBuilder();
 		print(builder, depth);
 		return builder.toString();
@@ -380,7 +380,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return EnumSet.of(controlFlow());
 	}
 
-	public final boolean containedIn(ASTNode expression) {
+	public final boolean containedIn(final ASTNode expression) {
 		if (expression == null)
 			return false;
 		for (ASTNode n = this; n != null; n = n.parent)
@@ -394,7 +394,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param elm The expression that has one of the sub elements in its parent chain.
 	 * @return Sub element containing elm or null.
 	 */
-	public ASTNode findSubElementContaining(ASTNode elm) {
+	public ASTNode findSubElementContaining(final ASTNode elm) {
 		for (final ASTNode subElm : traversalSubElements())
 			if (subElm != null)
 				if (elm.containedIn(subElm))
@@ -415,7 +415,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param context the context to evaluate in
 	 * @return the result
 	 */
-	public Object evaluateStatic(IEvaluationContext context) {
+	public Object evaluateStatic(final IEvaluationContext context) {
 		return EVALUATION_COMPLEX;
 	}
 
@@ -423,7 +423,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * Evaluate expression. Used for the interpreter
 	 * @return the result of the evaluation
 	 */
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		return null;
 	}
 
@@ -450,14 +450,14 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param start Whether the start offset is to be incremented
 	 * @param end Whether the end offset is to be incremented
 	 */
-	protected void offsetExprRegion(int amount, boolean start, boolean end) {
+	protected void offsetExprRegion(final int amount, final boolean start, final boolean end) {
 		if (start)
 			this.start += amount;
 		if (end)
 			this.end += amount;
 	}
 
-	private static void offsetExprRegionRecursively(ASTNode elm, int diff) {
+	private static void offsetExprRegionRecursively(final ASTNode elm, final int diff) {
 		if (elm == null)
 			return;
 		elm.offsetExprRegion(diff, true, true);
@@ -465,7 +465,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 			offsetExprRegionRecursively(e, diff);
 	}
 
-	private void offsetExprRegionRecursivelyStartingAt(ASTNode elm, int diff) {
+	private void offsetExprRegionRecursivelyStartingAt(final ASTNode elm, final int diff) {
 		boolean started = false;
 		final ASTNode[] elms = traversalSubElements();
 		for (final ASTNode e : elms)
@@ -486,7 +486,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return Return this element, modified or not.
 	 * @throws InvalidParameterException Thrown if the element is not actually a sub element of this element
 	 */
-	public ASTNode replaceSubElement(ASTNode element, ASTNode with, int diff) throws InvalidParameterException {
+	public ASTNode replaceSubElement(final ASTNode element, final ASTNode with, final int diff) throws InvalidParameterException {
 		assert(element != with);
 		assert(element != null);
 		assert(with != null);
@@ -521,7 +521,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param delegate Listener that gets notified when changes are found.
 	 * @return Whether elements are equal or not.
 	 */
-	public final boolean compare(ASTNode other, ASTComparisonDelegate delegate) {
+	public final boolean compare(final ASTNode other, final ASTComparisonDelegate delegate) {
 		if (other == null)
 			return false;
 		final ASTNode oldLeft = delegate.left;
@@ -549,10 +549,10 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		}
 	}
 
-	protected boolean equalAttributes(ASTNode other) { return true; }
+	protected boolean equalAttributes(final ASTNode other) { return true; }
 
 	@Override
-	public boolean equals(Object other) {
+	public boolean equals(final Object other) {
 		if (other != null && other.getClass() == this.getClass())
 			return compare((ASTNode) other, new ASTComparisonDelegate((ASTNode)other));
 		else
@@ -575,7 +575,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	private Sequence sequence() { return as(parent(), Sequence.class); }
 
-	public void postLoad(ASTNode parent) {
+	public void postLoad(final ASTNode parent) {
 		this.parent = parent;
 		for (final ASTNode e : traversalSubElements())
 			if (e != null)
@@ -586,14 +586,14 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * Offset {@link #start()} and {@link #end()} by the specified amount. Also call {@link #offsetLocation(int)} recursively for {@link #subElements()}
 	 * @param by Amount to offset the location by
 	 */
-	public void offsetLocation(int by) {
+	public void offsetLocation(final int by) {
 		setLocation(start+by, end+by);
 		for (final ASTNode e : traversalSubElements())
 			if (e != null)
 				e.offsetLocation(by);
 	}
 
-	public static Object evaluateStatic(ASTNode element, IEvaluationContext context) {
+	public static Object evaluateStatic(final ASTNode element, final IEvaluationContext context) {
 		return element != null ? element.evaluateStatic(context) : null;
 	}
 
@@ -610,7 +610,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param other Expression to match against
 	 * @return Map mapping placeholder name to specific sub expressions in the passed expression
 	 */
-	public Map<String, Object> match(ASTNode other) {
+	public Map<String, Object> match(final ASTNode other) {
 		final ASTNodeMatcher delegate = new ASTNodeMatcher(other);
 		if (delegate.equal(this, other))
 			return delegate.result != null ? delegate.result : Collections.<String, Object>emptyMap();
@@ -624,7 +624,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @param other The other expression to match against
 	 * @param match The object to put matches into
 	 */
-	public boolean match(ASTNode other, Object match) {
+	public boolean match(final ASTNode other, final Object match) {
 		final Map<String, Object> matches = match(other);
 		if (matches != null) try {
 			for (final Map.Entry<String, Object> kv : matches.entrySet())
@@ -653,7 +653,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public ASTNode transform(final Map<String, Object> substitutions, final Object cookie) {
 		return transformRecursively(new ITransformer() {
 			@Override
-			public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
+			public Object transform(final ASTNode prev, final Object prevT, final ASTNode expression) {
 				if (expression instanceof Placeholder) {
 					final MatchingPlaceholder mp = as(expression, MatchingPlaceholder.class);
 					final Object substitution = substitutions.get(((Placeholder)expression).entryName());
@@ -674,7 +674,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 
 	private transient int localIdentifier = -1;
 	public final int localIdentifier() { return localIdentifier; }
-	public final void localIdentifier(int v) { localIdentifier = v; }
+	public final void localIdentifier(final int v) { localIdentifier = v; }
 
 	public final int sectionOffset() {
 		final IASTSection f = section();
@@ -683,7 +683,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public IASTSection section() { return parent(IASTSection.class); }
 	public IRegion absolute() { return this.region(sectionOffset()); }
 
-	public void shift(int localInsertionOffset, int amount) {
+	public void shift(final int localInsertionOffset, final int amount) {
 		for (final ASTNode node : subElements())
 			if (node != null) {
 				if (node.start() >= localInsertionOffset)

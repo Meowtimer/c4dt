@@ -56,8 +56,8 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		private Table table;
 		private Text filterBox;
 
-		private DisabledErrorsFieldEditor(String name, String labelText,
-			Composite parent) {
+		private DisabledErrorsFieldEditor(final String name, final String labelText,
+			final Composite parent) {
 			super(name, labelText, parent);
 		}
 
@@ -84,18 +84,18 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				tableViewer.setChecked(c, !disabledErrorCodes.contains(c));
 		}
 
-		private Table getTable(Composite parent) {
+		private Table getTable(final Composite parent) {
 			if (table == null) {
 				filterBox = new Text(parent, SWT.SEARCH | SWT.CANCEL);
 				filterBox.addModifyListener(new ModifyListener() {
 					@Override
-					public void modifyText(ModifyEvent e) {
+					public void modifyText(final ModifyEvent e) {
 						tableViewer.refresh();
 					}
 				});
 				final ViewerFilter filter = new ViewerFilter() {
 					@Override
-					public boolean select(Viewer viewer, Object parentElement, Object element) {
+					public boolean select(final Viewer viewer, final Object parentElement, final Object element) {
 						final String text = ((ILabelProvider)tableViewer.getLabelProvider()).getText(element);
 						return StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(text).find();
 					}
@@ -105,16 +105,16 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				tableViewer.addFilter(filter);
 				tableViewer.setContentProvider(new IStructuredContentProvider() {
 					@Override
-					public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
+					public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {}
 					@Override
 					public void dispose() {}
 					@Override
-					public Problem[] getElements(Object inputElement) {
+					public Problem[] getElements(final Object inputElement) {
 						if (inputElement == Problem.class) {
 							final Problem[] elms = Problem.values().clone();
 							Arrays.sort(elms, new Comparator<Problem>() {
 								@Override
-								public int compare(Problem o1, Problem o2) {
+								public int compare(final Problem o1, final Problem o2) {
 									return o1.messageWithFormatArgumentDescriptions().compareTo(o2.messageWithFormatArgumentDescriptions());
 								}
 							});
@@ -125,7 +125,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 				});
 				tableViewer.setLabelProvider(new LabelProvider() {
 					@Override
-					public String getText(Object element) {
+					public String getText(final Object element) {
 						return ((Problem) element).messageWithFormatArgumentDescriptions();
 					}
 				});
@@ -137,7 +137,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		}
 
 		@Override
-		protected void doFillIntoGrid(Composite parent, int numColumns) {
+		protected void doFillIntoGrid(final Composite parent, final int numColumns) {
 			final Label label = getLabelControl(parent);
 			label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 			final Table table = getTable(parent);
@@ -158,21 +158,21 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		}
 
 		@Override
-		protected void adjustForNumColumns(int numColumns) {
+		protected void adjustForNumColumns(final int numColumns) {
 			// yup
 		}
 
 		@Override
-		public boolean isGrayed(Object element) {
+		public boolean isGrayed(final Object element) {
 			return false;
 		}
 		@Override
-		public boolean isChecked(Object element) {
+		public boolean isChecked(final Object element) {
 			return disabledErrorCodes != null && !disabledErrorCodes.contains(element);
 		}
 
 		@Override
-		public void checkStateChanged(CheckStateChangedEvent event) {
+		public void checkStateChanged(final CheckStateChangedEvent event) {
 			if (event.getChecked())
 				disabledErrorCodes.remove(event.getElement());
 			else
@@ -184,33 +184,33 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		private final Map<String, String> values = new HashMap<String, String>();
 
 		@Override
-		public String getDefaultString(String name) {
+		public String getDefaultString(final String name) {
 			return ""; //$NON-NLS-1$
 		}
 
 		@Override
-		public void setValue(String name, String value) {
+		public void setValue(final String name, final String value) {
 			values.put(name, value);
 			commit(name, value);
 		}
 		
 		@Override
-		public void setValue(String name, boolean value) {
+		public void setValue(final String name, final boolean value) {
 			setValue(name, String.valueOf(value));
 		}
 		
 		@Override
-		public boolean getBoolean(String name) {
+		public boolean getBoolean(final String name) {
 			return Boolean.parseBoolean(values.get(name));
 		}
 
 		@Override
-		public String getString(String name) {
+		public String getString(final String name) {
 			final String v = values.get(name);
 			return v != null ? v : getDefaultString(name);
 		}
 
-		public void commit(String n, String v) {
+		public void commit(final String n, final String v) {
 			final ProjectSettings settings = getSettings();
 			if (n.equals(ENGINENAME_PROPERTY)) {
 				settings.setEngineName(v);
@@ -254,7 +254,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	}
 
 	@Override
-	public void setElement(IAdaptable element) {
+	public void setElement(final IAdaptable element) {
 		this.element = element;
 		try {
 			this.adapterStore = new AdapterStore();

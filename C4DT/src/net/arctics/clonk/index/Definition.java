@@ -75,7 +75,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @param id C4ID (e.g. CLNK)
 	 * @param name human-readable name
 	 */
-	protected Definition(Index index, ID id, String name) {
+	protected Definition(final Index index, final ID id, final String name) {
 		super(index);
 		this.id = id;
 		this.name = name;
@@ -98,7 +98,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * This method does not perform necessary changes to DefCore.txt.
 	 * @param newId
 	 */
-	public void setId(ID newId) {
+	public void setId(final ID newId) {
 		if (id.equals(newId))
 			return;
 		final Index index = this.index();
@@ -115,7 +115,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	protected Declaration representingDeclaration(String name, FindDeclarationInfo info) {
+	protected Declaration representingDeclaration(final String name, final FindDeclarationInfo info) {
 		final Class<?> cls = info.declarationClass;
 		final boolean variableRequired = cls != null && Variable.class.isAssignableFrom(cls);
 		final Engine ngn = engine();
@@ -129,7 +129,7 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	private static Pattern langNamePairPattern = Pattern.compile("(..):(.*)"); //$NON-NLS-1$
 
-	public void readNames(String namesText) throws IOException {
+	public void readNames(final String namesText) throws IOException {
 		final Matcher matcher = langNamePairPattern.matcher(namesText);
 		if (localizedNames == null)
 			localizedNames = new HashMap<String, String>();
@@ -166,7 +166,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public boolean matchedBy(Matcher matcher) {
+	public boolean matchedBy(final Matcher matcher) {
 		if (super.matchedBy(matcher))
 			return true;
 		if (id() != null && matcher.reset(id().stringValue()).lookingAt())
@@ -181,7 +181,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public  boolean gatherIncludes(Index contextIndex, Script origin, final Collection<Script> set, final int options) {
+	public  boolean gatherIncludes(final Index contextIndex, final Script origin, final Collection<Script> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
 		if ((options & GatherIncludesOptions.NoAppendages) == 0) {
@@ -228,12 +228,12 @@ public class Definition extends Script implements IProplistDeclaration {
 	private static class ProxyVarSaveReplacement implements IDeserializationResolvable, Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final Definition definition;
-		public ProxyVarSaveReplacement(Definition definition) {
+		public ProxyVarSaveReplacement(final Definition definition) {
 			super();
 			this.definition = definition;
 		}
 		@Override
-		public Object resolve(Index index, IndexEntity deserializee) { return definition != null ? definition.proxyVar() : null; }
+		public Object resolve(final Index index, final IndexEntity deserializee) { return definition != null ? definition.proxyVar() : null; }
 	}
 
 	/**
@@ -247,13 +247,13 @@ public class Definition extends Script implements IProplistDeclaration {
 		@Override
 		public String name() { return id().stringValue(); }
 		@Override
-		public void setName(String name) { setId(ID.get(name)); }
+		public void setName(final String name) { setId(ID.get(name)); }
 		@Override
 		public Declaration parentDeclaration() { return Definition.this; }
 		@Override
 		public Structure topLevelStructure() { return Definition.this; }
 		@Override
-		public String infoText(IIndexEntity context) { return Definition.this.infoText(context); }
+		public String infoText(final IIndexEntity context) { return Definition.this.infoText(context); }
 		@Override
 		public IType type() { return Definition.this.metaDefinition(); }
 		@Override
@@ -264,7 +264,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		@Override
 		public Script script() { return Definition.this.script(); }
 		@Override
-		public Object saveReplacement(Index context) { return new ProxyVarSaveReplacement(definition()); }
+		public Object saveReplacement(final Index context) { return new ProxyVarSaveReplacement(definition()); }
 	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -292,7 +292,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		return proxyVar;
 	}
 
-	public Definition(Index index, ID id, String name, IContainer container) {
+	public Definition(final Index index, final ID id, final String name, final IContainer container) {
 		this(index, id, name);
 		try {
 			setDefinitionFolder(container);
@@ -312,8 +312,8 @@ public class Definition extends Script implements IProplistDeclaration {
 	@Override
 	public IStorage source() { return scriptFile; }
 	@Override
-	public void setScriptFile(IFile f) { scriptFile = f; }
-	public void setDefCoreFile(IFile defCoreFile) { this.defCoreFile = defCoreFile; }
+	public void setScriptFile(final IFile f) { scriptFile = f; }
+	public void setDefCoreFile(final IFile defCoreFile) { this.defCoreFile = defCoreFile; }
 	/**
 	 * Return DefCore.txt file of this Definition
 	 * @return The DefCore.txt file or null if it does not exist for mysterious reasons
@@ -329,7 +329,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @param folder The folder
 	 * @throws CoreException
 	 */
-	public void setDefinitionFolder(IContainer folder) throws CoreException {
+	public void setDefinitionFolder(final IContainer folder) throws CoreException {
 		if (Utilities.eq(folder, definitionFolder))
 			return;
 		if (definitionFolder != null && definitionFolder.exists())
@@ -363,7 +363,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @param folder The folder to return the Definition object of
 	 * @return The Definition object
 	 */
-	public static Definition at(IContainer folder) {
+	public static Definition at(final IContainer folder) {
 		final ProjectIndex index = ProjectIndex.fromResource(folder);
 		final Definition obj = index != null ? index.definitionAt(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
@@ -377,7 +377,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @param project The project passed to the method so the definition has some context from where to get the folder reference
 	 * @return Whether refreshing the folder reference was successful
 	 */
-	public boolean refreshDefinitionFolderReference(IProject project) {
+	public boolean refreshDefinitionFolderReference(final IProject project) {
 		final IPath projectPath = new Path(this.relativePath);
 		final IResource res = project.findMember(projectPath);
 		if (res instanceof IContainer) {
@@ -403,7 +403,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	public IResource resource() { return definitionFolder(); }
 
 	@Override
-	public String infoText(IIndexEntity context) {
+	public String infoText(final IIndexEntity context) {
 		return String.format(INFO_TEXT_TEMPLATE,
 			localizedName(),
 			super.infoText(context),
@@ -418,18 +418,18 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @throws IOException
 	 * @throws CoreException
 	 */
-	public void processDefinitionFolderFile(IFile file) throws IOException, CoreException {
+	public void processDefinitionFolderFile(final IFile file) throws IOException, CoreException {
 		if (file.getName().equalsIgnoreCase("Names.txt"))
 			readNames(StreamUtil.stringFromFileDocument(file));
 	}
 
 	@Override
-	public List<Variable> components(boolean includeAdhocComponents) {
+	public List<Variable> components(final boolean includeAdhocComponents) {
 		return this.variables;
 	}
 
 	@Override
-	public Variable addComponent(Variable variable, boolean adhoc) {
+	public Variable addComponent(final Variable variable, final boolean adhoc) {
 		final Variable v = this.findVariable(variable.name());
 		if (v != null)
 			return v;
@@ -438,7 +438,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public Variable findComponent(String declarationName) { return findVariable(declarationName); }
+	public Variable findComponent(final String declarationName) { return findVariable(declarationName); }
 
 	@Override
 	public IProplistDeclaration prototype() {
@@ -446,7 +446,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	}
 
 	@Override
-	public String typeName(boolean special) {
+	public String typeName(final boolean special) {
 		final String specialName = this.engine().name().equals("OpenClonk") ? (id != null ? id.stringValue() : null) : localizedName();
 		return special && specialName != null ? specialName : PrimitiveType.OBJECT.typeName(false);
 	}
@@ -461,7 +461,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		return category != null ? as(category.value(), CategoriesValue.class) : null;
 	}
 
-	public boolean categorySet(String category) {
+	public boolean categorySet(final String category) {
 		final CategoriesValue cat = category();
 		return cat != null && cat.constants() != null && cat.constants().contains(category);
 	}
@@ -473,11 +473,11 @@ public class Definition extends Script implements IProplistDeclaration {
 		if (!Core.runsHeadless())
 			Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 				@Override
-				public void propertyChange(PropertyChangeEvent event) {
+				public void propertyChange(final PropertyChangeEvent event) {
 					if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
 						final Sink<Definition> sink = new Sink<Definition>() {
 							@Override
-							public void receivedObject(Definition item) {
+							public void receivedObject(final Definition item) {
 								item.chooseLocalizedName();
 							}
 						};

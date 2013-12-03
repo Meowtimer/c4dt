@@ -51,7 +51,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 	private class GamePathEditor extends DirectoryFieldEditor {
 
-		public GamePathEditor(Composite parent, String name, String labelText) {
+		public GamePathEditor(final Composite parent, final String name, final String labelText) {
 			super(name, labelText, parent);
 		}
 
@@ -62,7 +62,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 				return "c4group"; //$NON-NLS-1$
 		}
 
-		public void setFile(IPath gamePath, String gamePathText, FileFieldEditor editor, String... values) {
+		public void setFile(final IPath gamePath, final String gamePathText, final FileFieldEditor editor, final String... values) {
 			final String val = editor.getStringValue();
 			if (val.equals("") || !new File(val).exists())
 				for (final String s : values) {
@@ -89,7 +89,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		// redeclare since field from super class is not accessible -.-
 		private final String[] extensions;
 
-		public EngineRelatedFileFieldEditor(String pref, String title, Composite parent, String[] extensions) {
+		public EngineRelatedFileFieldEditor(final String pref, final String title, final Composite parent, final String[] extensions) {
 			super(pref, title, parent);
 			this.extensions = extensions;
 		}
@@ -105,7 +105,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 	}
 
 	private class EngineExecutableEditor extends EngineRelatedFileFieldEditor {
-		public EngineExecutableEditor(String pref, String title, Composite parent, String[] extensions) {
+		public EngineExecutableEditor(final String pref, final String title, final Composite parent, final String[] extensions) {
 			super(pref, title, parent, extensions);
 		}
 
@@ -128,7 +128,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		private EngineSettings settings = (EngineSettings) Core.instance().loadEngine(myEngine).settings().clone();
 
 		@Override
-		public void setValue(String name, String value) {
+		public void setValue(final String name, final String value) {
 			try {
 				settings.getClass().getField(name).set(settings, value);
 			} catch (final Exception e1) {
@@ -136,7 +136,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 			}
 		}
 
-		private Object val(EngineSettings settings, String attrName) {
+		private Object val(final EngineSettings settings, final String attrName) {
 			try {
 				return settings.getClass().getField(attrName).get(settings);
 			} catch (final Exception e) {
@@ -145,7 +145,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		}
 
 		@Override
-		public void setValue(String name, boolean value) {
+		public void setValue(final String name, final boolean value) {
 			try {
 				settings.getClass().getField(name).set(settings, value);
 			} catch (final Exception e1) {
@@ -154,22 +154,22 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		}
 
 		@Override
-		public String getString(String name) {
+		public String getString(final String name) {
 			return (String)val(settings, name);
 		}
 
 		@Override
-		public boolean getBoolean(String name) {
+		public boolean getBoolean(final String name) {
 			return (Boolean)val(settings, name);
 		}
 
 		@Override
-		public String getDefaultString(String name) {
+		public String getDefaultString(final String name) {
 			return (String)val(Core.instance().loadEngine(myEngine).settings(), name);
 		}
 
 		@Override
-		public boolean getDefaultBoolean(String name) {
+		public boolean getDefaultBoolean(final String name) {
 			return (Boolean)val(Core.instance().loadEngine(myEngine).settings(), name);
 		}
 
@@ -185,7 +185,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 	};
 
-	private static String[] appExtensions(boolean engine) {
+	private static String[] appExtensions(final boolean engine) {
 		if (Util.isWindows()) {
 			if (engine)
 				return new String[] { "*.exe", "*.c4x" }; //$NON-NLS-1$ //$NON-NLS-2$
@@ -233,13 +233,13 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 			) {
 				private Button checker;
 				@Override
-				protected Button getChangeControl(Composite parent) {
+				protected Button getChangeControl(final Composite parent) {
 					if (checker == null) {
 						checker = new Button(parent, SWT.CHECK);
 						checker.setText(Messages.EngineConfigurationPrefPage_UseRepositoryDocsFolder0);
 						checker.addSelectionListener(new SelectionAdapter() {
 							@Override
-							public void widgetSelected(SelectionEvent e) {
+							public void widgetSelected(final SelectionEvent e) {
 								setTextControlEnablement();
 							}
 						});
@@ -247,7 +247,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 					return checker;
 				};
 				@Override
-				public void setEnabled(boolean enabled, Composite parent) {
+				public void setEnabled(final boolean enabled, final Composite parent) {
 					super.setEnabled(enabled, parent);
 					if (checker != null)
 						checker.setEnabled(enabled);
@@ -286,7 +286,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 	}
 
 	@Override
-	public void setInitializationData(IConfigurationElement config, String propertyName, Object data) throws CoreException {
+	public void setInitializationData(final IConfigurationElement config, final String propertyName, final Object data) throws CoreException {
 		myEngine = data.toString();
 		engineConfigPrefStore = new EngineConfigPrefStore();
 	}
@@ -297,7 +297,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 	}
 
 	@Override
-	public void init(IWorkbench workbench) {
+	public void init(final IWorkbench workbench) {
 
 	}
 
@@ -321,7 +321,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 	}
 
 	@Override
-	protected void addField(FieldEditor editor) {
+	protected void addField(final FieldEditor editor) {
 		super.addField(editor);
 	}
 

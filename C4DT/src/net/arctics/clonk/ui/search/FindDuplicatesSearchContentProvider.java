@@ -9,7 +9,7 @@ public class FindDuplicatesSearchContentProvider extends SearchContentProvider {
 	private DuplicatesSearchQuery query;
 	private FindDuplicatesSearchResult result;
 	
-	public FindDuplicatesSearchContentProvider(SearchResultPage page, boolean flat) {
+	public FindDuplicatesSearchContentProvider(final SearchResultPage page, final boolean flat) {
 		super(page, flat);
 	}
 	
@@ -18,7 +18,7 @@ public class FindDuplicatesSearchContentProvider extends SearchContentProvider {
 	}
 
 	@Override
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+	public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
 		result = (FindDuplicatesSearchResult) newInput;
 		if (result != null)
 			query = result.getQuery();
@@ -27,12 +27,12 @@ public class FindDuplicatesSearchContentProvider extends SearchContentProvider {
 	}
 
 	@Override
-	public Object[] getElements(Object inputElement) {
+	public Object[] getElements(final Object inputElement) {
 		return query.getDetectedDupes().keySet().toArray();
 	}
 
 	@Override
-	public Object[] getChildren(Object parentElement) {
+	public Object[] getChildren(final Object parentElement) {
 		if (parentElement instanceof Function)
 			return query.getDetectedDupes().get(parentElement).toArray();
 		else
@@ -40,8 +40,8 @@ public class FindDuplicatesSearchContentProvider extends SearchContentProvider {
 	}
 
 	@Override
-	public Object getParent(Object element) { return null; }
+	public Object getParent(final Object element) { return null; }
 	@Override
-	public boolean hasChildren(Object element) { return element instanceof Function; }
+	public boolean hasChildren(final Object element) { return element instanceof Function; }
 
 }

@@ -131,7 +131,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	 * @return A listener of the requested type.
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends ILineReceivedListener> T requestLineReceivedListener(ICreate<T> create) {
+	public <T extends ILineReceivedListener> T requestLineReceivedListener(final ICreate<T> create) {
 		final Class<T> cls = create.cls();
 		for (final ILineReceivedListener listener : lineReceiveListeners)
 			if (listener.getClass() == cls)
@@ -145,7 +145,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	 * Add a line received listener to the internal list.
 	 * @param listener The listener to add
 	 */
-	public void addLineReceiveListener(ILineReceivedListener listener) {
+	public void addLineReceiveListener(final ILineReceivedListener listener) {
 		System.out.println("Adding " + listener.toString()); //$NON-NLS-1$
 		synchronized (lineReceiveListeners) {
 			lineReceiveListeners.add(0, listener);
@@ -156,7 +156,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	 * Remove a line received listener from the internal list.
 	 * @param listener The listener to remove
 	 */
-	public void removeLineReceiveListener(ILineReceivedListener listener) {
+	public void removeLineReceiveListener(final ILineReceivedListener listener) {
 		System.out.println("Removing " + listener.toString()); //$NON-NLS-1$
 		synchronized (lineReceiveListeners) {
 			lineReceiveListeners.remove(listener);
@@ -165,12 +165,12 @@ public class Target extends DebugElement implements IDebugTarget {
 
 	private class EventDispatchJob extends Job implements ILineReceivedListener {
 
-		public EventDispatchJob(String name) { super(name); }
+		public EventDispatchJob(final String name) { super(name); }
 
 		private final List<String> stackTrace = new ArrayList<String>(10);
 
 		@Override
-		protected IStatus run(IProgressMonitor monitor) {
+		protected IStatus run(final IProgressMonitor monitor) {
 			addLineReceiveListener(this);
 			String event = ""; //$NON-NLS-1$
 			while (!isTerminated() && event != null)
@@ -221,7 +221,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		public boolean active() { return true; }
 
 		@Override
-		public LineReceivedResult lineReceived(String event, Target target) throws IOException {
+		public LineReceivedResult lineReceived(String event, final Target target) throws IOException {
 			if (event.startsWith(Commands.POSITION)) {
 				final String sourcePath = event.substring(Commands.POSITION.length()+1, event.length());
 				stackTrace.clear();
@@ -292,7 +292,7 @@ public class Target extends DebugElement implements IDebugTarget {
 
 	}
 
-	synchronized void setConnectionObjects(Socket socket, PrintWriter socketWriter, BufferedReader socketReader_) {
+	synchronized void setConnectionObjects(final Socket socket, final PrintWriter socketWriter, final BufferedReader socketReader_) {
 		this.socket = socket;
 		this.socketWriter = socketWriter;
 		this.socketReader = socketReader_;
@@ -318,7 +318,7 @@ public class Target extends DebugElement implements IDebugTarget {
 			}
 	}
 
-	private void stoppedWithStackTrace(List<String> stackTrace) {
+	private void stoppedWithStackTrace(final List<String> stackTrace) {
 		try {
 			thread.setStackTrace(stackTrace);
 		} catch (final CoreException e) {
@@ -328,7 +328,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		thread.fireSuspendEvent(DebugEvent.STEP_INTO);
 	}
 
-	public Target(ILaunch launch, IProcess process, Integer port, IResource scenario) throws Exception {
+	public Target(final ILaunch launch, final IProcess process, final Integer port, final IResource scenario) throws Exception {
 		super(null);
 		this.launch = launch;
 		//this.launch.setSourceLocator(new SourceLookupDirector());
@@ -352,7 +352,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	@Override
 	public boolean hasThreads() throws DebugException { return threads.length > 0; }
 	@Override
-	public boolean supportsBreakpoint(IBreakpoint breakpoint) { return breakpoint instanceof Breakpoint; }
+	public boolean supportsBreakpoint(final IBreakpoint breakpoint) { return breakpoint instanceof Breakpoint; }
 	@Override
 	public IDebugTarget getDebugTarget() { return this; }
 	@Override
@@ -361,7 +361,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	public String getModelIdentifier() { return ClonkDebugModelPresentation.ID; }
 	@SuppressWarnings("rawtypes")
 	@Override
-	public Object getAdapter(Class adapter) { return null; }
+	public Object getAdapter(final Class adapter) { return null; }
 	@Override
 	public boolean canTerminate() { return !isTerminated(); }
 	@Override
@@ -377,7 +377,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	@Override
 	public boolean isDisconnected() { return socket == null; }
 	@Override
-	public IMemoryBlock getMemoryBlock(long startAddress, long length) throws DebugException { return null; }
+	public IMemoryBlock getMemoryBlock(final long startAddress, final long length) throws DebugException { return null; }
 	@Override
 	public boolean supportsStorageRetrieval() { return false; }
 
@@ -398,7 +398,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		process.terminate();
 	}
 
-	public void send(String command, ILineReceivedListener listener) {
+	public void send(final String command, final ILineReceivedListener listener) {
 		if (listener != null)
 			addLineReceiveListener(listener);
 		synchronized (socketWriter) {
@@ -408,7 +408,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		}
 	}
 
-	public final void send(String command) {
+	public final void send(final String command) {
 		send(command, null);
 	}
 
@@ -448,7 +448,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	}
 
 	@Override
-	public void breakpointAdded(IBreakpoint breakpoint) {
+	public void breakpointAdded(final IBreakpoint breakpoint) {
 		try {
 			if (breakpoint instanceof Breakpoint) {
 				final Breakpoint bp = (Breakpoint) breakpoint;
@@ -472,13 +472,13 @@ public class Target extends DebugElement implements IDebugTarget {
 	}
 
 	@Override
-	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
+	public void breakpointChanged(final IBreakpoint breakpoint, final IMarkerDelta delta) {
 		if (delta.getAttribute(IBreakpoint.ENABLED) != null)
 			breakpointAdded(breakpoint);
 	}
 
 	@Override
-	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
+	public void breakpointRemoved(final IBreakpoint breakpoint, final IMarkerDelta delta) {
 		try {
 			if (breakpoint.isEnabled())
 				breakpointAdded(breakpoint);

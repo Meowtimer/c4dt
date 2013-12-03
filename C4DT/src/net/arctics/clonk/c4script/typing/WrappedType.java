@@ -7,10 +7,10 @@ public abstract class WrappedType implements IType {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected final IType wrappedType;
 	public IType wrappedType() { return wrappedType; }
-	protected WrappedType(IType type) {
+	protected WrappedType(final IType type) {
 		this.wrappedType = type;
 	}
-	public static IType unwrap(IType type) {
+	public static IType unwrap(final IType type) {
 		return type instanceof WrappedType ? ((WrappedType)type).wrappedType : type;
 	}
 	@Override
@@ -22,7 +22,7 @@ public abstract class WrappedType implements IType {
 		return typeName(false);
 	}
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (obj.getClass() == this.getClass()) {
 			final WrappedType other = (WrappedType)obj;
 			return Utilities.eq(other.wrappedType, this.wrappedType);

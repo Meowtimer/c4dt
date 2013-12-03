@@ -9,12 +9,12 @@ public class DoWhileStatement extends WhileStatement {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public DoWhileStatement(ASTNode condition, ASTNode body) {
+	public DoWhileStatement(final ASTNode condition, final ASTNode body) {
 		super(condition, body);
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(Keywords.Do);
 		printBody(builder, depth);
 		builder.append(" "); //$NON-NLS-1$

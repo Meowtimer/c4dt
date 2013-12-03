@@ -11,7 +11,7 @@ public class DefCoreUnit extends IniUnit {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	@Override
 	protected String configurationName() { return "DefCore.txt"; } //$NON-NLS-1$
-	public DefCoreUnit(Object input) { super(input); }
+	public DefCoreUnit(final Object input) { super(input); }
 	@Override
 	public boolean requiresScriptReparse() { return true; /* i guess */ }
 	public ID definitionID() {
@@ -27,7 +27,7 @@ public class DefCoreUnit extends IniUnit {
 		return entry instanceof IniEntry ? (String)entry.value() : defaultName();
 	}
 	@Override
-	public void commitTo(Script script, ClonkBuilder builder) {
+	public void commitTo(final Script script, final ClonkBuilder builder) {
 		super.commitTo(script, builder);
 		if (script instanceof Definition)
 			((Definition)script).setDefCoreFile(file());

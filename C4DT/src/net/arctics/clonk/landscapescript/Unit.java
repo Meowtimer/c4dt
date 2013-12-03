@@ -4,7 +4,7 @@ public enum Unit {
 	Percent,
 	Pixels;
 	
-	public static Unit parse(String px) {
+	public static Unit parse(final String px) {
 		if (px.equals("px")) //$NON-NLS-1$
 			return Pixels;
 		if (px.equals("%")) //$NON-NLS-1$

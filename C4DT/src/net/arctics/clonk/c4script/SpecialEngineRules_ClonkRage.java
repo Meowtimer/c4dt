@@ -14,13 +14,13 @@ import net.arctics.clonk.parser.BufferedScanner;
 
 public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 	private static final Pattern ID_PATTERN = Pattern.compile("[A-Z_0-9]{4}");
-	public SpecialEngineRules_ClonkRage(Engine engine) {
+	public SpecialEngineRules_ClonkRage(final Engine engine) {
 		super(engine);
 		putFuncRule(criteriaSearchRule, "FindObject2");
 		putFuncRule(objectCreationRule, "FindObject");
 		putFuncRule(setActionLinkRule = new SetActionLinkRule() {
 			@Override
-			public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+			public EntityRegion locateEntityInParameter(final CallDeclaration node, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 				if (index == 1 && node.name().equals("ObjectSetAction")) {
 					final IType t = script.typings().get(node.params()[0]);
 					if (t != null) for (final IType ty : t)
@@ -36,7 +36,7 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 		}, "ObjectSetAction");
 	}
 	@Override
-	public ID parseId(BufferedScanner scanner) {
+	public ID parseId(final BufferedScanner scanner) {
 		final Matcher idMatcher = ID_PATTERN.matcher(scanner.bufferSequence(scanner.tell()));
 		if (idMatcher.lookingAt()) {
 			final String idString = idMatcher.group();

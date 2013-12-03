@@ -12,7 +12,7 @@ import org.eclipse.ui.PartInitException;
 
 public class InfoSiteHandler extends AbstractHandler {
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		try {
 			EntityHyperlink.openURL(new URL("http://www.deenosaurier.de/c4dt/"));
 		} catch (PartInitException | MalformedURLException e) {

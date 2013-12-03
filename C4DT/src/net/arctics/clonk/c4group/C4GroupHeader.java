@@ -28,7 +28,7 @@ public class C4GroupHeader implements Serializable {
 
 	protected C4GroupHeader() {}
 
-	public static C4GroupHeader createHeader(int entryCount, String maker) {
+	public static C4GroupHeader createHeader(final int entryCount, final String maker) {
 		final C4GroupHeader header = new C4GroupHeader();
 		header.id = "RedWolf Design GrpFolder"; //$NON-NLS-1$
 		header.entries = entryCount;
@@ -42,7 +42,7 @@ public class C4GroupHeader implements Serializable {
 		return header;
 	}
 
-	public void writeTo(OutputStream stream) throws IOException {
+	public void writeTo(final OutputStream stream) throws IOException {
 		final byte[] completeHeader = new byte[STORED_SIZE];
 		arrayCopyTo(stringToByte(id), completeHeader, 0, 24);
 		arrayCopyTo(new byte[] { 0x1, 0x0, 0x0, 0x0 }, completeHeader, 28);
@@ -56,17 +56,17 @@ public class C4GroupHeader implements Serializable {
 		stream.write(completeHeader,0, STORED_SIZE);
 	}
 
-	private void arrayCopyTo(byte[] source, byte[] target, int dstOffset) {
+	private void arrayCopyTo(final byte[] source, final byte[] target, final int dstOffset) {
 		arrayCopyTo(source, target, dstOffset, source.length);
 	}
 
-	private void arrayCopyTo(byte[] source, byte[] target, int dstOffset, int length) {
+	private void arrayCopyTo(final byte[] source, final byte[] target, final int dstOffset, final int length) {
 		for(int i = 0;i < length;i++)
 			if (i >= source.length) target[dstOffset + i] = 0x0; // fill with zeros
 			else target[dstOffset + i] = source[i];
 	}
 
-	public static C4GroupHeader createFromStream(InputStream stream) throws C4GroupInvalidDataException, IOException {
+	public static C4GroupHeader createFromStream(final InputStream stream) throws C4GroupInvalidDataException, IOException {
 		final C4GroupHeader result = new C4GroupHeader();
 
 		// read header
@@ -161,14 +161,14 @@ public class C4GroupHeader implements Serializable {
 		return original;
 	}
 
-	public static int byteToInt32(byte[] buffer, int offset) {
+	public static int byteToInt32(final byte[] buffer, final int offset) {
 		int result = 0;
 		for(int i = 0;i < 4;i++)
 			result += (buffer[i + offset] & 0xFF) << (i*8);
 		return result;
 	}
 
-	public static byte[] int32ToByte(int number) {
+	public static byte[] int32ToByte(final int number) {
 		final byte[] buffer = new byte[4];
 		for(int i = 0;i < 4;i++) {
 			final int mix = (0xFF << (i*8));
@@ -178,7 +178,7 @@ public class C4GroupHeader implements Serializable {
 		return buffer;
 	}
 
-	public static String byteToString(byte[] buffer, int offset, int length) {
+	public static String byteToString(final byte[] buffer, final int offset, final int length) {
 		try {
 			return new String(buffer,offset,length,"ISO-8859-1"); //$NON-NLS-1$
 		} catch (final UnsupportedEncodingException e) {
@@ -187,7 +187,7 @@ public class C4GroupHeader implements Serializable {
 		}
 	}
 
-	public static byte[] stringToByte(String str) {
+	public static byte[] stringToByte(final String str) {
 		try {
 			return str.getBytes("ISO-8859-1"); //$NON-NLS-1$
 		} catch (final UnsupportedEncodingException e) {
@@ -196,11 +196,11 @@ public class C4GroupHeader implements Serializable {
 		return null;
 	}
 
-	public static boolean byteToBoolean(byte[] buffer, int offset) {
+	public static boolean byteToBoolean(final byte[] buffer, final int offset) {
 		return buffer[offset] == 1;
 	}
 
-	public static byte[] booleanToByte(boolean bool) {
+	public static byte[] booleanToByte(final boolean bool) {
 		return new byte[] { bool ? (byte)1 : (byte)0 };
 	}
 

@@ -51,7 +51,7 @@ public abstract class Declaration extends ASTNode implements
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	protected Declaration() {}
-	protected Declaration(int start, int end) { super(start, end); }
+	protected Declaration(final int start, final int end) { super(start, end); }
 
 	/**
 	 * The name of this declaration
@@ -67,12 +67,12 @@ public abstract class Declaration extends ASTNode implements
 	 * Sets the name.
 	 * @param name the new name
 	 */
-	public void setName(String name) { this.name = name; }
+	public void setName(final String name) { this.name = name; }
 
 	/**
 	 * @param Set the location of the declaration in its declaring file.
 	 */
-	public void setLocation(SourceLocation location) {
+	public void setLocation(final SourceLocation location) {
 		setLocation(location != null ? location.start() : 0, location != null ? location.end() : 0);
 	}
 
@@ -112,8 +112,8 @@ public abstract class Declaration extends ASTNode implements
 	 * @return The short info string.
 	 */
 	@Override
-	public String infoText(IIndexEntity context) { return name(); }
-	public String displayString(IIndexEntity context) { return infoText(this); }
+	public String infoText(final IIndexEntity context) { return name(); }
+	public String displayString(final IIndexEntity context) { return infoText(this); }
 
 	/**
 	 * Returns an array of all sub declarations meant to be displayed in the outline.
@@ -152,7 +152,7 @@ public abstract class Declaration extends ASTNode implements
 	 * @param project
 	 * @return
 	 */
-	public Object[] occurenceScope(Iterable<Index> indexes) {
+	public Object[] occurenceScope(final Iterable<Index> indexes) {
 		final Set<Object> result = new LinkedHashSet<Object>();
 		// first, add the script this declaration is declared in. Matches will most likely be found in there
 		// so it helps to make it the first item to be searched
@@ -167,11 +167,11 @@ public abstract class Declaration extends ASTNode implements
 			for (final Index index : indexes)
 				index.allDefinitions(new Sink<Definition>() {
 					@Override
-					public void receivedObject(Definition item) {
+					public void receivedObject(final Definition item) {
 						result.add(item);
 					}
 					@Override
-					public boolean filter(Definition item) {
+					public boolean filter(final Definition item) {
 						return item.doesInclude(index, def);
 					}
 				});
@@ -180,7 +180,7 @@ public abstract class Declaration extends ASTNode implements
 		for (final Index index : indexes)
 			index.allScripts(new Sink<Script>() {
 				@Override
-				public void receivedObject(Script item) {
+				public void receivedObject(final Script item) {
 					result.add(item);
 				}
 			});
@@ -209,17 +209,17 @@ public abstract class Declaration extends ASTNode implements
 	 * @param mask a bit mask specifying what to include in the returned {@link List}, formed by the static variables defined in {@link DeclMask}.
 	 * @return A list containing sub declarations matching the mask
 	 */
-	public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) { return Collections.emptyList(); }
-	public boolean seesSubDeclaration(Declaration subDeclaration) { return true; }
+	public List<? extends Declaration> subDeclarations(final Index contextIndex, final int mask) { return Collections.emptyList(); }
+	public boolean seesSubDeclaration(final Declaration subDeclaration) { return true; }
 
-	public Function findFunction(String functionName) { return null; }
-	public Declaration findDeclaration(FindDeclarationInfo info) { return null; }
+	public Function findFunction(final String functionName) { return null; }
+	public Declaration findDeclaration(final FindDeclarationInfo info) { return null; }
 
 	/**
 	 * Adds a sub-declaration
 	 * @param declaration
 	 */
-	public <T extends Declaration> T addDeclaration(T declaration) {
+	public <T extends Declaration> T addDeclaration(final T declaration) {
 		throw new NotImplementedException();
 	}
 
@@ -227,7 +227,7 @@ public abstract class Declaration extends ASTNode implements
 	 * Called after deserialization to restore transient references
 	 * @param parent the parent
 	 */
-	public void postLoad(Declaration parent, Index index) {
+	public void postLoad(final Declaration parent, final Index index) {
 		if (name != null)
 			name = name.intern();
 		postLoad(parent);
@@ -251,7 +251,7 @@ public abstract class Declaration extends ASTNode implements
 	 * @return whether this declaration should be filtered out (false) or not (true)
 	 */
 	@Override
-	public boolean matchedBy(Matcher matcher) {
+	public boolean matchedBy(final Matcher matcher) {
 		if (name() != null && matcher.reset(name()).lookingAt())
 			return true;
 		final Structure tls = topLevelStructure();
@@ -270,7 +270,7 @@ public abstract class Declaration extends ASTNode implements
 	 * @param name the string to check
 	 * @return whether it does or not
 	 */
-	public static boolean looksLikeConstName(String name) {
+	public static boolean looksLikeConstName(final String name) {
 		boolean underscore = false;
 		for (int i = 0; i < name.length(); i++) {
 			final char c = name.charAt(i);
@@ -360,7 +360,7 @@ public abstract class Declaration extends ASTNode implements
 	 * @param parent The parent declaration to use
 	 * @return A string specifying both the parent and this declaration
 	 */
-	public String qualifiedName(Declaration parent) {
+	public String qualifiedName(final Declaration parent) {
 		if (parent != null)
 			return String.format("%s::%s", parent.qualifiedName(), this.name());
 		else
@@ -368,12 +368,12 @@ public abstract class Declaration extends ASTNode implements
 	}
 
 	@Override
-	public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
+	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
 		return adapter.isInstance(this) ? this : null;
 	}
 
 	@Override
-	public boolean equals(Object other) { return this == other; /* identity */ }
+	public boolean equals(final Object other) { return this == other; /* identity */ }
 
 	public Typing typing() { return index() != null ? index().typing() : Typing.INFERRED; }
 
@@ -381,7 +381,7 @@ public abstract class Declaration extends ASTNode implements
 	public String patternMatchingText() { return name(); }
 
 	@Override
-	public boolean equalAttributes(ASTNode other) {
+	public boolean equalAttributes(final ASTNode other) {
 		if (!super.equalAttributes(other))
 			return false;
 		final Declaration d = (Declaration)other;
@@ -393,7 +393,7 @@ public abstract class Declaration extends ASTNode implements
 	public int nameStart() { return start(); }
 
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		return new EntityRegion(this, regionToSelect(), name());
 	}
 

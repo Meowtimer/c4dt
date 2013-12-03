@@ -28,16 +28,16 @@ public class PropListExpression extends ASTNode {
 	public ProplistDeclaration definedDeclaration() { return definedDeclaration; }
 	public Collection<Variable> components() { return definedDeclaration.components(false); }
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) { return predecessor == null; }
+	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor == null; }
 	@Override
-	public void setParent(ASTNode parent) { super.setParent(parent); }
+	public void setParent(final ASTNode parent) { super.setParent(parent); }
 
-	public PropListExpression(ProplistDeclaration declaration) {
+	public PropListExpression(final ProplistDeclaration declaration) {
 		this.definedDeclaration = declaration;
 		assignParentToSubElements();
 	}
 	@Override
-	public void doPrint(ASTNodePrinter output_, int depth) {
+	public void doPrint(final ASTNodePrinter output_, final int depth) {
 		final char FIRSTBREAK = (char)255;
 		final char BREAK = (char)254;
 		final char LASTBREAK = (char)253;
@@ -49,7 +49,7 @@ public class PropListExpression extends ASTNode {
 		for (final Variable component : components) {
 			output.append(i > 0 ? BREAK : FIRSTBREAK);
 			output.append(component.name());
-			output.append(':'); //$NON-NLS-1$
+			output.append(':'); 
 			if (!(component.initializationExpression() instanceof PropListExpression))
 				output.append(' ');
 			component.initializationExpression().print(output, depth+1);
@@ -87,7 +87,7 @@ public class PropListExpression extends ASTNode {
 		return result;
 	}
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		if (definedDeclaration == null)
 			return;
 		final Collection<Variable> components = components();
@@ -105,7 +105,7 @@ public class PropListExpression extends ASTNode {
 	}
 
 	@Override
-	public Object evaluateStatic(IEvaluationContext context) {
+	public Object evaluateStatic(final IEvaluationContext context) {
 		final Collection<Variable> components = components();
 		final Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (final Variable component : components)
@@ -113,13 +113,13 @@ public class PropListExpression extends ASTNode {
 		return map;
 	}
 
-	public ASTNode value(String key) {
+	public ASTNode value(final String key) {
 		final Variable keyVar = definedDeclaration.findComponent(key);
 		return keyVar != null ? keyVar.initializationExpression() : null;
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T valueEvaluated(String key, Class<T> cls) {
+	public <T> T valueEvaluated(final String key, final Class<T> cls) {
 		final ASTNode e = value(key);
 		if (e != null) {
 			final Object eval = e.evaluateStatic(definedDeclaration.parent(IEvaluationContext.class));
@@ -151,7 +151,7 @@ public class PropListExpression extends ASTNode {
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		final int secOff = sectionOffset();
 		final int absolute = secOff+start()+offset;
 		for (final Variable v : this.components())

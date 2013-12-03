@@ -16,18 +16,18 @@ import org.eclipse.jface.text.Region;
  */
 public class FunctionBody extends BunchOfStatements {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public FunctionBody(Function owner, List<ASTNode> statements) {
+	public FunctionBody(final Function owner, final List<ASTNode> statements) {
 		super(statements);
 		this.parent = owner;
 	}
-	public FunctionBody(Function owner, ASTNode... statements) {
+	public FunctionBody(final Function owner, final ASTNode... statements) {
 		super(statements);
 		this.parent = owner;
 	}
 	@Override
 	public Function owner() { return (Function)parent; }
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		final Function owner = owner();
 		if (owner != null && owner.isOldStyle())
 			super.doPrint(builder, depth);

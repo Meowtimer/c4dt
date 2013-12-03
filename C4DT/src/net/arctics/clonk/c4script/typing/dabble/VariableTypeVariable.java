@@ -9,13 +9,13 @@ import net.arctics.clonk.c4script.typing.TypeVariable;
 public class VariableTypeVariable extends TypeVariable {
 	private final Variable variable;
 	public Variable variable() { return variable; }
-	public VariableTypeVariable(Variable variable) {
+	public VariableTypeVariable(final Variable variable) {
 		this.variable = variable;
 		this.type = PrimitiveType.UNKNOWN;
 	}
-	public VariableTypeVariable(AccessVar origin) { this((Variable) origin.declaration()); }
+	public VariableTypeVariable(final AccessVar origin) { this((Variable) origin.declaration()); }
 	@Override
-	public void apply(boolean soft) {
+	public void apply(final boolean soft) {
 		variable.assignType(type);
 	}
 	@Override

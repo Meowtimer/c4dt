@@ -12,7 +12,7 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode initializer, increment;
-	public ForStatement(ASTNode initializer, ASTNode condition, ASTNode increment, ASTNode body) {
+	public ForStatement(final ASTNode initializer, final ASTNode condition, final ASTNode increment, final ASTNode body) {
 		super(condition, body);
 		this.initializer = initializer;
 		this.increment = increment;
@@ -24,7 +24,7 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 	public ASTNode increment() { return increment; }
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(keyword() + " ("); //$NON-NLS-1$
 		if (initializer != null)
 			initializer.print(builder, depth+1);
@@ -45,7 +45,7 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 	}
 
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		initializer = elms[0];
 		condition   = elms[1];
 		increment   = elms[2];
@@ -53,7 +53,7 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		if (initializer != null)
 			initializer.evaluate(context);
 		Object ev = null;

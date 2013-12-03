@@ -55,14 +55,14 @@ public class ClonkProjectNature implements IProjectNature {
 
 	public static final IConverter<ClonkProjectNature, Index> SELECT_INDEX = new IConverter<ClonkProjectNature, Index>() {
 		@Override
-		public Index convert(ClonkProjectNature nature) {
+		public Index convert(final ClonkProjectNature nature) {
 			return nature.index();
 		}
 	};
 
 	public static final IConverter<IProject, ClonkProjectNature> SELECT_NATURE = new IConverter<IProject, ClonkProjectNature>() {
 		@Override
-		public ClonkProjectNature convert(IProject project) {
+		public ClonkProjectNature convert(final IProject project) {
 			return get(project);
 		}
 	};
@@ -74,7 +74,7 @@ public class ClonkProjectNature implements IProjectNature {
 	public Set<ClonkProjectNature> projectSet() {
 		@SuppressWarnings("serial")
 		class ProjectSet extends HashSet<ClonkProjectNature> {
-			void addRecursive(ClonkProjectNature n) {
+			void addRecursive(final ClonkProjectNature n) {
 				if (add(n))
 					for (final IProject p : n.getProject().getReferencingProjects()) {
 						final ClonkProjectNature referencing = get(p);
@@ -82,7 +82,7 @@ public class ClonkProjectNature implements IProjectNature {
 							addRecursive(referencing);
 					}
 			}
-			ProjectSet(ClonkProjectNature start) {
+			ProjectSet(final ClonkProjectNature start) {
 				addRecursive(start);
 			}
 		}
@@ -118,7 +118,7 @@ public class ClonkProjectNature implements IProjectNature {
 	@Override
 	public IProject getProject() { return project; }
 	@Override
-	public void setProject(IProject project) { this.project = project; }
+	public void setProject(final IProject project) { this.project = project; }
 	public List<ProblemReportingStrategy> problemReportingStrategies() {
 		return instantiateProblemReportingStrategies(0);
 	}
@@ -177,7 +177,7 @@ public class ClonkProjectNature implements IProjectNature {
 			settings();
 			StreamUtil.writeToFile(settingsFilePath().toFile(), new StreamUtil.StreamWriteRunnable() {
 				@Override
-				public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
+				public void run(final File file, final OutputStream stream, final OutputStreamWriter writer) throws IOException {
 					try {
 						CustomIniUnit.save(new AppendableBackedExprWriter(writer), settings, null);
 					} catch (final Exception e) {
@@ -247,7 +247,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @param res the resource
 	 * @return the nature
 	 */
-	public static ClonkProjectNature get(IResource res) {
+	public static ClonkProjectNature get(final IResource res) {
 		if (res == null)
 			return null;
 		final IProject project = res.getProject();
@@ -271,7 +271,7 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @param script the script
 	 * @return the nature
 	 */
-	public static ClonkProjectNature get(Script script) {
+	public static ClonkProjectNature get(final Script script) {
 		if (script == null)
 			return null;
 		if (script instanceof Definition)
@@ -282,7 +282,7 @@ public class ClonkProjectNature implements IProjectNature {
 			return null;
 	}
 
-	public static ClonkProjectNature get(String projectName) {
+	public static ClonkProjectNature get(final String projectName) {
 		for (final IProject proj : clonkProjectsInWorkspace())
 			if (proj.getName().equals(projectName))
 				try {
@@ -319,7 +319,7 @@ public class ClonkProjectNature implements IProjectNature {
 		return c.toArray(new IProject [c.size()]);
 	}
 
-	private static void addProjectsFromReferencedProjects(List<IProject> result, IProject proj) {
+	private static void addProjectsFromReferencedProjects(final List<IProject> result, final IProject proj) {
 		try {
 			final List<IProject> newOnes = new LinkedList<IProject>();
 			for (final IProject p : proj.getReferencedProjects()) {
@@ -347,19 +347,19 @@ public class ClonkProjectNature implements IProjectNature {
 		index();
 	}
 
-	public static Engine engineFromResource(IResource res) {
+	public static Engine engineFromResource(final IResource res) {
 		final ClonkProjectNature nat = get(res);
 		return nat != null ? nat.settings().engine() : null;
 	}
 
-	public static Engine engineFromSelection(ISelection selection) {
+	public static Engine engineFromSelection(final ISelection selection) {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource)
 			return engineFromResource((IResource) ((IStructuredSelection)selection).getFirstElement());
 		else
 			return null;
 	}
 
-	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(int requiredCapabilities) {
+	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(final int requiredCapabilities) {
 		try {
 			if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
 				return Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());

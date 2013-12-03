@@ -12,7 +12,7 @@ public class CombinedMatchingPlaceholder extends MatchingPlaceholder {
 	private final MatchingPlaceholder left, right;
 	private final Operator operator;
 
-	public CombinedMatchingPlaceholder(MatchingPlaceholder left, MatchingPlaceholder right, Operator operator) throws ProblemException {
+	public CombinedMatchingPlaceholder(final MatchingPlaceholder left, final MatchingPlaceholder right, final Operator operator) throws ProblemException {
 		super();
 		this.left = left;
 		this.right = right;
@@ -32,7 +32,7 @@ public class CombinedMatchingPlaceholder extends MatchingPlaceholder {
 	}
 
 	@Override
-	public boolean satisfiedBy(ASTNode element) {
+	public boolean satisfiedBy(final ASTNode element) {
 		switch (operator) {
 		case And: case BitAnd:
 			return left.satisfiedBy(element) && right.satisfiedBy(element);
@@ -44,7 +44,7 @@ public class CombinedMatchingPlaceholder extends MatchingPlaceholder {
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		left.print(output, depth);
 		output.append(' ');
 		output.append(operator.operatorName());

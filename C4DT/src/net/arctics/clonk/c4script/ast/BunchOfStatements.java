@@ -9,12 +9,12 @@ import net.arctics.clonk.c4script.Conf;
 
 public class BunchOfStatements extends Block {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public BunchOfStatements(List<ASTNode> statements) { super(statements); }
-	public BunchOfStatements(ASTNode... statements) { super(statements); }
+	public BunchOfStatements(final List<ASTNode> statements) { super(statements); }
+	public BunchOfStatements(final ASTNode... statements) { super(statements); }
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		boolean first = true;
-		for (ASTNode statement : statements()) {
+		for (final ASTNode statement : statements()) {
 			statement.printPrefix(builder, depth);
 			if (first)
 				first = false;

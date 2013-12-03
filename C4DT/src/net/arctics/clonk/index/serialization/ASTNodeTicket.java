@@ -23,13 +23,13 @@ public class ASTNodeTicket implements IDeserializationResolvable, Serializable, 
 		for (depth = 1, elm = elm.parent(); elm != null; elm = elm.parent(), depth++);
 		return depth;
 	}
-	public ASTNodeTicket(Declaration owner, ASTNode elm) {
+	public ASTNodeTicket(final Declaration owner, final ASTNode elm) {
 		this.owner = owner;
 		this.textRepresentation = elm.toString();
 		this.depth = depth(elm);
 	}
 	@Override
-	public Object resolve(Index index, IndexEntity deserializee) {
+	public Object resolve(final Index index, final IndexEntity deserializee) {
 		if (owner instanceof IHasCode) {
 			if (owner instanceof IndexEntity)
 				((IndexEntity) owner).requireLoaded();
@@ -41,7 +41,7 @@ public class ASTNodeTicket implements IDeserializationResolvable, Serializable, 
 		return null;
 	}
 	@Override
-	public TraversalContinuation visitNode(ASTNode expression, Object context) {
+	public TraversalContinuation visitNode(final ASTNode expression, final Object context) {
 		final int ed = depth(expression);
 		if (ed == depth && textRepresentation.equals(expression.toString())) {
 			found = expression;

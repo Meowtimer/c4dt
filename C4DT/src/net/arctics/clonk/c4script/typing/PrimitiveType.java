@@ -29,11 +29,11 @@ public enum PrimitiveType implements IType {
 
 	ANY {
 		@Override
-		public Object convert(Object value) { return value; }
+		public Object convert(final Object value) { return value; }
 	},
 	BOOL {
 		@Override
-		public Object convert(Object value) {
+		public Object convert(final Object value) {
 			switch (correspondingToInstance(value)) {
 			case INT:
 				return ((Number)value).intValue() != 0;
@@ -120,7 +120,7 @@ public enum PrimitiveType implements IType {
 	}
 
 	@Override
-	public String typeName(boolean special) {
+	public String typeName(final boolean special) {
 		if (!special && this == UNKNOWN)
 			return ANY.typeName(false);
 		else
@@ -135,7 +135,7 @@ public enum PrimitiveType implements IType {
 	 * @param type The C++ type string to interpret
 	 * @return The primitive type or {@link #UNKNOWN} if no
 	 */
-	public static PrimitiveType fromCPPString(String type) {
+	public static PrimitiveType fromCPPString(final String type) {
 		Matcher m;
 		PrimitiveType ty = PrimitiveType.CPP_TO_C4SCRIPT_MAP.get(type);
 		if (ty != null)
@@ -151,7 +151,7 @@ public enum PrimitiveType implements IType {
 		return PrimitiveType.UNKNOWN;
 	}
 
-	public static String CPPTypeFromType(IType type) {
+	public static String CPPTypeFromType(final IType type) {
 		final PrimitiveType t = fromString(type.toString());
 		return C4SCRIPT_TO_CPP_MAP.get(t);
 	}
@@ -161,7 +161,7 @@ public enum PrimitiveType implements IType {
 	 * @param arg The C4Script type string to return a primitive type for
 	 * @return The primitive type or {@link UNKNOWN}.
 	 */
-	public static PrimitiveType fromString(String arg) {
+	public static PrimitiveType fromString(final String arg) {
 		return defaulting(fromString(arg, false), UNKNOWN);
 	}
 
@@ -172,7 +172,7 @@ public enum PrimitiveType implements IType {
 	 * @param allowSpecial Whether to allow special syntax
 	 * @return The {@link PrimitiveType} parsed from the argument or null if not successful.
 	 */
-	public static PrimitiveType fromString(String typeString, boolean allowSpecial) {
+	public static PrimitiveType fromString(final String typeString, final boolean allowSpecial) {
 		final PrimitiveType t = REGULAR_MAP.get(typeString);
 		if (t != null)
 			return t;
@@ -186,7 +186,7 @@ public enum PrimitiveType implements IType {
 	 * @param value the value
 	 * @return the type
 	 */
-	public static PrimitiveType correspondingToInstance(Object value) {
+	public static PrimitiveType correspondingToInstance(final Object value) {
 		if (value instanceof String)
 			return STRING;
 		if (value instanceof Number)
@@ -207,7 +207,7 @@ public enum PrimitiveType implements IType {
 	 * @param value value to convert
 	 * @return the converted value or null if conversion failed
 	 */
-	public Object convert(Object value) {
+	public Object convert(final Object value) {
 		return correspondingToInstance(value) == this ? value : null;
 	}
 
@@ -238,16 +238,16 @@ public enum PrimitiveType implements IType {
 		@Override
 		public Iterator<IType> iterator() { return PrimitiveType.this.iterator(); }
 		@Override
-		public String typeName(boolean special) { return PrimitiveType.this.typeName(special); }
+		public String typeName(final boolean special) { return PrimitiveType.this.typeName(special); }
 		@Override
 		public String toString() { return typeName(true); }
 		@Override
 		public IType simpleType() { return PrimitiveType.this; }
 		@Override
-		public Object resolve(Index index, IndexEntity deserializee) { return PrimitiveType.this.unified(); }
+		public Object resolve(final Index index, final IndexEntity deserializee) { return PrimitiveType.this.unified(); }
 		public PrimitiveType base() { return PrimitiveType.this; }
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			if (obj instanceof PrimitiveType)
 				return obj == PrimitiveType.this;
 			else if (obj instanceof Unified)

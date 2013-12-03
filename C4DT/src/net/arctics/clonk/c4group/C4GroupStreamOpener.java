@@ -18,28 +18,28 @@ public class C4GroupStreamOpener implements IResourceDeltaVisitor, IResourceVisi
 
 	private final int operation;
 
-	public C4GroupStreamOpener(int operation) {
+	public C4GroupStreamOpener(final int operation) {
 		this.operation = operation;
 	}
 
 	@Override
-	public boolean visit(IResourceDelta delta) throws CoreException {
-		IResource res = delta.getResource();
+	public boolean visit(final IResourceDelta delta) throws CoreException {
+		final IResource res = delta.getResource();
 		return visit(res);
 	}
 
 	@Override
-	public boolean visit(IResource res) throws CoreException {
+	public boolean visit(final IResource res) throws CoreException {
 		if (res.getParent() != null && res.getParent().equals(res.getProject()) && res instanceof IContainer) {
 			URI uri = null;
 			try {
 				uri = res.getLocationURI();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				System.out.println(res.getFullPath().toString());
 			}
-			IFileStore store = EFS.getStore(uri);
+			final IFileStore store = EFS.getStore(uri);
 			if (store instanceof C4Group) {
-				C4Group group = (C4Group) store;
+				final C4Group group = (C4Group) store;
 				try {
 					switch (operation) {
 					case OPEN:
@@ -49,7 +49,7 @@ public class C4GroupStreamOpener implements IResourceDeltaVisitor, IResourceVisi
 						group.releaseStream();
 						break;
 					}
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 			}

@@ -16,7 +16,7 @@ public class C4GroupUncompressed extends C4Group {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public C4GroupUncompressed(C4Group parent, String name, File file) {
+	public C4GroupUncompressed(final C4Group parent, final String name, final File file) {
 		super(parent, name, file);
 	}
 	
@@ -35,12 +35,12 @@ public class C4GroupUncompressed extends C4Group {
 	}
 	
 	@Override
-	public synchronized void readFromStream(C4GroupItem whoWantsThat, long pos, StreamReadCallback callback) throws IOException {
+	public synchronized void readFromStream(final C4GroupItem whoWantsThat, final long pos, final StreamReadCallback callback) throws IOException {
 		// create stream from uncompressed file
-		IPath path = new Path(origin().toString()).append(ITreeNode.Default.relativePath(whoWantsThat, this));
-		File fileToReadFrom = path.toFile();
+		final IPath path = new Path(origin().toString()).append(ITreeNode.Default.relativePath(whoWantsThat, this));
+		final File fileToReadFrom = path.toFile();
 		if (fileToReadFrom.isFile()) {
-			FileInputStream stream = new FileInputStream(fileToReadFrom);
+			final FileInputStream stream = new FileInputStream(fileToReadFrom);
 			try {
 				callback.readStream(stream);
 			} finally {

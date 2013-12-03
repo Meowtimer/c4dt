@@ -15,7 +15,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.FindReferences")
 public class FindReferencesAction extends ClonkTextEditorAction {
-	public FindReferencesAction(ResourceBundle bundle, String prefix, ITextEditor editor) { super(bundle, prefix, editor); }
+	public FindReferencesAction(final ResourceBundle bundle, final String prefix, final ITextEditor editor) { super(bundle, prefix, editor); }
 	@Override
 	public void run() {
 		try {

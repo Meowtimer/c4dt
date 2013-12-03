@@ -13,7 +13,7 @@ public class Value extends DebugElement implements IValue {
 	private Object value;
 	private PrimitiveType type;
 	
-	public Value(Target target, Object value) {
+	public Value(final Target target, final Object value) {
 		super(target);
 		setValue(value, PrimitiveType.correspondingToInstance(value));
 	}
@@ -26,7 +26,7 @@ public class Value extends DebugElement implements IValue {
 		return type;
 	}
 
-	public void setValue(Object value, PrimitiveType type) {
+	public void setValue(final Object value, final PrimitiveType type) {
 		this.value = value;
 		this.type = type;
 	}
@@ -38,7 +38,7 @@ public class Value extends DebugElement implements IValue {
 
 	@Override
 	public String getValueString() throws DebugException {
-		return value != null ? value.toString() : Keywords.Nil; //$NON-NLS-1$
+		return value != null ? value.toString() : Keywords.Nil; 
 	}
 
 	@Override
@@ -57,9 +57,9 @@ public class Value extends DebugElement implements IValue {
 	}
 	
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (obj instanceof Value) {
-			Value other = (Value) obj;
+			final Value other = (Value) obj;
 			return Utilities.eq(other.value, value);
 		}
 		return false;

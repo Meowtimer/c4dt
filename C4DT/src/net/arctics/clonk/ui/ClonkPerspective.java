@@ -9,17 +9,17 @@ import org.eclipse.ui.IPerspectiveFactory;
 
 public class ClonkPerspective implements IPerspectiveFactory {
 	@Override
-	public void createInitialLayout(IPageLayout layout) {
+	public void createInitialLayout(final IPageLayout layout) {
 		layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
 		layout.addShowViewShortcut(Core.id("views.EngineDeclarationsView")); //$NON-NLS-1$
-		String editorArea = layout.getEditorArea();
+		final String editorArea = layout.getEditorArea();
 		// Top left: Resource Navigator view and Bookmarks view placeholder
-		IFolderLayout topLeft = layout.createFolder("topLeft", IPageLayout.LEFT, 0.25f, //$NON-NLS-1$
+		final IFolderLayout topLeft = layout.createFolder("topLeft", IPageLayout.LEFT, 0.25f, //$NON-NLS-1$
 			editorArea);
 		topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
 		topLeft.addPlaceholder(IPageLayout.ID_BOOKMARKS);
 		// Bottom left: Outline view
-		IFolderLayout bottomLeft = layout.createFolder("bottomLeft", IPageLayout.BOTTOM, 0.50f, //$NON-NLS-1$
+		final IFolderLayout bottomLeft = layout.createFolder("bottomLeft", IPageLayout.BOTTOM, 0.50f, //$NON-NLS-1$
 			"topLeft"); //$NON-NLS-1$
 		bottomLeft.addView(IPageLayout.ID_OUTLINE);
 

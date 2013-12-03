@@ -14,7 +14,7 @@ public class IconSpec extends IniEntryValue implements IConvertibleToPrimitive {
 	}
 
 	@Override
-	public void setInput(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+	public void setInput(final String value, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		final String[] split = value.split(":");
 		definition = split[0];
 		if (split.length > 1) try {

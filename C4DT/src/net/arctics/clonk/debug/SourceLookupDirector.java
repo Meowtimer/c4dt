@@ -16,7 +16,7 @@ public class SourceLookupDirector extends AbstractSourceLookupDirector {
 		this.addParticipants(new ISourceLookupParticipant[] {new SourceLookupParticipant()});
 	}
 	@Override
-	public void initializeDefaults(ILaunchConfiguration configuration) throws CoreException {
+	public void initializeDefaults(final ILaunchConfiguration configuration) throws CoreException {
 		super.initializeDefaults(configuration);
 		final String projName = configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
 		final IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
@@ -26,7 +26,7 @@ public class SourceLookupDirector extends AbstractSourceLookupDirector {
 			});
 	}
 	@Override
-	public Object getSourceElement(Object element) {
+	public Object getSourceElement(final Object element) {
 		return super.getSourceElement(element);
 	}
 }

@@ -7,7 +7,7 @@ public enum Operator {
 	
 	private final char c;
 	
-	Operator(char c) {
+	Operator(final char c) {
 		this.c = c;
 	}
 	
@@ -16,8 +16,8 @@ public enum Operator {
 		return String.valueOf(c);
 	}
 	
-	public static Operator valueOf(char c) {
-		for (Operator o : values())
+	public static Operator valueOf(final char c) {
+		for (final Operator o : values())
 			if (o.c == c)
 				return o;
 		return null;

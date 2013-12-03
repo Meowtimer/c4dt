@@ -21,14 +21,14 @@ public class ScriptContextInformationValidator implements IContextInformationPre
 	private int fOffset;
 
 	@Override
-	public void install(IContextInformation info, ITextViewer viewer, int offset) {
+	public void install(final IContextInformation info, final ITextViewer viewer, final int offset) {
 		fInformation = info;
 		fTextViewer = viewer;
 		fOffset = offset;
 	}
 
 	@Override
-	public boolean updatePresentation(int offset, TextPresentation presentation) {
+	public boolean updatePresentation(int offset, final TextPresentation presentation) {
 		offset = fTextViewer.getSelectedRange().x;
 		final ScriptContextInformation info = as(fInformation, ScriptContextInformation.class);
 		if (info == null)
@@ -48,7 +48,7 @@ public class ScriptContextInformationValidator implements IContextInformationPre
 	}
 
 	@Override
-	public boolean isContextInformationValid(int offset) {
+	public boolean isContextInformationValid(final int offset) {
 		try {
 			if (fInformation instanceof ScriptContextInformation && !((ScriptContextInformation) fInformation).valid(offset))
 				return false;

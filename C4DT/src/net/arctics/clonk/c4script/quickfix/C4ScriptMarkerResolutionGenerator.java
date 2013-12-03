@@ -18,7 +18,7 @@ import org.eclipse.ui.IMarkerResolutionGenerator2;
 public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGenerator2 {
 
 	@Override
-	public IMarkerResolution[] getResolutions(IMarker marker) {
+	public IMarkerResolution[] getResolutions(final IMarker marker) {
 		final ScriptQuickAssistProcessor quickAssist = ScriptQuickAssistProcessor.singleton();
 		final Script script = Script.get(marker.getResource(), true);
 		final List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>(10);
@@ -32,7 +32,7 @@ public class C4ScriptMarkerResolutionGenerator implements IMarkerResolutionGener
 	}
 
 	@Override
-	public boolean hasResolutions(IMarker marker) {
+	public boolean hasResolutions(final IMarker marker) {
 		try {
 			return
 				ScriptQuickAssistProcessor.singleton() != null &&

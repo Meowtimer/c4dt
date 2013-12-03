@@ -20,26 +20,26 @@ public class MaterialMap extends HashMap<String, MaterialUnit>  {
 	
 	private final List<MaterialUnit> orderedMaterials = new ArrayList<MaterialUnit>();
 
-	public MaterialUnit get(int index) {
+	public MaterialUnit get(final int index) {
 		return orderedMaterials.get(index);
 	}
 	
 	@Override
-	public MaterialUnit put(String name, MaterialUnit material) {
+	public MaterialUnit put(final String name, final MaterialUnit material) {
 		orderedMaterials.add(material);
 		return super.put(name, material);
 	}
 	
-	public void load(IContainer materialsContainer) {
+	public void load(final IContainer materialsContainer) {
 		final String ext = "."+ClonkProjectNature.get(materialsContainer).index().engine().settings().materialExtension;
 		try {
-			for (IResource member : materialsContainer.members())
+			for (final IResource member : materialsContainer.members())
 				if (member instanceof IFile && member.getName().endsWith(ext)) {
-					MaterialUnit unit = (MaterialUnit)Structure.pinned(member, true, false);
+					final MaterialUnit unit = (MaterialUnit)Structure.pinned(member, true, false);
 					if (unit != null)
 						put(StringUtil.rawFileName(member.getName()), unit);
 				}
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
 	}

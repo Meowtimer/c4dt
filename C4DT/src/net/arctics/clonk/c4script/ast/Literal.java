@@ -19,7 +19,7 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public abstract T literal();
-	public boolean literalsEqual(Literal<?> other) {
+	public boolean literalsEqual(final Literal<?> other) {
 		return Utilities.eq(other.literal(), this.literal());
 	}
 
@@ -29,23 +29,23 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 	}
 
 	@Override
-	public T evaluateStatic(IEvaluationContext context) {
+	public T evaluateStatic(final IEvaluationContext context) {
 		context.reportOriginForExpression(this, new SourceLocation(context.codeFragmentOffset(), this), context.script().file());
 		return literal();
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) {
+	public Object evaluate(final IEvaluationContext context) {
 	    return literal();
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append(literal().toString());
 	}
 
 	@Override
-	public boolean equalAttributes(ASTNode other) {
+	public boolean equalAttributes(final ASTNode other) {
 		if (!super.equalAttributes(other))
 			return false;
 		if (!literalsEqual((Literal<?>)other))
@@ -59,7 +59,7 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 	}
 
 	@Override
-	public boolean allowsSequenceSuccessor(ASTNode successor) { return false; }
+	public boolean allowsSequenceSuccessor(final ASTNode successor) { return false; }
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) { return predecessor == null; }
+	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor == null; }
 }

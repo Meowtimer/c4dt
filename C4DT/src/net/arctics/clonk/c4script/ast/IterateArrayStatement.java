@@ -10,7 +10,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode elementExpr, arrayExpr, body;
 
-	public IterateArrayStatement(ASTNode elementExpr, ASTNode arrayExpr, ASTNode body) {
+	public IterateArrayStatement(final ASTNode elementExpr, final ASTNode arrayExpr, final ASTNode body) {
 		super();
 		this.elementExpr = elementExpr;
 		this.arrayExpr   = arrayExpr;
@@ -22,7 +22,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		return arrayExpr;
 	}
 
-	public void setArrayExpr(ASTNode arrayExpr) {
+	public void setArrayExpr(final ASTNode arrayExpr) {
 		this.arrayExpr = arrayExpr;
 	}
 
@@ -30,7 +30,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		return elementExpr;
 	}
 
-	public void setElementExpr(ASTNode elementExpr) {
+	public void setElementExpr(final ASTNode elementExpr) {
 		this.elementExpr = elementExpr;
 	}
 
@@ -40,8 +40,8 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter writer, int depth) {
-		StringBuilder builder = new StringBuilder(keyword().length()+2+1+1+Keywords.In.length()+1+2);
+	public void doPrint(final ASTNodePrinter writer, final int depth) {
+		final StringBuilder builder = new StringBuilder(keyword().length()+2+1+1+Keywords.In.length()+1+2);
 		builder.append(keyword() + " ("); //$NON-NLS-1$
 		elementExpr.print(builder, depth+1);
 		// remove ';' that elementExpr (a statement) prints
@@ -59,7 +59,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		return body;
 	}
 
-	public void setBody(ASTNode body) {
+	public void setBody(final ASTNode body) {
 		this.body = body;
 	}
 
@@ -69,7 +69,7 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 	}
 
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		elementExpr = elms[0];
 		arrayExpr   = elms[1];
 		body        = elms[2];

@@ -16,28 +16,28 @@ import org.eclipse.ui.navigator.ILinkHelper;
 public class LinkHelper implements ILinkHelper {
 
 	@Override
-	public void activateEditor(IWorkbenchPage page, IStructuredSelection selection) {
+	public void activateEditor(final IWorkbenchPage page, final IStructuredSelection selection) {
 		try {
 			if (selection.getFirstElement() instanceof Declaration) {
-				Declaration dec = (Declaration) selection.getFirstElement();
-				IWorkbenchPage wpage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				IEditorInput input = dec.topLevelStructure() != null ? dec.topLevelStructure().makeEditorInput() : null;
+				final Declaration dec = (Declaration) selection.getFirstElement();
+				final IWorkbenchPage wpage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				final IEditorInput input = dec.topLevelStructure() != null ? dec.topLevelStructure().makeEditorInput() : null;
 				if (input != null && wpage.findEditor(input) != null)
 					StructureTextEditor.openDeclaration(dec, false);
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public IStructuredSelection findSelection(IEditorInput anInput) {
-		ScriptWithStorageEditorInput input = (ScriptWithStorageEditorInput) anInput;
-		StructuredSelection sel = new TreeSelection(getTreePath(input.script()));
+	public IStructuredSelection findSelection(final IEditorInput anInput) {
+		final ScriptWithStorageEditorInput input = (ScriptWithStorageEditorInput) anInput;
+		final StructuredSelection sel = new TreeSelection(getTreePath(input.script()));
 		return sel;
 	}
 	
-	public static TreePath getTreePath(ITreeNode node) {
+	public static TreePath getTreePath(final ITreeNode node) {
 		return new TreePath(new Object[0]);
 	}
 

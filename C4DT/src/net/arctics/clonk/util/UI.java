@@ -87,7 +87,7 @@ public enum UI {
 	public final static Image DIRECTIVE_ICON = imageForPath("icons/directive.png");
 	public final static Image WARNING_ICON = imageForPath("icons/warning.png");
 
-	public static Image halfTransparent(Image image) {
+	public static Image halfTransparent(final Image image) {
 		String name;
 		Searching: {
 			for (final Map.Entry<String, Image> img : images.entrySet())
@@ -115,7 +115,7 @@ public enum UI {
 	 * @param function The function to return an icon for
 	 * @return The function icon.
 	 */
-	public static Image functionIcon(Function function) {
+	public static Image functionIcon(final Function function) {
 		final String iconName = function.visibility().name().toLowerCase();
 		return imageForPath(String.format("icons/%s.png", iconName));
 	}
@@ -125,7 +125,7 @@ public enum UI {
 	 * @param variable The variable to return an icon for
 	 * @return The variable icon.
 	 */
-	public static Image variableIcon(Variable variable) {
+	public static Image variableIcon(final Variable variable) {
 		final String iconName = variable.scope().toString().toLowerCase();
 		return imageForPath(String.format("icons/%s.png", iconName));
 	}
@@ -136,7 +136,7 @@ public enum UI {
 	 * @param element The element to return an icon for
 	 * @return The icon or null if the object is of some exotic type.
 	 */
-	public static Image iconFor(Object element) {
+	public static Image iconFor(final Object element) {
 		if (element instanceof Function)
 			return functionIcon((Function)element);
 		if (element instanceof Variable)
@@ -159,11 +159,11 @@ public enum UI {
 	 * @param def The definition to return an icon for.
 	 * @return The icon.
 	 */
-	public static Image definitionIcon(Definition def) {
+	public static Image definitionIcon(final Definition def) {
 		return def.engine().image(GroupType.DefinitionGroup);
 	}
 
-	private static Object imageThingieForURL(URL url, boolean returnDescriptor) {
+	private static Object imageThingieForURL(final URL url, final boolean returnDescriptor) {
 		if (url == null)
 			return null;
 		final String path = url.toExternalForm();
@@ -174,32 +174,32 @@ public enum UI {
 		return result;
 	}
 
-	private static Object imageThingieForPath(String path, boolean returnDescriptor) {
+	private static Object imageThingieForPath(final String path, final boolean returnDescriptor) {
 		return imageThingieForURL(FileLocator.find(Core.instance().getBundle(), new Path(path), null), returnDescriptor);
 	}
 
-	public static ImageDescriptor imageDescriptorForPath(String path) {
+	public static ImageDescriptor imageDescriptorForPath(final String path) {
 		return (ImageDescriptor) imageThingieForPath(path, true);
 	}
 
-	public static Image imageForPath(String iconPath) {
+	public static Image imageForPath(final String iconPath) {
 		final Image img = (Image) imageThingieForPath(iconPath, false);
 		images.put(iconPath, img);
 		return img;
 	}
 
-	public static ImageDescriptor imageDescriptorForURL(URL url) {
+	public static ImageDescriptor imageDescriptorForURL(final URL url) {
 		return (ImageDescriptor) imageThingieForURL(url, true);
 	}
 
-	public static Image imageForURL(URL url) {
+	public static Image imageForURL(final URL url) {
 		return (Image) imageThingieForURL(url, false);
 	}
 
 	public static class ProjectSelectionBlock {
 		public Text text;
 		public Button addButton;
-		public ProjectSelectionBlock(Composite parent, ModifyListener textModifyListener, SelectionListener addListener, Object groupLayoutData, String groupText) {
+		public ProjectSelectionBlock(final Composite parent, final ModifyListener textModifyListener, final SelectionListener addListener, final Object groupLayoutData, final String groupText) {
 			// Create widget group
 			Composite container;
 			if (groupText != null) {
@@ -226,7 +226,7 @@ public enum UI {
 		}
 	}
 
-	public static FormData createFormData(FormAttachment left, FormAttachment right, FormAttachment top, FormAttachment bottom) {
+	public static FormData createFormData(final FormAttachment left, final FormAttachment right, final FormAttachment top, final FormAttachment bottom) {
 		final FormData result = new FormData();
 		result.left = left;
 		result.top = top;
@@ -235,12 +235,12 @@ public enum UI {
 		return result;
 	}
 
-	public static CheckboxTableViewer createProjectReferencesViewer(Composite parent) {
+	public static CheckboxTableViewer createProjectReferencesViewer(final Composite parent) {
 		final CheckboxTableViewer result = CheckboxTableViewer.newCheckList(parent, SWT.TOP | SWT.BORDER);
 		result.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
 		result.setContentProvider(new WorkbenchContentProvider() {
 			@Override
-			public Object[] getChildren(Object element) {
+			public Object[] getChildren(final Object element) {
 				return ClonkProjectNature.clonkProjectsInWorkspace();
 			}
 		});
@@ -249,7 +249,7 @@ public enum UI {
 		return result;
 	}
 
-	public static boolean confirm(Shell shell, String text, String confirmTitle) {
+	public static boolean confirm(final Shell shell, final String text, final String confirmTitle) {
 		return MessageDialog.openQuestion(
 			shell,
 			confirmTitle != null ? confirmTitle : Messages.UI_Confirm,
@@ -257,7 +257,7 @@ public enum UI {
 		);
 	}
 
-	public static String input(Shell shell, String title, String prompt, String defaultValue, IInputValidator validator) {
+	public static String input(final Shell shell, final String title, final String prompt, final String defaultValue, final IInputValidator validator) {
 		final InputDialog newNameDialog = new InputDialog(shell, title, prompt, defaultValue, validator);
 		switch (newNameDialog.open()) {
 		case Window.CANCEL:
@@ -266,19 +266,19 @@ public enum UI {
 		return newNameDialog.getValue();
 	}
 
-	public static String input(Shell shell, String title, String prompt, String defaultValue) {
+	public static String input(final Shell shell, final String title, final String prompt, final String defaultValue) {
 		return input(shell, title, prompt, defaultValue, null);
 	}
 
-	public static void message(String message, int kind) {
+	public static void message(final String message, final int kind) {
 		MessageDialog.open(kind, null, Core.HUMAN_READABLE_NAME, message, SWT.NONE);
 	}
 
-	public static void message(String message) {
+	public static void message(final String message) {
 		message(message, MessageDialog.INFORMATION);
 	}
 
-	public static void informAboutException(String message, Object... additionalFormatArguments) {
+	public static void informAboutException(final String message, final Object... additionalFormatArguments) {
 		final Exception exception = additionalFormatArguments.length > 0 && additionalFormatArguments[0] instanceof Exception ? (Exception)additionalFormatArguments[0] : null;
 		if (exception != null) {
 			exception.printStackTrace();
@@ -293,7 +293,7 @@ public enum UI {
 		});
 	}
 
-	public static IProject[] selectClonkProjects(boolean multiSelect, IProject... initialSelection) {
+	public static IProject[] selectClonkProjects(final boolean multiSelect, final IProject... initialSelection) {
 		// Create dialog listing all Clonk projects
 		final ElementListSelectionDialog dialog
 			= new ElementListSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), new ClonkLabelProvider());
@@ -312,7 +312,7 @@ public enum UI {
 			return null;
 	}
 
-	public static IProject selectClonkProject(IProject initialSelection) {
+	public static IProject selectClonkProject(final IProject initialSelection) {
 		final IProject[] projects = selectClonkProjects(false, initialSelection);
 		return projects != null ? projects[0] : null;
 	}
@@ -324,7 +324,7 @@ public enum UI {
 		return null;
 	}
 
-	public static ISelection projectExplorerSelection(IWorkbenchSite site) {
+	public static ISelection projectExplorerSelection(final IWorkbenchSite site) {
 		return site.getWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
 	}
 
@@ -332,7 +332,7 @@ public enum UI {
 		return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection(IPageLayout.ID_PROJECT_EXPLORER);
 	}
 
-	public static CommonNavigator projectExplorer(IWorkbenchWindow window) {
+	public static CommonNavigator projectExplorer(final IWorkbenchWindow window) {
 		if (window != null) {
 			final IWorkbenchPage page = window.getActivePage();
 			if (page != null) {
@@ -359,7 +359,7 @@ public enum UI {
 			nav.getCommonViewer().refresh(at);
 	}
 
-	public static Image getPicture(DefCoreUnit defCore, Image graphics) {
+	public static Image getPicture(final DefCoreUnit defCore, final Image graphics) {
 		Image result = null;
 		final IniEntry pictureEntry = defCore.entryInSection("DefCore", "Picture"); //$NON-NLS-1$ //$NON-NLS-2$
 		if (pictureEntry != null && pictureEntry.value() instanceof IntegerArray) {
@@ -375,7 +375,7 @@ public enum UI {
 		return result;
 	}
 
-	public static Image imageForContainer(IContainer container) throws CoreException, IOException {
+	public static Image imageForContainer(final IContainer container) throws CoreException, IOException {
 		Image image = null;
 		IResource graphicsFile = container.findMember("Graphics.png"); //$NON-NLS-1$
 		if (graphicsFile == null)

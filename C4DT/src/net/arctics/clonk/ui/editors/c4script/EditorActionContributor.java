@@ -24,7 +24,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	
 	private final List<RetargetTextEditorAction> actions = new ArrayList<RetargetTextEditorAction>();
 	
-	private void add(ResourceBundle bundle, @SuppressWarnings("unchecked") Class<? extends ClonkTextEditorAction>... classes) {
+	private void add(final ResourceBundle bundle, @SuppressWarnings("unchecked") final Class<? extends ClonkTextEditorAction>... classes) {
 		for (final Class<? extends ClonkTextEditorAction> c : classes) {
 			final String prefix = ClonkTextEditorAction.resourceBundlePrefix(c);
 			final String id = ClonkTextEditorAction.idString(c);
@@ -32,7 +32,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 		}
 	}
 
-	private void add(ResourceBundle bundle, String prefix, String id) {
+	private void add(final ResourceBundle bundle, final String prefix, final String id) {
 		final RetargetTextEditorAction a = new RetargetTextEditorAction(bundle, prefix);
 		a.setActionDefinitionId(id);
 		actions.add(a);
@@ -46,7 +46,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	}
 
 	@Override
-	public void setActiveEditor(IEditorPart part) {
+	public void setActiveEditor(final IEditorPart part) {
 		super.setActiveEditor(part);
 		for (final RetargetTextEditorAction action : actions)
 			if (action != null)
@@ -55,7 +55,7 @@ public class EditorActionContributor extends BasicTextEditorActionContributor {
 	}
 
 	@Override
-	public void contributeToMenu(IMenuManager menu) {
+	public void contributeToMenu(final IMenuManager menu) {
 		super.contributeToMenu(menu);
 		for (final RetargetTextEditorAction action : actions)
 			if (action != null) {

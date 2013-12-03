@@ -28,7 +28,7 @@ public final class FindDeclarationInfo {
 	public Script searchOrigin() { return searchOrigin; }
 	public Scenario scenario() { return scenario; }
 	
-	public void searchOrigin(Script searchOrigin) {
+	public void searchOrigin(final Script searchOrigin) {
 		this.searchOrigin = searchOrigin;
 		this.scenario = searchOrigin != null ? searchOrigin.scenario() : null;
 	}
@@ -43,7 +43,7 @@ public final class FindDeclarationInfo {
 		return name;
 	}
 	
-	public boolean startSearchingIn(Script script) {
+	public boolean startSearchingIn(final Script script) {
 		if (script == first)
 			return false;
 		else if (first == null)
@@ -60,7 +60,7 @@ public final class FindDeclarationInfo {
 	/**
 	 * Create an instance with a context index.
 	 */
-	public FindDeclarationInfo(String name, Index index) {
+	public FindDeclarationInfo(final String name, final Index index) {
 		super();
 		this.name = name; 
 		this.index = index;
@@ -70,7 +70,7 @@ public final class FindDeclarationInfo {
 	 * @param index
 	 * @param ctx
 	 */
-	public FindDeclarationInfo(String name, Index index, Function ctx) {
+	public FindDeclarationInfo(final String name, final Index index, final Function ctx) {
 		this(name, index);
 		contextFunction = ctx;
 	}

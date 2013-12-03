@@ -14,7 +14,7 @@ public class Boolean extends UnsignedInteger {
 		return this.getNumber() != 0;
 	}
 	@Override
-	public void setInput(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+	public void setInput(final String input, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		if (input.equals(Keywords.True))
 			setNumber(1);
 		else if (input.equals(Keywords.False))
@@ -23,7 +23,7 @@ public class Boolean extends UnsignedInteger {
 			super.setInput(input, entryData, context);
 	}
 	public Boolean() {}
-	public Boolean(boolean value) throws IniParserException {
+	public Boolean(final boolean value) throws IniParserException {
 		setNumber(value ? 1 : 0);
 	}
 }

@@ -33,7 +33,7 @@ public class SystemScript extends Script implements Serializable {
 	private transient IFile scriptFile;
 	private String scriptFilePath;
 
-	public SystemScript(Index index, IFile scriptFile) throws CoreException {
+	public SystemScript(final Index index, final IFile scriptFile) throws CoreException {
 		super(index);
 		this.name = scriptFile.getName();
 		setScriptFile(scriptFile);
@@ -45,7 +45,7 @@ public class SystemScript extends Script implements Serializable {
 	}
 
 	@Override
-	public void setScriptFile(IFile f) {
+	public void setScriptFile(final IFile f) {
 		if (Utilities.eq(scriptFile, f))
 			return;
 		if (scriptFile != null)
@@ -63,7 +63,7 @@ public class SystemScript extends Script implements Serializable {
 		return scriptFilePath;
 	}
 
-	public static SystemScript pinned(IResource resource, boolean duringBuild) {
+	public static SystemScript pinned(final IResource resource, final boolean duringBuild) {
 		return as(Structure.pinned(resource, true, duringBuild), SystemScript.class);
 	}
 
@@ -73,12 +73,12 @@ public class SystemScript extends Script implements Serializable {
 	}
 
 	@Override
-	public void pinTo(IResource resource) {
+	public void pinTo(final IResource resource) {
 		assert(resource instanceof IFile);
 		setScriptFile((IFile) resource);
 	}
 
-	public boolean refreshFileReference(IProject project) throws CoreException {
+	public boolean refreshFileReference(final IProject project) throws CoreException {
 		final Path projectPath = new Path(scriptFilePath());
 		final IResource res = project.findMember(projectPath);
 		if (res instanceof IFile) {
@@ -89,7 +89,7 @@ public class SystemScript extends Script implements Serializable {
 			return false;
 	}
 
-	public static SystemScript scriptCorrespondingTo(IFile file) {
+	public static SystemScript scriptCorrespondingTo(final IFile file) {
 		final ProjectIndex index = ProjectIndex.fromResource(file);
 		final Script script = index != null ? index.scriptAt(file) : null;
 		return script instanceof SystemScript ? (SystemScript)script : null;
@@ -103,7 +103,7 @@ public class SystemScript extends Script implements Serializable {
 	public static void register() {
 		registerStructureFactory(new IStructureFactory() {
 			@Override
-			public Structure create(IResource resource, boolean duringBuild) {
+			public Structure create(final IResource resource, final boolean duringBuild) {
 				if (!Script.looksLikeScriptFile(resource.getName()))
 					return null;
 				final ProjectIndex index = ProjectIndex.fromResource(resource);
@@ -125,7 +125,7 @@ public class SystemScript extends Script implements Serializable {
 	}
 
 	@Override
-	public String typeName(boolean special) {
+	public String typeName(final boolean special) {
 		if (!special)
 			return PrimitiveType.OBJECT.typeName(false);
 		final List<Definition> targets = new ArrayList<>(3);

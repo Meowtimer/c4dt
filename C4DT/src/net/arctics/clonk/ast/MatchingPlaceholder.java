@@ -46,7 +46,7 @@ public class MatchingPlaceholder extends Placeholder {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public static class Transformations extends Script {
-		protected Transformations(Index index) {
+		protected Transformations(final Index index) {
 			super(index);
 			Command.registerCommandsFromClass(this, this.getClass());
 		}
@@ -58,24 +58,24 @@ public class MatchingPlaceholder extends Placeholder {
 		@Override
 		public String nodeName() { return name(); }
 		@CommandFunction
-		public static List<ASTNode> reverse(Object context, List<ASTNode> input) {
+		public static List<ASTNode> reverse(final Object context, final List<ASTNode> input) {
 			final ArrayList<ASTNode> list = new ArrayList<ASTNode>(input);
 			Collections.reverse(list);
 			return list;
 		}
 		@CommandFunction
-		public static Object concat(Object context, Object a, Object b) {
+		public static Object concat(final Object context, final Object a, final Object b) {
 			return a.toString()+b.toString();
 		}
 		@CommandFunction
-		public static Object substring(Object context, String str, Long index, Long length) {
+		public static Object substring(final Object context, final String str, final Long index, final Long length) {
 			if (length != null)
 				return str.substring(index.intValue(), length.intValue());
 			else
 				return str.substring(index.intValue());
 		}
 		@CommandFunction
-		public static Object eval(IEvaluationContext context, ASTNode node) {
+		public static Object eval(final IEvaluationContext context, final ASTNode node) {
 			try {
 				return node.evaluate(context);
 			} catch (final ControlFlowException e) {
@@ -84,44 +84,44 @@ public class MatchingPlaceholder extends Placeholder {
 			}
 		}
 		@CommandFunction
-		public static String replace(IEvaluationContext context, Object text, Object what, Object replacement) {
+		public static String replace(final IEvaluationContext context, final Object text, final Object what, final Object replacement) {
 			return text.toString().replace(what.toString(), replacement.toString());
 		}
 		@CommandFunction
-		public static String quote(IEvaluationContext context, Object text) {
+		public static String quote(final IEvaluationContext context, final Object text) {
 			return String.format("\"%s\"", text);
 		}
 		@CommandFunction
-		public static String EnforceLocal(IEvaluationContext context, String name) {
+		public static String EnforceLocal(final IEvaluationContext context, final String name) {
 			if (context.self() instanceof CodeConverter.ICodeConverterContext)
 				return ((CodeConverter.ICodeConverterContext)context.self()).var(name);
 			else
 				return null;
 		}
 		@CommandFunction
-		public static CallDeclaration Call(IEvaluationContext context, String name, ASTNode[] params) {
+		public static CallDeclaration Call(final IEvaluationContext context, final String name, final ASTNode[] params) {
 			return new CallDeclaration(name, params);
 		}
 		@CommandFunction
-		public static StringLiteral String(IEvaluationContext context, String value) {
+		public static StringLiteral String(final IEvaluationContext context, final String value) {
 			return new StringLiteral(value);
 		}
 		@CommandFunction
-		public static AccessVar Var(IEvaluationContext context, String name) {
+		public static AccessVar Var(final IEvaluationContext context, final String name) {
 			return new AccessVar(name);
 		}
 		@CommandFunction
-		public static MemberOperator MemberOperator(IEvaluationContext context, boolean dot, boolean tilde, ID id) {
+		public static MemberOperator MemberOperator(final IEvaluationContext context, final boolean dot, final boolean tilde, final ID id) {
 			return new MemberOperator(dot, tilde, id, 0);
 		}
 		@Override
-		public IVariable variable(AccessVar access, Object obj) {
+		public IVariable variable(final AccessVar access, final Object obj) {
 			final Class<? extends ASTNode> cls = findClass(access.name());
 			return new Constant(cls);
 		}
 		private static Map<String, Class<?extends ASTNode>> classCache = new HashMap<>();
 		@SuppressWarnings("unchecked")
-		public static Class<? extends ASTNode> findClass(String className) {
+		public static Class<? extends ASTNode> findClass(final String className) {
 			final String[] packageFormats = new String[] {
 				"%s.c4script.ast.%s",
 				"%s.parser.%s",
@@ -182,7 +182,7 @@ public class MatchingPlaceholder extends Placeholder {
 	private EnumSet<Flag> flags;
 	private boolean negated;
 
-	public boolean flagSet(Flag flag) { return flags != null && flags.contains(flag); }
+	public boolean flagSet(final Flag flag) { return flags != null && flags.contains(flag); }
 	public Pattern stringRepresentationPattern() { return stringRepresentationPattern; }
 	public Class<? extends ASTNode> requiredClass() { return requiredClass; }
 	public Multiplicity multiplicity() { return multiplicity; }
@@ -194,11 +194,11 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		subElements = elms;
 	}
 
-	private void parse(Placeholder original) throws ProblemException {
+	private void parse(final Placeholder original) throws ProblemException {
 		final String matchText = original.entryName();
 		final BufferedScanner scanner = new BufferedScanner(matchText);
 		final String entry = scanner.readIdent();
@@ -300,7 +300,7 @@ public class MatchingPlaceholder extends Placeholder {
 			return false;
 		}
 	}
-	private void setCode(Placeholder original, final String entry, String codeString) {
+	private void setCode(final Placeholder original, final String entry, final String codeString) {
 		final Index index = original.parent(Declaration.class).index();
 		final Script transformations = new Transformations(index);
 		code = new SelfContainedScript(
@@ -309,7 +309,7 @@ public class MatchingPlaceholder extends Placeholder {
 		) {
 			private static final long serialVersionUID = 1L;
 			@Override
-			public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
+			public boolean gatherIncludes(final Index contextIndex, final Script origin, final Collection<Script> set, final int options) {
 				if (!super.gatherIncludes(contextIndex, origin, set, options))
 					return false;
 				set.add(transformations);
@@ -318,7 +318,7 @@ public class MatchingPlaceholder extends Placeholder {
 		}.findFunction("Transform");
 	}
 
-	public Object transformSubstitution(Object substitution, Object context) {
+	public Object transformSubstitution(final Object substitution, final Object context) {
 		if (!(substitution instanceof Object[]))
 			return null;
 		final Object[] s = (Object[]) substitution;
@@ -361,13 +361,13 @@ public class MatchingPlaceholder extends Placeholder {
 		return r;
 	}
 
-	public boolean satisfiedBy(ASTNode element) {
+	public boolean satisfiedBy(final ASTNode element) {
 		boolean r = internalSatisfied(element);
 		if (negated)
 			r = !r;
 		return r;
 	}
-	private boolean internalSatisfied(ASTNode element) {
+	private boolean internalSatisfied(final ASTNode element) {
 		RequiredClass: if (requiredClass != null) {
 			// OC: references to definitions are not IDLiterals but AccessVars referring to proxy variables
 			final AccessVar av = as(element, AccessVar.class);
@@ -403,7 +403,7 @@ public class MatchingPlaceholder extends Placeholder {
 		return true;
 	}
 
-	protected Declaration associatedDeclaration(ASTNode element) {
+	protected Declaration associatedDeclaration(final ASTNode element) {
 		final CallDeclaration call = as(element.parent(), CallDeclaration.class);
 		if (call != null)
 			return call.parmDefinitionForParmExpression(element);
@@ -416,7 +416,7 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append("$");
 		output.append(entryName);
 		final List<String> attribs = new ArrayList<String>(4);
@@ -452,13 +452,13 @@ public class MatchingPlaceholder extends Placeholder {
 
 	protected MatchingPlaceholder() { super(""); }
 
-	public MatchingPlaceholder(Placeholder original) throws ProblemException {
+	public MatchingPlaceholder(final Placeholder original) throws ProblemException {
 		super(original.entryName());
 		parse(original);
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		return this; // so meta
 	}
 

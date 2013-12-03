@@ -9,7 +9,7 @@ public class ReferenceType extends WrappedType implements IRefinedPrimitiveType 
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public ReferenceType(IType type) { super(type); }
+	public ReferenceType(final IType type) { super(type); }
 
 	public IType type() {
 		return wrappedType;
@@ -21,7 +21,7 @@ public class ReferenceType extends WrappedType implements IRefinedPrimitiveType 
 	}
 
 	@Override
-	public String typeName(boolean special) {
+	public String typeName(final boolean special) {
 		return String.format("%s %s", wrappedType.toString(), PrimitiveType.REFERENCE.toString());
 	}
 	
@@ -36,11 +36,11 @@ public class ReferenceType extends WrappedType implements IRefinedPrimitiveType 
 	}
 	
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		return obj instanceof ReferenceType && ((ReferenceType)obj).wrappedType.equals(wrappedType);
 	}
 	
-	public static IType make(IType type) {
+	public static IType make(final IType type) {
 		if (type instanceof PrimitiveType)
 			return ((PrimitiveType)type).referenceType();
 		else

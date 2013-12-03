@@ -12,9 +12,9 @@ import org.eclipse.jface.text.IRegion;
 
 public class EvaluationContextProxy implements IEvaluationContext {
 	private final IEvaluationContext base;
-	public EvaluationContextProxy(IEvaluationContext base) { this.base = base; }
+	public EvaluationContextProxy(final IEvaluationContext base) { this.base = base; }
 	@Override
-	public IVariable variable(AccessVar access, Object obj) throws ControlFlowException { return base.variable(access, null); }
+	public IVariable variable(final AccessVar access, final Object obj) throws ControlFlowException { return base.variable(access, null); }
 	@Override
 	public Object[] arguments() { return base.arguments(); }
 	@Override
@@ -24,7 +24,7 @@ public class EvaluationContextProxy implements IEvaluationContext {
 	@Override
 	public int codeFragmentOffset() { return base.codeFragmentOffset(); }
 	@Override
-	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) { base.reportOriginForExpression(expression, location, file); }
+	public void reportOriginForExpression(final ASTNode expression, final IRegion location, final IFile file) { base.reportOriginForExpression(expression, location, file); }
 	@Override
 	public Object self() { return null; }
 }

@@ -14,7 +14,7 @@ import org.eclipse.jface.text.IRegion;
 
 public class FunctionFragmentParser extends ScriptParser {
 	private final Function function;
-	private static String fragmentString(IDocument doc, Function function) {
+	private static String fragmentString(final IDocument doc, final Function function) {
 		String statements_;
 		final IRegion statementRegion = function.bodyLocation();
 		try {
@@ -25,7 +25,7 @@ public class FunctionFragmentParser extends ScriptParser {
 		}
 		return statements_;
 	}
-	public FunctionFragmentParser(IDocument document, Script script, Function function, Markers markers) {
+	public FunctionFragmentParser(final IDocument document, final Script script, final Function function, final Markers markers) {
 		super(fragmentString(document, function), script, null);
 		setMarkers(markers);
 		this.function = function;
@@ -34,7 +34,7 @@ public class FunctionFragmentParser extends ScriptParser {
 	@Override
 	public int sectionOffset() { return 0; }
 	@Override
-	protected String functionSource(Function function) { return new String(buffer); }
+	protected String functionSource(final Function function) { return new String(buffer); }
 	public boolean update() {
 		synchronized (function) {
 			return doUpdate();

@@ -19,7 +19,7 @@ public enum Typing {
 	/** Static typing completely disabled. No parameter annotations allowed. */
 	DYNAMIC {
 		@Override
-		public IType unifyNoChoice(IType a, IType b) { return PrimitiveType.ANY; }
+		public IType unifyNoChoice(final IType a, final IType b) { return PrimitiveType.ANY; }
 	},
 
 	/** Allow type annotations for parameters, as the engine does. */
@@ -28,7 +28,7 @@ public enum Typing {
 	/** Statically typed */
 	STATIC {
 		@Override
-		public IType unifyNoChoice(IType a, IType b) {
+		public IType unifyNoChoice(final IType a, final IType b) {
 			if ((a == PrimitiveType.VOID || b == PrimitiveType.VOID) && a != b)
 				return null;
 			if (eq(a, b))
@@ -55,7 +55,7 @@ public enum Typing {
 
 	public boolean allowsNonParameterAnnotations() { return false; }
 
-	private IType unifyLeft(IType a, IType b) {
+	private IType unifyLeft(final IType a, final IType b) {
 		if (a == null)
 			return b;
 		if (b == null)
@@ -181,7 +181,7 @@ public enum Typing {
 			return null;
 	}
 
-	private IType unifyTypeAndChoice(final TypeChoice choice, IType type, int recursion) {
+	private IType unifyTypeAndChoice(final TypeChoice choice, final IType type, final int recursion) {
 		final IType l = choice.left();
 		final IType r = choice.right();
 		if (l.equals(type) || r.equals(type))
@@ -229,7 +229,7 @@ public enum Typing {
 				: TypeChoice.make(da, db);
 		}
 	}
-	public IType unifyNoChoice(IType a, IType b) {
+	public IType unifyNoChoice(final IType a, final IType b) {
 		IType u = unifyLeft(a, b);
 		if (u != null)
 			return u;
@@ -238,15 +238,15 @@ public enum Typing {
 			return u;
 		return null;
 	}
-	public IType unify(IType a, IType b) {
+	public IType unify(final IType a, final IType b) {
 		final IType u = unifyNoChoice(a, b);
 		return u != null ? u : TypeChoice.make(a, b);
 	}
-	public IType unify(Iterable<? extends IType> ingredients) {
+	public IType unify(final Iterable<? extends IType> ingredients) {
 		IType unified = null;
 		for (final IType t : ingredients)
 			unified = unify(unified, t);
 		return defaulting(unified, PrimitiveType.UNKNOWN);
 	}
-	public boolean compatible(IType a, IType b) { return unifyNoChoice(a, b) != null; }
+	public boolean compatible(final IType a, final IType b) { return unifyNoChoice(a, b) != null; }
 }

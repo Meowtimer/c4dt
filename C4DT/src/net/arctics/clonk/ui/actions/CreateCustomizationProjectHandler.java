@@ -11,12 +11,12 @@ import org.eclipse.ui.PlatformUI;
 public class CreateCustomizationProjectHandler extends AbstractHandler {
 
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		CustomizationNature custom = CustomizationNature.get();
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
+		final CustomizationNature custom = CustomizationNature.get();
 		if (custom != null)
 			UI.projectExplorer().selectReveal(new StructuredSelection(custom.getProject()));
 		else {
-			String val = UI.input(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.CreateCustomizationProjectHandler_ProvideName, Messages.CreateCustomizationProjectHandler_NamePromptDesc, Messages.CreateCustomizationProjectHandler_DefaultName);
+			final String val = UI.input(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.CreateCustomizationProjectHandler_ProvideName, Messages.CreateCustomizationProjectHandler_NamePromptDesc, Messages.CreateCustomizationProjectHandler_DefaultName);
 			if (val != null)
 				CustomizationNature.create(val);
 		}

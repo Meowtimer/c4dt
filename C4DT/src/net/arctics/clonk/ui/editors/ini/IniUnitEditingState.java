@@ -67,14 +67,14 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 	private static final ScannerPerEngine<IniScanner> SCANNERS = new ScannerPerEngine<IniScanner>(IniScanner.class);
 
 	private class HyperlinkDetector extends DefaultHyperlinkPresenter implements IHyperlinkDetector {
-		public HyperlinkDetector(IPreferenceStore store) { super(store); }
-		public HyperlinkDetector(RGB color) { super(color); }
+		public HyperlinkDetector(final IPreferenceStore store) { super(store); }
+		public HyperlinkDetector(final RGB color) { super(color); }
 		@Override
 		public void hideHyperlinks() { super.hideHyperlinks(); }
 		@Override
-		public void documentChanged(DocumentEvent event) { super.documentChanged(event); }
+		public void documentChanged(final DocumentEvent event) { super.documentChanged(event); }
 		@Override
-		public IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region, boolean canShowMultipleHyperlinks) {
+		public IHyperlink[] detectHyperlinks(final ITextViewer textViewer, final IRegion region, final boolean canShowMultipleHyperlinks) {
 			if (!ensureIniUnitUpToDate())
 				return null;
 			try {
@@ -191,7 +191,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 	}
 
 	@Override
-	public void documentChanged(DocumentEvent event) {
+	public void documentChanged(final DocumentEvent event) {
 		super.documentChanged(event);
 		forgetUnitParsed();
 		reparseTask = cancelTimerTask(reparseTask);
@@ -245,15 +245,15 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 	private final HyperlinkDetector hyperlinkDetector;
 
 	@Override
-	public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) { return hyperlinkDetector; }
+	public IHyperlinkPresenter getHyperlinkPresenter(final ISourceViewer sourceViewer) { return hyperlinkDetector; }
 	@Override
-	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) { return new IHyperlinkDetector[] { hyperlinkDetector }; }
-	public IniUnitEditingState(IPreferenceStore store) {
+	public IHyperlinkDetector[] getHyperlinkDetectors(final ISourceViewer sourceViewer) { return new IHyperlinkDetector[] { hyperlinkDetector }; }
+	public IniUnitEditingState(final IPreferenceStore store) {
 		super(store);
 		hyperlinkDetector = store == null ? new HyperlinkDetector(new RGB(0, 0, 255)) : new HyperlinkDetector(fPreferenceStore);
 	}
 	@Override
-	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
+	public IPresentationReconciler getPresentationReconciler(final ISourceViewer sourceViewer) {
 		final PresentationReconciler reconciler = new PresentationReconciler();
 
 		final DefaultDamagerRepairer dr = new DefaultDamagerRepairer(SCANNERS.get(structure().engine()));

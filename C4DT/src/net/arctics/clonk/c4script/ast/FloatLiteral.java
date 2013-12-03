@@ -8,7 +8,7 @@ public class FloatLiteral extends NumberLiteral {
 	
 	private final double literal;
 	
-	public FloatLiteral(double literal) {
+	public FloatLiteral(final double literal) {
 		this.literal = literal;
 	}
 	
@@ -18,7 +18,7 @@ public class FloatLiteral extends NumberLiteral {
 	}
 	
 	@Override
-	public boolean literalsEqual(Literal<?> other) {
+	public boolean literalsEqual(final Literal<?> other) {
 		if (other instanceof FloatLiteral)
 			return ((FloatLiteral)other).literal == this.literal;
 		else

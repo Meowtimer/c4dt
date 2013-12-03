@@ -29,18 +29,18 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 	private final boolean flat;
 	private SearchResult searchResult;
 
-	public SearchContentProvider(SearchResultPage page, boolean flat) {
+	public SearchContentProvider(final SearchResultPage page, final boolean flat) {
 		super();
 		this.flat = flat;
 	}
 
 	@Override
-	public Object[] getChildren(Object element) {
+	public Object[] getChildren(final Object element) {
 		return searchResult.getMatches(element);
 	}
 
 	@Override
-	public Object getParent(Object element) {
+	public Object getParent(final Object element) {
 		if (element instanceof ITreeNode)
 			return ((ITreeNode)element).parentNode();
 		else
@@ -48,7 +48,7 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 	}
 
 	@Override
-	public boolean hasChildren(Object element) {
+	public boolean hasChildren(final Object element) {
 		if (element instanceof ITreeNode)
 			return ((ITreeNode)element).childCollection().size() > 0;
 		else
@@ -56,7 +56,7 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 	}
 
 	@Override
-	public Object[] getElements(Object input) {
+	public Object[] getElements(final Object input) {
 		if (flat) {
 			final List<Match> matches = new LinkedList<Match>();
 			for (final Object elm : searchResult.getElements())
@@ -72,12 +72,12 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 	}
 
 	@Override
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+	public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
 		searchResult = (SearchResult) newInput;
 	}
 
 	@Override
-	public String getText(Object element) {
+	public String getText(final Object element) {
 		if (element instanceof Function)
 			return ((Function)element).qualifiedName();
 		else if (element instanceof IHasLabelAndImage)
@@ -86,7 +86,7 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 			return element.toString();
 	}
 	@Override
-	public Image getImage(Object element) {
+	public Image getImage(final Object element) {
 		final Engine engine = element instanceof Declaration ? ((Declaration)element).engine() : null;
 		if (engine != null) {
 			if (element instanceof Scenario)
@@ -104,7 +104,7 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 		return super.getImage(element);
 	}
 	@Override
-	public StyledString getStyledText(Object element) {
+	public StyledString getStyledText(final Object element) {
 		if (element instanceof SearchMatch) try {
 			final StyledString result = new StyledString();
 			final SearchMatch match = (SearchMatch) element;
@@ -132,7 +132,7 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 	public ViewerComparator getComparator() {
 		return new ViewerComparator() {
 			@Override
-			public int compare(Viewer viewer, Object e1, Object e2) {
+			public int compare(final Viewer viewer, final Object e1, final Object e2) {
 				try {
 					return getText(e1).compareTo(getText(e2));
 				} catch (final Exception e) {

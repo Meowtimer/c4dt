@@ -7,8 +7,8 @@ import net.arctics.clonk.c4script.typing.IType;
 public final class DocumentedVariable extends EngineVariable implements IDocumentedDeclaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private boolean fleshedOut;
-	public DocumentedVariable(String name, IType type) { super(name, type); }
-	public DocumentedVariable(String name, Scope scope) { super(name, scope); }
+	public DocumentedVariable(final String name, final IType type) { super(name, type); }
+	public DocumentedVariable(final String name, final Scope scope) { super(name, scope); }
 	public DocumentedVariable() { super(); }
 	@Override
 	public synchronized IType type() {

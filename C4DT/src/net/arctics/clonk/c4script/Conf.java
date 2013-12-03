@@ -38,7 +38,7 @@ public abstract class Conf {
 	 * @param output Printer to print indentation into
 	 * @param indentDepth Indentation depth
 	 */
-	public static void printIndent(ASTNodePrinter output, int indentDepth) {
+	public static void printIndent(final ASTNodePrinter output, final int indentDepth) {
 		if (output.flag(ASTNodePrinter.SINGLE_LINE))
 			return;
 		for (int i = 0; i < indentDepth; i++)
@@ -50,7 +50,7 @@ public abstract class Conf {
 	 * @param output Printer to print prelude into
 	 * @param indentDepth Current indentation depth
 	 */
-	public static void blockPrelude(ASTNodePrinter output, int indentDepth) {
+	public static void blockPrelude(final ASTNodePrinter output, final int indentDepth) {
 		switch (braceStyle) {
 		case NewLine:
 			output.append('\n');
@@ -81,7 +81,7 @@ public abstract class Conf {
 		if (Core.instance() != null && !Core.runsHeadless()) {
 			final IPropertyChangeListener listener = new IPropertyChangeListener() {
 				@Override
-				public void propertyChange(PropertyChangeEvent event) {
+				public void propertyChange(final PropertyChangeEvent event) {
 					final String[] relevantPrefValues = {
 						AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
 						ClonkPreferences.JAVA_STYLE_BLOCKS
@@ -105,10 +105,10 @@ public abstract class Conf {
 	 * @param blockStart Start of block ("(", "[", ...)
 	 * @param blockEnd End of block (")", "]", ...)
 	 */
-	public static void printNodeList(ASTNodePrinter output, ASTNode[] params, final int depth, String blockStart, String blockEnd) {
+	public static void printNodeList(final ASTNodePrinter output, final ASTNode[] params, final int depth, String blockStart, String blockEnd) {
 		final Iterable<String> parmStrings = map(iterable(params), new IConverter<ASTNode, String>() {
 			@Override
-			public String convert(ASTNode from) { return from.printed(depth+(braceStyle==BraceStyleType.NewLine?1:0)).trim(); }
+			public String convert(final ASTNode from) { return from.printed(depth+(braceStyle==BraceStyleType.NewLine?1:0)).trim(); }
 		});
 		int len = 0;
 		for (final String ps : parmStrings)

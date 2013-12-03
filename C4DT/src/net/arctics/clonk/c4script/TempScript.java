@@ -15,7 +15,7 @@ import org.eclipse.core.resources.IStorage;
 public class TempScript extends Script {
 	private final String text;
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public TempScript(String text, final Engine engine, final Index... referencedIndices) {
+	public TempScript(final String text, final Engine engine, final Index... referencedIndices) {
 		super(new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override

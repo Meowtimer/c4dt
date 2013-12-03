@@ -11,7 +11,7 @@ import net.arctics.clonk.c4script.ast.VarInitialization;
 public class Variables extends Declaration {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private List<VarInitialization> initializations;
-	public Variables(List<VarInitialization> initializations) {
+	public Variables(final List<VarInitialization> initializations) {
 		super();
 		this.initializations = initializations;
 	}
@@ -20,9 +20,9 @@ public class Variables extends Declaration {
 		return initializations.toArray(new ASTNode[initializations.size()]);
 	}
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		initializations = new ArrayList<VarInitialization>(elms.length);
-		for (ASTNode e : elms)
+		for (final ASTNode e : elms)
 			initializations.add((VarInitialization)e);
 	}
 }

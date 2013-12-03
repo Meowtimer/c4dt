@@ -36,28 +36,28 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 		private IPath resPath;
 		private IContainer container;
 		
-		public SelListener(Menu menu) {
-			ISelection sel = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
+		public SelListener(final Menu menu) {
+			final ISelection sel = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
 			if (sel instanceof IStructuredSelection && ((IStructuredSelection)sel).getFirstElement() instanceof IContainer) {
-				IContainer container = (IContainer) ((IStructuredSelection)sel).getFirstElement();
-				CustomizationNature nat = CustomizationNature.get(container.getProject());
+				final IContainer container = (IContainer) ((IStructuredSelection)sel).getFirstElement();
+				final CustomizationNature nat = CustomizationNature.get(container.getProject());
 				if (nat != null) {
-					Iterable<URL> urls = possibleFiles(container);
-					if (urls != null) {
-						Outer: for (URL url : urls) {
-							IPath path = engineSpecificPathForURL(url);
+					final Iterable<URL> urls = possibleFiles(container);
+					if (urls != null)
+						Outer: for (final URL url : urls) {
+							final IPath path = engineSpecificPathForURL(url);
 							// ignore any '.'-files
-							for (String s : path.segments())
+							for (final String s : path.segments())
 								if (s.startsWith(".")) //$NON-NLS-1$
 									continue Outer;
-							MenuItem menuItem = new MenuItem(menu, SWT.RADIO);
+							final MenuItem menuItem = new MenuItem(menu, SWT.RADIO);
 							menuItem.setText(path.toOSString());
 							menuItem.addSelectionListener(this);
 							menuItem.setData(URL_PROP, url);
 							menuItem.setData(PATH_PROP, path);
 						}
-					} else {
-						MenuItem failItem = new MenuItem(menu, SWT.RADIO);
+					else {
+						final MenuItem failItem = new MenuItem(menu, SWT.RADIO);
 						failItem.setEnabled(false);
 						failItem.setText(Messages.CustomizationDynamicMenuItem_SelectTopLevelEngineFolder);
 					}
@@ -65,7 +65,7 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 			}
 		}
 
-		private IPath engineSpecificPathForURL(URL url) {
+		private IPath engineSpecificPathForURL(final URL url) {
 			IPath path = new Path(url.getPath());
 			for (int i = 0; i < path.segmentCount(); i++)
 				if (path.segment(i).equals(engine.name())) {
@@ -76,51 +76,51 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 		}
 		
 		@Override
-		public void widgetSelected(SelectionEvent event) {
-			URL url = (URL)event.widget.getData(URL_PROP);
-			IPath path = (IPath) event.widget.getData(PATH_PROP);
-			String fileName = path.toOSString();
-			OutputStream outputStream = engine.outputStreamForStorageLocationEntry(resPath.append(fileName).toString());
+		public void widgetSelected(final SelectionEvent event) {
+			final URL url = (URL)event.widget.getData(URL_PROP);
+			final IPath path = (IPath) event.widget.getData(PATH_PROP);
+			final String fileName = path.toOSString();
+			final OutputStream outputStream = engine.outputStreamForStorageLocationEntry(resPath.append(fileName).toString());
 			if (outputStream != null) try {
 				try {
-					InputStream inputStream = url.openStream();
+					final InputStream inputStream = url.openStream();
 					if (inputStream != null) try {
 						StreamUtil.transfer(inputStream, outputStream);
 					} finally {
 						inputStream.close();
 					}
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					e.printStackTrace();
 				}
 			} finally {
 				try {
 					outputStream.close();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					e.printStackTrace();
 				}
 			}
 			try {
 				container.refreshLocal(IResource.DEPTH_INFINITE, null);
 				UI.projectExplorer().selectReveal(new StructuredSelection(container.getFile(resPath.append(path))));
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 		}
 
 		@Override
-		public void widgetDefaultSelected(SelectionEvent e) {
+		public void widgetDefaultSelected(final SelectionEvent e) {
 			// TODO Auto-generated method stub
 			
 		}
 		
-		private Iterable<URL> possibleFiles(IContainer container) {
+		private Iterable<URL> possibleFiles(final IContainer container) {
 			this.container = container;
 			resPath = container.getProjectRelativePath();
-			String engineName = resPath.segment(0);
+			final String engineName = resPath.segment(0);
 			resPath = resPath.removeFirstSegments(1);
 			engine = Core.instance().loadEngine(engineName);
 			if (engine != null) {
-				Iterable<URL> filesToReplicate = engine.getURLsOfStorageLocationPath(resPath.toString(), true);
+				final Iterable<URL> filesToReplicate = engine.getURLsOfStorageLocationPath(resPath.toString(), true);
 				return filesToReplicate;
 			} else
 				return null;
@@ -131,12 +131,12 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 		
 	}
 	
-	public CustomizationDynamicMenuItem(String id) {
+	public CustomizationDynamicMenuItem(final String id) {
 		super(id);
 	}
 	
 	@Override
-	public void fill(Menu menu, int index) {	
+	public void fill(final Menu menu, final int index) {	
 		new SelListener(menu);
 	}
 

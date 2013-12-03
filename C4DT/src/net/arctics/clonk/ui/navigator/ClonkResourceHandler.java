@@ -18,15 +18,15 @@ public abstract class ClonkResourceHandler extends AbstractHandler implements IW
 	}
 
 	@Override
-	public void init(IWorkbenchWindow window) {
+	public void init(final IWorkbenchWindow window) {
 	}
 
 	@Override
-	public void run(IAction action) {
+	public void run(final IAction action) {
 	}
 
 	@Override
-	public void selectionChanged(IAction action, ISelection selection) {
+	public void selectionChanged(final IAction action, final ISelection selection) {
 		// TODO Auto-generated method stub
 		
 	}

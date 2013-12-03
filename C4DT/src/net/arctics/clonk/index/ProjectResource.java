@@ -21,7 +21,7 @@ public class ProjectResource implements IIndexEntity, IHasRelatedResource {
 		return resource;
 	}
 	
-	public ProjectResource(ProjectIndex index, IResource resource) {
+	public ProjectResource(final ProjectIndex index, final IResource resource) {
 		this.index = index;
 		this.resource = resource;
 	}
@@ -37,12 +37,12 @@ public class ProjectResource implements IIndexEntity, IHasRelatedResource {
 	}
 
 	@Override
-	public boolean matchedBy(Matcher matcher) {
+	public boolean matchedBy(final Matcher matcher) {
 		return matcher.reset(name()).matches();
 	}
 
 	@Override
-	public String infoText(IIndexEntity context) {
+	public String infoText(final IIndexEntity context) {
 		return name();
 	}
 	

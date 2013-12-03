@@ -30,7 +30,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	public ClonkLabelProvider() {}
 	
 	@Override
-	public Image getImage(Object element) {
+	public Image getImage(final Object element) {
 		if (element instanceof IProject)
 			return super.getImage(element);
 		else if (element instanceof IFile) {
@@ -53,7 +53,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 
 	@Override
-	public String getText(Object element) {
+	public String getText(final Object element) {
 		if (element instanceof IProject)
 			return ((IProject)element).getName();
 		else if (element instanceof IFile)
@@ -61,12 +61,12 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return super.getText(element);
 	}
 
-	public static String stringWithoutExtension(String s) {
+	public static String stringWithoutExtension(final String s) {
 		return s.substring(0,s.lastIndexOf(".")); //$NON-NLS-1$
 	}
 
 	@Override
-	public StyledString getStyledText(Object element) {
+	public StyledString getStyledText(final Object element) {
 		if (element instanceof IFolder) {
 			final IFolder folder = (IFolder)element;
 			final GroupType groupType = ClonkProjectNature.engineFromResource(folder).groupTypeForFileName(folder.getName());
@@ -94,7 +94,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return new StyledString(element.toString());
 	}
 
-	private StyledString getIDText(String baseName, String id, boolean virtual) {
+	private StyledString getIDText(final String baseName, final String id, final boolean virtual) {
 		final StyledString buf = new StyledString();
 		if (virtual)
 			buf.append(stringWithoutExtension(baseName), StyledString.COUNTER_STYLER);
@@ -108,7 +108,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		return buf;
 	}
 	
-	protected static ImageDescriptor[][] computeOverlays(Object element) {
+	protected static ImageDescriptor[][] computeOverlays(final Object element) {
 		final ImageDescriptor[][] result = new ImageDescriptor[4][1];
 		if (element instanceof IResource) {
 			final IResource res = (IResource)element;
@@ -132,10 +132,10 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	}
 	
 	@Override
-	public Color getForeground(Object element) { return null; }
+	public Color getForeground(final Object element) { return null; }
 
 	@Override
-	public Color getBackground(Object element) {
+	public Color getBackground(final Object element) {
 		try {
 			if (element instanceof IResource)
 				for (IResource resource = (IResource)element; resource != null; resource = resource.getParent()) {

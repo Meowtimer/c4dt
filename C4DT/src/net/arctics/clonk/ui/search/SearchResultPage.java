@@ -23,12 +23,12 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 		// yep
 	}
 
-	protected SearchContentProvider getContentAndLabelProvider(boolean flat) {
+	protected SearchContentProvider getContentAndLabelProvider(final boolean flat) {
 		return new SearchContentProvider(this, flat);
 	}
 	
 	@Override
-	protected void configureTableViewer(TableViewer tableViewer) {
+	protected void configureTableViewer(final TableViewer tableViewer) {
 		final SearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(true);
 		tableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(contentAndLabelProvider));
 		tableViewer.setContentProvider(contentAndLabelProvider);
@@ -36,7 +36,7 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 	}
 
 	@Override
-	protected void configureTreeViewer(TreeViewer treeViewer) {
+	protected void configureTreeViewer(final TreeViewer treeViewer) {
 		final SearchContentProvider contentAndLabelProvider = getContentAndLabelProvider(false);
 		treeViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(contentAndLabelProvider));
 		treeViewer.setContentProvider(contentAndLabelProvider);
@@ -44,12 +44,12 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 	}
 
 	@Override
-	protected void elementsChanged(Object[] elements) {
+	protected void elementsChanged(final Object[] elements) {
 		getViewer().refresh();
 	}
 	
 	@Override
-	protected void showMatch(Match match, int currentOffset, int currentLength, boolean activate) throws PartInitException {
+	protected void showMatch(final Match match, final int currentOffset, final int currentLength, final boolean activate) throws PartInitException {
 		final SearchMatch clonkMatch = (SearchMatch) match;
 		StructureTextEditor editor;
 		editor = (StructureTextEditor) StructureTextEditor.openDeclaration(clonkMatch.structure(), activate);
@@ -80,7 +80,7 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 	}
 	
 	@Override
-	protected void handleOpen(OpenEvent event) {
+	protected void handleOpen(final OpenEvent event) {
 		final IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 		if (selection.getFirstElement() instanceof Match) {
 			final Match m = (Match) selection.getFirstElement();
@@ -95,12 +95,12 @@ public class SearchResultPage extends AbstractTextSearchViewPage implements ISho
 	}
 	
 	@Override
-	public int getDisplayedMatchCount(Object element) {
+	public int getDisplayedMatchCount(final Object element) {
 		return element instanceof Match ? 1 : 0;
 	}
 	
 	@Override
-	public Match[] getDisplayedMatches(Object element) {
+	public Match[] getDisplayedMatches(final Object element) {
 		return element instanceof Match ? new Match[] {(Match)element} : new Match[0];
 	}
 

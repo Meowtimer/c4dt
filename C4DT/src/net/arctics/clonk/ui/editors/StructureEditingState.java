@@ -59,7 +59,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		private IHyperlink hyperlink;
 		public ClonkTextHover() { super(); }
 		@Override
-		public String getHoverInfo(ITextViewer viewer, IRegion region) {
+		public String getHoverInfo(final ITextViewer viewer, final IRegion region) {
 			if (hyperlink instanceof EntityHyperlink) {
 				final EntityHyperlink clonkHyperlink = (EntityHyperlink) hyperlink;
 				final IIndexEntity entity = clonkHyperlink.target();
@@ -69,7 +69,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 			return null;
 		}
 		@Override
-		public IRegion getHoverRegion(ITextViewer viewer, int offset) {
+		public IRegion getHoverRegion(final ITextViewer viewer, final int offset) {
 			hyperlink = hyperlinkAtOffset(offset);
 			if (hyperlink != null)
 				return hyperlink.getHyperlinkRegion();
@@ -79,7 +79,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		public IInformationControlCreator getHoverControlCreator() {
 			return new IInformationControlCreator() {
 				@Override
-				public IInformationControl createInformationControl(Shell parent) {
+				public IInformationControl createInformationControl(final Shell parent) {
 					return new DefaultInformationControl(parent, new HTMLTextPresenter(true));
 				}
 			};
@@ -94,7 +94,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	protected ContentAssistant assistant;
 	protected ISourceViewer assistantSite;
 
-	protected ContentAssistant installAssistant(ISourceViewer sourceViewer) {
+	protected ContentAssistant installAssistant(final ISourceViewer sourceViewer) {
 		if (assistantSite != sourceViewer) {
 			if (assistantSite != null)
 				assistant.uninstall();
@@ -118,7 +118,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	static Map<Class<? extends StructureEditingState<?, ?>>, List<? extends StructureEditingState<?, ?>>> lists = new HashMap<>();
 
 	@SuppressWarnings("unchecked")
-	public static <S extends Structure, T extends StructureEditingState<?, S>> T existing(Class<T> cls, S structure) {
+	public static <S extends Structure, T extends StructureEditingState<?, S>> T existing(final Class<T> cls, final S structure) {
 		List<T> list;
 		synchronized (lists) {
 			list = (List<T>) lists.get(cls);
@@ -148,10 +148,10 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 */
 	@SuppressWarnings("unchecked")
 	public static <E extends StructureTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T request(
-		Class<T> type,
-		IDocument document,
-		S structure,
-		E editor
+		final Class<T> type,
+		final IDocument document,
+		final S structure,
+		final E editor
 	) {
 		List<T> list;
 		synchronized (lists) {
@@ -178,13 +178,13 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		return r;
 	}
 
-	public void set(List<? extends StructureEditingState<EditorType, StructureType>> list, StructureType structure, IDocument document) {
+	public void set(final List<? extends StructureEditingState<EditorType, StructureType>> list, final StructureType structure, final IDocument document) {
 		this.list = list;
 		this.structure = structure;
 		this.document = document;
 	}
 
-	protected static <E extends StructureTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(List<T> list, S structure) {
+	protected static <E extends StructureTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(final List<T> list, final S structure) {
 		T result = null;
 		for (final T s : list)
 			if (Utilities.eq(s.structure(), structure)) {
@@ -204,7 +204,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 */
 	public void cleanupAfterRemoval() {}
 
-	protected void addEditor(EditorType editor) {
+	protected void addEditor(final EditorType editor) {
 		editors.add(editor);
 		editor.getSite().getPage().addPartListener(this);
 	}
@@ -213,7 +213,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 * Remove an editor
 	 * @param editor The editor
 	 */
-	public void removeEditor(EditorType editor) {
+	public void removeEditor(final EditorType editor) {
 		synchronized (editors) {
 			if (editors.remove(editor)) {
 				maybeRemovePartListener(editor);
@@ -227,7 +227,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		}
 	}
 
-	private void maybeRemovePartListener(EditorType removedEditor) {
+	private void maybeRemovePartListener(final EditorType removedEditor) {
 		boolean removePartListener = true;
 		for (final EditorType ed : editors)
 			if (ed.getSite().getPage() == removedEditor.getSite().getPage()) {
@@ -239,10 +239,10 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	}
 
 	@Override
-	public void documentAboutToBeChanged(DocumentEvent event) {}
+	public void documentAboutToBeChanged(final DocumentEvent event) {}
 
 	@Override
-	public void documentChanged(DocumentEvent event) { adjustDeclarationLocations(event); }
+	public void documentChanged(final DocumentEvent event) { adjustDeclarationLocations(event); }
 
 	/**
 	 * Increment the components of some {@link SourceLocation} in-place that exceed a certain threshold.
@@ -250,7 +250,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 * @param threshold The threshold after which start and end offsets in the location will be incremented.
 	 * @param add The value to add to the applicable offsets.
 	 */
-	protected void incrementLocationOffsetsExceedingThreshold(SourceLocation location, int threshold, int add) {
+	protected void incrementLocationOffsetsExceedingThreshold(final SourceLocation location, final int threshold, final int add) {
 		if (location != null) {
 			if (location.start() > threshold)
 				location.setStart(location.start()+add);
@@ -265,7 +265,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 * @param threshold The threshold to pass to {@link #incrementLocationOffsetsExceedingThreshold(SourceLocation, int, int)}
 	 * @param add The increment value to pass to {@link #incrementLocationOffsetsExceedingThreshold(SourceLocation, int, int)}
 	 */
-	protected void adjustDec(Declaration declaration, int threshold, int add) {
+	protected void adjustDec(final Declaration declaration, final int threshold, final int add) {
 		incrementLocationOffsetsExceedingThreshold(declaration, threshold, add);
 	}
 
@@ -273,7 +273,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 * Call {@link #adjustDec(Declaration, int, int)} for all applicable {@link Declaration}s stored in {@link #structure()}
 	 * @param event Document event describing the document change that triggered this call.
 	 */
-	protected void adjustDeclarationLocations(DocumentEvent event) {
+	protected void adjustDeclarationLocations(final DocumentEvent event) {
 		if (event.getLength() == 0 && event.getText().length() > 0)
 			// text was added
 			for (final Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
@@ -305,7 +305,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 * @param whichTask The task to cancel
 	 * @return null so this method can be called and its return value be used as assignment right side with the TimerTask reference variable being on the left.
 	 */
-	public TimerTask cancelTimerTask(TimerTask whichTask) {
+	public TimerTask cancelTimerTask(final TimerTask whichTask) {
 		if (whichTask != null)
 			try {
 				whichTask.cancel();
@@ -313,7 +313,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		return null;
 	}
 
-	public TimerTask runAndCancelTimerTask(TimerTask whichTask) {
+	public TimerTask runAndCancelTimerTask(final TimerTask whichTask) {
 		if (whichTask != null)
 			whichTask.run();
 		return cancelTimerTask(whichTask);
@@ -344,20 +344,20 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	}
 
 	@Override
-	public void partActivated(IWorkbenchPart part) {}
+	public void partActivated(final IWorkbenchPart part) {}
 	@Override
-	public void partBroughtToTop(IWorkbenchPart part) {}
+	public void partBroughtToTop(final IWorkbenchPart part) {}
 	@SuppressWarnings("unchecked")
 	@Override
-	public void partClosed(IWorkbenchPart part) {
+	public void partClosed(final IWorkbenchPart part) {
 		try { removeEditor((EditorType) part); }
 		catch (final ClassCastException cce) {}
 	}
 	@Override
-	public void partDeactivated(IWorkbenchPart part) {}
+	public void partDeactivated(final IWorkbenchPart part) {}
 	@Override
-	public void partOpened(IWorkbenchPart part) {}
-	public void completionProposalApplied(DeclarationProposal proposal) {}
+	public void partOpened(final IWorkbenchPart part) {}
+	public void completionProposalApplied(final DeclarationProposal proposal) {}
 
 	@SuppressWarnings("unchecked")
 	public EditorType activeEditor() {
@@ -366,32 +366,32 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	}
 
 	protected ITextHover hover;
-	public StructureEditingState(IPreferenceStore store) { super(store); }
+	public StructureEditingState(final IPreferenceStore store) { super(store); }
 	public ColorManager getColorManager() { return ColorManager.INSTANCE; }
 	@Override
-	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
+	public String[] getConfiguredContentTypes(final ISourceViewer sourceViewer) {
 		return CStylePartitionScanner.PARTITIONS;
 	}
 	protected static final URLHyperlinkDetector urlDetector = new URLHyperlinkDetector();
 	@Override
-	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+	public IHyperlinkDetector[] getHyperlinkDetectors(final ISourceViewer sourceViewer) {
 		return new IHyperlinkDetector[] {urlDetector};
 	}
 	@Override
-	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+	public ITextHover getTextHover(final ISourceViewer sourceViewer, final String contentType) {
 		if (hover == null)
 			hover = new ClonkTextHover();
 		return hover;
 	}
 	@Override
-	public IReconciler getReconciler(ISourceViewer sourceViewer) { return null; }
+	public IReconciler getReconciler(final ISourceViewer sourceViewer) { return null; }
 	/**
 	 * Create a {@link IHyperlink} at the given offset in the text document using the same mechanism that is being used to create hyperlinks when ctrl-hovering.
 	 * This hyperlink will be used for functionality like {@link OpenDeclarationAction} that will not directly operate on specific kinds of {@link Declaration}s and is thus dependent on the {@link StructureTextEditor} class returning adequate hyperlinks.
 	 * @param offset The offset
 	 * @return
 	 */
-	public IHyperlink hyperlinkAtOffset(int offset) {
+	public IHyperlink hyperlinkAtOffset(final int offset) {
 		final ISourceViewer sourceViewer = editors.get(0).getProtectedSourceViewer();
 		final IHyperlinkDetector[] detectors = getHyperlinkDetectors(sourceViewer);
 		// emulate
@@ -405,7 +405,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		return null;
 	}
 	@Override
-	public ContentAssistant getContentAssistant(ISourceViewer sourceViewer) { return installAssistant(sourceViewer); }
+	public ContentAssistant getContentAssistant(final ISourceViewer sourceViewer) { return installAssistant(sourceViewer); }
 
-	public void refreshAfterBuild(Markers markers) {}
+	public void refreshAfterBuild(final Markers markers) {}
 }

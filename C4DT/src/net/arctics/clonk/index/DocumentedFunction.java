@@ -15,20 +15,20 @@ public final class DocumentedFunction extends EngineFunction implements IDocumen
 		return originInfo;
 	}
 
-	public void setOriginInfo(String originInfo) {
+	public void setOriginInfo(final String originInfo) {
 		this.originInfo = originInfo;
 	}
 
-	public DocumentedFunction(String name, IType returnType) {
+	public DocumentedFunction(final String name, final IType returnType) {
 		super(name, returnType);
 	}
 
-	public DocumentedFunction(String name, IType returnType, String origin) {
+	public DocumentedFunction(final String name, final IType returnType, final String origin) {
 		this(name, returnType);
 		setOriginInfo(origin);
 	}
 
-	public DocumentedFunction(String name, FunctionScope scope) {
+	public DocumentedFunction(final String name, final FunctionScope scope) {
 		super(name, scope);
 	}
 
@@ -53,7 +53,7 @@ public final class DocumentedFunction extends EngineFunction implements IDocumen
 	}
 
 	@Override
-	public String infoText(IIndexEntity context) {
+	public String infoText(final IIndexEntity context) {
 		fetchDocumentation();
 		String sup = super.infoText(context);
 		if (originInfo != null)

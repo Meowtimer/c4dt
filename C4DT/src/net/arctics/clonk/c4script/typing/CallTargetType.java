@@ -11,11 +11,11 @@ public class CallTargetType implements IType {
 	@Override
 	public Iterator<IType> iterator() { return ArrayUtil.<IType>iterable(PrimitiveType.OBJECT, PrimitiveType.ID, PrimitiveType.PROPLIST, this).iterator(); }
 	@Override
-	public String typeName(boolean special) { return PrimitiveType.OBJECT.typeName(special); }
+	public String typeName(final boolean special) { return PrimitiveType.OBJECT.typeName(special); }
 	@Override
 	public IType simpleType() { return PrimitiveType.OBJECT; }
 	@Override
-	public boolean equals(Object obj) { return obj instanceof CallTargetType; }
+	public boolean equals(final Object obj) { return obj instanceof CallTargetType; }
 	@Override
 	public String toString() { return typeName(true); }
 }

@@ -10,11 +10,11 @@ import org.eclipse.ui.navigator.CommonNavigator;
 
 public class HyperlinkToResource implements IHyperlink {
 
-	private IResource resource;
-	private IRegion region;
-	private IWorkbenchWindow workbenchWindow;
+	private final IResource resource;
+	private final IRegion region;
+	private final IWorkbenchWindow workbenchWindow;
 	
-	public HyperlinkToResource(IResource resource, IRegion region, IWorkbenchWindow window) {
+	public HyperlinkToResource(final IResource resource, final IRegion region, final IWorkbenchWindow window) {
 		super();
 		this.resource = resource;
 		this.region = region;
@@ -38,7 +38,7 @@ public class HyperlinkToResource implements IHyperlink {
 
 	@Override
 	public void open() {
-		CommonNavigator nav = UI.projectExplorer(workbenchWindow);
+		final CommonNavigator nav = UI.projectExplorer(workbenchWindow);
 		nav.setFocus();
 		nav.selectReveal(new StructuredSelection(resource));
 	}

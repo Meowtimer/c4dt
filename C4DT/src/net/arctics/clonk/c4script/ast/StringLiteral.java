@@ -20,7 +20,7 @@ public final class StringLiteral extends Literal<String> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final String literal;
 
-	public StringLiteral(String literal) {
+	public StringLiteral(final String literal) {
 		this.literal =literal != null ? literal : ""; //$NON-NLS-1$
 	}
 	@Override
@@ -31,14 +31,14 @@ public final class StringLiteral extends Literal<String> {
 		return literal;
 	}
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append("\""); //$NON-NLS-1$
 		output.append(stringValue());
 		output.append("\""); //$NON-NLS-1$
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 
 		// first check if a string tbl entry is referenced
 		final EntityRegion result = StringTbl.entryForLanguagePref(stringValue(), start(), (offset-1), parent(Script.class), true);
@@ -61,7 +61,7 @@ public final class StringLiteral extends Literal<String> {
 	}
 
 	@Override
-	public String evaluateStatic(IEvaluationContext context) {
+	public String evaluateStatic(final IEvaluationContext context) {
 		final String escapesEvaluated = StringUtil.evaluateEscapes(literal());
 		if (context == null || context.script() == null)
 			return escapesEvaluated;

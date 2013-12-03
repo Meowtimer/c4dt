@@ -6,9 +6,9 @@ import net.arctics.clonk.index.Definition;
 
 public class Maybe extends TypeChoice {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public Maybe(IType type) { super(type, PrimitiveType.ANY); }
+	public Maybe(final IType type) { super(type, PrimitiveType.ANY); }
 	public IType maybe() { return left; }
-	public static IType make(IType type) {
+	public static IType make(final IType type) {
 		if (type instanceof IRefinedPrimitiveType && !(type instanceof Definition))
 			return type;
 		if (eq(type, PrimitiveType.UNKNOWN))

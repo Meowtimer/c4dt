@@ -21,7 +21,7 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 	public static final String ID = ClonkDebugModelPresentation.class.getName();
 
 	@Override
-	public void computeDetail(IValue value, IValueDetailListener listener) {
+	public void computeDetail(final IValue value, final IValueDetailListener listener) {
 		try {
 			final String val = value.getValueString();
 			listener.detailComputed(value, val);
@@ -32,15 +32,15 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 	}
 
 	@Override
-	public void setAttribute(String attribute, Object value) {}
+	public void setAttribute(final String attribute, final Object value) {}
 
 	@Override
-	public String getEditorId(IEditorInput input, Object element) {
+	public String getEditorId(final IEditorInput input, final Object element) {
 		return "clonk.editors.C4ScriptEditor"; //$NON-NLS-1$
 	}
 
 	@Override
-	public IEditorInput getEditorInput(Object element) {
+	public IEditorInput getEditorInput(final Object element) {
 		if (element instanceof IFile)
 			return new FileEditorInput((IFile) element);
 		else if (element instanceof Breakpoint) {
@@ -51,7 +51,7 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 	}
 	
 	@Override
-	public String getText(Object element) {
+	public String getText(final Object element) {
 		try {
 			if (element instanceof ScriptThread)
 				return ((ScriptThread)element).getName();

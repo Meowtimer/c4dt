@@ -16,7 +16,7 @@ public class Placeholder extends ASTNode implements IRefinedPrimitiveType {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected String entryName;
 
-	public Placeholder(String entryName) {
+	public Placeholder(final String entryName) {
 		this.entryName = entryName;
 	}
 	@Override
@@ -24,7 +24,7 @@ public class Placeholder extends ASTNode implements IRefinedPrimitiveType {
 		return true;
 	}
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) {
+	public boolean isValidInSequence(final ASTNode predecessor) {
 		return true;
 	}
 
@@ -32,13 +32,13 @@ public class Placeholder extends ASTNode implements IRefinedPrimitiveType {
 		return entryName;
 	}
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append('$');
 		builder.append(entryName);
 		builder.append('$');
 	}
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		final StringTbl stringTbl = parent(Script.class).localStringTblMatchingLanguagePref();
 		if (stringTbl != null) {
 			final NameValueAssignment entry = stringTbl.map().get(entryName);
@@ -56,7 +56,7 @@ public class Placeholder extends ASTNode implements IRefinedPrimitiveType {
 	@Override
 	public Iterator<IType> iterator() { return iterable((IType)this).iterator(); }
 	@Override
-	public String typeName(boolean special) { return special ? toString() : PrimitiveType.ANY.typeName(false); }
+	public String typeName(final boolean special) { return special ? toString() : PrimitiveType.ANY.typeName(false); }
 	@Override
 	public IType simpleType() { return PrimitiveType.ANY; }
 	@Override

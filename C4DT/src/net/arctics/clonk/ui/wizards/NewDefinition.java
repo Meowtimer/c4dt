@@ -37,7 +37,7 @@ public class NewDefinition extends NewClonkFolderWizard<NewDefinitionPage> imple
 
 	@Override
 	protected Map<String, String> initTemplateReplacements() {
-		Map<String, String> result = super.initTemplateReplacements();
+		final Map<String, String> result = super.initTemplateReplacements();
 		result.put("$$ID$$", page.objectID()); //$NON-NLS-1$
 		result.put("$$Description$$", page.objectDescription()); //$NON-NLS-1$
 		return result;
@@ -49,7 +49,7 @@ public class NewDefinition extends NewClonkFolderWizard<NewDefinitionPage> imple
 	 * @see IWorkbenchWizard#init(IWorkbench, IStructuredSelection)
 	 */
 	@Override
-	public void init(IWorkbench workbench, IStructuredSelection selection) {
+	public void init(final IWorkbench workbench, final IStructuredSelection selection) {
 		super.init(workbench, selection);
 		setWindowTitle(Messages.NewC4Object_Title);
 	}

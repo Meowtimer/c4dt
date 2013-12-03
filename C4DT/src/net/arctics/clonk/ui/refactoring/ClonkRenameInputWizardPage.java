@@ -13,10 +13,10 @@ import org.eclipse.swt.widgets.Text;
 
 class ClonkRenameInputWizardPage extends UserInputWizardPage {
 
-	private RenameDeclarationProcessor processor;
+	private final RenameDeclarationProcessor processor;
 	private Text newNameText;
 	
-	protected ClonkRenameInputWizardPage(String name, RenameDeclarationProcessor processor) {
+	protected ClonkRenameInputWizardPage(final String name, final RenameDeclarationProcessor processor) {
 		super(name);
 		this.processor = processor;
 		setTitle(Messages.ClonkRenameInputWizardPage_SupplyTheName);
@@ -24,15 +24,15 @@ class ClonkRenameInputWizardPage extends UserInputWizardPage {
 	}
 
 	@Override
-	public void createControl(Composite parent) {
-		Composite container = new Composite(parent, SWT.NULL);
+	public void createControl(final Composite parent) {
+		final Composite container = new Composite(parent, SWT.NULL);
 		setControl(container);
-		GridLayout layout = new GridLayout();
+		final GridLayout layout = new GridLayout();
 		container.setLayout(layout);
-		Label labelObj = new Label(container, SWT.NULL);
+		final Label labelObj = new Label(container, SWT.NULL);
 		labelObj.setText(Messages.ClonkRenameInputWizardPage_NewName);
 		newNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+		final GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		newNameText.setLayoutData(gd);
 		newNameText.setText(processor.newName());
 	}

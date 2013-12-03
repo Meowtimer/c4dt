@@ -75,23 +75,23 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 		
 		private WeakReference<ISelection> selection;
 		
-		public synchronized void setSelection(ISelection selection) {
+		public synchronized void setSelection(final ISelection selection) {
 			this.selection = new WeakReference<ISelection>(selection);
 		}
 
-		private PreviewUpdaterJob(String name) {
+		private PreviewUpdaterJob(final String name) {
 			super(name);
 		}
 
 		@Override
-		protected IStatus run(IProgressMonitor monitor) {
-			ISelection sel = selection.get();
+		protected IStatus run(final IProgressMonitor monitor) {
+			final ISelection sel = selection.get();
 			if (sel != null)
 				synchronizedSelectionChanged(sel);
 			return Status.OK_STATUS;
 		}
 
-		public synchronized void reschedule(int delay, ISelection selection) {
+		public synchronized void reschedule(final int delay, final ISelection selection) {
 			if (selection == null)
 				this.cancel();
 			else if (this.selection == null || getState() != WAITING || !selection.equals(this.selection.get())) {
@@ -102,11 +102,11 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	}
 
 	private final class ImageCanvas extends Canvas {
-		private ImageCanvas(Composite parent, int style) {
+		private ImageCanvas(final Composite parent, final int style) {
 			super(parent, style);
 			this.addPaintListener(new PaintListener() {
 				@Override
-				public void paintControl(PaintEvent e) {
+				public void paintControl(final PaintEvent e) {
 					if (image != null) {
 						int hgt = getBounds().height;
 						float ratio = (float)hgt/(float)image.getBounds().height;
@@ -134,8 +134,8 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	public ClonkPreviewView() {
 	}
 	
-	private static FormData createFormData(FormAttachment left, FormAttachment right, FormAttachment top, FormAttachment bottom) {
-		FormData result = new FormData();
+	private static FormData createFormData(final FormAttachment left, final FormAttachment right, final FormAttachment top, final FormAttachment bottom) {
+		final FormData result = new FormData();
 		result.left   = left;
 		result.top    = top;
 		result.right  = right;
@@ -170,7 +170,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 		));
 		sash.addListener(SWT.Selection, new Listener() {
 			@Override
-			public void handleEvent(Event event) {
+			public void handleEvent(final Event event) {
 				sashData.top = new FormAttachment(0, event.y);
 				parent.layout();
 			}
@@ -199,9 +199,9 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	}
 	
 	@Override
-	public void init(IViewSite site) throws PartInitException {
+	public void init(final IViewSite site) throws PartInitException {
 		super.init(site);
-		ISelectionService selService = site.getWorkbenchWindow().getSelectionService();
+		final ISelectionService selService = site.getWorkbenchWindow().getSelectionService();
 		selService.addSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, this);
 	}
 	
@@ -211,31 +211,31 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	
 	private File tempLandscapeRenderFile = null;
 	
-	private static String getMaterialsFolderPath(Engine engine, IFile resource) {
-		String materialFolderBaseName = "Material."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
+	private static String getMaterialsFolderPath(final Engine engine, final IFile resource) {
+		final String materialFolderBaseName = "Material."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
-			IResource matsRes = container.findMember(materialFolderBaseName);
+			final IResource matsRes = container.findMember(materialFolderBaseName);
 			if (matsRes != null)
 				return ClonkLaunchConfigurationDelegate.resFilePath(matsRes);
 		}
 		return engine.settings().gamePath+"/"+materialFolderBaseName; 
 	}
 
-	private synchronized void synchronizedSelectionChanged(ISelection selection) {
+	private synchronized void synchronizedSelectionChanged(final ISelection selection) {
 		Image newImage = null;
 		String newHtml = ""; //$NON-NLS-1$
 		String newDefText = ""; //$NON-NLS-1$
-		boolean newDoNotDispose = false;
+		final boolean newDoNotDispose = false;
 		if (selection instanceof IStructuredSelection) try {
-			IStructuredSelection structSel = (IStructuredSelection) selection;
-			Object sel = structSel.getFirstElement();
+			final IStructuredSelection structSel = (IStructuredSelection) selection;
+			final Object sel = structSel.getFirstElement();
 			/*if (sel instanceof IFile && (C4Structure.pinned((IFile)sel, false, false) != null || C4ScriptBase.get((IFile) sel, true) != null))
 				sel = ((IFile)sel).getParent(); */
 			if (sel instanceof IFile) {
-				IFile file = (IFile) sel;
-				String fileName = file.getName().toLowerCase();
+				final IFile file = (IFile) sel;
+				final String fileName = file.getName().toLowerCase();
 				if (fileName.endsWith(".png") || fileName.endsWith(".bmp") || fileName.endsWith(".jpeg") || fileName.endsWith("jpg")) { //$NON-NLS-1$ //$NON-NLS-2$
-					InputStream contents = file.getContents();
+					final InputStream contents = file.getContents();
 					try {
 						newImage = new Image(canvas.getDisplay(), contents);
 					} finally {
@@ -244,14 +244,14 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 				}
 				else if (fileName.equalsIgnoreCase("Landscape.txt")) {
 					// render landscape.txt using utility embedded into OpenClonk
-					ClonkProjectNature nature = ClonkProjectNature.get(file);
-					Engine engine = nature != null ? nature.index().engine() : null;
+					final ClonkProjectNature nature = ClonkProjectNature.get(file);
+					final Engine engine = nature != null ? nature.index().engine() : null;
 					if (engine != null && engine.settings().supportsEmbeddedUtilities) try {
 						if (tempLandscapeRenderFile == null) {
 							tempLandscapeRenderFile = File.createTempFile("c4dt", "landscaperender");
 							tempLandscapeRenderFile.deleteOnExit();
 						}
-						Process drawLandscape = engine.executeEmbeddedUtility("drawlandscape",
+						final Process drawLandscape = engine.executeEmbeddedUtility("drawlandscape",
 							"-f"+ClonkLaunchConfigurationDelegate.resFilePath(file),
 							"-o"+tempLandscapeRenderFile.getAbsolutePath(),
 							"-m"+getMaterialsFolderPath(engine, file),
@@ -260,12 +260,12 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 						);
 						if (drawLandscape != null) {
 							drawLandscape.waitFor();
-							FileInputStream stream = new FileInputStream(tempLandscapeRenderFile);
+							final FileInputStream stream = new FileInputStream(tempLandscapeRenderFile);
 							try {
 								newImage = new Image(canvas.getDisplay(), stream);
 								if (LANDSCAPE_PREVIEW_SCALE != 1) {
-									Image biggerImage = new Image(canvas.getDisplay(), canvasSize.x, canvasSize.y);
-									GC gc = new GC(biggerImage);
+									final Image biggerImage = new Image(canvas.getDisplay(), canvasSize.x, canvasSize.y);
+									final GC gc = new GC(biggerImage);
 									gc.setAntialias(SWT.ON);
 									gc.setInterpolation(SWT.HIGH);
 									gc.drawImage(newImage,
@@ -280,7 +280,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 								stream.close();
 							}
 						}
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
 				}
@@ -290,9 +290,9 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 					newHtml = StreamUtil.stringFromFileDocument(file);
 			}
 			else if (sel instanceof IContainer && ((IContainer)sel).getProject().isOpen()) {
-				IContainer container = (IContainer) sel;
+				final IContainer container = (IContainer) sel;
 				
-				Definition obj = Definition.at(container);
+				final Definition obj = Definition.at(container);
 				if (obj != null)
 					newDefText = obj.infoTextIncludingIDAndName();
 
@@ -308,7 +308,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 				{
 					// Title.png
 					if (newImage == null) {
-						IResource graphicsFile = container.findMember("Title.png"); //$NON-NLS-1$
+						final IResource graphicsFile = container.findMember("Title.png"); //$NON-NLS-1$
 						if (graphicsFile instanceof IFile)
 							newImage = new Image(canvas.getDisplay(), ((IFile)graphicsFile).getContents());
 					}
@@ -318,7 +318,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 						newImage = UI.imageForContainer(container);
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		if (image != null && !doNotDisposeImage)
@@ -339,16 +339,16 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 		});
 	}
 
-	public String rtfToHtml(String rtf) throws IOException, BadLocationException {
-		BufferedReader input = new BufferedReader(new StringReader(rtf));
+	public String rtfToHtml(final String rtf) throws IOException, BadLocationException {
+		final BufferedReader input = new BufferedReader(new StringReader(rtf));
 
-		RTFEditorKit rtfKit = new RTFEditorKit();
-		StyledDocument doc = (StyledDocument) rtfKit.createDefaultDocument();
+		final RTFEditorKit rtfKit = new RTFEditorKit();
+		final StyledDocument doc = (StyledDocument) rtfKit.createDefaultDocument();
 		rtfKit.read( input, doc, 0 );
 		input.close();
 
-		HTMLEditorKit htmlKit = new HTMLEditorKit();       
-		StringWriter output = new StringWriter();
+		final HTMLEditorKit htmlKit = new HTMLEditorKit();       
+		final StringWriter output = new StringWriter();
 		htmlKit.write(output, doc, 0, doc.getLength());
 
 		return output.toString();
@@ -368,21 +368,21 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 
 	private final PreviewUpdaterJob previewUpdaterJob = new PreviewUpdaterJob(Messages.ClonkPreviewView_Updater);
 	
-	private void scheduleJob(ISelection selection) {
+	private void scheduleJob(final ISelection selection) {
 		previewUpdaterJob.reschedule(300, selection);
 	}
 	
 	@Override
-	public void selectionChanged(IWorkbenchPart part, final ISelection selection) {
+	public void selectionChanged(final IWorkbenchPart part, final ISelection selection) {
 		scheduleJob(selection);
 	}
 
 	@Override
-	public void controlMoved(ControlEvent e) {
+	public void controlMoved(final ControlEvent e) {
 	}
 
 	@Override
-	public void controlResized(ControlEvent e) {
+	public void controlResized(final ControlEvent e) {
 		if (e.getSource() == canvas) {
 			canvasSize = canvas.getSize();
 			scheduleJob(getSelectionOfInterest());

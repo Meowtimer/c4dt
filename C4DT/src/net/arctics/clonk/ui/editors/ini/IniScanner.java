@@ -21,15 +21,15 @@ public class IniScanner extends StructureTextScanner {
 	private static final class OperatorRule implements IRule {
 		private final char[] OPERATORS = { '=', '[', ']', ',', '|', ';' };
 		private final IToken token;
-		public OperatorRule(IToken token) { this.token = token; }
-		public boolean isOperator(char character) {
+		public OperatorRule(final IToken token) { this.token = token; }
+		public boolean isOperator(final char character) {
 			for (int index = 0; index < OPERATORS.length; index++)
 				if (OPERATORS[index] == character)
 					return true;
 			return false;
 		}
 		@Override
-		public IToken evaluate(ICharacterScanner scanner) {
+		public IToken evaluate(final ICharacterScanner scanner) {
 			int character= scanner.read();
 			if (isOperator((char) character)) {
 				do
@@ -43,9 +43,9 @@ public class IniScanner extends StructureTextScanner {
 			}
 		}
 	}
-	public IniScanner(ColorManager manager, Engine engine) { super(manager, engine, "DEFAULT"); }
+	public IniScanner(final ColorManager manager, final Engine engine) { super(manager, engine, "DEFAULT"); }
 	@Override
-	protected void commitRules(ColorManager manager, Engine engine) {
+	protected void commitRules(final ColorManager manager, final Engine engine) {
 		final IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		final IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
 		final IToken section = createToken(manager, "KEYWORD"); //$NON-NLS-1$

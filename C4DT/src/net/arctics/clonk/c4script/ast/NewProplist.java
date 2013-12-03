@@ -25,13 +25,13 @@ public class NewProplist extends PropListExpression {
 	 * @param declaration The declaration representing the proplist block
 	 * @param prototypeExpression The prototype expression
 	 */
-	public NewProplist(ProplistDeclaration declaration, ASTNode prototype) {
+	public NewProplist(final ProplistDeclaration declaration, final ASTNode prototype) {
 		super(declaration);
 		this.prototype = prototype;
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append(Keywords.New);
 		output.append(" ");
 		prototype.print(output, depth);
@@ -41,10 +41,10 @@ public class NewProplist extends PropListExpression {
 
 	@Override
 	public ASTNode[] subElements() {
-		ASTNode[] result = new ASTNode[1+components().size()];
+		final ASTNode[] result = new ASTNode[1+components().size()];
 		result[0] = prototype;
 		int i = 1;
-		for (Variable c : components())
+		for (final Variable c : components())
 			result[i++] = c.initializationExpression();
 		return result;
 	}

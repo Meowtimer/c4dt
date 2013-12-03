@@ -22,7 +22,7 @@ public enum ColorManager {
 		public RGB defaultRGB;
 		public int defaultStyle;
 		public String localizedName;
-		public String prefName(String forWhat) {
+		public String prefName(final String forWhat) {
 			return name+"."+forWhat;
 		}
 		public RGB rgb() {
@@ -40,7 +40,7 @@ public enum ColorManager {
 				Core.instance().getPreferenceStore().setValue(prefName, defaultStyle);
 			return Core.instance().getPreferenceStore().getInt(prefName);
 		}
-		public SyntaxElementStyle(String name, RGB rgb, int style) {
+		public SyntaxElementStyle(final String name, final RGB rgb, final int style) {
 			super();
 			this.name = name;
 			this.defaultRGB = rgb;
@@ -74,7 +74,7 @@ public enum ColorManager {
 		new SyntaxElementStyle("OBJ_CALLBACK", new RGB(0x5C,0xA,0x5C), 0);
 	}
 
-	public RGB defaultColorForSyntaxElement(String elementName) {
+	public RGB defaultColorForSyntaxElement(final String elementName) {
 		try {
 			return syntaxElementStyles.get(elementName).defaultRGB;
 		} catch (final Exception e) {
@@ -82,7 +82,7 @@ public enum ColorManager {
 		}
 	}
 
-	public RGB colorForSyntaxElement(String elementName) {
+	public RGB colorForSyntaxElement(final String elementName) {
 		try {
 			return syntaxElementStyles.get(elementName).rgb();
 		} catch (final Exception e) {
@@ -96,7 +96,7 @@ public enum ColorManager {
 		for (final Color c : colorTable.values())
 			c.dispose();
 	}
-	public Color getColor(RGB rgb) {
+	public Color getColor(final RGB rgb) {
 		Color color = colorTable.get(rgb);
 		if (color == null) {
 			color = new Color(Display.getCurrent(), rgb);

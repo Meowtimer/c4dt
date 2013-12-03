@@ -19,24 +19,23 @@ public final class C4GroupListEditor extends ListEditor {
 	StringFieldEditor gamePathEditor;
 	IEngineProvider engineProvider;
 
-	public C4GroupListEditor(String name, String labelText, Composite parent, IEngineProvider engineProvider) {
+	public C4GroupListEditor(final String name, final String labelText, final Composite parent, final IEngineProvider engineProvider) {
 		super(name, labelText, parent);
 		this.engineProvider = engineProvider;
 	}
 
 	@Override
-	public String[] parseString(String stringList) {
+	public String[] parseString(final String stringList) {
 		if (stringList.length() == 0)
 			return new String[] {};
 		return stringList.split("<>"); //$NON-NLS-1$
 	}
 
-	private void addFiles(File[] files) {
-		List list = getList();
-		int index = Math.max(list.getSelectionIndex(), 0);
-		for (int i = 0; i < files.length; i++) {
+	private void addFiles(final File[] files) {
+		final List list = getList();
+		final int index = Math.max(list.getSelectionIndex(), 0);
+		for (int i = 0; i < files.length; i++)
 			list.add(files[i].getAbsolutePath(), index + i);
-		}
 		selectionChanged();
 	}
 
@@ -44,27 +43,24 @@ public final class C4GroupListEditor extends ListEditor {
 	protected String getNewInputObject() {
 		String gamePath = engineProvider.getEngine(true).settings().gamePath;
 		// not yet saved -> look in field editor
-		if (gamePath == null || gamePath.length() == 0 && gamePathEditor != null) {
+		if (gamePath == null || gamePath.length() == 0 && gamePathEditor != null)
 			gamePath = gamePathEditor.getStringValue();
-		}
-		if (gamePath == null || !new File(gamePath).exists()) {
+		if (gamePath == null || !new File(gamePath).exists())
 			gamePath = null;
-		}
-		MessageDialog msgDialog = new MessageDialog(getShell(), Messages.ClonkPreferencePage_GroupFileOrFolder, null, Messages.ClonkPreferencePage_SelectRegularFolder, MessageDialog.INFORMATION, new String[] { Messages.ClonkPreferencePage_Nope, Messages.ClonkPreferencePage_YesIndeed }, 0);
+		final MessageDialog msgDialog = new MessageDialog(getShell(), Messages.ClonkPreferencePage_GroupFileOrFolder, null, Messages.ClonkPreferencePage_SelectRegularFolder, MessageDialog.INFORMATION, new String[] { Messages.ClonkPreferencePage_Nope, Messages.ClonkPreferencePage_YesIndeed }, 0);
 		switch (msgDialog.open()) {
 		case 0:
-			FileDialog dialog = new FileDialog(getShell(), SWT.SHEET + SWT.MULTI + SWT.OPEN);
+			final FileDialog dialog = new FileDialog(getShell(), SWT.SHEET + SWT.MULTI + SWT.OPEN);
 			dialog.setText(Messages.ChooseExternalObject);
 			dialog.setFilterExtensions(new String[] { engineProvider.getEngine(true).settings().fileDialogFilterForGroupFiles() });
 			dialog.setFilterPath(gamePath);
 			// add multiple files instead of returning one file to be added by
 			// the super class
-			if (dialog.open() != null) {
+			if (dialog.open() != null)
 				addFiles(ArrayUtil.map(dialog.getFileNames(), File.class, new FullPathConverter(dialog)));
-			}
 			return null;
 		case 1:
-			DirectoryDialog dirDialog = new DirectoryDialog(getShell(), SWT.SHEET + SWT.MULTI + SWT.OPEN);
+			final DirectoryDialog dirDialog = new DirectoryDialog(getShell(), SWT.SHEET + SWT.MULTI + SWT.OPEN);
 			dirDialog.setText(Messages.ClonkPreferencePage_SelectExternalFolder);
 			dirDialog.setFilterPath(gamePath);
 			return dirDialog.open();
@@ -74,8 +70,8 @@ public final class C4GroupListEditor extends ListEditor {
 	}
 
 	@Override
-	protected String createList(String[] items) {
-		StringBuilder result = new StringBuilder();
+	protected String createList(final String[] items) {
+		final StringBuilder result = new StringBuilder();
 		for (int i = 0; i < items.length; i++) {
 			if (i > 0)
 				result.append("<>"); //$NON-NLS-1$
@@ -88,7 +84,7 @@ public final class C4GroupListEditor extends ListEditor {
 		return getList().getItems();
 	}
 
-	public void setValues(String[] items) {
+	public void setValues(final String[] items) {
 		getList().setItems(items);
 		setPresentsDefaultValue(false);
 	}

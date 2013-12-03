@@ -11,6 +11,7 @@ import net.arctics.clonk.ast.MatchingPlaceholder.Multiplicity;
 import net.arctics.clonk.c4script.Standalone;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.Block;
+import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Unfinished;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.util.ArrayUtil;
@@ -26,7 +27,7 @@ import net.arctics.clonk.util.ArrayUtil;
  * @author madeen
  */
 public class ASTNodeMatcher extends ASTComparisonDelegate {
-	public ASTNodeMatcher(ASTNode top) { super(top); }
+	public ASTNodeMatcher(final ASTNode top) { super(top); }
 	public Map<String, Object> result;
 	@Override
 	public boolean acceptClassDifference() {
@@ -38,7 +39,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			(left instanceof AccessVar && right instanceof AccessVar);
 	}
 	@Override
-	public boolean consume(ASTNode consumer, ASTNode extra) {
+	public boolean consume(final ASTNode consumer, final ASTNode extra) {
 		final MatchingPlaceholder mp = as(consumer, MatchingPlaceholder.class);
 		if (mp != null && mp.multiplicity() != Multiplicity.One)
 			if (mp.satisfiedBy(extra)) {
@@ -55,7 +56,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		return false;
 	}
 	@Override
-	public boolean applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) {
+	public boolean applyLeftToRightMapping(final ASTNode[] leftSubElements, final ASTNode[][] leftToRightMapping) {
 		for (int i = 0; i < leftSubElements.length; i++) {
 			final ASTNode left = leftSubElements[i];
 			final ASTNode[] mapping = leftToRightMapping[i];
@@ -75,7 +76,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		}
 		return true;
 	}
-	private void addToResult(MatchingPlaceholder mp, ASTNode extra[]) {
+	private void addToResult(final MatchingPlaceholder mp, final ASTNode extra[]) {
 		if (result == null)
 			result = new HashMap<String, Object>();
 		Object existing = result.get(mp.entryName());
@@ -88,7 +89,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		result.put(mp.entryName(), existing);
 	}
 	@Override
-	public boolean acceptLeftExtraElement(ASTNode leftNode) {
+	public boolean acceptLeftExtraElement(final ASTNode leftNode) {
 		if (leftNode instanceof MatchingPlaceholder)
 			switch (((MatchingPlaceholder) leftNode).multiplicity()) {
 			case AtLeastOne: case Multiple:
@@ -100,7 +101,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			return false;
 	}
 	@Override
-	public boolean acceptSubElementDifference(ASTNode left, ASTNode right) {
+	public boolean acceptSubElementDifference(final ASTNode left, final ASTNode right) {
 		final MatchingPlaceholder mp = as(left, MatchingPlaceholder.class);
 		return mp != null && mp.multiplicity() == Multiplicity.One && mp.subElements().length == 0 && mp.satisfiedBy(right);
 	}
@@ -112,7 +113,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	public static ASTNode prepareForMatching(ASTNode node) {
 		if (node instanceof Unfinished) {
 			final ASTNode orig = node;
-			node = Unfinished.unwrap(node);
+			node = SimpleStatement.unwrap(node);
 			node.setParent(orig.parent());
 		}
 		return node.transformRecursively(MatchingPlaceholderTransformer.INSTANCE);
@@ -123,7 +124,7 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	 * @param engine Engine to use for parsing.
 	 * @return Prepared-for-matching version of the node parsed from the string or null if something went wrong.
 	 */
-	public static ASTNode prepareForMatching(final String statementText, Engine engine) {
+	public static ASTNode prepareForMatching(final String statementText, final Engine engine) {
 		try {
 			return prepareForMatching(new Standalone(engine).parse(statementText));
 		} catch (final ProblemException e) {

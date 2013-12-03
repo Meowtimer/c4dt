@@ -38,7 +38,7 @@ class Plan {
 
 	private final class VariableInitializationDependenciesVisitor implements IASTVisitor<Visit> {
 		@Override
-		public TraversalContinuation visitNode(ASTNode node, Visit v) {
+		public TraversalContinuation visitNode(final ASTNode node, final Visit v) {
 			if (
 				node instanceof AccessVar && node.predecessor() == null &&
 				!(isLocal((AccessVar) node, v) || containedInAssignment(node))
@@ -68,14 +68,14 @@ class Plan {
 			return TraversalContinuation.Continue;
 		}
 
-		private boolean containedInAssignment(ASTNode node) {
+		private boolean containedInAssignment(final ASTNode node) {
 			for (ASTNode p = node.parent(); p != null; p = p.parent())
 				if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment())
 					return true;
 			return false;
 		}
 
-		private boolean isLocal(AccessVar node, Visit v) {
+		private boolean isLocal(final AccessVar node, final Visit v) {
 			return v.function.findLocalDeclaration(node.name(), Variable.class) != null;
 		}
 	}
@@ -90,7 +90,7 @@ class Plan {
 
 	private final class ResultUsedDependencyDetector implements IASTVisitor<Visit> {
 		@Override
-		public TraversalContinuation visitNode(ASTNode node, Visit v) {
+		public TraversalContinuation visitNode(final ASTNode node, final Visit v) {
 			if (node instanceof CallDeclaration && resultNeeded(node)) {
 				final CallDeclaration cd = (CallDeclaration) node;
 				final List<Visit> calledVisits = visits.get(cd.name());
@@ -117,9 +117,9 @@ class Plan {
 
 	private static class DependencyTester extends HashSet<Visit> implements IPredicate<Visit> {
 		final Visit dependency;
-		public DependencyTester(Visit dependency) { this.dependency = dependency; }
+		public DependencyTester(final Visit dependency) { this.dependency = dependency; }
 		@Override
-		public boolean test(Visit dependent) {
+		public boolean test(final Visit dependent) {
 			return add(dependent) &&
 				(dependent.dependencies.contains(dependency) ||
 				 any(dependent.dependencies, this));
@@ -129,7 +129,7 @@ class Plan {
 	private static class ASTVisitorRunnable implements Runnable {
 		final Visit target;
 		final IASTVisitor<Visit> visitor;
-		public ASTVisitorRunnable(Visit target, IASTVisitor<Visit> visitor) {
+		public ASTVisitorRunnable(final Visit target, final IASTVisitor<Visit> visitor) {
 			super();
 			this.target = target;
 			this.visitor = visitor;
@@ -147,7 +147,7 @@ class Plan {
 	final Set<Visit> doubleTakes = new HashSet<>();
 	final List<Visit> roots = new LinkedList<>();
 
-	public Plan(DabbleInference inference) {
+	public Plan(final DabbleInference inference) {
 		this.inference = inference;
 		this.visits = visitsMap();
 		this.linear = linear();
@@ -185,7 +185,7 @@ class Plan {
 	
 	private final Object edgeLock = new Object();
 
-	private void addEdge(Visit dependency, Visit dependent) {
+	private void addEdge(final Visit dependency, final Visit dependent) {
 		if (dependency == dependent)
 			return;
 		synchronized (edgeLock) {
@@ -202,7 +202,7 @@ class Plan {
 		//edges.add(new Edge(dependency, dependent));
 	}
 
-	private Collection<Runnable> visitorRunnables(IASTVisitor<Visit> visitor) {
+	private Collection<Runnable> visitorRunnables(final IASTVisitor<Visit> visitor) {
 		final List<Runnable> list = new ArrayList<>(total);
 		for (final Visit v : linear)
 			list.add(new ASTVisitorRunnable(v, visitor));
@@ -227,7 +227,7 @@ class Plan {
 		// caller -> callee
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
-			public void receivedObject(ExecutorService item) {
+			public void receivedObject(final ExecutorService item) {
 				for (final Input i : inference.input.values())
 					for (final Visit v : i.visits.values())
 						item.execute(new Runnable() {

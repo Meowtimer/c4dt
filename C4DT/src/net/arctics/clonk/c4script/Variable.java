@@ -71,9 +71,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
 
-	private Variable(String name) { this.name = name; }
+	private Variable(final String name) { this.name = name; }
 
-	private Variable(String name, IType type, String desc) {
+	private Variable(final String name, final IType type, final String desc) {
 		this(name);
 		this.type = type;
 		this.description = desc;
@@ -81,17 +81,17 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		this.typePinned = true;
 	}
 
-	public Variable(String name, ASTNode initialization) {
+	public Variable(final String name, final ASTNode initialization) {
 		this(name);
 		initializationExpression = initialization;
 	}
 
-	public Variable(String name, IType type) {
+	public Variable(final String name, final IType type) {
 		this(name);
 		forceType(type);
 	}
 
-	public Variable(String name, Scope scope) {
+	public Variable(final String name, final Scope scope) {
 		this(name);
 		this.scope = scope;
 		description = ""; //$NON-NLS-1$
@@ -113,7 +113,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		return type;
 	}
 
-	public IType type(Script script) {
+	public IType type(final Script script) {
 		IType type = null;
 		switch (scope()) {
 		case LOCAL:
@@ -145,16 +145,16 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		this.type = type;
 	}
 
-	public void forceType(IType type, boolean typeLocked) {
+	public void forceType(final IType type, final boolean typeLocked) {
 		forceType(type);
 		this.typePinned = typeLocked;
 	}
 
 	public void pinType() { typePinned = true; }
-	public void assignType(IType type) { assignType(type, false); }
+	public void assignType(final IType type) { assignType(type, false); }
 
 	@Override
-	public void assignType(IType type, boolean pin) {
+	public void assignType(final IType type, final boolean pin) {
 		if (!typePinned || pin) {
 			forceType(type);
 			typePinned = pin;
@@ -183,13 +183,13 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @param description the description to set
 	 */
 	@Override
-	public void setUserDescription(String description) { this.description = description; }
+	public void setUserDescription(final String description) { this.description = description; }
 	/**
 	 * @param scope the scope to set
 	 */
-	public void setScope(Scope scope) { this.scope = scope; }
+	public void setScope(final Scope scope) { this.scope = scope; }
 	public boolean isUsed() { return used; }
-	public void setUsed(boolean used) { this.used = used; }
+	public void setUsed(final boolean used) { this.used = used; }
 
 	/**
 	 * The scope of a variable
@@ -203,7 +203,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		CONST,
 		PARAMETER;
 
-		public static Scope makeScope(String scopeString) {
+		public static Scope makeScope(final String scopeString) {
 			switch (scopeString) {
 			case Keywords.VarNamed:
 				return Scope.VAR;
@@ -245,7 +245,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public int sortCategory() { return (scope != null ? scope : Scope.VAR).ordinal(); }
 
 	@Override
-	public String infoText(IIndexEntity context) {
+	public String infoText(final IIndexEntity context) {
 		return infoText(type(as(context, Script.class)));
 	}
 
@@ -268,7 +268,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public String displayString(IIndexEntity context) { return this.name(); }
+	public String displayString(final IIndexEntity context) { return this.name(); }
 
 	public ASTNode initializationExpression() { return initializationExpression; }
 
@@ -279,7 +279,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			return null; // const value not sufficient
 	}
 
-	public Object evaluateInitializationExpression(IEvaluationContext context) {
+	public Object evaluateInitializationExpression(final IEvaluationContext context) {
 		final ASTNode e = initializationExpression();
 		if (e != null)
 			return e.evaluateStatic(context);
@@ -287,26 +287,26 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			return null;
 	}
 
-	public void setInitializationExpression(ASTNode initializationExpression) {
+	public void setInitializationExpression(final ASTNode initializationExpression) {
 		this.initializationExpression = initializationExpression;
 	}
 
 	@Override
 	public boolean isGlobal() { return scope == Scope.STATIC || scope == Scope.CONST; }
 
-	private void ensureTypeLockedIfPredefined(ASTNode declaration) {
+	private void ensureTypeLockedIfPredefined(final ASTNode declaration) {
 		if (!typePinned && declaration instanceof Engine)
 			typePinned = true;
 	}
 
 	@Override
-	public void setParent(ASTNode declaration) {
+	public void setParent(final ASTNode declaration) {
 		super.setParent(declaration);
 		ensureTypeLockedIfPredefined(declaration);
 	}
 
 	@Override
-	public void postLoad(Declaration parent, Index root) {
+	public void postLoad(final Declaration parent, final Index root) {
 		super.postLoad(parent, root);
 		ensureTypeLockedIfPredefined(parent);
 		if (initializationExpression != null)
@@ -324,7 +324,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public IASTSection section() { return null; /* variables are always absolute because of the reasons */ }
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append(scope().toKeyword());
 		output.append(" "); //$NON-NLS-1$
 		output.append(name());
@@ -332,7 +332,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public List<? extends Declaration> subDeclarations(Index contextIndex, int mask) {
+	public List<? extends Declaration> subDeclarations(final Index contextIndex, final int mask) {
 		if (initializationExpression instanceof Declaration)
 			return ((Declaration)initializationExpression).subDeclarations(contextIndex, mask);
 		else
@@ -350,13 +350,13 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public Object self() { return null; }
 	@Override
-	public IVariable variable(AccessVar access, Object obj) { return script().variable(access, null); }
+	public IVariable variable(final AccessVar access, final Object obj) { return script().variable(access, null); }
 	@Override
 	public Object[] arguments() { return new Object[0]; }
 	@Override
 	public int codeFragmentOffset() { return 0; }
 	@Override
-	public void reportOriginForExpression(ASTNode expression, IRegion location, IFile file) {}
+	public void reportOriginForExpression(final ASTNode expression, final IRegion location, final IFile file) {}
 	@Override
 	public ASTNode code() { return initializationExpression(); }
 	@Override
@@ -393,7 +393,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public Object[] occurenceScope(Iterable<Index> indexes) {
+	public Object[] occurenceScope(final Iterable<Index> indexes) {
 		if (parent instanceof Function)
 			return new Object[] {parent};
 		else
@@ -402,7 +402,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = new IVariableFactory() {
 		@Override
-		public Variable newVariable(String varName, Scope scope) {
+		public Variable newVariable(final String varName, final Scope scope) {
 			return new Variable(varName, scope);
 		}
 	};

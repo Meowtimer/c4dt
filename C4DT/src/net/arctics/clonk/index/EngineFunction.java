@@ -16,18 +16,18 @@ public class EngineFunction extends Function implements IReplacedWhenSaved {
 	private static class Ticket implements Serializable, IDeserializationResolvable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final String name;
-		public Ticket(String name) {
+		public Ticket(final String name) {
 			super();
 			this.name = name;
 		}
 		@Override
-		public Object resolve(Index index, IndexEntity deserializee) {
+		public Object resolve(final Index index, final IndexEntity deserializee) {
 			return index.engine().findFunction(name);
 		}
 	}
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public EngineFunction(String name, IType returnType) { super(name, returnType); }
-	public EngineFunction(String name, FunctionScope scope) { super(name, scope); }
+	public EngineFunction(final String name, final IType returnType) { super(name, returnType); }
+	public EngineFunction(final String name, final FunctionScope scope) { super(name, scope); }
 	public EngineFunction() { super(); }
 	@Override
 	public Function inheritedFunction() { return null; }
@@ -36,14 +36,14 @@ public class EngineFunction extends Function implements IReplacedWhenSaved {
 	@Override
 	public boolean staticallyTyped() { return true; }
 	@Override
-	public Object saveReplacement(Index context) { return new Ticket(name()); }
+	public Object saveReplacement(final Index context) { return new Ticket(name()); }
 	@Override
-	public Object[] occurenceScope(Iterable<Index> indexes) {
+	public Object[] occurenceScope(final Iterable<Index> indexes) {
 		return super.occurenceScope(iterable(filter(
 			map(ClonkProjectNature.allInWorkspace(), Index.class, ClonkProjectNature.SELECT_INDEX),
 			new IPredicate<Index>() {
 				@Override
-				public boolean test(Index item) { return item.engine() == EngineFunction.this.engine(); }
+				public boolean test(final Index item) { return item.engine() == EngineFunction.this.engine(); }
 			})
 		));
 	}

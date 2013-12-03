@@ -11,7 +11,7 @@ import org.eclipse.ui.IWorkbench;
 
 public class NewScenario extends NewClonkFolderWizard<NewScenarioPage> {
 	@Override
-	public void init(IWorkbench workbench, IStructuredSelection selection) {
+	public void init(final IWorkbench workbench, final IStructuredSelection selection) {
 		super.init(workbench, selection);
 		setWindowTitle(Messages.NewScenario_Title);
 	}
@@ -22,7 +22,7 @@ public class NewScenario extends NewClonkFolderWizard<NewScenarioPage> {
 	}
 	@Override
 	protected Map<String, String> initTemplateReplacements() {
-		Map<String, String> result = super.initTemplateReplacements();
+		final Map<String, String> result = super.initTemplateReplacements();
 		result.put("$$Title$$", page.getTitle()); //$NON-NLS-1$
 		return result;
 	}

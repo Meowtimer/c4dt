@@ -47,13 +47,13 @@ public class EntityHyperlink implements IHyperlink {
 	private final IRegion region;
 	protected Collection<? extends IIndexEntity> targets;
 
-	public EntityHyperlink(IRegion region, IIndexEntity target) {
+	public EntityHyperlink(final IRegion region, final IIndexEntity target) {
 		super();
 		this.region = region;
 		this.targets = ArrayUtil.list(target);
 	}
 	
-	public EntityHyperlink(IRegion region, Collection<? extends IIndexEntity> targets) {
+	public EntityHyperlink(final IRegion region, final Collection<? extends IIndexEntity> targets) {
 		this.region = region;
 		this.targets = targets;
 	}
@@ -65,7 +65,7 @@ public class EntityHyperlink implements IHyperlink {
 
 	@Override
 	public String getHyperlinkText() {
-		for (IIndexEntity t : targets)
+		for (final IIndexEntity t : targets)
 			return t.name();
 		return "hyperlink to ?"; //$NON-NLS-1$
 	}
@@ -84,20 +84,20 @@ public class EntityHyperlink implements IHyperlink {
 	}
 
 	private void chooseDeclarations() {
-		EntityChooser chooser = new EntityChooser(Messages.ClonkHyperlink_ChooseLinkTargetTitle, Core.instance().getWorkbench().getActiveWorkbenchWindow().getShell(), this.targets);
+		final EntityChooser chooser = new EntityChooser(Messages.ClonkHyperlink_ChooseLinkTargetTitle, Core.instance().getWorkbench().getActiveWorkbenchWindow().getShell(), this.targets);
 		chooser.run();
 	}
 
-	public static void openTarget(IIndexEntity target, boolean activateEditor) {
+	public static void openTarget(IIndexEntity target, final boolean activateEditor) {
 		try {
 			if (target instanceof DeclarationLocation)
 				target = ((DeclarationLocation)target).declaration();
-			DocumentedFunction documentedFunction = as(target, DocumentedFunction.class);
+			final DocumentedFunction documentedFunction = as(target, DocumentedFunction.class);
 			if (documentedFunction != null && documentedFunction.originInfo() != null) {
-				IFileStore sourceFile = EFS.getLocalFileSystem().fromLocalFile(
+				final IFileStore sourceFile = EFS.getLocalFileSystem().fromLocalFile(
 					new File(documentedFunction.engine().settings().repositoryPath, documentedFunction.originInfo())
 				);
-				IEditorPart editor = IDE.openEditor(
+				final IEditorPart editor = IDE.openEditor(
 					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
 					new FileStoreEditorInput(sourceFile),
 					EditorsUI.DEFAULT_TEXT_EDITOR_ID
@@ -106,35 +106,35 @@ public class EntityHyperlink implements IHyperlink {
 					((ITextEditor)editor).selectAndReveal(documentedFunction.start(), documentedFunction.getLength());
 			}
 			else if (target instanceof Declaration) {
-				Declaration dec = (Declaration)target;
+				final Declaration dec = (Declaration)target;
 				if (StructureTextEditor.openDeclaration(dec, activateEditor) == null)
 					// can't open editor so try something else like opening up a documentation page in the browser
 					if (dec.isEngineDeclaration())
 						openDocumentationForFunction(dec.name(), dec.engine());
 			}
 			else if (target instanceof ProjectResource) {
-				CommonNavigator nav = UI.projectExplorer();
+				final CommonNavigator nav = UI.projectExplorer();
 				nav.setFocus();
 				nav.selectReveal(new StructuredSelection(((ProjectResource)target).resource()));
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
 	private static WeakReference<IWebBrowser> internalBrowser = new WeakReference<IWebBrowser>(null);
 
-	public static void openDocumentationForFunction(String functionName, Engine engine) throws PartInitException, MalformedURLException {
-		String docURLTemplate = Function.documentationURLForFunction(functionName, engine);
-		URL url = new URL(String.format(
+	public static void openDocumentationForFunction(final String functionName, final Engine engine) throws PartInitException, MalformedURLException {
+		final String docURLTemplate = Function.documentationURLForFunction(functionName, engine);
+		final URL url = new URL(String.format(
 			docURLTemplate,
 			functionName, ClonkPreferences.languagePref().toLowerCase()
 		));
 		openURL(url);
 	}
 
-	public static void openURL(URL url) throws PartInitException {
-		IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
+	public static void openURL(final URL url) throws PartInitException {
+		final IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
 		if (Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable())
 			browser = support.getExternalBrowser();

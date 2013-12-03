@@ -6,5 +6,5 @@ import org.eclipse.core.runtime.CoreException;
 
 public class MapScript extends SystemScript {
 	private static final long serialVersionUID = 1L;
-	public MapScript(Index index, IFile scriptFile) throws CoreException { super(index, scriptFile); }
+	public MapScript(final Index index, final IFile scriptFile) throws CoreException { super(index, scriptFile); }
 }

@@ -39,7 +39,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	private boolean showStructureOutlines() {return ClonkPreferences.toggle(ClonkPreferences.STRUCTURE_OUTLINES_IN_PROJECT_EXPLORER, true);}
 
 	@Override
-	public Object[] getChildren(Object element) {
+	public Object[] getChildren(final Object element) {
 		if (element instanceof IResource && !((IResource)element).getProject().isOpen())
 			return NO_CHILDREN;
 		final boolean showStructureOutlines = showStructureOutlines();
@@ -75,7 +75,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			: baseResources;
 	}
 
-	private void createC4GroupLinksIn(IContainer element) {
+	private void createC4GroupLinksIn(final IContainer element) {
 		try {
 			if (element.isLinked())
 				return;
@@ -121,7 +121,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	}
 
 	@Override
-	public boolean hasChildren(Object element) {
+	public boolean hasChildren(final Object element) {
 		if (element instanceof IProject && !((IProject)element).isOpen())
 			return false;
 		final boolean s = showStructureOutlines();
@@ -144,7 +144,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	}
 
 	@Override
-	public Object[] getElements(Object inputElement) {
+	public Object[] getElements(final Object inputElement) {
 		if (inputElement instanceof IWorkspaceRoot)
 			return ClonkProjectNature.clonkProjectsInWorkspace();
 		else
@@ -154,6 +154,6 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 	@Override
 	public void dispose() {}
 	@Override
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {}
+	public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {}
 
 }

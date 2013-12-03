@@ -10,13 +10,13 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 
 class ResourceCounterAndCleaner extends ResourceCounter {
-	public ResourceCounterAndCleaner(int countFlags) {
+	public ResourceCounterAndCleaner(final int countFlags) {
 		super(countFlags);
 	}
 	@Override
-	public boolean visit(IResource resource) throws CoreException {
+	public boolean visit(final IResource resource) throws CoreException {
 		if (resource instanceof IContainer) {
-			Definition obj = Definition.at((IContainer) resource);
+			final Definition obj = Definition.at((IContainer) resource);
 			if (obj != null)
 				obj.setDefinitionFolder(null);
 		}
@@ -25,7 +25,7 @@ class ResourceCounterAndCleaner extends ResourceCounter {
 		return super.visit(resource);
 	}
 	@Override
-	public boolean visit(IResourceDelta delta) throws CoreException {
+	public boolean visit(final IResourceDelta delta) throws CoreException {
 		if (delta.getKind() == IResourceDelta.CHANGED)
 			return super.visit(delta);
 		return true;

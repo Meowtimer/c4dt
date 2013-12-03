@@ -35,7 +35,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 	 * @param declaration Declaration to create the placeholder for
 	 * @param containingEntity Entity containing the declaration
 	 */
-	public EntityDeclaration(Declaration declaration, IndexEntity containingEntity) {
+	public EntityDeclaration(final Declaration declaration, final IndexEntity containingEntity) {
 		this.containingEntity = containingEntity;
 		this.declarationPath = declaration.pathRelativeToIndexEntity();
 		this.declarationClass = declaration.getClass();
@@ -57,7 +57,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 	 * calling {@link IDeferredDeclaration#resolve()}
 	 */
 	@Override
-	public Declaration resolve(Index index, IndexEntity deserializee) {
+	public Declaration resolve(final Index index, final IndexEntity deserializee) {
 		Declaration result;
 		this.deserializee = deserializee;
 		if (containingEntity != null) {
@@ -108,7 +108,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		@Override
 		public String toString() { return deferredDescription(); }
 		@Override
-		public Object saveReplacement(Index context) { return EntityDeclaration.this; }
+		public Object saveReplacement(final Index context) { return EntityDeclaration.this; }
 	}
 
 	@SuppressWarnings("serial")
@@ -118,7 +118,7 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		@Override
 		public String toString() { return deferredDescription(); }
 		@Override
-		public Object saveReplacement(Index context) { return EntityDeclaration.this; }
+		public Object saveReplacement(final Index context) { return EntityDeclaration.this; }
 	}
 
 	@SuppressWarnings("serial")
@@ -128,12 +128,12 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		@Override
 		public Iterator<IType> iterator() { return iterable((IType)PrimitiveType.ANY).iterator(); }
 		@Override
-		public String typeName(boolean special) { return PrimitiveType.ANY.typeName(special); }
+		public String typeName(final boolean special) { return PrimitiveType.ANY.typeName(special); }
 		@Override
 		public IType simpleType() { return PrimitiveType.ANY; }
 		@Override
 		public String toString() { return deferredDescription(); }
 		@Override
-		public Object saveReplacement(Index context) { return EntityDeclaration.this; }
+		public Object saveReplacement(final Index context) { return EntityDeclaration.this; }
 	}
 }

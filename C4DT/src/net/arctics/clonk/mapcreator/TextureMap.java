@@ -29,10 +29,10 @@ public class TextureMap extends HashMap<String, Integer> {
 	}
 	
 	
-	public TextureMap(IFile texMapFile, MaterialMap materials) {
+	public TextureMap(final IFile texMapFile, final MaterialMap materials) {
 		if (texMapFile == null)
 			throw new IllegalArgumentException();
-		RGB[] colors = new RGB[256];
+		final RGB[] colors = new RGB[256];
 		colors[0] =  new RGB(225, 243, 255);
 		final Pattern linePattern = Pattern.compile("([0-9]+)\\=(\\w+)\\-(\\w+)");
 		final Matcher lineMatcher = linePattern.matcher("");
@@ -41,13 +41,13 @@ public class TextureMap extends HashMap<String, Integer> {
 			if (line.startsWith("#"))
 				continue;
 			if (lineMatcher.reset(line).matches()) {
-				int index = Integer.parseInt(lineMatcher.group(1));
-				String material = lineMatcher.group(2);
-				String texture = lineMatcher.group(3);
-				MaterialUnit unit = materials.get(material);
+				final int index = Integer.parseInt(lineMatcher.group(1));
+				final String material = lineMatcher.group(2);
+				final String texture = lineMatcher.group(3);
+				final MaterialUnit unit = materials.get(material);
 				RGB color = null;
 				if (unit != null) {
-					IntegerArray v = unit.complexValue("Material.Color", IntegerArray.class);
+					final IntegerArray v = unit.complexValue("Material.Color", IntegerArray.class);
 					if (v != null && v.values().length >= 3)
 						color = new RGB(
 							v.values()[0].summedValue(),
@@ -67,10 +67,10 @@ public class TextureMap extends HashMap<String, Integer> {
 		this.palette = new PaletteData(colors);
 	}
 	
-	public int GetIndex(String szMaterial, String szTexture, boolean fAddIfNotExist)
+	public int GetIndex(final String szMaterial, final String szTexture, final boolean fAddIfNotExist)
 	{
 		// Find existing
-		String combo = szMaterial+"-"+szTexture;
+		final String combo = szMaterial+"-"+szTexture;
 		Integer byIndex = get(combo);
 		if (byIndex != null)
 			return byIndex;
@@ -83,11 +83,11 @@ public class TextureMap extends HashMap<String, Integer> {
 		return 0;
 	}
 
-	public int GetIndexMatTex(String szMaterialTexture, String szDefaultTexture, boolean fAddIfNotExist, String szErrorIfFailed)
+	public int GetIndexMatTex(final String szMaterialTexture, final String szDefaultTexture, final boolean fAddIfNotExist, final String szErrorIfFailed)
 	{
 		// split material/texture pair
 		String Material, Texture;
-		String[] split = szMaterialTexture.split("-");
+		final String[] split = szMaterialTexture.split("-");
 		Material = split[0];
 		Texture = split.length > 1 ? split[1] : null;
 		// texture not given or invalid?
@@ -102,11 +102,11 @@ public class TextureMap extends HashMap<String, Integer> {
 		return 1;
 	}
 
-	public int GetIndexMatTex(String szMaterialTexture) {
+	public int GetIndexMatTex(final String szMaterialTexture) {
 		return GetIndexMatTex(szMaterialTexture, null, true, null);
 	}
 
-	public int GetIndexMatTex(String name, String tex) {
+	public int GetIndexMatTex(final String name, final String tex) {
 		return GetIndexMatTex(name, tex, true, null);
 	}
 }

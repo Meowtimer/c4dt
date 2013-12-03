@@ -51,7 +51,7 @@ public class TypeChoice implements IType {
 	 * @param right Right side of type choice
 	 * @return A type representing a choice between the specified types or one of them for conditions listed above.
 	 */
-	public static IType make(IType left, IType right) {
+	public static IType make(final IType left, final IType right) {
 		if (left == null)
 			return right;
 		else if (right == null)
@@ -76,7 +76,7 @@ public class TypeChoice implements IType {
 			private final List<IType> flattened = flatten();
 			private final boolean[] mask = new boolean[flattened.size()];
 			@Override
-			public boolean test(IType item) {
+			public boolean test(final IType item) {
 				final int ndx = flattened.indexOf(item);
 				if (ndx < 0)
 					return false;
@@ -93,21 +93,21 @@ public class TypeChoice implements IType {
 	 * @param types Collection of types to fold into a type choice
 	 * @return
 	 */
-	public static IType make(Collection<? extends IType> types) {
+	public static IType make(final Collection<? extends IType> types) {
 		if (types.size() == 0)
 			return null;
 		else if (types.size() == 1)
 			return types.iterator().next();
 		else return foldl(types, new Folder<IType, TypeChoice>() {
 			@Override
-			public TypeChoice fold(IType interim, IType next, int index) {
+			public TypeChoice fold(final IType interim, final IType next, final int index) {
 				return new TypeChoice(interim, next);
 			}
 
 		}).removeDuplicates();
 	}
 
-	protected TypeChoice(IType left, IType right) {
+	protected TypeChoice(final IType left, final IType right) {
 		this.left = left != null ? left : PrimitiveType.UNKNOWN;
 		this.right = right != null ? right : PrimitiveType.UNKNOWN;
 	}
@@ -116,7 +116,7 @@ public class TypeChoice implements IType {
 	public Iterator<IType> iterator() { return flatten().iterator(); }
 
 	@Override
-	public String typeName(boolean special) {
+	public String typeName(final boolean special) {
 		final List<IType> types = new ArrayList<>(10);
 		collect(types);
 		if (special) {
@@ -143,7 +143,7 @@ public class TypeChoice implements IType {
 		return stLeft == stRight ? stLeft : PrimitiveType.ANY;
 	}
 
-	private void collect(Collection<IType> types) {
+	private void collect(final Collection<IType> types) {
 		if (left instanceof TypeChoice)
 			((TypeChoice) left).collect(types);
 		else if (!types.contains(left))
@@ -154,7 +154,7 @@ public class TypeChoice implements IType {
 			types.add(right);
 	}
 
-	public static IType remove(IType type, IPredicate<? super IType> predicate) {
+	public static IType remove(final IType type, final IPredicate<? super IType> predicate) {
 		if (predicate.test(type))
 			return null;
 		else if (type instanceof TypeChoice) {
@@ -183,7 +183,7 @@ public class TypeChoice implements IType {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T extends IType> T contained(IType type, Class<T> containedType) {
+	public static <T extends IType> T contained(final IType type, final Class<T> containedType) {
 		if (containedType.isInstance(type))
 			return (T) type;
 		if (type instanceof TypeChoice) {
@@ -204,7 +204,7 @@ public class TypeChoice implements IType {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (obj instanceof TypeChoice) {
 			final TypeChoice other = (TypeChoice)obj;
 			return

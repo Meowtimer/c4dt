@@ -24,7 +24,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 	private final IFile file;
 	private final Markers markers = new Markers();
 
-	public IniUnitParser(IniUnit unit) {
+	public IniUnitParser(final IniUnit unit) {
 		super(unit.input);
 		figureOutIndentation();
 		this.unit = unit;
@@ -38,7 +38,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 			this.reset(StreamUtil.stringFromFile(file));
 	}
 
-	protected IniSection parseSection(boolean modifyMarkers, IniSection parentSection) throws ProblemException {
+	protected IniSection parseSection(final boolean modifyMarkers, final IniSection parentSection) throws ProblemException {
 		final int targetIndentation = parentSection != null ? parentSection.indentation()+1 : 0;
 		final int rollback = tell();
 		while (skipComment());
@@ -113,7 +113,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 		}
 	}
 
-	public final synchronized void parse(boolean modifyMarkers) throws ProblemException {
+	public final synchronized void parse(final boolean modifyMarkers) throws ProblemException {
 		reset();
 		parseBuffer(modifyMarkers);
 	}
@@ -141,7 +141,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 		}
 	}
 
-	protected IniEntry parseEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ProblemException {
+	protected IniEntry parseEntry(final IniSection section, final boolean modifyMarkers, final IniSection parentSection) throws ProblemException {
 		final int targetIndentation = parentSection != null ? parentSection.indentation() : 0;
 		final int rollback = tell();
 		while (skipComment());
@@ -187,7 +187,7 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 		}
 	}
 
-	protected IniItem parseSectionOrEntry(IniSection section, boolean modifyMarkers, IniSection parentSection) throws ProblemException {
+	protected IniItem parseSectionOrEntry(final IniSection section, final boolean modifyMarkers, final IniSection parentSection) throws ProblemException {
 		final IniEntry entry = parseEntry(section, modifyMarkers, parentSection);
 		if (entry != null)
 			return entry;

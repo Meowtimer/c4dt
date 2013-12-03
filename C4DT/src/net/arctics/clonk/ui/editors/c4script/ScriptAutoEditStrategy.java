@@ -41,14 +41,14 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		public String start, end;
 		public int flags;
 
-		public Autopair(String start, String end, int flags) {
+		public Autopair(final String start, final String end, final int flags) {
 			super();
 			this.start = start;
 			this.end = end;
 			this.flags = flags;
 		}
 
-		public boolean applies(IDocument d, DocumentCommand c, int situation) {
+		public boolean applies(final IDocument d, final DocumentCommand c, final int situation) {
 			return (flags & situation) == flags && c.text.endsWith(start);
 		}
 	}
@@ -64,7 +64,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 
 	private static class AutoInsertedRegion extends MutableRegion {
 		public MutableRegion cause;
-		public AutoInsertedRegion(int offset, int length, MutableRegion cause) {
+		public AutoInsertedRegion(final int offset, final int length, final MutableRegion cause) {
 			super(offset, length);
 			this.cause = cause;
 		}
@@ -75,7 +75,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 			Core.instance().getPreferenceStore().addPropertyChangeListener(this);
 		}
 		@Override
-		public void propertyChange(PropertyChangeEvent event) {
+		public void propertyChange(final PropertyChangeEvent event) {
 			purge();
 			for (final WeakReference<? extends IPropertyChangeListener> ref : listeners)
 				if (ref.get() != null)
@@ -89,13 +89,13 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 	private final List<AutoInsertedRegion> overrideRegions = new ArrayList<AutoInsertedRegion>(3);
 	private boolean disabled;
 
-	public ScriptAutoEditStrategy(ScriptEditingState state) {
+	public ScriptAutoEditStrategy(final ScriptEditingState state) {
 		this.state = state;
 		weakListenerManager.addListener(this);
 		disabled = ClonkPreferences.toggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);
 	}
 
-	private static boolean looksLikeIdent(IDocument d, int position) throws BadLocationException {
+	private static boolean looksLikeIdent(final IDocument d, int position) throws BadLocationException {
 		final int END = 0, DIGITS = 1;
 		int state = END;
 		while (position >= 0) {
@@ -121,7 +121,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 	}
 
 	@Override
-	public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
+	public void customizeDocumentCommand(final IDocument d, final DocumentCommand c) {
 		if (tabOverOverrideRegion(c))
 			return;
 
@@ -139,7 +139,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		super.customizeDocumentCommand(d, c);
 	}
 
-	private boolean tabToNextParameter(IDocument d, DocumentCommand c) {
+	private boolean tabToNextParameter(final IDocument d, final DocumentCommand c) {
 		if (c.offset > 0)
 			try {
 				switch (d.getChar(c.offset-1)) {
@@ -167,7 +167,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		return false;
 	}
 
-	private boolean tabOverOverrideRegion(DocumentCommand c) {
+	private boolean tabOverOverrideRegion(final DocumentCommand c) {
 		// tabbing over override regions
 		if (c.text.equals("\t"))
 			for (int i = overrideRegions.size()-1; i >= 0; i--) {
@@ -183,14 +183,14 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		return false;
 	}
 
-	private Autopair applyingAutopair(IDocument d, DocumentCommand c, int situation) {
+	private Autopair applyingAutopair(final IDocument d, final DocumentCommand c, final int situation) {
 		for (final Autopair autopair : AUTOPAIRS)
 			if (autopair.applies(d, c, situation))
 				return autopair;
 		return null;
 	}
 
-	private void textAdded(IDocument d, DocumentCommand c) {
+	private void textAdded(final IDocument d, final DocumentCommand c) {
 		// user writes override region text himself - noop
 		boolean overrideRegionTrespassed = false;
 		overrideRegionTrespassed = ignoreUserInputIfDuplicatingAutoPair(d, c);
@@ -227,7 +227,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		}
 	}
 
-	protected boolean ignoreUserInputIfDuplicatingAutoPair(IDocument d, DocumentCommand c) {
+	protected boolean ignoreUserInputIfDuplicatingAutoPair(final IDocument d, final DocumentCommand c) {
 		for (int i = overrideRegions.size()-1; i >= 0; i--) {
 			final MutableRegion r = overrideRegions.get(i);
 			try {
@@ -249,7 +249,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		return false;
 	}
 
-	private void regionDeleted(int offset, int length, MutableRegion exclude, DocumentCommand command, IDocument document) {
+	private void regionDeleted(final int offset, final int length, final MutableRegion exclude, final DocumentCommand command, final IDocument document) {
 		for (int i = overrideRegions.size()-1; i >= 0; i--) {
 			final AutoInsertedRegion r = overrideRegions.get(i);
 			if (r == exclude)
@@ -281,7 +281,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 		}
 	}
 
-	public void removeOverrideRegionsNotAtLine(int cursorPos, IDocument d) {
+	public void removeOverrideRegionsNotAtLine(final int cursorPos, final IDocument d) {
 		if (!overrideRegions.isEmpty())
 			try {
 				final IRegion r = d.getLineInformationOfOffset(cursorPos);
@@ -295,7 +295,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 			}
 	}
 
-	public void completionProposalApplied(DeclarationProposal proposal) {
+	public void completionProposalApplied(final DeclarationProposal proposal) {
 		AutoInsertedRegion newOne = null;
 		if (proposal.replacementString().endsWith(")") && proposal.cursorPosition() < proposal.replacementString().length())
 			overrideRegions.add(newOne = new AutoInsertedRegion(
@@ -313,7 +313,7 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 	}
 
 	@Override
-	public void propertyChange(PropertyChangeEvent event) {
+	public void propertyChange(final PropertyChangeEvent event) {
 		if (event.getProperty().equals(ClonkPreferences.NO_AUTOBRACKETPAIRS))
 			disabled = ClonkPreferences.toggle(ClonkPreferences.NO_AUTOBRACKETPAIRS, false);
 	}

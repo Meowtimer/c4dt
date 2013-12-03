@@ -26,11 +26,11 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 		public static Iterable<ScannerPerEngine<?>> instances() {
 			return Collections.unmodifiableList(INSTANCES);
 		}
-		public ScannerPerEngine(Class<T> cls) {
+		public ScannerPerEngine(final Class<T> cls) {
 			scannerClass = cls;
 			INSTANCES.add(this);
 		}
-		public T get(Engine engine) {
+		public T get(final Engine engine) {
 			T scanner = scanners.get(engine.name());
 			if (scanner == null)
 				try {
@@ -53,12 +53,12 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 
 		private final IToken token;
 
-		public NumberRule(IToken token) {
+		public NumberRule(final IToken token) {
 			this.token = token;
 		}
 
 		@Override
-		public IToken evaluate(ICharacterScanner scanner) {
+		public IToken evaluate(final ICharacterScanner scanner) {
 			int character = scanner.read();
 			boolean isNegative = false;
 			if (character == '-') {
@@ -107,7 +107,7 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 		 *
 		 * @param token Token to use for this rule
 		 */
-		public BracketRule(IToken token) {
+		public BracketRule(final IToken token) {
 			fToken= token;
 		}
 
@@ -117,7 +117,7 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 		 * @param character Character to determine whether it is a bracket character
 		 * @return <code>true</code> if the character is a bracket, <code>false</code> otherwise.
 		 */
-		public boolean isBracket(char character) {
+		public boolean isBracket(final char character) {
 			for (int index= 0; index < JAVA_BRACKETS.length; index++)
 				if (JAVA_BRACKETS[index] == character)
 					return true;
@@ -128,7 +128,7 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
 		 */
 		@Override
-		public IToken evaluate(ICharacterScanner scanner) {
+		public IToken evaluate(final ICharacterScanner scanner) {
 
 			int character= scanner.read();
 			if (isBracket((char) character)) {
@@ -144,14 +144,14 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 		}
 	}
 
-	protected StructureTextScanner(ColorManager manager, Engine engine) {
+	protected StructureTextScanner(final ColorManager manager, final Engine engine) {
 		this(manager, engine, "DEFAULT");
 	}
 
 	private final ColorManager manager;
 	private final Engine engine;
 
-	protected StructureTextScanner(ColorManager manager, Engine engine, String returnTokenTag) {
+	protected StructureTextScanner(final ColorManager manager, final Engine engine, final String returnTokenTag) {
 		this.manager = manager;
 		this.engine = engine;
 		commitRules(manager, engine);
@@ -162,9 +162,9 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 		this.commitRules(manager, engine);
 	}
 
-	protected void commitRules(ColorManager manager, Engine engine) {}
+	protected void commitRules(final ColorManager manager, final Engine engine) {}
 
-	protected Token createToken(ColorManager manager, String colorPrefName) {
+	protected Token createToken(final ColorManager manager, final String colorPrefName) {
 		final SyntaxElementStyle style = manager.syntaxElementStyles.get(colorPrefName);
 		return new Token(new TextAttribute(manager.getColor(style.rgb()), null, style.style()));
 	}

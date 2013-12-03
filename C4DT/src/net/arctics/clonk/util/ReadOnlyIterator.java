@@ -4,9 +4,9 @@ import java.util.Iterator;
 
 public class ReadOnlyIterator<T> implements Iterator<T> {
 
-	private Iterator<T> wrapped;
+	private final Iterator<T> wrapped;
 	
-	public ReadOnlyIterator(Iterator<T> wrapped) {
+	public ReadOnlyIterator(final Iterator<T> wrapped) {
 		this.wrapped = wrapped;
 	}
 	

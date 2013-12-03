@@ -50,7 +50,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 			patterns = ArrayUtil.map(((Text)getPatternControl()).getText().split(" "), Pattern.class, CASEINSENSITIVE_PATTERNS_FROM_STRINGS);
 		}
 		@Override
-		public boolean equalsFilter(ItemsFilter filter) {
+		public boolean equalsFilter(final ItemsFilter filter) {
 			if (filter instanceof Filter) {
 				final Filter f = (Filter)filter;
 				if (f.patterns.length != this.patterns.length)
@@ -64,9 +64,9 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		}
 		public Pattern[] getPatterns() { return patterns; }
 		@Override
-		public boolean isConsistentItem(Object item) { return false; }
+		public boolean isConsistentItem(final Object item) { return false; }
 		@Override
-		public boolean matchItem(Object item) {
+		public boolean matchItem(final Object item) {
 			final IIndexEntity entity = (IIndexEntity)item;
 			for (final Pattern p : getPatterns()) {
 				final Matcher matcher = p.matcher("");
@@ -81,7 +81,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 
 	private static class LabelProvider extends org.eclipse.jface.viewers.LabelProvider implements IStyledLabelProvider {
 		@Override
-		public StyledString getStyledText(Object element) {
+		public StyledString getStyledText(final Object element) {
 			if (element != null) {
 				final StyledString result = ClonkOutlineProvider.styledTextFor(element, false, null);
 				if (element instanceof Declaration && ((Declaration)element).parentDeclaration() instanceof Engine) {
@@ -105,14 +105,14 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 
 	private final Set<? extends IIndexEntity> entities;
 
-	public EntityChooser(String title, Shell shell, Collection<? extends IIndexEntity> entities) {
+	public EntityChooser(final String title, final Shell shell, final Collection<? extends IIndexEntity> entities) {
 		super(shell, true);
 		this.entities = entities != null ? new HashSet<IIndexEntity>(entities) : null;
 		setTitle(title);
 		setListLabelProvider(new LabelProvider());
 	}
 
-	public EntityChooser(String title, Shell shell) { this(title, shell, null); }
+	public EntityChooser(final String title, final Shell shell) { this(title, shell, null); }
 
 	@Override
 	public void create() {
@@ -122,13 +122,13 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	}
 
 	@Override
-	protected Control createExtendedContentArea(Composite parent) {
+	protected Control createExtendedContentArea(final Composite parent) {
 		return null;
 	}
 
 	private static IConverter<String, Pattern> CASEINSENSITIVE_PATTERNS_FROM_STRINGS = new IConverter<String, Pattern>() {
 		@Override
-		public Pattern convert(String from) {
+		public Pattern convert(final String from) {
 			return StringUtil.patternFromRegExOrWildcard(from);
 		}
 	};
@@ -152,11 +152,11 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 					final Index index = (Index)d;
 					index.forAllRelevantIndexes(new Sink<Index>() {
 						@Override
-						public void receivedObject(Index index) {
+						public void receivedObject(final Index index) {
 							index.allScripts(new Sink<Script>() {
 								int declarationsBatchSize = 0;
 								@Override
-								public void receivedObject(Script s) {
+								public void receivedObject(final Script s) {
 									if (progressMonitor.isCanceled())
 										return;
 									if (s.dictionary() != null)
@@ -197,7 +197,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	}
 
 	@Override
-	public String getElementName(Object item) {
+	public String getElementName(final Object item) {
 		return item.toString();
 	}
 
@@ -206,14 +206,14 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	protected Comparator getItemsComparator() {
 		return new Comparator() {
 			@Override
-			public int compare(Object a, Object b) {
+			public int compare(final Object a, final Object b) {
 				return a.toString().compareTo(b.toString());
 			}
 		};
 	}
 
 	@Override
-	protected IStatus validateItem(Object item) {
+	protected IStatus validateItem(final Object item) {
 		return Status.OK_STATUS;
 	}
 

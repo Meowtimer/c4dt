@@ -3,16 +3,16 @@ package net.arctics.clonk.ini;
 public class IniParserException extends Exception {
 	
 	private static final long serialVersionUID = 1044904198922273368L;
-	private int severity;
+	private final int severity;
 	private int offset;
 	private int endOffset;
 	private Exception innerException;
 	
-	public IniParserException(int severity, String message) {
+	public IniParserException(final int severity, final String message) {
 		this(severity,message,0,0);
 	}
 	
-	public IniParserException(int severity, String message, int offset, int endOffset) {
+	public IniParserException(final int severity, final String message, final int offset, final int endOffset) {
 		super(message);
 		this.severity = severity;
 		this.offset = offset;
@@ -31,11 +31,11 @@ public class IniParserException extends Exception {
 		return endOffset;
 	}
 
-	public void setOffset(int offset) {
+	public void setOffset(final int offset) {
 		this.offset = offset;
 	}
 
-	public void setEndOffset(int endOffset) {
+	public void setEndOffset(final int endOffset) {
 		this.endOffset = endOffset;
 	}
 
@@ -43,7 +43,7 @@ public class IniParserException extends Exception {
 		return innerException;
 	}
 
-	public void setInnerException(Exception innerException) {
+	public void setInnerException(final Exception innerException) {
 		this.innerException = innerException;
 	}
 }

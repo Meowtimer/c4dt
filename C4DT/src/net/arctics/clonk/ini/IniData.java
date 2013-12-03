@@ -26,7 +26,7 @@ public class IniData {
 
 		protected IniConfiguration() {}
 
-		public static IniConfiguration fromXML(Node fileNode) throws InvalidIniConfigurationException {
+		public static IniConfiguration fromXML(final Node fileNode) throws InvalidIniConfigurationException {
 			final IniConfiguration conf = new IniConfiguration();
 			if (fileNode.getAttributes() == null ||  fileNode.getAttributes().getNamedItem("name") == null) //$NON-NLS-1$
 				throw new InvalidIniConfigurationException("A <file> tag must have a name"); //$NON-NLS-1$
@@ -41,7 +41,7 @@ public class IniData {
 			return conf;
 		}
 
-		public static IniConfiguration createFromClass(Class<?> clazz) {
+		public static IniConfiguration createFromClass(final Class<?> clazz) {
 			final IniConfiguration result = new IniConfiguration();
 			for (final Field f : clazz.getFields()) {
 				IniField annotation;
@@ -68,7 +68,7 @@ public class IniData {
 			return sections;
 		}
 
-		public boolean hasSection(String sectionName) {
+		public boolean hasSection(final String sectionName) {
 			return sections.containsKey(sectionName);
 		}
 
@@ -85,7 +85,7 @@ public class IniData {
 
 		protected IniSectionDefinition() {}
 
-		public static IniSectionDefinition fromXML(Node sectionNode) throws InvalidIniConfigurationException {
+		public static IniSectionDefinition fromXML(final Node sectionNode) throws InvalidIniConfigurationException {
 			final IniSectionDefinition section = new IniSectionDefinition();
 			if (sectionNode.getAttributes() == null ||
 					sectionNode.getAttributes().getLength() == 0 ||
@@ -116,16 +116,16 @@ public class IniData {
 			return entries;
 		}
 
-		public boolean hasEntry(String entryName) {
+		public boolean hasEntry(final String entryName) {
 			return entries.containsKey(entryName);
 		}
 
-		public boolean hasSection(String section) {
+		public boolean hasSection(final String section) {
 			final IniDataBase item = entryForKey(section);
 			return item instanceof IniSectionDefinition;
 		}
 
-		public IniDataBase entryForKey(String key) {
+		public IniDataBase entryForKey(final String key) {
 			return entries().get(key);
 		}
 
@@ -141,7 +141,7 @@ public class IniData {
 
 		protected IniEntryDefinition() {}
 
-		public IniEntryDefinition(String name, Class<?> valueType) {
+		public IniEntryDefinition(final String name, final Class<?> valueType) {
 			this.name = name;
 			if (valueType == String.class)
 				entryClass = valueType;
@@ -165,7 +165,7 @@ public class IniData {
 			}
 		}
 
-		public static IniEntryDefinition fromXML(Node entryNode) throws InvalidIniConfigurationException {
+		public static IniEntryDefinition fromXML(final Node entryNode) throws InvalidIniConfigurationException {
 			Node n;
 			final IniEntryDefinition entry = new IniEntryDefinition();
 			if (entryNode.getAttributes() == null ||
@@ -207,14 +207,14 @@ public class IniData {
 	private final InputStream xmlStream;
 	private final Map<String, IniConfiguration> configurations = new HashMap<String, IniConfiguration>(4);
 
-	public IniData(InputStream stream) { xmlStream = stream; }
+	public IniData(final InputStream stream) { xmlStream = stream; }
 
 	/**
 	 * Returns the configuration that is declared for files with name of <tt>filename</tt>.
 	 * @param filename including extension
 	 * @return the configuration or <tt>null</tt>
 	 */
-	public IniConfiguration configurationFor(String filename) {
+	public IniConfiguration configurationFor(final String filename) {
 		return configurations.get(filename);
 	}
 
@@ -240,14 +240,14 @@ public class IniData {
 		}
 	}
 
-	public static String category(IniField annot, Class<?> cls) {
+	public static String category(final IniField annot, final Class<?> cls) {
 		if (annot.category().equals(""))
 			return defaultSection(cls);
 		else
 			return annot.category();
 	}
 
-	public static String defaultSection(Class<?> cls) {
+	public static String defaultSection(final Class<?> cls) {
 		final IniDefaultSection defSec = cls.getAnnotation(IniDefaultSection.class);
 		return defSec != null ? defSec.name() : IniDefaultSection.DEFAULT;
 	}

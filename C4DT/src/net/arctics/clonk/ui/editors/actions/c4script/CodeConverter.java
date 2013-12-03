@@ -45,7 +45,7 @@ public abstract class CodeConverter {
 		String var(String name);
 	}
 
-	private ASTNode codeFor(Declaration declaration) {
+	private ASTNode codeFor(final Declaration declaration) {
 		if (declaration instanceof IHasCode)
 			return ((IHasCode)declaration).code();
 		else
@@ -53,7 +53,7 @@ public abstract class CodeConverter {
 	}
 
 	public void runOnDocument(
-		Script script,
+		final Script script,
 		final IDocument document
 	) {
 		synchronized (document) {
@@ -65,7 +65,7 @@ public abstract class CodeConverter {
 					decs.add(d);
 			Collections.sort(decs, new Comparator<Declaration>() {
 				@Override
-				public int compare(Declaration a, Declaration b) {
+				public int compare(final Declaration a, final Declaration b) {
 					final ASTNode codeA = codeFor(a);
 					final ASTNode codeB = codeFor(b);
 					return codeB.absolute().getOffset()-codeA.absolute().getOffset();
@@ -101,11 +101,11 @@ public abstract class CodeConverter {
 
 	protected abstract ASTNode performConversion(ASTNode expression, Declaration declaration, CodeConverter.ICodeConverterContext cookie);
 
-	private static boolean superflousBetweenFuncHeaderAndBody(char c) {
+	private static boolean superflousBetweenFuncHeaderAndBody(final char c) {
 		return c == '\t' || c == ' ' || c == '\n' || c == '\r';
 	}
 
-	private void convertCode(IDocument document, TextChange textChange, Declaration codeOwner, ASTNode code) throws BadLocationException, CloneNotSupportedException {
+	private void convertCode(final IDocument document, final TextChange textChange, final Declaration codeOwner, final ASTNode code) throws BadLocationException, CloneNotSupportedException {
 		final IRegion region = code.absolute();
 		int oldStart = region.getOffset();
 		int oldLength = region.getLength();
@@ -125,7 +125,7 @@ public abstract class CodeConverter {
 		final class CodeConverterContext implements ICodeConverterContext {
 			private final Map<String, VarInitialization> addedVars = new HashMap<>(3);
 			@Override
-			public String var(String name) {
+			public String var(final String name) {
 				if (function != null && function.findVariable(name) == null && addedVars.get(name) == null) {
 					final Variable var = new Variable(name, PrimitiveType.ANY);
 					addedVars.put(name, new VarInitialization(name, null, 0, 0, var, null));

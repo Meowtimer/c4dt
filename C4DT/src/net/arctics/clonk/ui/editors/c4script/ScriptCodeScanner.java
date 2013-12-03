@@ -39,7 +39,7 @@ public class ScriptCodeScanner extends StructureTextScanner {
 		 *
 		 * @param token Token to use for this rule
 		 */
-		public OperatorRule(IToken token) {
+		public OperatorRule(final IToken token) {
 			fToken= token;
 		}
 
@@ -49,7 +49,7 @@ public class ScriptCodeScanner extends StructureTextScanner {
 		 * @param character Character to determine whether it is an operator character
 		 * @return <code>true</code> if the character is an operator, <code>false</code> otherwise.
 		 */
-		public boolean isOperator(char character) {
+		public boolean isOperator(final char character) {
 			for (int index= 0; index < CLONK_OPERATORS.length; index++)
 				if (CLONK_OPERATORS[index] == character)
 					return true;
@@ -60,11 +60,11 @@ public class ScriptCodeScanner extends StructureTextScanner {
 		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
 		 */
 		@Override
-		public IToken evaluate(ICharacterScanner scanner) {
+		public IToken evaluate(final ICharacterScanner scanner) {
 
 			char character = (char) scanner.read();
 			if (character == '/') {
-				char peek = (char) scanner.read();
+				final char peek = (char) scanner.read();
 				if (peek == '*' || peek == '/') {
 					scanner.unread();
 					scanner.unread();
@@ -88,27 +88,27 @@ public class ScriptCodeScanner extends StructureTextScanner {
 	
 	public static Map<String,IToken> fTokenMap= new HashMap<String, IToken>();
 	
-	public ScriptCodeScanner(ColorManager manager, Engine engine) {
+	public ScriptCodeScanner(final ColorManager manager, final Engine engine) {
 		super(manager, engine, "DEFAULT");
 	}
 	
 	@Override
-	protected void commitRules(ColorManager manager, Engine engine) {
+	protected void commitRules(final ColorManager manager, final Engine engine) {
 		
-		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
+		final IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 		
-		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
-		IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
-		IToken type = createToken(manager, "TYPE"); //$NON-NLS-1$
-		IToken engineFunction = createToken(manager, "ENGINE_FUNCTION"); //$NON-NLS-1$
-		IToken objCallbackFunction = createToken(manager, "OBJ_CALLBACK"); //$NON-NLS-1$
-		IToken string = createToken(manager, "STRING"); //$NON-NLS-1$
-		IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
-		IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
-		IToken returnToken = createToken(manager, "RETURN"); //$NON-NLS-1$
-		IToken directive = createToken(manager, "DIRECTIVE"); //$NON-NLS-1$
+		final IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
+		final IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
+		final IToken type = createToken(manager, "TYPE"); //$NON-NLS-1$
+		final IToken engineFunction = createToken(manager, "ENGINE_FUNCTION"); //$NON-NLS-1$
+		final IToken objCallbackFunction = createToken(manager, "OBJ_CALLBACK"); //$NON-NLS-1$
+		final IToken string = createToken(manager, "STRING"); //$NON-NLS-1$
+		final IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
+		final IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
+		final IToken returnToken = createToken(manager, "RETURN"); //$NON-NLS-1$
+		final IToken directive = createToken(manager, "DIRECTIVE"); //$NON-NLS-1$
 		
-		List<IRule> rules = new ArrayList<IRule>();
+		final List<IRule> rules = new ArrayList<IRule>();
 		
 		// string
 		rules.add(new SingleLineRule("\"", "\"", string, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
@@ -122,26 +122,26 @@ public class ScriptCodeScanner extends StructureTextScanner {
 		// Add rule for brackets
 		rules.add(new BracketRule(bracket));
 
-		WordScanner wordDetector = new WordScanner();
-		CombinedWordRule combinedWordRule = new CombinedWordRule(wordDetector, defaultToken);
+		final WordScanner wordDetector = new WordScanner();
+		final CombinedWordRule combinedWordRule = new CombinedWordRule(wordDetector, defaultToken);
 		
 		// Add word rule for keyword 'return'.
-		CombinedWordRule.WordMatcher returnWordRule = new CombinedWordRule.WordMatcher();
+		final CombinedWordRule.WordMatcher returnWordRule = new CombinedWordRule.WordMatcher();
 		returnWordRule.addWord(Keywords.Return, returnToken);  
 		combinedWordRule.addWordMatcher(returnWordRule);
 
 		// Add word rule for keywords, types, and constants.
-		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-		for (String k : BuiltInDefinitions.KEYWORDS)
+		final CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
+		for (final String k : BuiltInDefinitions.KEYWORDS)
 			wordRule.addWord(k.trim(), keyword);
-		for (String k : BuiltInDefinitions.DECLARATORS)
+		for (final String k : BuiltInDefinitions.DECLARATORS)
 			wordRule.addWord(k.trim(), keyword);
-		for (PrimitiveType t : PrimitiveType.values()) 
+		for (final PrimitiveType t : PrimitiveType.values()) 
 			if (t != PrimitiveType.UNKNOWN && engine.supportsPrimitiveType(t))
 				wordRule.addWord(t.typeName(false).trim().toLowerCase(), type);
-		for (Function func : engine.functions())
+		for (final Function func : engine.functions())
 			wordRule.addWord(func.name(), engineFunction);
-		for (String c : engine.settings().callbackFunctions())
+		for (final String c : engine.settings().callbackFunctions())
 			wordRule.addWord(c, objCallbackFunction);
 		
 		

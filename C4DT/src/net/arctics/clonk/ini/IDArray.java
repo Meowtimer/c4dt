@@ -9,12 +9,12 @@ public class IDArray extends ArrayValue<IDLiteral, Integer> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public IDArray() { super(); }
 	@SafeVarargs
-	public IDArray(KeyValuePair<IDLiteral, Integer>... values) {
+	public IDArray(final KeyValuePair<IDLiteral, Integer>... values) {
 		for (final KeyValuePair<IDLiteral, Integer> v : values)
 			add(v);
 	}
 	@Override
-	public KeyValuePair<IDLiteral, Integer> singleComponentFromString(int offset, String s) {
+	public KeyValuePair<IDLiteral, Integer> singleComponentFromString(final int offset, final String s) {
 		final String[] idAndCount = s.split("="); //$NON-NLS-1$
 		if (idAndCount.length < 2)
 			return null;

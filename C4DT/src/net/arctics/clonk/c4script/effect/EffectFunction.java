@@ -18,7 +18,7 @@ public class EffectFunction extends Function {
 	public static final String FUNCTION_NAME_FORMAT = FUNCTION_NAME_PREFIX + "%s%s";
 	public static final String[] DEFAULT_CALLBACKS = {"Start", "Timer", "Stop", "Effect", "Damage"};
 	
-	public static String functionName(String effectName, String callbackName) {
+	public static String functionName(final String effectName, final String callbackName) {
 		return String.format(FUNCTION_NAME_FORMAT, effectName, callbackName);
 	}
 	
@@ -29,7 +29,7 @@ public class EffectFunction extends Function {
 		return effect;
 	}
 	
-	public void setEffect(Effect effect) {
+	public void setEffect(final Effect effect) {
 		this.effect = effect;
 		this.callbackName = this.name().substring(FUNCTION_NAME_PREFIX.length()+effect.name().length());
 	}

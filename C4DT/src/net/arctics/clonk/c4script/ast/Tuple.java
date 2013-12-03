@@ -11,12 +11,12 @@ public class Tuple extends ASTNodeWithSubElementsArray {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public Tuple(ASTNode... elms) {
+	public Tuple(final ASTNode... elms) {
 		super(elms);
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		StringUtil.writeBlock(output, "(", ")", ", ", ArrayUtil.iterable(elements));
 	}
 

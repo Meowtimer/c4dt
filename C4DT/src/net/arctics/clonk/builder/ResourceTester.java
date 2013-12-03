@@ -15,13 +15,13 @@ import org.eclipse.ui.IFileEditorInput;
 public class ResourceTester extends PropertyTester {
 
 	@Override
-	public boolean test(Object receiver, String property, Object[] args, Object expected) {
+	public boolean test(Object receiver, final String property, final Object[] args, final Object expected) {
 		try {
 			// Editor? Resolve to associated resource
 			if (receiver instanceof IFileEditorInput)
 				receiver = ((IFileEditorInput) receiver).getFile();
 
-			IResource res = receiver instanceof IResource ? (IResource) receiver : null;
+			final IResource res = receiver instanceof IResource ? (IResource) receiver : null;
 			if (res == null)
 				return false;
 
@@ -44,34 +44,34 @@ public class ResourceTester extends PropertyTester {
 
 			// Compare to expected value, if given
 			return expected == null ? result : (expected instanceof Boolean && result == (Boolean)expected);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return false;
 		}
 	}
 
-	private static boolean checkGroupType(IResource res, C4Group.GroupType gt) {
-		Engine engine = ClonkProjectNature.engineFromResource(res);
+	private static boolean checkGroupType(final IResource res, final C4Group.GroupType gt) {
+		final Engine engine = ClonkProjectNature.engineFromResource(res);
 		return engine != null && engine.groupTypeForFileName(res.getName()) == gt;
 	}
 
 	/** @return Whether the given resource is a scenario */
-	public static boolean isScenario(IResource res) {
+	public static boolean isScenario(final IResource res) {
 		return checkGroupType(res, GroupType.ScenarioGroup);
 	}
 
 	/** @return Whether the given resource is an object definition or object package */
-	public static boolean isDefinition(IResource res) {
+	public static boolean isDefinition(final IResource res) {
 		return checkGroupType(res, GroupType.DefinitionGroup);
 	}
 
 	/** @return Whether the given resource is a scenario folder */
-	public static boolean isFolder(IResource res) {
+	public static boolean isFolder(final IResource res) {
 		return checkGroupType(res, GroupType.FolderGroup);
 	}
 
 	/** @return Whether the given resource is a resource group */
-	public static boolean isResource(IResource res) {
+	public static boolean isResource(final IResource res) {
 		return checkGroupType(res, GroupType.ResourceGroup);
 	}
 
@@ -84,19 +84,19 @@ public class ResourceTester extends PropertyTester {
 	}
 
 	/** @return Whether the given resource is inside a project sporting a Clonk project nature */
-	public static boolean isInClonkProject(IResource res) {
+	public static boolean isInClonkProject(final IResource res) {
 		try {
 			return res.getProject().equals(res.getParent()) && res.getProject().hasNature(Core.NATURE_ID);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return false;
 		}
 	}
 
 	/** @return Whether the given folder is a packed c4group */
-	public static boolean isPackedGroup(IResource res) {
+	public static boolean isPackedGroup(final IResource res) {
 		try {
 			return res instanceof IContainer && EFS.getStore(res.getLocationURI()) instanceof C4Group;
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			return false;
 		}
 	}

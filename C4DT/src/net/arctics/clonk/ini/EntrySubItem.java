@@ -11,7 +11,7 @@ import net.arctics.clonk.util.IHasKeyAndValue;
  */
 public class EntrySubItem<EntryType extends IHasChildrenWithContext>
 	implements IHasContext, IHasKeyAndValue<String, String>, IHasChildrenWithContext {
-	public EntrySubItem(EntryType entry, Object context, int index) {
+	public EntrySubItem(final EntryType entry, final Object context, final int index) {
 		super();
 		this.entry = entry;
 		this.context = context;
@@ -27,9 +27,9 @@ public class EntrySubItem<EntryType extends IHasChildrenWithContext>
 	@Override
 	public String stringValue() { return entry.valueOfChildAt(index).toString(); }
 	@Override
-	public Object valueOfChildAt(int index) { return null; }
+	public Object valueOfChildAt(final int index) { return null; }
 	@Override
-	public IHasContext[] children(Object context) { return null; }
+	public IHasContext[] children(final Object context) { return null; }
 	@Override
 	public boolean hasChildren() { return false; }
 }

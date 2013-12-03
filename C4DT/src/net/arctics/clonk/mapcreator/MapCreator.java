@@ -17,14 +17,14 @@ import org.eclipse.swt.graphics.PaletteData;
 public abstract class MapCreator {
 	public MaterialMap MatMap;
 	public TextureMap TexMap;
-	public ImageData create(ScenarioUnit scenarioConfiguration, boolean layers, int numPlayers) {
-		LandscapeSection section = new LandscapeSection();
+	public ImageData create(final ScenarioUnit scenarioConfiguration, final boolean layers, final int numPlayers) {
+		final LandscapeSection section = new LandscapeSection();
 		section.Default();
-		IniSection landscapeIniSection = scenarioConfiguration.sectionWithName(IniData.defaultSection(LandscapeSection.class), false);
+		final IniSection landscapeIniSection = scenarioConfiguration.sectionWithName(IniData.defaultSection(LandscapeSection.class), false);
 		landscapeIniSection.commit(section, false);
-		int[] size = section.GetMapSize(numPlayers);
+		final int[] size = section.GetMapSize(numPlayers);
 		IContainer materialsContainer = null;
-		for (Index i : scenarioConfiguration.index().relevantIndexes())
+		for (final Index i : scenarioConfiguration.index().relevantIndexes())
 			if (i instanceof ProjectIndex) {
 				materialsContainer = as(i.nature().getProject().findMember
 					(i.engine().groupName("Material", GroupType.ResourceGroup)), IContainer.class);
@@ -32,13 +32,13 @@ public abstract class MapCreator {
 					break;
 			}
 		if (materialsContainer != null) {
-			MaterialMap materials = new MaterialMap();
+			final MaterialMap materials = new MaterialMap();
 			materials.load(materialsContainer);
-			TextureMap textureMap = new TextureMap(
+			final TextureMap textureMap = new TextureMap(
 				(IFile)Utilities.findMemberCaseInsensitively(materialsContainer, TextureMap.TEXMAP_FILE),
 				materials
 			);
-			ImageData data = new ImageData(size[0], size[1], 8, textureMap.palette());
+			final ImageData data = new ImageData(size[0], size[1], 8, textureMap.palette());
 			create(data, section, textureMap, layers, numPlayers);
 			return data;
 		} else

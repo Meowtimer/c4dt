@@ -8,14 +8,14 @@ import net.arctics.clonk.ast.Structure;
 public class Tidy implements ITransformer {
 	private final Structure structure;
 	private final int strictLevel;
-	public Tidy(Structure structure, int strictLevel) {
+	public Tidy(final Structure structure, final int strictLevel) {
 		this.structure = structure;
 		this.strictLevel = strictLevel;
 	}
 	public int strictLevel() { return strictLevel; }
 	public Structure structure() { return structure; }
 	@Override
-	public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
+	public Object transform(final ASTNode prev, final Object prevT, final ASTNode expression) {
 		try {
 			return innerTidy(expression);
 		} catch (final CloneNotSupportedException e) {
@@ -23,7 +23,7 @@ public class Tidy implements ITransformer {
 			return expression;
 		}
 	}
-	public ASTNode tidy(ASTNode node) throws CloneNotSupportedException {
+	public ASTNode tidy(final ASTNode node) throws CloneNotSupportedException {
 		return innerTidy(node);
 	}
 	private ASTNode innerTidy(ASTNode node) throws CloneNotSupportedException {
@@ -40,7 +40,7 @@ public class Tidy implements ITransformer {
 	 * @return
 	 * @throws CloneNotSupportedException
 	 */
-	public ASTNode tidyExhaustive(ASTNode node) throws CloneNotSupportedException {
+	public ASTNode tidyExhaustive(final ASTNode node) throws CloneNotSupportedException {
 		ASTNode repl;
 		for (ASTNode original = node; (repl = tidy(original)) != original; original = repl);
 		return repl;

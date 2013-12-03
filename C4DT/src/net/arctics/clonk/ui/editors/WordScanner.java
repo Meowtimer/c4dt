@@ -17,7 +17,7 @@ public class WordScanner implements IWordDetector {
 	 * @see org.eclipse.jface.text.rules.IWordDetector#isWordPart(char)
 	 */
 	@Override
-	public boolean isWordPart(char c) {
+	public boolean isWordPart(final char c) {
 		return BufferedScanner.isWordPart(c);
 	}
 
@@ -25,7 +25,7 @@ public class WordScanner implements IWordDetector {
 	 * @see org.eclipse.jface.text.rules.IWordDetector#isWordStart(char)
 	 */
 	@Override
-	public boolean isWordStart(char c) {
+	public boolean isWordStart(final char c) {
 		return BufferedScanner.isWordStart(c);
 	}
 

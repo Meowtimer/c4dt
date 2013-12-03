@@ -45,16 +45,16 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	private final Set<Index> indexes = new HashSet<Index>();
 	private final Map<Function, List<FindDuplicatesMatch>> detectedDupes = new HashMap<Function, List<FindDuplicatesMatch>>();
 	private final ASTComparisonDelegate comparisonDelegate = new ASTComparisonDelegate(null) {
-		private boolean irrelevant(ASTNode leftNode) {
+		private boolean irrelevant(final ASTNode leftNode) {
 			// ignore comments and function description
 			return leftNode instanceof Comment || leftNode instanceof FunctionDescription;
 		}
 		@Override
-		public boolean acceptLeftExtraElement(ASTNode leftNode) { return irrelevant(leftNode); }
+		public boolean acceptLeftExtraElement(final ASTNode leftNode) { return irrelevant(leftNode); }
 		@Override
-		public boolean acceptRightExtraElement(ASTNode rightNode) { return irrelevant(rightNode); }
+		public boolean acceptRightExtraElement(final ASTNode rightNode) { return irrelevant(rightNode); }
 		@Override
-		public boolean acceptSubElementDifference(ASTNode left, ASTNode right) {
+		public boolean acceptSubElementDifference(final ASTNode left, final ASTNode right) {
 			if (left == null || right == null)
 				return false;
 			if (left instanceof Parenthesized)
@@ -88,7 +88,7 @@ public class DuplicatesSearchQuery extends SearchQuery {
 						final ASTComparisonDelegate moi = this;
 						final ASTComparisonDelegate proxy = new ASTComparisonDelegate(right) {
 							@Override
-							public boolean acceptSubElementDifference(ASTNode left, ASTNode right) {
+							public boolean acceptSubElementDifference(final ASTNode left, final ASTNode right) {
 								if (left == aCounterpart || left == bCounterpart)
 									return false;
 								return moi.acceptSubElementDifference(left, right);
@@ -114,7 +114,7 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	 * @param functions The function list
 	 * @return The new query
 	 */
-	public static DuplicatesSearchQuery queryWithFunctions(List<Function> functions) {
+	public static DuplicatesSearchQuery queryWithFunctions(final List<Function> functions) {
 		final DuplicatesSearchQuery result = new DuplicatesSearchQuery();
 		result.fillFunctionMapWithFunctionList(functions);
 		for (final List<Function> fnList : result.functionsToBeChecked.values())
@@ -129,7 +129,7 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	 * @param scripts The script list
 	 * @return The new query
 	 */
-	public static DuplicatesSearchQuery queryWithScripts(Iterable<Script> scripts) {
+	public static DuplicatesSearchQuery queryWithScripts(final Iterable<Script> scripts) {
 		final DuplicatesSearchQuery result = new DuplicatesSearchQuery();
 		final List<Function> fns = new LinkedList<Function>();
 		for (final Script script : scripts) {
@@ -140,7 +140,7 @@ public class DuplicatesSearchQuery extends SearchQuery {
 		return result;
 	}
 
-	private void fillFunctionMapWithFunctionList(List<Function> functions) {
+	private void fillFunctionMapWithFunctionList(final List<Function> functions) {
 		for (final Function f : functions) {
 			if (f.body() == null || f instanceof SynthesizedFunction)
 				continue;
@@ -154,7 +154,7 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	}
 
 	@Override
-	protected IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException {
+	protected IStatus doRun(final IProgressMonitor monitor) throws OperationCanceledException {
 		final boolean ignoreSimpleFunctions = ClonkPreferences.toggle(ClonkPreferences.IGNORE_SIMPLE_FUNCTION_DUPES, false);
 
 		detectedDupes.clear();
@@ -225,22 +225,22 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	}
 
 	@Override
-	public Match[] computeContainedMatches(AbstractTextSearchResult result, IFile file) {
+	public Match[] computeContainedMatches(final AbstractTextSearchResult result, final IFile file) {
 		return NO_MATCHES;
 	}
 
 	@Override
-	public IFile getFile(Object element) {
+	public IFile getFile(final Object element) {
 		return null;
 	}
 
 	@Override
-	public boolean isShownInEditor(Match match, IEditorPart editor) {
+	public boolean isShownInEditor(final Match match, final IEditorPart editor) {
 		return false;
 	}
 
 	@Override
-	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
+	public Match[] computeContainedMatches(final AbstractTextSearchResult result, final IEditorPart editor) {
 		return null;
 	}
 

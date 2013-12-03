@@ -22,7 +22,7 @@ public class EngineLogParser implements IPatternMatchListener {
 	public class EngineErrorFileLocation {
 		private final String file;
 		private final int line;
-		public EngineErrorFileLocation(String file, int line) {
+		public EngineErrorFileLocation(final String file, final int line) {
 			super();
 			this.file = file;
 			this.line = line;
@@ -38,8 +38,8 @@ public class EngineLogParser implements IPatternMatchListener {
 	public class EngineError {
 		private final List<EngineErrorFileLocation> stackTrace;
 		private final String message;
-		public EngineError(List<EngineErrorFileLocation> stackTrace,
-				String message) {
+		public EngineError(final List<EngineErrorFileLocation> stackTrace,
+				final String message) {
 			super();
 			this.stackTrace = stackTrace;
 			this.message = message;
@@ -53,9 +53,9 @@ public class EngineLogParser implements IPatternMatchListener {
 	}
 
 	private final BufferedReader logReader;
-	public EngineLogParser(Reader reader) { logReader = new BufferedReader(reader); }
+	public EngineLogParser(final Reader reader) { logReader = new BufferedReader(reader); }
 
-	public void parse(Sink<EngineError> sink) throws IOException {
+	public void parse(final Sink<EngineError> sink) throws IOException {
 		final Matcher errorStartMatcher = ENGINE_ERROR_START_PATTERN.matcher("");
 		final Matcher stackTraceEntryMatcher = STACK_TRACE_ENTRY_PATTERN.matcher("");
 		final boolean mainLoopPending = true;
@@ -89,11 +89,11 @@ public class EngineLogParser implements IPatternMatchListener {
 	}
 
 	@Override
-	public void connect(TextConsole console) {}
+	public void connect(final TextConsole console) {}
 	@Override
 	public void disconnect() {}
 	@Override
-	public void matchFound(PatternMatchEvent event) {}
+	public void matchFound(final PatternMatchEvent event) {}
 	@Override
 	public String getPattern() { return null; }
 	@Override

@@ -4,7 +4,7 @@ import net.arctics.clonk.Core;
 
 public class TeamsUnit extends IniUnitWithNamedSections {
 
-	public TeamsUnit(Object input) {
+	public TeamsUnit(final Object input) {
 		super(input);
 	}
 	

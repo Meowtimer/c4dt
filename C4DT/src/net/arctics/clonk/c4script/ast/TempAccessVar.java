@@ -5,6 +5,6 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 
 public class TempAccessVar extends AccessVar {
-	public TempAccessVar(Declaration declaration, ASTNode parent) { super(declaration); setParent(parent); }
+	public TempAccessVar(final Declaration declaration, final ASTNode parent) { super(declaration); setParent(parent); }
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 }

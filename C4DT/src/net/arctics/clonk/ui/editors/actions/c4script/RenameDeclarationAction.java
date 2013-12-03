@@ -23,7 +23,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.RenameDeclaration")
 public class RenameDeclarationAction extends ClonkTextEditorAction {
-	public RenameDeclarationAction(ResourceBundle bundle, String prefix, ITextEditor editor) { super(bundle, prefix, editor); }
+	public RenameDeclarationAction(final ResourceBundle bundle, final String prefix, final ITextEditor editor) { super(bundle, prefix, editor); }
 	@Override
 	public void run() {
 		try {
@@ -43,7 +43,7 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 	 * @param fixedNewName New name to perform this refactoring with, without presenting UI to change this name. Supply null to let the user specify the new name
 	 * @param renameProcessorOptions {@link RenameDeclarationProcessor} options
 	 */
-	public static void performRenameRefactoring(Declaration declarationToRename, String fixedNewName, int renameProcessorOptions) {
+	public static void performRenameRefactoring(final Declaration declarationToRename, final String fixedNewName, final int renameProcessorOptions) {
 		if (declarationToRename != null) {
 			saveModifiedFiles();
 			final String newName = fixedNewName != null ? fixedNewName : declarationToRename.name();
@@ -64,7 +64,7 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 			try {
 				progressMonitor.run(false, false, new IRunnableWithProgress() {
 					@Override
-					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						for (final IEditorPart part : EditorUtil.editorPartsToBeSaved())
 							part.doSave(monitor);
 					}

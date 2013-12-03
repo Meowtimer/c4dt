@@ -30,23 +30,23 @@ public class NewClonkProjectWizardCreationPage extends WizardNewProjectCreationP
 	private PreferenceStore dummyPrefStore;
 	private TabItem linkTab, importTab, referenceTab;
 	
-	public NewClonkProjectWizardCreationPage(String pageName) {
+	public NewClonkProjectWizardCreationPage(final String pageName) {
 		super(pageName);
 		setImageDescriptor(UI.imageDescriptorForPath("icons/project_big.png"));
 	}
 	
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		super.createControl(parent);
 		
-		Composite realParent = (Composite) getControl(); // surprise, that actually seems to work
+		final Composite realParent = (Composite) getControl(); // surprise, that actually seems to work
 		realParent.setLayout(new GridLayout(1, false));
 		realParent.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		
 		dummyPrefStore = new PreferenceStore();
 		dummyPrefStore.setValue(ClonkPreferences.ACTIVE_ENGINE, ""); //$NON-NLS-1$
 		
-		Group engineGroup = new Group(realParent, SWT.SHADOW_IN);
+		final Group engineGroup = new Group(realParent, SWT.SHADOW_IN);
 		engineGroup.setText(Messages.NewClonkProject_Engine);
 		engineGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		engineEditor = new ComboFieldEditor(ClonkPreferences.ACTIVE_ENGINE, net.arctics.clonk.preferences.Messages.ClonkPreferencePage_DefaultEngine, ClonkPreferencePage.engineComboValues(true), engineGroup);
@@ -55,7 +55,7 @@ public class NewClonkProjectWizardCreationPage extends WizardNewProjectCreationP
 		((GridData)engineGroup.getChildren()[1].getLayoutData()).grabExcessHorizontalSpace = true;
 		engineGroup.setLayout(new GridLayout(2, true));
 		
-		TabFolder tabFolder = new TabFolder(realParent, SWT.DEFAULT);
+		final TabFolder tabFolder = new TabFolder(realParent, SWT.DEFAULT);
 		tabFolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		importTab = new TabItem(tabFolder, SWT.DEFAULT);
 		importTab.setText(Messages.NewClonkProject_ImportingTabTitle);
@@ -64,17 +64,17 @@ public class NewClonkProjectWizardCreationPage extends WizardNewProjectCreationP
 		linkTab = new TabItem(tabFolder, SWT.DEFAULT);
 		linkTab.setText(Messages.NewClonkProject_LinkingTabTitle);
 		
-		Composite linksComposite = new Composite(tabFolder, SWT.NONE);
+		final Composite linksComposite = new Composite(tabFolder, SWT.NONE);
 		linkGroupsEditor = new C4GroupListEditor("dummy", Messages.NewClonkProject_LinkGroups, linksComposite, this); //$NON-NLS-1$
 		linkGroupsEditor.setPreferenceStore(dummyPrefStore);
 		linkTab.setControl(linksComposite);
 		
-		Composite importsComposite = new Composite(tabFolder, SWT.NONE);
+		final Composite importsComposite = new Composite(tabFolder, SWT.NONE);
 		importGroupsEditor = new C4GroupListEditor("dummy", Messages.NewClonkProject_ImportGroups, importsComposite, this); //$NON-NLS-1$
 		importGroupsEditor.setPreferenceStore(dummyPrefStore);
 		importTab.setControl(importsComposite);
 	
-		Composite referencesComposite = new Composite(tabFolder, SWT.NONE);
+		final Composite referencesComposite = new Composite(tabFolder, SWT.NONE);
 		referencesComposite.setLayout(new FillLayout());
 		projectReferencesViewer = UI.createProjectReferencesViewer(referencesComposite);
 		referenceTab.setControl(referencesComposite);
@@ -95,7 +95,7 @@ public class NewClonkProjectWizardCreationPage extends WizardNewProjectCreationP
 	}
 	
 	@Override
-	public Engine getEngine(boolean fallbackToDefault) {
+	public Engine getEngine(final boolean fallbackToDefault) {
 		engineEditor.store();
 		Engine engine = Core.instance().loadEngine(dummyPrefStore.getString(ClonkPreferences.ACTIVE_ENGINE));
 		if (fallbackToDefault && engine == null)

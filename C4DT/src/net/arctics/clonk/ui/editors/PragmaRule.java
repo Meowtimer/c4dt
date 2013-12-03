@@ -7,22 +7,21 @@ import org.eclipse.jface.text.rules.Token;
 
 public class PragmaRule implements IPredicateRule {
 
-	private IToken successToken;
-	private char[][] directives;
+	private final IToken successToken;
+	private final char[][] directives;
 	
-	public PragmaRule(String[] directives, IToken token) {
+	public PragmaRule(final String[] directives, final IToken token) {
 		successToken = token;
 		this.directives = new char[directives.length][];
-		for(int i = 0;i < directives.length;i++) {
+		for(int i = 0;i < directives.length;i++)
 			this.directives[i] = directives[i].toCharArray();
-		}
 	}
 
 	@Override
-	public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+	public IToken evaluate(final ICharacterScanner scanner, final boolean resume) {
 		
 		int c = scanner.read();
-		if (c == '#') {
+		if (c == '#')
 			for(int i = 0; i < directives.length;i++) {
 				int x;
 				for(x = 0; x < directives[i].length;x++) {
@@ -41,8 +40,6 @@ public class PragmaRule implements IPredicateRule {
 						for(;x >= 0;x--) scanner.unread();
 				}
 			}
-			
-		}
 		scanner.unread(); // #-unread
 		return Token.UNDEFINED;
 	}
@@ -53,7 +50,7 @@ public class PragmaRule implements IPredicateRule {
 	}
 
 	@Override
-	public IToken evaluate(ICharacterScanner scanner) {
+	public IToken evaluate(final ICharacterScanner scanner) {
 		return evaluate(scanner, false);
 	}
 

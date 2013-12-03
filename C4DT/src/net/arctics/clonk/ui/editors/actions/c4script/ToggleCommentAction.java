@@ -14,22 +14,22 @@ import org.eclipse.ui.texteditor.ITextEditor;
 @CommandId(id="ui.editors.actions.ToggleComment")
 public class ToggleCommentAction extends ClonkTextEditorAction {
 
-	public ToggleCommentAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
+	public ToggleCommentAction(final ResourceBundle bundle, final String prefix, final ITextEditor editor) {
 		super(bundle, prefix, editor);
 	}
 	
 	@Override
 	public void run() {
-		ITextSelection sel = (ITextSelection)getTextEditor().getSelectionProvider().getSelection();
+		final ITextSelection sel = (ITextSelection)getTextEditor().getSelectionProvider().getSelection();
 		try {
-			IDocument document = getTextEditor().getDocumentProvider().getDocument(getTextEditor().getEditorInput());
-			IRegion line = document.getLineInformationOfOffset(sel.getOffset());
-			boolean isCommented = line.getLength() >= 2 && document.get(line.getOffset(), 2).equals("//");
+			final IDocument document = getTextEditor().getDocumentProvider().getDocument(getTextEditor().getEditorInput());
+			final IRegion line = document.getLineInformationOfOffset(sel.getOffset());
+			final boolean isCommented = line.getLength() >= 2 && document.get(line.getOffset(), 2).equals("//");
 			if (isCommented)
 				document.replace(line.getOffset(), 2, "");
 			else
 				document.replace(line.getOffset(), 0, "//");
-		} catch (BadLocationException e) {
+		} catch (final BadLocationException e) {
 			e.printStackTrace();
 		}
 	}

@@ -46,8 +46,8 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		addField(new StringFieldEditor(ClonkPreferences.AUTHOR, Messages.ClonkPreferencePage_Author, getFieldEditorParent()));
 	}
 
-	public static String[][] engineComboValues(boolean includeDefault) {
-		if (Beans.isDesignTime()) {
+	public static String[][] engineComboValues(final boolean includeDefault) {
+		if (Beans.isDesignTime())
 			return new String[][] {
 					new String[] {
 							"OpenClonk", //$NON-NLS-1$
@@ -58,16 +58,15 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 							"ClonkRage" //$NON-NLS-1$
 					}
 			};
-		}
-		List<String> engines = Core.instance().namesOfAvailableEngines();
-		String[][] engineChoices = new String[engines.size() + (includeDefault ? 1 : 0)][2];
+		final List<String> engines = Core.instance().namesOfAvailableEngines();
+		final String[][] engineChoices = new String[engines.size() + (includeDefault ? 1 : 0)][2];
 		int i = 0;
 		if (includeDefault) {
 			engineChoices[i][1] = null;
 			engineChoices[i][0] = Messages.ClonkPreferencePage_DefaultEngine;
 			++i;
 		}
-		for (String s : engines) {
+		for (final String s : engines) {
 			engineChoices[i][1] = s;
 			engineChoices[i][0] = makeUserFriendlyEngineName(s);
 			i++;
@@ -75,10 +74,10 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		return engineChoices;
 	}
 
-	private static String makeUserFriendlyEngineName(String s) {
-	    StringBuilder builder = new StringBuilder(s.length()*2);
+	private static String makeUserFriendlyEngineName(final String s) {
+	    final StringBuilder builder = new StringBuilder(s.length()*2);
 	    for (int i = 0; i < s.length(); i++) {
-	    	char c = s.charAt(i);
+	    	final char c = s.charAt(i);
 	    	if (i > 0 && Character.isUpperCase(c))
 	    		builder.append(' ');
 	    	builder.append(c);
@@ -87,7 +86,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
     }
 
 	@Override
-	public void init(IWorkbench workbench) {
+	public void init(final IWorkbench workbench) {
 	}
 
 }

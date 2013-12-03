@@ -36,7 +36,7 @@ public class ScriptThread extends DebugElement implements IThread {
 		stackFrames = NO_STACKFRAMES;
 	}
 	
-	public Script findScript(String path, Index index, Set<Index> alreadySearched) throws CoreException {
+	public Script findScript(final String path, final Index index, final Set<Index> alreadySearched) throws CoreException {
 		if (alreadySearched.contains(index))
 			return null;
 		final Script script = index.findScriptByPath(path);
@@ -55,7 +55,7 @@ public class ScriptThread extends DebugElement implements IThread {
 		return null;
 	}
 
-	public void setStackTrace(List<String> stackTrace) throws CoreException {
+	public void setStackTrace(final List<String> stackTrace) throws CoreException {
 		final ProjectIndex index = ProjectIndex.get(getTarget().scenario().getProject());
 		if (index == null) {
 			nullOut();
@@ -91,7 +91,7 @@ public class ScriptThread extends DebugElement implements IThread {
 	 * Return an array that acts as a map mapping line number to function at that line. Used for fast function lookups when only the line number is known.
 	 * @return The pseudo-map for getting the function at some line.
 	 */
-	static Function[] calculateLineToFunctionMap(Script script) {
+	static Function[] calculateLineToFunctionMap(final Script script) {
 		script.requireLoaded();
 		String scriptText;
 		try {
@@ -133,7 +133,7 @@ public class ScriptThread extends DebugElement implements IThread {
 		return mappingAsList.toArray(new Function[mappingAsList.size()]);
 	}
 	
-	private Function funcAtLine(Script script, int line) {
+	private Function funcAtLine(final Script script, int line) {
 		line--;
 		Function[] map = lineToFunctionMaps.get(script);
 		if (map == null) {
@@ -148,7 +148,7 @@ public class ScriptThread extends DebugElement implements IThread {
 		return null;
 	}
 
-	public ScriptThread(Target target) {
+	public ScriptThread(final Target target) {
 		super(target);
 		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 	}
@@ -185,7 +185,7 @@ public class ScriptThread extends DebugElement implements IThread {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public Object getAdapter(Class adapter) {
+	public Object getAdapter(final Class adapter) {
 		return null;
 	}
 

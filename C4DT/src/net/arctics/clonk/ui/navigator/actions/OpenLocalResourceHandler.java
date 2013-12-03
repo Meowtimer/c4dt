@@ -20,24 +20,22 @@ import org.eclipse.ui.part.FileEditorInput;
 public class OpenLocalResourceHandler extends AbstractHandler {
 
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
+		final IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		if (page != null && page.getActiveEditor() != null && page.getActiveEditor().getEditorInput() instanceof FileEditorInput) {
-			IContainer container = ((FileEditorInput)page.getActiveEditor().getEditorInput()).getFile().getParent();
-			FilteredResourcesSelectionDialog dialog = new FilteredResourcesSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), true, container, IResource.FILE);
+			final IContainer container = ((FileEditorInput)page.getActiveEditor().getEditorInput()).getFile().getParent();
+			final FilteredResourcesSelectionDialog dialog = new FilteredResourcesSelectionDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), true, container, IResource.FILE);
 			dialog.setTitle(String.format(Messages.OpenLocalResourceHandler_OpenResourceInside, container.getProjectRelativePath().toOSString()));
 			dialog.setInitialPattern("*.*", FilteredItemsSelectionDialog.FULL_SELECTION);
 			switch (dialog.open()) {
 			case Window.OK:
-				for (Object f : dialog.getResult()) {
-					if (f instanceof IFile) {
+				for (final Object f : dialog.getResult())
+					if (f instanceof IFile)
 						try {
 							IDE.openEditor(page, (IFile) f);
-						} catch (PartInitException e) {
+						} catch (final PartInitException e) {
 							e.printStackTrace();
 						}
-					}
-				}
 			}
 		}
 		return null;

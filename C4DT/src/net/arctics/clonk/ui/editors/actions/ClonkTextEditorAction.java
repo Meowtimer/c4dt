@@ -29,34 +29,34 @@ public abstract class ClonkTextEditorAction extends TextEditorAction {
 		String id();
 	}
 	
-	public static CommandId id(Class<? extends ClonkTextEditorAction> c) {
+	public static CommandId id(final Class<? extends ClonkTextEditorAction> c) {
 		return c.getAnnotation(CommandId.class);
 	}
 	
-	public static String idString(Class<? extends ClonkTextEditorAction> c) {
-		CommandId commandId = id(c);
+	public static String idString(final Class<? extends ClonkTextEditorAction> c) {
+		final CommandId commandId = id(c);
 		if (commandId == null)
 			return null;
 		else
 			return Core.id(commandId.id());
 	}
 	
-	public static String resourceBundlePrefix(Class<? extends ClonkTextEditorAction> c) {
-		String idString = idString(c);
+	public static String resourceBundlePrefix(final Class<? extends ClonkTextEditorAction> c) {
+		final String idString = idString(c);
 		return idString.substring(idString.lastIndexOf('.')+1)+".";
 	}
 	
 	private void assignId() {
-		CommandId id = id(getClass());
+		final CommandId id = id(getClass());
 		if (id != null) {
-			String idString = Core.id(id.id());
+			final String idString = Core.id(id.id());
 			this.setId(idString);
 			this.setActionDefinitionId(idString);
 		} else
 			System.out.println(String.format("Missing CommandId for %s", getClass().getSimpleName()));
 	}
 	
-	public ClonkTextEditorAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
+	public ClonkTextEditorAction(final ResourceBundle bundle, final String prefix, final ITextEditor editor) {
 		super(bundle, prefix, editor);
 		assignId();
 	}
@@ -66,9 +66,9 @@ public abstract class ClonkTextEditorAction extends TextEditorAction {
 	 * @param fallbackToCurrentFunction Whether to return the function the selection is currently in if locating an entity failed.
 	 * @return The entity, the current function or null if ultimately unsuccessful.
 	 */
-	protected IIndexEntity entityAtSelection(boolean fallbackToCurrentFunction) {
-		ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
-		IRegion r = new Region(selection.getOffset(), selection.getLength());
+	protected IIndexEntity entityAtSelection(final boolean fallbackToCurrentFunction) {
+		final ITextSelection selection = (ITextSelection) getTextEditor().getSelectionProvider().getSelection();
+		final IRegion r = new Region(selection.getOffset(), selection.getLength());
 		return ((StructureTextEditor)getTextEditor()).entityAtRegion(fallbackToCurrentFunction, r);
 	}
 
@@ -77,7 +77,7 @@ public abstract class ClonkTextEditorAction extends TextEditorAction {
 	 * @param fallbackToCurrentFunction Passed on to {@link #entityAtSelection(boolean)}
 	 * @return The entity at the selection cast to {@link Declaration} or null.
 	 */
-	protected Declaration declarationAtSelection(boolean fallbackToCurrentFunction) {
+	protected Declaration declarationAtSelection(final boolean fallbackToCurrentFunction) {
 		return as(entityAtSelection(fallbackToCurrentFunction), Declaration.class);
 	}
 

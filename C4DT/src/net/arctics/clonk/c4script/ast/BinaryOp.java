@@ -41,7 +41,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 		return this;
 	}
 
-	private ASTNode convertOperatorHackToBlock(Tidy tidy) throws CloneNotSupportedException {
+	private ASTNode convertOperatorHackToBlock(final Tidy tidy) throws CloneNotSupportedException {
 		final LinkedList<ASTNode> leftSideArguments = new LinkedList<ASTNode>();
 		ASTNode r;
 		boolean works = true;
@@ -84,20 +84,20 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 	}
 
 	@Override
-	public void setSubElements(ASTNode[] elements) {
+	public void setSubElements(final ASTNode[] elements) {
 		if (elements.length < 2 || elements[0] == null || elements[1] == null)
 			throw new IllegalArgumentException("BinaryOp.setSubElements requires two non-null sub elements");
 		leftSide  = elements[0];
 		rightSide = elements[1];
 	}
 
-	public BinaryOp(Operator operator, ASTNode leftSide, ASTNode rightSide) {
+	public BinaryOp(final Operator operator, final ASTNode leftSide, final ASTNode rightSide) {
 		super(operator);
 		setLeftSide(leftSide);
 		setRightSide(rightSide);
 	}
 
-	public BinaryOp(Operator op) {
+	public BinaryOp(final Operator op) {
 		super(op);
 	}
 
@@ -109,18 +109,18 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 		return rightSide;
 	}
 
-	public void setLeftSide(ASTNode leftSide) {
+	public void setLeftSide(final ASTNode leftSide) {
 		this.leftSide = leftSide;
 		leftSide.setParent(this);
 	}
 
-	public void setRightSide(ASTNode rightSide) {
+	public void setRightSide(final ASTNode rightSide) {
 		this.rightSide = rightSide;
 		rightSide.setParent(this);
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		// put brackets around operands in case some transformation messed up prioritization
 		boolean needsBrackets = leftSide instanceof BinaryOp && operator().priority() > ((BinaryOp)leftSide).operator().priority();
 		if (needsBrackets)
@@ -147,7 +147,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 
 
 	@Override
-	public Object evaluateStatic(IEvaluationContext context) {
+	public Object evaluateStatic(final IEvaluationContext context) {
 		try {
 			final Object leftSide  = operator().firstArgType().convert(this.leftSide().evaluateStatic(context));
 			final Object rightSide = operator().secondArgType().convert(this.rightSide().evaluateStatic(context));
@@ -264,7 +264,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
     }
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		switch (operator()) {
 		case Or:
 			if (eq(Boolean.TRUE, value(leftSide().evaluate(context))))

@@ -36,7 +36,7 @@ public class Standalone {
 	 * {@link #referencedIndices} will be set to the super set of all {@link Script#index()}.{@link Index#relevantIndexes()}.
 	 * @param scripts Scripts to create standalone context from
 	 */
-	public Standalone(Iterable<? extends Structure> scripts) {
+	public Standalone(final Iterable<? extends Structure> scripts) {
 		Engine engine = null;
 		Typing typing = null;
 		final HashSet<Index> indices = new HashSet<>();
@@ -62,7 +62,7 @@ public class Standalone {
 	 * @param typing Value of {@link #typing}
 	 * @param referencedIndices Value of {@link #referencedIndices}
 	 */
-	public Standalone(Engine engine, Typing typing, Index... referencedIndices) {
+	public Standalone(final Engine engine, final Typing typing, final Index... referencedIndices) {
 		super();
 		this.engine = engine;
 		this.typing = typing;
@@ -74,7 +74,7 @@ public class Standalone {
 	 * while {@link #referencedIndices} will be set to an empty array.
 	 * @param engine {@link Engine} to create standalone context from
 	 */
-	public Standalone(Engine engine) {
+	public Standalone(final Engine engine) {
 		this.engine = engine;
 		this.typing = engine.typing();
 		this.referencedIndices = new Index[0];
@@ -92,9 +92,9 @@ public class Standalone {
 	public <T> ASTNode parse(
 		final String source,
 		Function function,
-		IASTVisitor<T> visitor,
+		final IASTVisitor<T> visitor,
 		final IMarkerListener markerListener,
-		T context
+		final T context
 	) throws ProblemException {
 		if (function == null) {
 			final Script tempScript = new TempScript(source, engine, referencedIndices) {

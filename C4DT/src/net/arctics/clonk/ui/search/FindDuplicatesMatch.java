@@ -9,10 +9,10 @@ import org.eclipse.swt.graphics.Image;
 
 public class FindDuplicatesMatch extends Match implements IHasLabelAndImage {
 
-	private Function original;
-	private Function dupe;
+	private final Function original;
+	private final Function dupe;
 	
-	public FindDuplicatesMatch(Object element, int offset, int length, Function original, Function dupe) {
+	public FindDuplicatesMatch(final Object element, final int offset, final int length, final Function original, final Function dupe) {
 		super(element, offset, length);
 		this.original = original;
 		this.dupe = dupe;

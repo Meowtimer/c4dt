@@ -20,15 +20,15 @@ final class EngineScriptParser extends ScriptParser {
 	private final URL url;
 	private final LineNumberObtainer lno;
 	private boolean firstMessage = true;
-	EngineScriptParser(String engineScript, Script script, IFile scriptFile, URL url) {
+	EngineScriptParser(final String engineScript, final Script script, final IFile scriptFile, final URL url) {
 		super(engineScript, script, scriptFile);
 		this.url = url;
 		this.lno = new LineNumberObtainer(engineScript);
 	}
 	@Override
-	public void marker(Problem code,
-		int errorStart, int errorEnd, int flags,
-		int severity, Object... args) throws ProblemException {
+	public void marker(final Problem code,
+		final int errorStart, final int errorEnd, final int flags,
+		final int severity, final Object... args) throws ProblemException {
 		if (firstMessage) {
 			firstMessage = false;
 			System.out.println("Messages while parsing " + url.toString()); //$NON-NLS-1$
@@ -42,12 +42,12 @@ final class EngineScriptParser extends ScriptParser {
 		super.marker(code, errorStart, errorEnd, flags, severity, args);
 	}
 	@Override
-	protected TypeAnnotation typeAnnotation(int s, int e, IType type) {
+	protected TypeAnnotation typeAnnotation(final int s, final int e, final IType type) {
 		// undo authority boost -.-
 		return super.typeAnnotation(s, e, type instanceof PrimitiveType.Unified ? ((PrimitiveType.Unified)type).base() : type);
 	}
 	@Override
-	protected Function newFunction(String nameWillBe) { return new EngineFunction(); }
+	protected Function newFunction(final String nameWillBe) { return new EngineFunction(); }
 	@Override
-	public Variable newVariable(String varName, Scope scope) { return new EngineVariable(varName, scope); }
+	public Variable newVariable(final String varName, final Scope scope) { return new EngineVariable(varName, scope); }
 }

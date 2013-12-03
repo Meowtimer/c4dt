@@ -33,7 +33,7 @@ public abstract class SearchQuery implements ISearchQuery, IFileMatchAdapter, IE
 	}
 	protected abstract IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException;
 	@Override
-	public IStatus run(IProgressMonitor monitor) throws OperationCanceledException {
+	public IStatus run(final IProgressMonitor monitor) throws OperationCanceledException {
 		try {
 			return doRun(monitor);
 		} finally {
@@ -42,7 +42,7 @@ public abstract class SearchQuery implements ISearchQuery, IFileMatchAdapter, IE
 		}
 	}
 	@Override
-	public IFile getFile(Object element) {
+	public IFile getFile(final Object element) {
 		if (element instanceof Script)
 			return  ((Script)element).file();
 		if (element instanceof IFile)
@@ -52,25 +52,25 @@ public abstract class SearchQuery implements ISearchQuery, IFileMatchAdapter, IE
 		return null;
 	}
 	@Override
-	public Match[] computeContainedMatches(AbstractTextSearchResult result, IFile file) {
-		Script script = Script.get(file, true);
+	public Match[] computeContainedMatches(final AbstractTextSearchResult result, final IFile file) {
+		final Script script = Script.get(file, true);
 		if (script != null)
 			return result.getMatches(script);
 		return NO_MATCHES;
 	}
 	@Override
-	public boolean isShownInEditor(Match match, IEditorPart editor) {
+	public boolean isShownInEditor(final Match match, final IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			Script script = Utilities.scriptForEditor(editor);
+			final Script script = Utilities.scriptForEditor(editor);
 			if (script != null && match.getElement().equals(script.source()))
 				return true;
 		}
 		return false;
 	}
 	@Override
-	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
+	public Match[] computeContainedMatches(final AbstractTextSearchResult result, final IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
-			Script script = Utilities.scriptForEditor(editor);
+			final Script script = Utilities.scriptForEditor(editor);
 			if (script != null)
 				return result.getMatches(script);
 		}

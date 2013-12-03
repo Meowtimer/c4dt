@@ -32,11 +32,11 @@ public class QuickExportHandler extends ClonkResourceHandler {
 			@SuppressWarnings("rawtypes")
 			public void run() {
 				try {
-					List<IContainer> selectedContainers = new ArrayList<IContainer>();
+					final List<IContainer> selectedContainers = new ArrayList<IContainer>();
 
-					IWorkbenchPart part = HandlerUtil.getActivePart(event);
+					final IWorkbenchPart part = HandlerUtil.getActivePart(event);
 					if (part instanceof EditorPart && ((EditorPart)part).getEditorInput() instanceof FileEditorInput) {
-						IFile file = ((FileEditorInput)((EditorPart)part).getEditorInput()).getFile();
+						final IFile file = ((FileEditorInput)((EditorPart)part).getEditorInput()).getFile();
 						IContainer r; 
 						for (r = file.getParent(); r != null && !(r.getParent() instanceof IProject); r = r.getParent());
 						if (r != null)
@@ -44,24 +44,24 @@ public class QuickExportHandler extends ClonkResourceHandler {
 					} else {
 						final ISelection selection = HandlerUtil.getCurrentSelection(event);
 						if (selection != null && selection instanceof TreeSelection) {
-							TreeSelection tree = (TreeSelection) selection;
-							Iterator it = tree.iterator();
+							final TreeSelection tree = (TreeSelection) selection;
+							final Iterator it = tree.iterator();
 							while (it.hasNext()) {
-								Object obj = it.next();
+								final Object obj = it.next();
 								if (obj instanceof IProject)
 									try {
-										IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
+										final IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
 										for(int i = 0; i < selectedResources.length;i++)
 											if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith(".")) //$NON-NLS-1$
 												selectedContainers.add((IContainer) selectedResources[i]);
 									}
-									catch (CoreException ex) {
+									catch (final CoreException ex) {
 										ex.printStackTrace();
 									}
 								else if (obj instanceof IFolder)
 									selectedContainers.add((IContainer) obj);
 								else if (obj instanceof IFile) {
-									IFile file = (IFile)obj;
+									final IFile file = (IFile)obj;
 									IContainer r;
 									for (r = file.getParent(); r != null && !(r.getParent() instanceof IProject); r = r.getParent());
 									if (r != null)
@@ -77,7 +77,7 @@ public class QuickExportHandler extends ClonkResourceHandler {
 							progressDialog.run(false, true, exporter);
 						}
 					}
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 			}

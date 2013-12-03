@@ -51,44 +51,44 @@ public class Overlay extends OverlayBase {
 	public MapCreator mapCreator() { return null; }
 	
 	public boolean isMap() { return isMap; }
-	public void isMap(boolean isit) { isMap = isit; }
+	public void isMap(final boolean isit) { isMap = isit; }
 
 	@Override
 	public Operator operator() {
 		return operator;
 	}
 
-	public void setOperator(Operator operator) {
+	public void setOperator(final Operator operator) {
 		this.operator = operator;
 	}
 
 	@Override
-	public OverlayBase findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+	public OverlayBase findDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
 	
 	@Override
-	public OverlayBase findLocalDeclaration(String declarationName,
-			Class<? extends Declaration> declarationClass) {
+	public OverlayBase findLocalDeclaration(final String declarationName,
+			final Class<? extends Declaration> declarationClass) {
 		if (Overlay.class.isAssignableFrom(declarationClass))
-			for (OverlayBase o : subOverlays)
+			for (final OverlayBase o : subOverlays)
 				if (o.name() != null && o.name().equals(declarationName) && declarationClass.isAssignableFrom(o.getClass()))
 					return o;
 		return null;
 	}
 	
 	@Override
-	public OverlayBase findDeclaration(String declarationName) {
+	public OverlayBase findDeclaration(final String declarationName) {
 		return findDeclaration(declarationName, Overlay.class);
 	}
 	
-	public static Class<? extends OverlayBase> defaultClass(String type) {
+	public static Class<? extends OverlayBase> defaultClass(final String type) {
 		return DEFAULT_CLASS.get(type);
 	}
 	
-	public Overlay templateWithName(String name) {
+	public Overlay templateWithName(final String name) {
 		for (Overlay level = this; level != null; level = (Overlay) level.parentDeclaration()) {
-			OverlayBase o = level.findDeclaration(name, Overlay.class);
+			final OverlayBase o = level.findDeclaration(name, Overlay.class);
 			if (o instanceof Overlay)
 				return (Overlay) o;
 		}
@@ -100,8 +100,8 @@ public class Overlay extends OverlayBase {
 		return template;
 	}
 	
-	public OverlayBase createOverlay(String type, String name) throws InstantiationException, IllegalAccessException, CloneNotSupportedException {
-		Class<? extends OverlayBase> cls = defaultClass(type);
+	public OverlayBase createOverlay(final String type, final String name) throws InstantiationException, IllegalAccessException, CloneNotSupportedException {
+		final Class<? extends OverlayBase> cls = defaultClass(type);
 		OverlayBase result;
 		if (cls != null) {
 			result = cls.newInstance();
@@ -109,7 +109,7 @@ public class Overlay extends OverlayBase {
 				((Overlay)result).isMap(type.equals(Keywords.Map));
 		}
 		else {
-			Overlay template = templateWithName(type);
+			final Overlay template = templateWithName(type);
 			if (template != null) {
 				result = template.clone();
 				((Overlay)result).template = template;
@@ -126,8 +126,8 @@ public class Overlay extends OverlayBase {
 		return result;
 	}
 	
-	public Overlay createOverlay(Class<? extends Overlay> cls, String name) throws InstantiationException, IllegalAccessException {
-		Overlay result = cls.newInstance();
+	public Overlay createOverlay(final Class<? extends Overlay> cls, final String name) throws InstantiationException, IllegalAccessException {
+		final Overlay result = cls.newInstance();
 		result.name = name;
 		result.setParent(this);
 		this.subOverlays.add(result);
@@ -155,7 +155,7 @@ public class Overlay extends OverlayBase {
 	
 	@Override
 	public Overlay clone() {
-		Overlay clone = (Overlay) super.clone();
+		final Overlay clone = (Overlay) super.clone();
 		clone.beAutonomousClone(); // don't copy nested overlays
 		return clone;
 	}
@@ -165,10 +165,10 @@ public class Overlay extends OverlayBase {
 		this.body = null;
 	}
 	
-	public OverlayBase overlayAt(int offset) {
+	public OverlayBase overlayAt(final int offset) {
 		OverlayBase ov;
 		Outer: for (ov = this; ov != null && ov.childCollection() != null && ov.childCollection().size() != 0;) {
-			for (OverlayBase o : ov.childCollection())
+			for (final OverlayBase o : ov.childCollection())
 				if (offset >= o.start() && offset < (o.body!=null?o.body:o).end()) {
 					ov = o;
 					continue Outer;
@@ -217,7 +217,7 @@ public class Overlay extends OverlayBase {
 	}
 	
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException
 	{
 		// inherited
 		super.evaluate(context);
@@ -236,7 +236,7 @@ public class Overlay extends OverlayBase {
 			if ((pOwnrOvrl=OwnerOverlay()) != null)
 			{
 				//int iOwnerX=pOwnrOvrl->X; int iOwnerY=pOwnrOvrl->Y;
-				int iOwnerWdt=pOwnrOvrl.wdt.evaluated(); int iOwnerHgt=pOwnrOvrl.hgt.evaluated();
+				final int iOwnerWdt=pOwnrOvrl.wdt.evaluated(); final int iOwnerHgt=pOwnrOvrl.hgt.evaluated();
 				X = x.evaluate(iOwnerWdt) + pOwnrOvrl.X;
 				Y = y.evaluate(iOwnerHgt) + pOwnrOvrl.Y;
 				Wdt = wdt.evaluate(iOwnerWdt);
@@ -248,8 +248,8 @@ public class Overlay extends OverlayBase {
 		// calc seed
 		if ((Seed=FixedSeed)==0)
 		{
-			int r1=Random(32768);
-			int r2=Random(65536);
+			final int r1=Random(32768);
+			final int r2=Random(65536);
 			Seed=(r1<<16) | r2;
 		}
 		return this;
@@ -272,7 +272,7 @@ public class Overlay extends OverlayBase {
 		// apply turbulence
 		if (turbulence.evaluated() > 0)
 		{
-			double Rad2Grad = Math.PI / 180;
+			final double Rad2Grad = Math.PI / 180;
 			int j=3;
 			for (int i=10; i<=turbulence.evaluated(); i*=10)
 			{
@@ -297,7 +297,7 @@ public class Overlay extends OverlayBase {
 			double o=atan(dY/dX);
 			dX=cos(o+dRot)*l;
 			dY=sin(o+dRot)*l;*/
-			double dXo=dX, dYo=dY;
+			final double dXo=dX, dYo=dY;
 			dX = dXo*Math.cos(rotate.evaluated()) - dYo*Math.sin(rotate.evaluated());
 			dY = dYo*Math.cos(rotate.evaluated()) + dXo*Math.sin(rotate.evaluated());
 		}
@@ -314,10 +314,10 @@ public class Overlay extends OverlayBase {
 		return algo.compute(this, iX, iY)^invert;
 	}
 	
-	boolean renderPix(int iX, int iY, int[] rPix, Operator eLastOp, boolean fLastSet, boolean fDraw, Overlay[] ppPixelSetOverlay)
+	boolean renderPix(final int iX, final int iY, final int[] rPix, Operator eLastOp, final boolean fLastSet, boolean fDraw, final Overlay[] ppPixelSetOverlay)
 	{
 		// algo match?
-		boolean SetThis=checkMask(iX, iY);
+		final boolean SetThis=checkMask(iX, iY);
 		boolean DoSet;
 		// exec last op
 		switch (eLastOp)
@@ -348,10 +348,10 @@ public class Overlay extends OverlayBase {
 			}
 			boolean fLastSetC=false; eLastOp=null;
 			// evaluate children overlays, if this was painted, too
-			for (OverlayBase pChild : subOverlays)
+			for (final OverlayBase pChild : subOverlays)
 				if (pChild instanceof Overlay)
 				{
-					Overlay pOvrl = (Overlay)pChild;
+					final Overlay pOvrl = (Overlay)pChild;
 					fLastSetC=pOvrl.renderPix(iX, iY, rPix, eLastOp, fLastSetC, fDraw, ppPixelSetOverlay);
 					if (grp && (pOvrl.operator == null))
 						DoSet |= fLastSetC;
@@ -362,12 +362,12 @@ public class Overlay extends OverlayBase {
 		return DoSet;
 	}
 
-	public boolean inBounds(int x2, int iY) {
+	public boolean inBounds(final int x2, final int iY) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	public boolean peekPix(int x2, int iY) {
+	public boolean peekPix(final int x2, final int iY) {
 		// TODO Auto-generated method stub
 		return false;
 	}

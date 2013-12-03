@@ -18,7 +18,7 @@ import org.eclipse.core.runtime.jobs.Job;
 class SaveScriptsJob extends Job {
 	private final Set<Script> scriptsToSave;
 	private final IProject project;
-	public SaveScriptsJob(IProject project, Script[] scriptsToSave) {
+	public SaveScriptsJob(final IProject project, final Script[] scriptsToSave) {
 		super(ClonkBuilder.buildTask(Messages.ClonkBuilder_SaveIndexFilesForParsedScripts, project));
 		this.scriptsToSave = new HashSet<>(Arrays.asList(scriptsToSave));
 		this.project = project;

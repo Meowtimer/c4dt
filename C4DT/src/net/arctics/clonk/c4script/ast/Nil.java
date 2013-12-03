@@ -11,7 +11,7 @@ public class Nil extends Literal<Object> {
 		return null;
 	}
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append(Keywords.Nil);
 	}
 }

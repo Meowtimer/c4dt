@@ -16,13 +16,13 @@ public class DeclarationLocation implements Serializable, IIndexEntity, IHasRela
 	private final Declaration declaration;
 	private final IRegion location;
 	private transient IResource resource;
-	public DeclarationLocation(Declaration declaration, IRegion location, IResource resource) {
+	public DeclarationLocation(final Declaration declaration, final IRegion location, final IResource resource) {
 		super();
 		this.declaration = declaration;
 		this.location = location;
 		this.resource = resource;
 	}
-	public DeclarationLocation(Declaration declaration) {
+	public DeclarationLocation(final Declaration declaration) {
 		this(declaration, declaration, declaration.resource());
 	}
 	@Override
@@ -34,9 +34,9 @@ public class DeclarationLocation implements Serializable, IIndexEntity, IHasRela
 	@Override
 	public String name() { return declaration.name(); }
 	@Override
-	public boolean matchedBy(Matcher matcher) { return declaration.matchedBy(matcher); }
+	public boolean matchedBy(final Matcher matcher) { return declaration.matchedBy(matcher); }
 	@Override
-	public String infoText(IIndexEntity context) { return declaration.infoText(context); }
+	public String infoText(final IIndexEntity context) { return declaration.infoText(context); }
 	@Override
 	public Index index() { return declaration.index(); }
 }

@@ -14,7 +14,7 @@ import org.eclipse.ui.console.MessageConsole;
 public abstract class Console {
 	private final static MessageConsole clonkConsole = withName("Clonk");
 	public static MessageConsole clonkConsole() { return clonkConsole; }
-	private static MessageConsole withName(String name) {
+	private static MessageConsole withName(final String name) {
 		final ConsolePlugin plugin = ConsolePlugin.getDefault();
 		final IConsoleManager conMan = plugin.getConsoleManager();
 		final IConsole[] existing = conMan.getConsoles();

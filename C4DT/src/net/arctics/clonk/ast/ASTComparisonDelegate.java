@@ -13,7 +13,7 @@ public class ASTComparisonDelegate {
 	public final ASTNode rightTop;
 	public ASTNode left, right;
 
-	public ASTComparisonDelegate(ASTNode rightTop) { this.rightTop = rightTop; }
+	public ASTComparisonDelegate(final ASTNode rightTop) { this.rightTop = rightTop; }
 
 	/**
 	 * Called if some difference was found and an attempt is made to make a previous left node consume a right node
@@ -21,7 +21,7 @@ public class ASTComparisonDelegate {
 	 * @param consumee The right node to be consumed.
 	 * @return True if consumption was successful, false if not.
 	 */
-	public boolean consume(ASTNode consumer, ASTNode consumee) {
+	public boolean consume(final ASTNode consumer, final ASTNode consumee) {
 		return false;
 	}
 
@@ -37,14 +37,14 @@ public class ASTComparisonDelegate {
 	 */
 	public boolean acceptAttributeDifference() { return false; }
 
-	public boolean acceptLeftExtraElement(ASTNode leftNode) { return false; }
-	public boolean acceptRightExtraElement(ASTNode rightNode) { return false; }
-	public boolean acceptSubElementDifference(ASTNode left, ASTNode right) { return false; }
+	public boolean acceptLeftExtraElement(final ASTNode leftNode) { return false; }
+	public boolean acceptRightExtraElement(final ASTNode rightNode) { return false; }
+	public boolean acceptSubElementDifference(final ASTNode left, final ASTNode right) { return false; }
 	public boolean considerDifferent() { return false; }
 
-	public boolean applyLeftToRightMapping(ASTNode[] leftSubElements, ASTNode[][] leftToRightMapping) { return true; }
+	public boolean applyLeftToRightMapping(final ASTNode[] leftSubElements, final ASTNode[][] leftToRightMapping) { return true; }
 
-	public boolean equal(ASTNode left, ASTNode right) {
+	public boolean equal(final ASTNode left, final ASTNode right) {
 		if (
 			(left == null && right == null) ||
 			(left != null && left.compare(right, this)) ||
@@ -57,7 +57,7 @@ public class ASTComparisonDelegate {
 			return false;
 	}
 
-	public ASTNode[][] compareSubElements(ASTNode[] mine, ASTNode[] others) {
+	public ASTNode[][] compareSubElements(final ASTNode[] mine, final ASTNode[] others) {
 		final ASTNode[][] leftToRightMapping = new ASTNode[mine.length][];
 
 		int l, r;

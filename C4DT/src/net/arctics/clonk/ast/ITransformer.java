@@ -18,7 +18,7 @@ public interface ITransformer {
 	 */
 	static final IPredicate<ASTNode> FILTER_REMOVE = new IPredicate<ASTNode>() {
 		@Override
-		public boolean test(ASTNode item) {
+		public boolean test(final ASTNode item) {
 			return item != ITransformer.REMOVE;
 		}
 	};

@@ -23,7 +23,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 
 	public static abstract class LoadedEntitiesSink<T extends IndexEntity> extends Sink<T> {
 		@Override
-		public boolean filter(T item) { return item.loaded == Loaded.Yes; }
+		public boolean filter(final T item) { return item.loaded == Loaded.Yes; }
 	}
 
 	protected enum Loaded {
@@ -39,7 +39,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	protected transient Index index;
 	protected long entityId;
 
-	public IndexEntity(Index index) {
+	public IndexEntity(final Index index) {
 		this.index = index;
 		if (index != null)
 			entityId = index.addEntity(this);
@@ -98,7 +98,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	 * @param stream The stream to save the entity's state to
 	 * @throws IOException
 	 */
-	public void save(ObjectOutputStream stream) throws IOException {
+	public void save(final ObjectOutputStream stream) throws IOException {
 		// override
 	}
 
@@ -121,7 +121,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+	public void load(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (obj == this)
 			return true;
 		if (obj == null)
@@ -147,12 +147,12 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	}
 
 	@Override
-	public void postLoad(Declaration parent, Index root) {
+	public void postLoad(final Declaration parent, final Index root) {
 		this.index = root;
 		super.postLoad(parent, root);
 	}
 
 	@Override
-	public Object saveReplacement(Index context) { return context.saveReplacementForEntity(this); }
+	public Object saveReplacement(final Index context) { return context.saveReplacementForEntity(this); }
 
 }

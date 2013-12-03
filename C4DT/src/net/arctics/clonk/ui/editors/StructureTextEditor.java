@@ -77,11 +77,11 @@ public class StructureTextEditor extends TextEditor {
 	 * Select and reveal some location in the text file.
 	 * @param location
 	 */
-	public void selectAndReveal(IRegion location) {
+	public void selectAndReveal(final IRegion location) {
 		this.selectAndReveal(location.getOffset(), location.getLength());
 	}
 
-	public void selectAndRevealLine(int line) {
+	public void selectAndRevealLine(final int line) {
 		final IDocument d = getSourceViewer().getDocument();
 		try {
 			final IRegion r = new Region(d.getLineOffset(line), 0);
@@ -128,7 +128,7 @@ public class StructureTextEditor extends TextEditor {
 	 */
 	@Override
 	@SuppressWarnings("rawtypes")
-	public Object getAdapter(Class adapter) {
+	public Object getAdapter(final Class adapter) {
 		if (adapter.equals(IContentOutlinePage.class))
 			return outlinePage();
 		if (adapter.equals(IShowInSource.class) || adapter.equals(IShowInTargetList.class)) {
@@ -145,7 +145,7 @@ public class StructureTextEditor extends TextEditor {
 	 * @param activate Whether to activate the editor after opening it.
 	 * @return The {@link IEditorPart}. Will most likely refer to a ClonkTextEditor object or be null due to some failure.
 	 */
-	public static IEditorPart openDeclaration(Declaration target, boolean activate) {
+	public static IEditorPart openDeclaration(final Declaration target, final boolean activate) {
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		final IWorkbenchPage workbenchPage = workbench.getActiveWorkbenchWindow().getActivePage();
 		final Structure structure = target.topLevelStructure();
@@ -187,7 +187,7 @@ public class StructureTextEditor extends TextEditor {
 	 * @param target The {@link Declaration} to open.
 	 * @return The opened {@link IEditorPart} or null due to failure.
 	 */
-	public static IEditorPart openDeclaration(Declaration target) {
+	public static IEditorPart openDeclaration(final Declaration target) {
 		return openDeclaration(target, true);
 	}
 
@@ -197,7 +197,7 @@ public class StructureTextEditor extends TextEditor {
 	 * @param activate Whether to activate the editor after opening the location.
 	 * @return
 	 */
-	public static IEditorPart openDeclarationLocation(DeclarationLocation location, boolean activate) {
+	public static IEditorPart openDeclarationLocation(final DeclarationLocation location, final boolean activate) {
 		try {
 			IEditorPart ed = null;
 			if (location.resource() instanceof IFile) {
@@ -220,7 +220,7 @@ public class StructureTextEditor extends TextEditor {
 
 	protected void refreshStructure() {}
 
-	public IIndexEntity entityAtRegion(boolean fallbackToCurrentFunction, IRegion r) {
+	public IIndexEntity entityAtRegion(final boolean fallbackToCurrentFunction, final IRegion r) {
 		return null;
 	}
 
@@ -230,7 +230,7 @@ public class StructureTextEditor extends TextEditor {
 	 * @param structure The {@link Structure} the {@link Declaration} is contained in.
 	 * @param editor The editor to reveal the {@link Declaration} in. Special treatment for {@link StructureTextEditor}, fallback for {@link AbstractTextEditor}.
 	 */
-	private static void revealInEditor(Declaration target, Structure structure, IEditorPart editor) {
+	private static void revealInEditor(Declaration target, final Structure structure, final IEditorPart editor) {
 		if (editor instanceof StructureTextEditor) {
 			final StructureTextEditor clonkTextEditor = (StructureTextEditor) editor;
 			if (target != structure) {
@@ -267,7 +267,7 @@ public class StructureTextEditor extends TextEditor {
 				int cursorPos = cursorPos();
 				ASTNode section = null;
 				@Override
-				public TraversalContinuation visitNode(ASTNode node, Void context) {
+				public TraversalContinuation visitNode(final ASTNode node, final Void context) {
 					if (node instanceof IASTSection) {
 						final IRegion abs = node.absolute();
 						if (cursorPos > abs.getOffset() && cursorPos < abs.getOffset()+abs.getLength()) {
@@ -288,7 +288,7 @@ public class StructureTextEditor extends TextEditor {
 	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$
 
 	@SuppressWarnings("unchecked")
-	protected void addActions(ResourceBundle messagesBundle, Class<? extends ClonkTextEditorAction>... classes) {
+	protected void addActions(final ResourceBundle messagesBundle, final Class<? extends ClonkTextEditorAction>... classes) {
 		for (final Class<? extends ClonkTextEditorAction> c : classes) {
 			final CommandId id = ClonkTextEditorAction.id(c);
 			if (c != null) {
@@ -317,7 +317,7 @@ public class StructureTextEditor extends TextEditor {
 	}
 
 	@Override
-	protected void editorContextMenuAboutToShow(IMenuManager menu) {
+	protected void editorContextMenuAboutToShow(final IMenuManager menu) {
 		super.editorContextMenuAboutToShow(menu);
 		if (structure() != null) {
 			menu.add(new Separator(Core.MENU_GROUP_CLONK));
@@ -339,7 +339,7 @@ public class StructureTextEditor extends TextEditor {
 	public IPreferenceStore preferenceStore() { return getPreferenceStore(); }
 
 	@Override
-	protected void doSetInput(IEditorInput input) throws CoreException {
+	protected void doSetInput(final IEditorInput input) throws CoreException {
 		super.doSetInput(input);
 		updatePartName();
 		if (state() != null)
@@ -361,7 +361,7 @@ public class StructureTextEditor extends TextEditor {
 
 	public ContentAssistant contentAssistant() { return state().getContentAssistant(getSourceViewer()); }
 
-	public void completionProposalApplied(DeclarationProposal proposal) {}
+	public void completionProposalApplied(final DeclarationProposal proposal) {}
 
 	/**
 	 * Given a {@link ISourceViewer}, look for the corresponding {@link StructureTextEditor}.
@@ -371,7 +371,7 @@ public class StructureTextEditor extends TextEditor {
 	 * @return The {@link StructureTextEditor} corresponding to the source viewer and being of the required class or null.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends StructureTextEditor> T getEditorForSourceViewer(ISourceViewer sourceViewer, Class<T> cls) {
+	public static <T extends StructureTextEditor> T getEditorForSourceViewer(final ISourceViewer sourceViewer, final Class<T> cls) {
 		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
 			for (final IWorkbenchPage page : window.getPages())
 				for (final IEditorReference reference : page.getEditorReferences()) {
@@ -391,7 +391,7 @@ public class StructureTextEditor extends TextEditor {
 	 * @return The {@link StructureTextEditor} being opened for the passed resource and being of the required class or null.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends StructureTextEditor> T getEditorForResource(IResource resource, Class<T> cls) {
+	public static <T extends StructureTextEditor> T getEditorForResource(final IResource resource, final Class<T> cls) {
 		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
 			for (final IWorkbenchPage page : window.getPages())
 				for (final IEditorReference reference : page.getEditorReferences()) {
@@ -447,14 +447,14 @@ public class StructureTextEditor extends TextEditor {
 	}
 
 	@Override
-	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
+	protected ISourceViewer createSourceViewer(final Composite parent, final IVerticalRuler ruler, final int styles) {
 		final ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
 		getSourceViewerDecorationSupport(viewer);
 		return viewer;
 	}
 
 	@Override
-	public void createPartControl(Composite parent) {
+	public void createPartControl(final Composite parent) {
 		state();
 		super.createPartControl(parent);
 		initializeProjectionSupport();

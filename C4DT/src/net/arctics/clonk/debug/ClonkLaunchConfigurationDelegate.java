@@ -33,7 +33,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	public static int DEFAULT_DEBUG_PORT = 10464;
 
 	@Override
-	public synchronized void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
+	public synchronized void launch(final ILaunchConfiguration configuration, final String mode, final ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		if (monitor == null)
 			monitor = new NullProgressMonitor();
 		monitor.beginTask(String.format(Messages.LaunchConf, configuration.getName()), 2);
@@ -51,7 +51,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	/**
 	 * Searches the scenario to launch
 	 */
-	public IFolder verifyScenario(ILaunchConfiguration configuration) throws CoreException {
+	public IFolder verifyScenario(final ILaunchConfiguration configuration) throws CoreException {
 
 		// Get project and scenario name from configuration
 		final String projectName = configuration.getAttribute(
@@ -83,8 +83,8 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 	 *            Scenario folder
 	 * @return The path of the Clonk engine executable
 	 */
-	public File verifyClonkInstall(ILaunchConfiguration configuration,
-			IFolder scenario) throws CoreException {
+	public File verifyClonkInstall(final ILaunchConfiguration configuration,
+			final IFolder scenario) throws CoreException {
 
 		final Index index = ProjectIndex.fromResource(scenario);
 		final String gamePath = index != null ? index.engine().settings().gamePath
@@ -119,17 +119,17 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 		return enginePath;
 	}
 
-	public static String resFilePath(IResource res) {
+	public static String resFilePath(final IResource res) {
 		return new Path(res.getRawLocationURI().getSchemeSpecificPart())
 				.toOSString();
 	}
 
-	static String cmdLineOptionString(Engine engine, String option) {
+	static String cmdLineOptionString(final Engine engine, final String option) {
 		return String.format(engine.settings().cmdLineOptionFormat, option);
 	}
 
-	static String cmdLineOptionString(Engine engine, String option,
-			String argument) {
+	static String cmdLineOptionString(final Engine engine, final String option,
+			final String argument) {
 		return String.format(engine.settings().cmdLineOptionWithArgumentFormat,
 				option, argument);
 	}

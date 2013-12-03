@@ -10,20 +10,20 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 public class TaskExecution {
 	public static final int THRESHOLD = 20;
 	public static int threadPoolSize() { return ClonkPreferences.integer(ClonkPreferences.TASKEXECUTION_THREADS); }
-	public static void threadPool(final Collection<? extends Runnable> runnables, int timeoutMinutes) {
+	public static void threadPool(final Collection<? extends Runnable> runnables, final int timeoutMinutes) {
 		if (runnables.size() < THRESHOLD)
 			for (final Runnable r : runnables)
 				r.run();
 		else
 			threadPool(new Sink<ExecutorService>() {
 				@Override
-				public void receivedObject(ExecutorService pool) {
+				public void receivedObject(final ExecutorService pool) {
 					for (final Runnable r : runnables)
 						pool.execute(r);
 				}
 			}, timeoutMinutes, runnables.size());
 	}
-	public static void threadPool(Sink<ExecutorService> action, int timeoutMinutes, Integer numWorkUnits) {
+	public static void threadPool(final Sink<ExecutorService> action, final int timeoutMinutes, final Integer numWorkUnits) {
 		final ExecutorService pool = newPool(numWorkUnits);
 		try {
 			action.receivedObject(pool);
@@ -36,7 +36,7 @@ public class TaskExecution {
 			}
 		}
 	}
-	public static ExecutorService newPool(Integer numWorkUnits) {
+	public static ExecutorService newPool(final Integer numWorkUnits) {
 		return numWorkUnits != null && numWorkUnits >= THRESHOLD
 			? Executors.newFixedThreadPool(threadPoolSize())
 			: Executors.newSingleThreadExecutor();

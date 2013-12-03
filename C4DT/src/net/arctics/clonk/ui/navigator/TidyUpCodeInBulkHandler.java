@@ -46,7 +46,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 	private int counter;
 
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final ISelection selection = HandlerUtil.getCurrentSelection(event);
 		if (selection instanceof IStructuredSelection) {
 			if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null))
@@ -80,7 +80,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 								counter = 0;
 								final IResourceVisitor countingVisitor = new IResourceVisitor() {
 									@Override
-									public boolean visit(IResource resource) throws CoreException {
+									public boolean visit(final IResource resource) throws CoreException {
 										if (resource instanceof IFile && Script.get(resource, true) != null)
 											counter++;
 										return true;
@@ -99,7 +99,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 									try {
 										container.accept(new IResourceVisitor() {
 											@Override
-											public boolean visit(IResource resource) throws CoreException {
+											public boolean visit(final IResource resource) throws CoreException {
 												if (monitor.isCanceled())
 													return false;
 												if (resource instanceof IFile) {
@@ -114,7 +114,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 														}
 														Core.instance().performActionsOnFileDocument(file, new IDocumentAction<Void>() {
 															@Override
-															public Void run(IDocument document) {
+															public Void run(final IDocument document) {
 																if (document != null)
 																	TidyUpCodeAction.converter().runOnDocument(script, document);
 																return null;

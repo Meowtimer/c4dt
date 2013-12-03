@@ -22,7 +22,7 @@ import org.eclipse.equinox.app.IApplicationContext;
  */
 public class CLI implements IApplication {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		try {
 			new CLI().run(args);
 			System.exit(2);
@@ -35,7 +35,7 @@ public class CLI implements IApplication {
 	public String engine;
 	public String engineConfigurationRoot;
 
-	private int parseOptions(String[] args) {
+	private int parseOptions(final String[] args) {
 		readSettingsFromHome();
 		for (int i = 0; i < args.length; i++) {
 			final String a = args[i];
@@ -133,7 +133,7 @@ public class CLI implements IApplication {
 		}
 	}
 
-	public void verifyScript(String fileName) {
+	public void verifyScript(final String fileName) {
 		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
@@ -148,7 +148,7 @@ public class CLI implements IApplication {
 		}
 	}
 
-	public void printAST(String fileName) throws ProblemException {
+	public void printAST(final String fileName) throws ProblemException {
 		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
@@ -161,7 +161,7 @@ public class CLI implements IApplication {
 	}
 
 	@Override
-	public Object start(IApplicationContext context) throws Exception {
+	public Object start(final IApplicationContext context) throws Exception {
 		main(new String[0]);
 		return null;
 	}

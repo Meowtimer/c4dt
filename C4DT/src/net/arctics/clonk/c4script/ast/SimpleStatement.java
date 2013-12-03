@@ -16,7 +16,7 @@ public class SimpleStatement extends Statement implements ITidyable {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode expression;
 	
-	public SimpleStatement(ASTNode expression) {
+	public SimpleStatement(final ASTNode expression) {
 		super();
 		this.expression = expression;
 		assignParentToSubElements();
@@ -27,7 +27,7 @@ public class SimpleStatement extends Statement implements ITidyable {
 		return expression;
 	}
 
-	public void setExpression(ASTNode expression) {
+	public void setExpression(final ASTNode expression) {
 		this.expression = expression;
 	}
 
@@ -37,12 +37,12 @@ public class SimpleStatement extends Statement implements ITidyable {
 	}
 
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		expression = elms[0];
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		expression.print(builder, depth);
 		builder.append(";"); //$NON-NLS-1$
 	}
@@ -68,11 +68,11 @@ public class SimpleStatement extends Statement implements ITidyable {
 	}
 	
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		return expression.evaluate(context);
 	}
 	
-	public static Statement wrapExpression(ASTNode expr) {
+	public static Statement wrapExpression(final ASTNode expr) {
 		if (expr instanceof Statement)
 			return (Statement)expr;
 		else if (expr != null)
@@ -87,7 +87,7 @@ public class SimpleStatement extends Statement implements ITidyable {
 		return expr;
 	}
 	
-	public static Statement[] wrapExpressions(ASTNode... expressions) {
+	public static Statement[] wrapExpressions(final ASTNode... expressions) {
 		final Statement[] result = new Statement[expressions.length];
 		for (int i = 0; i < expressions.length; i++)
 			result[i] = wrapExpression(expressions[i]);

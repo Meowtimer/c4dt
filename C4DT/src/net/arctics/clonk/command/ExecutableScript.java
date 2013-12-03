@@ -13,21 +13,21 @@ public class ExecutableScript extends SelfContainedScript {
 
 	private final Function main;
 
-	public ExecutableScript(String name, String script, Index index) {
+	public ExecutableScript(final String name, final String script, final Index index) {
 		super(name, script, index);
 		main = this.findFunction("Main");
 	}
 
 
 	@Override
-	public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
+	public boolean gatherIncludes(final Index contextIndex, final Script origin, final Collection<Script> set, final int options) {
 		set.add(Command.BASE);
 		return super.gatherIncludes(contextIndex, origin, set, options);
 	}
 
 	public Function main() { return main; }
 
-	public Object invoke(Object... args) {
+	public Object invoke(final Object... args) {
 		return main.invoke(null);
 	}
 

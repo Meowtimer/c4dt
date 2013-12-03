@@ -36,7 +36,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 	 */
 	@Override
-	public Object[] getChildren(Object obj) {
+	public Object[] getChildren(final Object obj) {
 		if (obj instanceof Declaration)
 			return ((Declaration)obj).subDeclarationsForOutline();
 		return NO_CHILDREN;
@@ -46,7 +46,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#getParent(java.lang.Object)
 	 */
 	@Override
-	public Object getParent(Object obj) {
+	public Object getParent(final Object obj) {
 		return obj instanceof Declaration ? ((Declaration)obj).parentDeclaration() : null;
 	}
 
@@ -54,7 +54,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	 * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
 	 */
 	@Override
-	public boolean hasChildren(Object dec) {
+	public boolean hasChildren(final Object dec) {
 		if (dec instanceof Declaration) {
 			final Object[] subDeclarations = ((Declaration)dec).subDeclarationsForOutline();
 			return subDeclarations != null && subDeclarations.length > 0;
@@ -67,7 +67,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	 * @see org.eclipse.jface.viewers.IStructuredContentProvider#getElements(java.lang.Object)
 	 */
 	@Override
-	public Object[] getElements(Object root) {
+	public Object[] getElements(final Object root) {
 		return getChildren(root);
 	}
 
@@ -75,22 +75,22 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 	 * @see org.eclipse.jface.viewers.IContentProvider#inputChanged(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+	public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
 		root = new WeakReference<Declaration>((Declaration)newInput);
 	}
 
 	@Override
-	public Image getImage(Object element) {
+	public Image getImage(final Object element) {
 		return UI.iconFor(element);
 	}
 
 	@Override
-	public String getText(Object element) {
+	public String getText(final Object element) {
 		return getStyledText(element).toString();
 	}
 
 	@Override
-	public StyledString getStyledText(Object element) {
+	public StyledString getStyledText(final Object element) {
 		final boolean foreign =
 			element instanceof Declaration &&
 			root != null && root.get() instanceof Declaration &&
@@ -98,7 +98,7 @@ public class ClonkOutlineProvider extends LabelProvider implements ITreeContentP
 		return styledTextFor(element, foreign, root != null ? root.get() : null);
 	}
 
-	public static StyledString styledTextFor(Object element, boolean foreign, Declaration root) {
+	public static StyledString styledTextFor(final Object element, final boolean foreign, final Declaration root) {
 		try {
 			final StyledString result = new StyledString();
 			if (foreign && element instanceof Declaration) {

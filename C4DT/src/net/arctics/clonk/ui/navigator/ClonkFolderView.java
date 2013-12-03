@@ -85,12 +85,12 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	private class ClonkFolderContentProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
 
 		@Override
-		public Object[] getChildren(Object parentElement) {
+		public Object[] getChildren(final Object parentElement) {
 			try {
 				final File folder = (File) parentElement;
 				return folder.listFiles(new FilenameFilter() {
 					@Override
-					public boolean accept(File dir, String name) {
+					public boolean accept(final File dir, final String name) {
 						if (name.startsWith(".")) //$NON-NLS-1$
 							return false;
 						if (Util.isMac() && name.endsWith(".app")) //$NON-NLS-1$
@@ -104,35 +104,35 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		}
 
 		@Override
-		public Object getParent(Object element) {
+		public Object getParent(final Object element) {
 			return ((File) element).getParentFile();
 		}
 
 		@Override
-		public boolean hasChildren(Object element) {
+		public boolean hasChildren(final Object element) {
 			return element instanceof File && ((File) element).isDirectory();
 		}
 
 		@Override
-		public Object[] getElements(Object inputElement) {
+		public Object[] getElements(final Object inputElement) {
 			return getChildren(inputElement);
 		}
 
 		@Override
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+		public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
 			// TODO Auto-generated method stub
 
 		}
 
 		@Override
-		public Image getImage(Object element) {
+		public Image getImage(final Object element) {
 			final Engine engine = currentEngine();
 			final GroupType gt = engine.groupTypeForFileName((((File) element).toString()));
 			return engine.image(gt);
 		}
 
 		@Override
-		public StyledString getStyledText(Object element) {
+		public StyledString getStyledText(final Object element) {
 			if (((File) element).isFile())
 				return new StyledString(((File) element).getName(), StyledString.QUALIFIER_STYLER);
 			else
@@ -140,7 +140,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		}
 
 		@Override
-		public String getText(Object element) {
+		public String getText(final Object element) {
 			return getStyledText(element).getString();
 		}
 
@@ -157,7 +157,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	private MenuItem refreshMenuItem;
 	private MenuItem lookForID;
 
-	private void createProjectEditor(Composite parent, Object groupLayoutData) {
+	private void createProjectEditor(final Composite parent, final Object groupLayoutData) {
 		projectEditor = new UI.ProjectSelectionBlock(parent, null, this, groupLayoutData, null);
 	}
 
@@ -255,7 +255,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	}
 
 	@Override
-	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+	public void selectionChanged(final IWorkbenchPart part, final ISelection selection) {
 		if (!openInCurrentProject.getEnabled())
 			return;
 		IProject proj = null;
@@ -277,7 +277,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		super.dispose();
 	}
 
-	private void refreshTree(boolean onlyIfInputChanged) {
+	private void refreshTree(final boolean onlyIfInputChanged) {
 		final Engine engine = currentEngine();
 		final String clonkPath = engine != null ? engine.settings().gamePath : null;
 		final File clonkFolder = (clonkPath != null && !clonkPath.equals("")) //$NON-NLS-1$
@@ -301,7 +301,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	}
 
 	@Override
-	public void doubleClick(DoubleClickEvent event) {
+	public void doubleClick(final DoubleClickEvent event) {
 		if (event.getSource() == folderTree)
 			linkSelection();
 	}
@@ -329,7 +329,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	}
 
 	@Override
-	public void widgetSelected(SelectionEvent e) {
+	public void widgetSelected(final SelectionEvent e) {
 		if (e.getSource() == openInCurrentProject)
 			updateProjectChooserEnablization();
 		else if (e.getSource() == projectEditor.addButton) {
@@ -348,7 +348,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 	private void lookForID() {
 		final InputDialog inputDialog = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-    		"Look for ID", Messages.ClonkFolderView_LookForIDPromptCaption, "CLNK", null); //$NON-NLS-1$ //$NON-NLS-3$
+    		"Look for ID", Messages.ClonkFolderView_LookForIDPromptCaption, "CLNK", null); //$NON-NLS-1$ 
 		if (inputDialog.open() != Window.OK)
 			return;
 
@@ -356,7 +356,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		final Object[] selection = ((IStructuredSelection)folderTree.getSelection()).toArray();
 		new Job(Messages.ClonkFolderView_LookForIDJobDescription) {
 			@Override
-			protected IStatus run(IProgressMonitor monitor) {
+			protected IStatus run(final IProgressMonitor monitor) {
 				final List<File> containing = new ArrayList<File>();
 				
 				for (final Object f : selection) {
@@ -367,11 +367,11 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 						final C4GroupTopLevelCompressed group = new C4GroupTopLevelCompressed(sel.getName(), sel);
 						final C4GroupHeaderFilterBase headerFilter = new C4GroupHeaderFilterBase() {
 							@Override
-							public boolean accepts(C4GroupEntryHeader header, C4Group context) {
+							public boolean accepts(final C4GroupEntryHeader header, final C4Group context) {
 								return header.entryName().equals("DefCore.txt"); //$NON-NLS-1$
 							}
 							@Override
-							public void processGroupItem(C4GroupItem item) throws CoreException {
+							public void processGroupItem(final C4GroupItem item) throws CoreException {
 								final C4GroupFile file = as(item, C4GroupFile.class);
 								if (file != null) {
 									final String s = file.getContentsAsString();
@@ -382,7 +382,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 						};
 						group.readFromStream(group, 0, new StreamReadCallback() {
 							@Override
-							public void readStream(InputStream stream) {
+							public void readStream(final InputStream stream) {
 								try {
 									group.readIntoMemory(true, headerFilter, stream);
 								} catch (final Exception e) {
@@ -407,7 +407,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	}
 
 	@Override
-	public void widgetDefaultSelected(SelectionEvent e) {
+	public void widgetDefaultSelected(final SelectionEvent e) {
 		if (e.getSource() == projectEditor.text) {
 			Core.instance().getPreferenceStore().setValue(PREF_PROJECT_TO_CREATE_LINK_IN, projectEditor.text.getText());
 			refreshTree(true);

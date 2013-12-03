@@ -37,7 +37,7 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 	}
 
 	@Override
-	public void init(IWorkbench workbench) {
+	public void init(final IWorkbench workbench) {
 		setPreferenceStore(Core.instance().getPreferenceStore());
 	}
 

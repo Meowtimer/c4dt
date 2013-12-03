@@ -55,9 +55,9 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	public int replacementOffset() { return replacementOffset; }
 	public int replacementLength() { return replacementLength; }
 	public final int category() { return category;}
-	public void setCategory(int category) { this.category = category; }
+	public void setCategory(final int category) { this.category = category; }
 	public int cursorPosition() { return cursorPosition; }
-	public void setImage(Image image) { this.image = image; }
+	public void setImage(final Image image) { this.image = image; }
 	public ProposalsSite site() { return site; }
 
 	/**
@@ -69,7 +69,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	 * @param replacementLength the length of the text to be replaced
 	 * @param cursorPosition the position of the cursor following the insert relative to replacementOffset
 	 */
-	public DeclarationProposal(Declaration declaration, Declaration context, String replacementString, int replacementOffset, int replacementLength, int cursorPosition) {
+	public DeclarationProposal(final Declaration declaration, final Declaration context, final String replacementString, final int replacementOffset, final int replacementLength, final int cursorPosition) {
 		this(declaration, context, replacementString, replacementOffset, replacementLength, cursorPosition, null, declaration.toString(), null, null, null, null);
 	}
 
@@ -87,15 +87,15 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	 * @param postInfo information that is appended to displayString
 	 */
 	public DeclarationProposal(
-		Declaration declaration,
-		Declaration context,
-		String replacementString,
-		int replacementOffset, int replacementLength, int cursorPosition,
-		Image image,
-		String displayString,
-		IContextInformation contextInformation,
-		String additionalProposalInfo, String postInfo,
-		ProposalsSite site
+		final Declaration declaration,
+		final Declaration context,
+		final String replacementString,
+		final int replacementOffset, final int replacementLength, final int cursorPosition,
+		final Image image,
+		final String displayString,
+		final IContextInformation contextInformation,
+		final String additionalProposalInfo, final String postInfo,
+		final ProposalsSite site
 	) {
 		this.declaration = declaration;
 		this.context = context;
@@ -112,14 +112,14 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	}
 
 	public DeclarationProposal(
-		Declaration declaration,
-		Declaration context,
-		String replacementString,
-		int replacementOffset, int replacementLength,
-		Image image,
-		IContextInformation contextInformation,
-		String additionalProposalInfo, String postInfo,
-		ProposalsSite site
+		final Declaration declaration,
+		final Declaration context,
+		final String replacementString,
+		final int replacementOffset, final int replacementLength,
+		final Image image,
+		final IContextInformation contextInformation,
+		final String additionalProposalInfo, final String postInfo,
+		final ProposalsSite site
 	) {
 		this(
 			declaration, context, replacementString, replacementOffset, replacementLength,
@@ -136,7 +136,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	 * @see ICompletionProposal#apply(IDocument)
 	 */
 	@Override
-	public void apply(IDocument document) {
+	public void apply(final IDocument document) {
 		try {
 			if (replacementString != null)
 				document.replace(replacementOffset, replacementLength, replacementString);
@@ -151,7 +151,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	 * @see ICompletionProposal#getSelection(IDocument)
 	 */
 	@Override
-	public Point getSelection(IDocument document) {
+	public Point getSelection(final IDocument document) {
 		getDisplayString();
 		return new Point(replacementOffset + cursorPosition, 0);
 	}
@@ -217,7 +217,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 		return result;
 	}
 
-	public static boolean validPrefix(String prefix) {
+	public static boolean validPrefix(final String prefix) {
 		for (int i = 0; i < prefix.length(); i++) {
 			final char c = prefix.charAt(i);
 			if (!(Character.isLetter(c) || BufferedScanner.isWordPart(c)))
@@ -227,7 +227,7 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	}
 
 	@Override
-	public boolean validate(IDocument document, int offset, DocumentEvent event) {
+	public boolean validate(final IDocument document, final int offset, final DocumentEvent event) {
 		final int replaceOffset = replacementOffset();
 		if (offset >= replaceOffset) {
 			if (site == null)
@@ -249,15 +249,15 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	}
 
 	@Override
-	public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
+	public void apply(final ITextViewer viewer, final char trigger, final int stateMask, final int offset) {
 		replacementLength = offset - replacementOffset;
 		apply(viewer.getDocument());
 	}
 
 	@Override
-	public void selected(ITextViewer viewer, boolean smartToggle) {}
+	public void selected(final ITextViewer viewer, final boolean smartToggle) {}
 	@Override
-	public void unselected(ITextViewer viewer) {}
+	public void unselected(final ITextViewer viewer) {}
 
 	public String[] identifiers() {
 		if (declaration != null) {

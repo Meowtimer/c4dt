@@ -46,7 +46,7 @@ import org.xml.sax.SAXException;
 public class XMLDocImporter {
 
 	private static XPath xPath = XPathFactory.newInstance().newXPath();
-	private static XPathExpression xp(String expr) {
+	private static XPathExpression xp(final String expr) {
 		try {
 			return xPath.compile(expr);
 		} catch (final XPathExpressionException e) {
@@ -70,7 +70,7 @@ public class XMLDocImporter {
 		int line;
 		String english;
 		String localized;
-		public PoTranslationFragment(int line) {
+		public PoTranslationFragment(final int line) {
 			super();
 			this.line = line;
 		}
@@ -103,7 +103,7 @@ public class XMLDocImporter {
 		return this;
 	}
 
-	public synchronized void setRepositoryPath(String repositoryPath) {
+	public synchronized void setRepositoryPath(final String repositoryPath) {
 		if (Utilities.eq(repositoryPath, this.repositoryPath))
 			return;
 		this.repositoryPath = repositoryPath;
@@ -184,7 +184,7 @@ public class XMLDocImporter {
 	public static final int DOCUMENTATION = 1;
 	public static final int SIGNATURE = 2;
 
-	public ExtractedDeclarationDocumentation extractDeclarationInformationFromFunctionXml(String functionName, String langId, int flags) {
+	public ExtractedDeclarationDocumentation extractDeclarationInformationFromFunctionXml(final String functionName, final String langId, final int flags) {
 		if (!initialized || repositoryPath == null)
 			return null;
 		final Path docsRelativePath = new Path("sdk/script/fn/"+functionName+".xml");
@@ -199,7 +199,7 @@ public class XMLDocImporter {
 					builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 					builder.setEntityResolver(new EntityResolver() {
 						@Override
-						public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+						public InputSource resolveEntity(final String publicId, final String systemId) throws SAXException, IOException {
 							if (systemId.endsWith("clonk.dtd")) //$NON-NLS-1$
 								return new InputSource(new FileReader(repositoryPath + "/docs/clonk.dtd"));
 							return null;
@@ -297,7 +297,7 @@ public class XMLDocImporter {
 		}
 	}
 
-	private static void appendContentsOfNode(Node n, StringBuilder builder) {
+	private static void appendContentsOfNode(final Node n, final StringBuilder builder) {
 		for (int i = 0; i < n.getChildNodes().getLength(); i++) {
 			final Node c = n.getChildNodes().item(i);
 			if (c.getNodeValue() != null)
@@ -310,7 +310,7 @@ public class XMLDocImporter {
 		}
 	}
 
-	private static String getTextIncludingTags(Node n) {
+	private static String getTextIncludingTags(final Node n) {
 		final StringBuilder b = new StringBuilder();
 		appendContentsOfNode(n, b);
 		return b.toString();
@@ -320,7 +320,7 @@ public class XMLDocImporter {
 		return initialized;
 	}
 
-	public <T extends ITypeable> boolean fleshOutPlaceholder(T placeholder, boolean placeholdersFleshedOutFlag) {
+	public <T extends ITypeable> boolean fleshOutPlaceholder(final T placeholder, final boolean placeholdersFleshedOutFlag) {
 		if (!placeholdersFleshedOutFlag) {
 			final ExtractedDeclarationDocumentation d = extractDeclarationInformationFromFunctionXml(placeholder.name(), ClonkPreferences.languagePref(), XMLDocImporter.SIGNATURE);
 			if (d != null) {

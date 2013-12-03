@@ -80,11 +80,11 @@ public class Command {
 		registerCommandsFromClass(BASE, StaticTypingUtil.class);
 	}
 
-	public static ExecutableScript executableScriptFromCommand(String command) {
+	public static ExecutableScript executableScriptFromCommand(final String command) {
 		return new ExecutableScript("command", String.format("func Main() {%s;}", command), Command.INDEX);
 	}
 
-	public static void registerCommandsFromClass(Script script, Class<?> classs) {
+	public static void registerCommandsFromClass(final Script script, final Class<?> classs) {
 		for (final Method m : classs.getMethods())
 			if (m.getAnnotation(CommandFunction.class) != null)
 				addCommand(script, m);
@@ -97,7 +97,7 @@ public class Command {
 		private final transient Method method;
 
 		@Override
-		public Object invoke(IEvaluationContext context) {
+		public Object invoke(final IEvaluationContext context) {
 			try {
 				final Object[] args = new Object[method.getParameterTypes().length];
 				args[0] = context;
@@ -109,23 +109,23 @@ public class Command {
 			}
 		}
 
-		public NativeCommandFunction(Script parent, Method method) {
+		public NativeCommandFunction(final Script parent, final Method method) {
 			super(parent, FunctionScope.PUBLIC, method.getName());
 			this.method = method;
 		}
 
 	}
 
-	public static void addCommand(Script script, Method method) {
+	public static void addCommand(final Script script, final Method method) {
 		script.addDeclaration(new NativeCommandFunction(script, method));
 	}
 
-	public static void addCommand(Method method) {
+	public static void addCommand(final Method method) {
 		addCommand(BASE, method);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static void setFieldValue(Object obj, String name, Object value) {
+	public static void setFieldValue(final Object obj, final String name, Object value) {
 		final Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
 		try {
 			final Field f = c.getField(name);
@@ -141,17 +141,17 @@ public class Command {
 
 	public static class BaseCommands {
 		@CommandFunction
-		public static void Log(Object context, String message) {
+		public static void Log(final Object context, final String message) {
 			System.out.println(message);
 		}
 
 		@CommandFunction
-		public static String Format(Object context, String format, Object... args) {
+		public static String Format(final Object context, final String format, final Object... args) {
 			return String.format(format, args);
 		}
 
 		@CommandFunction
-		public static void OpenDoc(Object context, String funcName) {
+		public static void OpenDoc(final Object context, final String funcName) {
 			try {
 				EntityHyperlink.openDocumentationForFunction(funcName, Core.instance().activeEngine());
 			} catch (final Exception e) {
@@ -162,14 +162,14 @@ public class Command {
 
 	public static class CodeConversionCommands {
 		@CommandFunction
-		public static void SetCodeConversionOption(Object context, String option, Object value) {
+		public static void SetCodeConversionOption(final Object context, final String option, final Object value) {
 			setFieldValue(Conf.class, option, value);
 		}
 		@CommandFunction
-		public static void WriteEngineScript(Object context, String engineName) throws IOException {
+		public static void WriteEngineScript(final Object context, final String engineName) throws IOException {
 			Core.instance().loadEngine(engineName).writeEngineScript();
 		}
-		private static void _WriteDescriptionsToFile(String writeToFile, Engine engine) throws FileNotFoundException, IOException {
+		private static void _WriteDescriptionsToFile(final String writeToFile, final Engine engine) throws FileNotFoundException, IOException {
 			final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
 			writer.append("[Descriptions]\n"); //$NON-NLS-1$
 			for (final Function f : engine.functions()) {
@@ -179,13 +179,13 @@ public class Command {
 			writer.close();
 		}
 		@CommandFunction
-		public static void WriteDescriptionsToFile(Object context, String writeToFile, String engineName) throws FileNotFoundException, IOException {
+		public static void WriteDescriptionsToFile(final Object context, final String writeToFile, final String engineName) throws FileNotFoundException, IOException {
 			final Engine engine = Core.instance().loadEngine(engineName);
 			if (engine != null)
 				_WriteDescriptionsToFile(writeToFile, engine);
 		}
 		@CommandFunction
-		public static void ConvertProject(Object context, String source, String dest) {
+		public static void ConvertProject(final Object context, final String source, final String dest) {
 			final ProjectConverter converter = new ProjectConverter(
 				ResourcesPlugin.getWorkspace().getRoot().getProject(source),
 				ResourcesPlugin.getWorkspace().getRoot().getProject(dest)
@@ -196,11 +196,11 @@ public class Command {
 
 	public static class EngineConfiguration {
 		@CommandFunction
-		public static void SetEngineProperty(Object context, String name, Object value) {
+		public static void SetEngineProperty(final Object context, final String name, final Object value) {
 			setFieldValue(Core.instance().activeEngine().settings(), name, value);
 		}
 		@CommandFunction
-		public static void IntrinsicizeEngineProperty(Object context, String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
+		public static void IntrinsicizeEngineProperty(final Object context, final String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
 			final Engine engine = Core.instance().activeEngine();
 			setFieldValue(
 				engine.intrinsicSettings(), name,
@@ -211,7 +211,7 @@ public class Command {
 
 	public static class Diagnostics {
 		@CommandFunction
-		public static void ReadIndex(Object context, String path, String engine) {
+		public static void ReadIndex(final Object context, final String path, final String engine) {
 			final Index index = Index.loadShallow(Index.class, new File(path), null, Core.instance().loadEngine(engine));
 			try {
 				index.postLoad();
@@ -222,7 +222,7 @@ public class Command {
 			System.out.println("===Objects==="); //$NON-NLS-1$
 			index.allDefinitions(new Sink<Definition>() {
 				@Override
-				public void receivedObject(Definition item) {
+				public void receivedObject(final Definition item) {
 					System.out.println(item.toString());
 				}
 			});
@@ -234,21 +234,21 @@ public class Command {
 				System.out.println(scen.toString());
 		}
 		@CommandFunction
-		public static void GC(Object context) { System.gc(); }
+		public static void GC(final Object context) { System.gc(); }
 		@CommandFunction
-		public static void ReloadIndex(Object context, String projectName) {
+		public static void ReloadIndex(final Object context, final String projectName) {
 			final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 			if (nature != null)
 				nature.reloadIndex();
 		}
 		@CommandFunction
-		public static void PrintHashCodes(Object context, String projectName) {
+		public static void PrintHashCodes(final Object context, final String projectName) {
 			final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 			final Map<Integer, Declaration> m = new HashMap<>();
 			if (nature != null)
 				nature.index().allScripts(new Sink<Script>() {
 					@Override
-					public void receivedObject(Script item) {
+					public void receivedObject(final Script item) {
 						System.out.println(item.toString());
 						for (final Declaration d : item.subDeclarations(nature.index(), DeclMask.ALL)) {
 							if (m.containsKey(d.hashCode()))
@@ -259,10 +259,10 @@ public class Command {
 				});
 		}
 		@CommandFunction
-		public static void CountNodes(Object context, String projectName) {
+		public static void CountNodes(final Object context, final String projectName) {
 			class Counter {
 				int result;
-				public int count(ASTNode node) {
+				public int count(final ASTNode node) {
 					if (node != null) {
 						result++;
 						for (final ASTNode sn : node.subElements())
@@ -274,7 +274,7 @@ public class Command {
 			System.out.println(String.format("%d", new Counter().count(ClonkProjectNature.get(projectName).index())));
 		}
 		@CommandFunction
-		public static void ToggleFlag(Object context, String flag) {
+		public static void ToggleFlag(final Object context, final String flag) {
 			try {
 				final Field f = Flags.class.getField(flag);
 				f.set(null, !(Boolean) f.get(null));
@@ -283,7 +283,7 @@ public class Command {
 			}
 		}
 		@CommandFunction
-		public static void OutputTree(Object context, String projectName, final String outputFile) {
+		public static void OutputTree(final Object context, final String projectName, final String outputFile) {
 			final ClonkProjectNature nat = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
 			class Output implements IASTVisitor<Void>, AutoCloseable {
 				Writer writer;
@@ -300,7 +300,7 @@ public class Command {
 					}
 				}
 				@Override
-				public TraversalContinuation visitNode(ASTNode node, Void context) {
+				public TraversalContinuation visitNode(final ASTNode node, final Void context) {
 					final ASTNode[] subs = node.subElements();
 					try {
 						writer.append(multiply("\t", depth));
@@ -329,7 +329,7 @@ public class Command {
 			}
 		}
 		@CommandFunction
-		public static void XmlDefinition(Object context, String _name) {
+		public static void XmlDefinition(final Object context, final String _name) {
 			final Engine oc = Core.instance().loadEngine("OpenClonk");
 			final XMLDocImporter importer = oc.docImporter();
 			importer.initialize();
@@ -354,12 +354,12 @@ public class Command {
 			}
 		}
 		@CommandFunction
-		public static void AllDefinitions(Object context, String proj, final String format) {
+		public static void AllDefinitions(final Object context, final String proj, final String format) {
 			final ClonkProjectNature cpn = ClonkProjectNature.get(proj);
 			final List<String> defs = new LinkedList<>();
 			cpn.index().allDefinitions(new Sink<Definition>() {
 				@Override
-				public void receivedObject(Definition item) {
+				public void receivedObject(final Definition item) {
 					defs.add(String.format(format, item.id().stringValue()));
 				}
 			});

@@ -21,7 +21,7 @@ public class SearchMatch extends Match {
 	public int lineOffset() { return lineOffset; }
 	public boolean isPotential() { return potential; }
 	public boolean isIndirect() { return indirect; }
-	public SearchMatch(String line, int lineOffset, Object element, ASTNode node, boolean potential, boolean indirect) {
+	public SearchMatch(final String line, final int lineOffset, final Object element, final ASTNode node, final boolean potential, final boolean indirect) {
 		super(element, node.sectionOffset()+node.identifierStart(), node.identifierLength());
 		this.node = new WeakReference<>(node);
 		this.line = defaulting(line, "...");

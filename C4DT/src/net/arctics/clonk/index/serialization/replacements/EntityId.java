@@ -12,7 +12,7 @@ public class EntityId implements Serializable, IDeserializationResolvable {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected long referencedEntityId;
 	protected Object referencedEntityToken;
-	public EntityId(IndexEntity referencedEntity) {
+	public EntityId(final IndexEntity referencedEntity) {
 		this.referencedEntityId = referencedEntity.entityId();
 		this.referencedEntityToken = referencedEntity.additionalEntityIdentificationToken();
 	}
@@ -20,11 +20,11 @@ public class EntityId implements Serializable, IDeserializationResolvable {
 	public String toString() {
 		return String.format("(%d, %s)", referencedEntityId, referencedEntityToken != null ? referencedEntityToken.toString() : "<No Token>");
 	}
-	protected Index index(Index context) {
+	protected Index index(final Index context) {
 		return context; // ;>
 	}
 	@Override
-	public IndexEntity resolve(Index index, IndexEntity deserializee) {
+	public IndexEntity resolve(final Index index, final IndexEntity deserializee) {
 		IndexEntity result = null;
 		final Index externalIndex = index(index);
 		if (externalIndex != null) {

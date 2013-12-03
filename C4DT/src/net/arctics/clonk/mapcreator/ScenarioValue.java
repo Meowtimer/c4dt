@@ -9,13 +9,13 @@ public class ScenarioValue {
 	public int Evaluate() {
 		return BoundBy(Std+Random(2*Rnd+1)-Rnd,Min,Max);
 	}
-	public ScenarioValue(int std, int rnd) {
+	public ScenarioValue(final int std, final int rnd) {
 		this(std, rnd, 0, 100);
 	}
-	public ScenarioValue(int std) {
+	public ScenarioValue(final int std) {
 		this(std, 0);
 	}
-	public ScenarioValue(int std, int rnd, int min, int max) {
+	public ScenarioValue(final int std, final int rnd, final int min, final int max) {
 		super();
 		Std = std;
 		Rnd = rnd;
@@ -25,13 +25,13 @@ public class ScenarioValue {
 	public ScenarioValue() {
 		this(0);
 	}
-	public ScenarioValue(CategoriesValue[] array) {
+	public ScenarioValue(final CategoriesValue[] array) {
 		Std = val(array, 0, 0);
 		Rnd = val(array, 1, 0);
 		Min = val(array, 2, 0);
 		Max = val(array, 3, 100);
 	}
-	private static int val(CategoriesValue[] array, int ndx, int defaultV) {
+	private static int val(final CategoriesValue[] array, final int ndx, final int defaultV) {
 		return ndx < array.length ? array[ndx].summedValue() : defaultV;
 	}
 }

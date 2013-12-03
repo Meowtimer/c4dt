@@ -16,12 +16,12 @@ public class IntegerLiteral extends NumberLiteral {
 	private final boolean hex;
 	private final long literal;
 
-	public IntegerLiteral(long value, boolean hex) {
+	public IntegerLiteral(final long value, final boolean hex) {
 		this.literal = value;
 		this.hex = hex;
 	}
 	
-	public IntegerLiteral(long value) {
+	public IntegerLiteral(final long value) {
 		this.literal = value;
 		this.hex = false;
 	}
@@ -36,7 +36,7 @@ public class IntegerLiteral extends NumberLiteral {
 	}
 	
 	@Override
-	public boolean literalsEqual(Literal<?> other) {
+	public boolean literalsEqual(final Literal<?> other) {
 		if (other instanceof IntegerLiteral)
 			return ((IntegerLiteral)other).literal == this.literal;
 		else
@@ -48,7 +48,7 @@ public class IntegerLiteral extends NumberLiteral {
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		if (hex) {
 			output.append("0x"); //$NON-NLS-1$
 			output.append(Long.toHexString(longValue()).toUpperCase());

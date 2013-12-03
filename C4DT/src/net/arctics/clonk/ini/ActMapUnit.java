@@ -14,7 +14,7 @@ public class ActMapUnit extends IniUnitWithNamedSections {
 		return FILE_NAME;
 	}
 	
-	public ActMapUnit(Object input) {
+	public ActMapUnit(final Object input) {
 		super(input);
 	}
 

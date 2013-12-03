@@ -29,7 +29,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	public static final Directive[] CANONICALS = map
 		(DirectiveType.values(), Directive.class, new IConverter<DirectiveType, Directive>() {
 		@Override
-		public Directive convert(DirectiveType from) {
+		public Directive convert(final DirectiveType from) {
 			return new Directive(from, "", 0);
 		};
 	});
@@ -41,7 +41,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 
 		private final String lowerCase = name().toLowerCase();
 
-		public static DirectiveType makeType(String arg) {
+		public static DirectiveType makeType(final String arg) {
 			for (final DirectiveType d : values())
 				if (d.toString().equals(arg))
 					return d;
@@ -62,7 +62,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	private final int identifierStart;
 	private transient ID cachedID;
 
-	public Directive(DirectiveType type, String content, int identifierStart) {
+	public Directive(final DirectiveType type, final String content, final int identifierStart) {
 		this.content = content;
 		this.type = type;
 		this.identifierStart = identifierStart;
@@ -112,7 +112,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		return result;
 	}
 
-	public void validate(ScriptParser parser) throws ProblemException {
+	public void validate(final ScriptParser parser) throws ProblemException {
 		switch (type()) {
 		case APPENDTO:
 			break; // don't create error marker when appending to unknown object
@@ -132,13 +132,13 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	}
 
 	@Override
-	public boolean matchedBy(Matcher matcher) {
+	public boolean matchedBy(final Matcher matcher) {
 		if (matcher.reset(type().name()).lookingAt() || matcher.reset("#"+type().name()).lookingAt())
 			return true;
 		return contents() != null && matcher.reset(contents()).lookingAt();
 	}
 
-	public boolean refersTo(Definition definition) {
+	public boolean refersTo(final Definition definition) {
 		switch (type) {
 		case APPENDTO: case INCLUDE:
 			final ID id = contentAsID();
@@ -149,7 +149,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append("#"+type().toString());
 		if (contents() != null) {
 			output.append(" ");
@@ -158,7 +158,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	}
 
 	@Override
-	public boolean equalAttributes(ASTNode other) {
+	public boolean equalAttributes(final ASTNode other) {
 		final Directive d = (Directive) other;
 		return super.equalAttributes(other) && eq(d.content, this.content) && eq(d.type, this.type);
 	}
@@ -188,7 +188,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	}
 
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		content = elms[0].printed();
 		cachedID = null;
 	}

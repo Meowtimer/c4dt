@@ -24,18 +24,18 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
 	public static final C4GroupHeaderFilterBase ACCEPT_EVERYTHING = new C4GroupHeaderFilterBase() {
 		@Override
-		public boolean accepts(C4GroupEntryHeader header, C4Group context) {
+		public boolean accepts(final C4GroupEntryHeader header, final C4Group context) {
 			return true;
 		}
 	};
 	
 	public static final C4GroupHeaderFilterBase ACCEPT_EVERYTHING_DONTSTORECONTENTS = new C4GroupHeaderFilterBase() {
 		@Override
-		public boolean accepts(C4GroupEntryHeader header, C4Group context) {
+		public boolean accepts(final C4GroupEntryHeader header, final C4Group context) {
 			return true;
 		};
 		@Override
-		public int flagsForEntry(C4GroupFile entry) {
+		public int flagsForEntry(final C4GroupFile entry) {
 			return DONTREADINTOMEMORY;
 		};
 	};
@@ -103,26 +103,25 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	
 	@Override
 	public URI toURI() {
-		C4Group masterGroup = (this instanceof C4Group ? (C4Group)this : parentGroup()).masterGroup();
-		File origin = masterGroup.origin();
-		if (origin != null) {
+		final C4Group masterGroup = (this instanceof C4Group ? (C4Group)this : parentGroup()).masterGroup();
+		final File origin = masterGroup.origin();
+		if (origin != null)
 			try {
 				String path = new Path(origin.getParent()).append(path().toString()).toPortableString();
 				if (!path.startsWith("/")) //$NON-NLS-1$
 					path = "/"+path; //$NON-NLS-1$
 				path = C4GroupFileSystem.replaceSpecialChars(path);
-				URI uri = new URI("c4group", path, null); //$NON-NLS-1$
+				final URI uri = new URI("c4group", path, null); //$NON-NLS-1$
 				return uri;
-			} catch (URISyntaxException e) {
+			} catch (final URISyntaxException e) {
 				e.printStackTrace();
 				return null;
 			}
-		}
 		return null;
 	}
 	
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		// remove sophisticatedness
 		return obj == this;
 	}
@@ -132,12 +131,12 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 		return parentGroup();
 	}
 	
-	public static C4GroupItem groupItemBackingResource(IResource resource) {
-		URI uri = resource.getLocationURI();
+	public static C4GroupItem groupItemBackingResource(final IResource resource) {
+		final URI uri = resource.getLocationURI();
 		try {
-			IFileStore fileStore = EFS.getStore(uri);
+			final IFileStore fileStore = EFS.getStore(uri);
 			return Utilities.as(fileStore, C4GroupItem.class);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			return null;
 		}
 	}

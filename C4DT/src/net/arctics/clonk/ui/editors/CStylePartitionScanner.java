@@ -17,11 +17,11 @@ public class CStylePartitionScanner extends RuleBasedPartitionScanner {
 
 	public CStylePartitionScanner() {
 
-		IToken singleLineComment = new Token(COMMENT);
-		IToken multiLineComment = new Token(MULTI_LINE_COMMENT);
-		IToken javaDocComment = new Token(JAVADOC_COMMENT);
-		IToken string = new Token(STRING);
-		IPredicateRule[] rules = new IPredicateRule[] {
+		final IToken singleLineComment = new Token(COMMENT);
+		final IToken multiLineComment = new Token(MULTI_LINE_COMMENT);
+		final IToken javaDocComment = new Token(JAVADOC_COMMENT);
+		final IToken string = new Token(STRING);
+		final IPredicateRule[] rules = new IPredicateRule[] {
 			new EndOfLineRule("//", singleLineComment), //$NON-NLS-1$
 			new MultiLineRule("/**", "*/", javaDocComment, (char)0, true),
 			new MultiLineRule("/*", "*/", multiLineComment, (char)0, true), //$NON-NLS-1$ //$NON-NLS-2$

@@ -64,23 +64,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private int buildKind;
 	private Index index;
 
-	public void addGatheredStructure(Structure structure) { gatheredStructures.add(structure); }
+	public void addGatheredStructure(final Structure structure) { gatheredStructures.add(structure); }
 	public Markers markers() { return markers; }
 	public Index index() { return index; }
 	public IProgressMonitor monitor() { return monitor; }
 	public Collection<ScriptParser> parsers() { return parserMap.values(); }
 	public Collection<Script> scripts() { return parserMap.keySet(); }
 
-	static String buildTask(String text, IProject project) {
+	static String buildTask(final String text, final IProject project) {
 		return String.format(text, project.getName());
 	}
 
-	private String buildTask(String text) {
+	private String buildTask(final String text) {
 		return buildTask(text, getProject());
 	}
 
 	@Override
-	protected void clean(IProgressMonitor monitor) throws CoreException {
+	protected void clean(final IProgressMonitor monitor) throws CoreException {
 		System.out.println(buildTask(Messages.ClonkBuilder_CleaningProject));
 		// clean up this project
 		if (monitor != null)
@@ -100,7 +100,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	@Override
 	@SuppressWarnings({"rawtypes"})
-	protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
+	protected IProject[] build(final int kind, final Map args, final IProgressMonitor monitor) throws CoreException {
 		final IProject proj = getProject();
 		final IResourceDelta delta = getDelta(proj);
 
@@ -152,7 +152,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	private <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(IResourceDelta delta, IProject proj, T visitor) throws CoreException {
+	private <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(final IResourceDelta delta, final IProject proj, final T visitor) throws CoreException {
 		if (delta != null)
 			delta.accept(visitor);
 		else if (buildKind == FULL_BUILD || buildKind == CLEAN_BUILD)
@@ -163,7 +163,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private Script[] performBuildPhases(
 		final IProject proj,
-		IResourceDelta delta
+		final IResourceDelta delta
 	) throws CoreException {
 		// visit files to open C4Groups if files are contained in c4group file system
 		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.OPEN));
@@ -207,7 +207,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			s.traverse(Comment.TODO_EXTRACTOR, markers);
 	}
 
-	private void gatherScripts(final IProject proj, IResourceDelta delta) throws CoreException {
+	private void gatherScripts(final IProject proj, final IResourceDelta delta) throws CoreException {
 		parserMap.clear();
 		monitor.subTask(buildTask(Messages.ClonkBuilder_GatheringScripts));
 		final ScriptGatherer gatherer = new ScriptGatherer(this);
@@ -263,7 +263,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		new DynamicTypingMigrationJob(nature, "Dynamic Typing Migration", parsers, settings).schedule();
 	}
 
-	private void parseDeclarations(Index index) {
+	private void parseDeclarations(final Index index) {
 		// parse declarations
 		monitor.subTask(buildTask(Messages.ClonkBuilder_ParseDeclarations));
 		int parserMapSize;
@@ -294,7 +294,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private void innerParseDeclarations(final Map<Script, ScriptParser> newEnqueued) {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
-			public void receivedObject(ExecutorService pool) {
+			public void receivedObject(final ExecutorService pool) {
 				for (final Script script : newEnqueued.keySet())
 					pool.execute(new Runnable() {
 						@Override
@@ -309,7 +309,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}, 20, newEnqueued.size());
 	}
 
-	private void indexRefresh(Index index) {
+	private void indexRefresh(final Index index) {
 		// refresh now so gathered structures will be validated with an index that has valid appendages maps and such.
 		// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 		// if the function being referenced is defined in an #appendto from this index
@@ -368,7 +368,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		parserMap.clear();
 	}
 
-	private void queueDependentScripts(Map<Script, ScriptParser> scriptsToQueueDependenciesFrom, final Map<Script, ScriptParser> newlyAddedParsers) {
+	private void queueDependentScripts(final Map<Script, ScriptParser> scriptsToQueueDependenciesFrom, final Map<Script, ScriptParser> newlyAddedParsers) {
 		for (final ScriptParser parser : scriptsToQueueDependenciesFrom.values()) {
 			if (monitor.isCanceled())
 				break;
@@ -378,7 +378,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (def != null)
 				index().allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 					@Override
-					public void receivedObject(Script item) {
+					public void receivedObject(final Script item) {
 						if (!parserMap.containsKey(item) && item.directlyIncludes(def))
 							newlyAddedParsers.put(item, queueScript(item));
 					}
@@ -399,7 +399,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		gatheredStructures.clear();
 	}
 
-	private void validateRelatedFiles(Script script) throws CoreException {
+	private void validateRelatedFiles(final Script script) throws CoreException {
 		if (script instanceof Definition) {
 			final Definition def = (Definition) script;
 			for (final IResource r : def.definitionFolder().members())
@@ -413,7 +413,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	public ScriptParser queueScript(Script script) {
+	public ScriptParser queueScript(final Script script) {
 		ScriptParser result;
 		if (!parserMap.containsKey(script)) {
 			if (script.source() != null)
@@ -434,7 +434,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		return result;
 	}
 
-	private void performParseDeclarations(Script script) {
+	private void performParseDeclarations(final Script script) {
 		ScriptParser parser;
 		synchronized (parserMap) {
 			parser = parserMap.get(script);

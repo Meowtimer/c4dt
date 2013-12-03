@@ -52,10 +52,10 @@ import org.eclipse.jface.text.contentassist.IContextInformationValidator;
  */
 public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnitEditingState> implements ICompletionListener {
 
-	public IniCompletionProcessor(IniUnitEditingState state) { super(state); }
+	public IniCompletionProcessor(final IniUnitEditingState state) { super(state); }
 
 	@Override
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+	public ICompletionProposal[] computeCompletionProposals(final ITextViewer viewer, final int offset) {
 		super.computeCompletionProposals(viewer, offset);
 
 		final IDocument doc = viewer.getDocument();
@@ -140,21 +140,21 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 		return proposals;
 	}
 
-	private void proposalsForCategoriesValue(ProposalsSite pl, IniEntryDefinition entryDef) {
+	private void proposalsForCategoriesValue(final ProposalsSite pl, final IniEntryDefinition entryDef) {
 		if (pl.prefix != null)
 			for (final Variable v : state().structure().engine().variablesWithPrefix(entryDef.constantsPrefix()))
 				if (v.scope() == Scope.CONST)
 					proposalForVar(pl, state().structure(), v);
 	}
 
-	private void proposalsForIndex(ProposalsSite pl) {
+	private void proposalsForIndex(final ProposalsSite pl) {
 		final Index index = ProjectIndex.fromResource(state().structure().file());
 		if (index != null)
 			for (final Index i : index.relevantIndexes())
 				proposalsForIndexedDefinitions(pl, i);
 	}
 
-	private void proposalsForDefinitionPackEntry(ProposalsSite pl) {
+	private void proposalsForDefinitionPackEntry(final ProposalsSite pl) {
 		final ClonkProjectNature nature = ClonkProjectNature.get(state().structure().resource().getProject());
 		final List<Index> indexes = nature.index().relevantIndexes();
 		for (final Index index : indexes)
@@ -169,7 +169,7 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 				}
 	}
 
-	private void proposalsForIniDataEntries(ProposalsSite pl, Iterable<? extends IniDataBase> sectionData) {
+	private void proposalsForIniDataEntries(final ProposalsSite pl, final Iterable<? extends IniDataBase> sectionData) {
 		for (final IniDataBase sec : sectionData)
 			if (sec instanceof IniSectionDefinition && ((IniSectionDefinition) sec).sectionName().toLowerCase().contains(pl.prefix)) {
 				final String secString = "["+((IniSectionDefinition) sec).sectionName()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -177,7 +177,7 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 			}
 	}
 
-	private void proposalsForSection(ProposalsSite pl, IniSection section) {
+	private void proposalsForSection(final ProposalsSite pl, final IniSection section) {
 		for (final IniDataBase entry : section.definition().entries().values())
 			if (entry instanceof IniEntryDefinition) {
 				final IniEntryDefinition e = (IniEntryDefinition) entry;
@@ -190,7 +190,7 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 			}
 	}
 
-	private void proposalsForFunctionEntry(ProposalsSite pl) {
+	private void proposalsForFunctionEntry(final ProposalsSite pl) {
 		final Definition obj = Definition.at(state().structure().file().getParent());
 		if (obj != null)
 			for (final Script include : obj.conglomerate()) {
@@ -202,23 +202,23 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 			}
 	}
 
-	private void proposalsForBooleanEntry(ProposalsSite pl) {
+	private void proposalsForBooleanEntry(final ProposalsSite pl) {
 		final int[] choices = new int[] {0, 1};
 		for (final int i : choices)
 			pl.addProposal(new CompletionProposal(String.valueOf(i), pl.wordOffset, pl.prefix.length(), String.valueOf(i).length()));
 	}
 
 	@Override
-	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) { return null; }
+	public IContextInformation[] computeContextInformation(final ITextViewer viewer, final int offset) { return null; }
 	@Override
 	public IContextInformationValidator getContextInformationValidator() { return null; }
 	@Override
-	public void assistSessionEnded(ContentAssistEvent event) { state().unlockUnit(); }
+	public void assistSessionEnded(final ContentAssistEvent event) { state().unlockUnit(); }
 	@Override
-	public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {}
+	public void selectionChanged(final ICompletionProposal proposal, final boolean smartToggle) {}
 
 	@Override
-	public void assistSessionStarted(ContentAssistEvent event) {
+	public void assistSessionStarted(final ContentAssistEvent event) {
 		try {
 			state().forgetUnitParsed();
 			state().lockUnit();

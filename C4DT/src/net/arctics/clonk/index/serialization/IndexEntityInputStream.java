@@ -11,14 +11,14 @@ import net.arctics.clonk.index.IndexEntity;
 public class IndexEntityInputStream extends ObjectInputStream {
 	private Index index;
 	private final IndexEntity entity;
-	public IndexEntityInputStream(Index index, IndexEntity entity, InputStream input) throws IOException {
+	public IndexEntityInputStream(final Index index, final IndexEntity entity, final InputStream input) throws IOException {
 		super(input);
 		this.index = index;
 		this.entity = entity;
 		enableResolveObject(true);
 	}
 	@Override
-	protected Object resolveObject(Object obj) throws IOException {
+	protected Object resolveObject(final Object obj) throws IOException {
 		if (obj instanceof String)
 			return ((String)obj).intern();
 		if (index == null && obj instanceof Index)

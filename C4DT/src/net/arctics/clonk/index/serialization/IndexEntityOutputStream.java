@@ -16,7 +16,7 @@ import net.arctics.clonk.index.serialization.replacements.IDeferredDeclaration;
 public class IndexEntityOutputStream extends ObjectOutputStream {
 	private final Index index;
 	private final IndexEntity entity;
-	public IndexEntityOutputStream(Index index, IndexEntity entity, OutputStream output) throws IOException {
+	public IndexEntityOutputStream(final Index index, final IndexEntity entity, final OutputStream output) throws IOException {
 		super(output);
 		this.index = index;
 		this.entity = entity;

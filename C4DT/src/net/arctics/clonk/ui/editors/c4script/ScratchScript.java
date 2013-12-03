@@ -18,7 +18,7 @@ final class ScratchScript extends Script implements IHasEditorPart {
 	private transient final C4ScriptEditor editor;
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public ScratchScript(C4ScriptEditor editor) {
+	public ScratchScript(final C4ScriptEditor editor) {
 		super(new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		});

@@ -102,14 +102,14 @@ public enum Problem {
 	private String message;
 	private String[] formatArgumentDescriptions;
 
-	Problem(String message) { this.message = message; }
+	Problem(final String message) { this.message = message; }
 
-	Problem(String message, String... formatArgumentDescriptions) {
+	Problem(final String message, final String... formatArgumentDescriptions) {
 		this(message);
 		this.formatArgumentDescriptions = formatArgumentDescriptions;
 	}
 
-	public String makeErrorString(Object... format) { return String.format(message, format); }
+	public String makeErrorString(final Object... format) { return String.format(message, format); }
 	public String message() { return message; }
 	public String[] formatArgumentDescriptions() { return formatArgumentDescriptions; }
 

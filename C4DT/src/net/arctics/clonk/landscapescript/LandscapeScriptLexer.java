@@ -2,9 +2,6 @@
 package net.arctics.clonk.landscapescript;
 
 import org.antlr.runtime.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked"})
 public class LandscapeScriptLexer extends Lexer {
@@ -37,19 +34,20 @@ public class LandscapeScriptLexer extends Lexer {
     }
 
     public LandscapeScriptLexer() {} 
-    public LandscapeScriptLexer(CharStream input) {
+    public LandscapeScriptLexer(final CharStream input) {
         this(input, new RecognizerSharedState());
     }
-    public LandscapeScriptLexer(CharStream input, RecognizerSharedState state) {
+    public LandscapeScriptLexer(final CharStream input, final RecognizerSharedState state) {
         super(input,state);
     }
-    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g"; }
+    @Override
+	public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g"; }
 
     // $ANTLR start "MAP"
     public final void mMAP() throws RecognitionException {
         try {
-            int _type = MAP;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = MAP;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:204:6: ( 'map' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:204:8: 'map'
             {
@@ -71,8 +69,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "OVERLAY"
     public final void mOVERLAY() throws RecognitionException {
         try {
-            int _type = OVERLAY;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = OVERLAY;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:205:10: ( 'overlay' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:205:12: 'overlay'
             {
@@ -94,8 +92,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "POINT"
     public final void mPOINT() throws RecognitionException {
         try {
-            int _type = POINT;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = POINT;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:206:8: ( 'point' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:206:10: 'point'
             {
@@ -120,11 +118,10 @@ public class LandscapeScriptLexer extends Lexer {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:208:17: ( 'a' .. 'z' | 'A' .. 'Z' | '_' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:
             {
-            if ( (input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
-                input.consume();
-            }
-            else {
-                MismatchedSetException mse = new MismatchedSetException(null,input);
+            if ( (input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') )
+				input.consume();
+			else {
+                final MismatchedSetException mse = new MismatchedSetException(null,input);
                 recover(mse);
                 throw mse;
             }
@@ -148,16 +145,14 @@ public class LandscapeScriptLexer extends Lexer {
             {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:209:17: ( 'px' | '%' )
             int alt1=2;
-            int LA1_0 = input.LA(1);
+            final int LA1_0 = input.LA(1);
 
-            if ( (LA1_0=='p') ) {
-                alt1=1;
-            }
-            else if ( (LA1_0=='%') ) {
-                alt1=2;
-            }
-            else {
-                NoViableAltException nvae =
+            if ( (LA1_0=='p') )
+				alt1=1;
+			else if ( (LA1_0=='%') )
+				alt1=2;
+			else {
+                final NoViableAltException nvae =
                     new NoViableAltException("", 1, 0, input);
 
                 throw nvae;
@@ -200,11 +195,10 @@ public class LandscapeScriptLexer extends Lexer {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:210:16: ( '0' .. '9' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:
             {
-            if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-                input.consume();
-            }
-            else {
-                MismatchedSetException mse = new MismatchedSetException(null,input);
+            if ( (input.LA(1) >= '0' && input.LA(1) <= '9') )
+				input.consume();
+			else {
+                final MismatchedSetException mse = new MismatchedSetException(null,input);
                 recover(mse);
                 throw mse;
             }
@@ -233,22 +227,20 @@ public class LandscapeScriptLexer extends Lexer {
             loop2:
             do {
                 int alt2=2;
-                int LA2_0 = input.LA(1);
+                final int LA2_0 = input.LA(1);
 
-                if ( ((LA2_0 >= '0' && LA2_0 <= '9')||(LA2_0 >= 'A' && LA2_0 <= 'Z')||LA2_0=='_'||(LA2_0 >= 'a' && LA2_0 <= 'z')) ) {
-                    alt2=1;
-                }
+                if ( ((LA2_0 >= '0' && LA2_0 <= '9')||(LA2_0 >= 'A' && LA2_0 <= 'Z')||LA2_0=='_'||(LA2_0 >= 'a' && LA2_0 <= 'z')) )
+					alt2=1;
 
 
                 switch (alt2) {
             	case 1 :
             	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:
             	    {
-            	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
-            	        input.consume();
-            	    }
-            	    else {
-            	        MismatchedSetException mse = new MismatchedSetException(null,input);
+            	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') )
+						input.consume();
+					else {
+            	        final MismatchedSetException mse = new MismatchedSetException(null,input);
             	        recover(mse);
             	        throw mse;
             	    }
@@ -276,8 +268,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "MATCOMBO"
     public final void mMATCOMBO() throws RecognitionException {
         try {
-            int _type = MATCOMBO;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = MATCOMBO;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:213:10: ( WORD MINUS WORD )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:213:12: WORD MINUS WORD
             {
@@ -304,8 +296,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "MINUS"
     public final void mMINUS() throws RecognitionException {
         try {
-            int _type = MINUS;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = MINUS;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:214:8: ( '-' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:214:10: '-'
             {
@@ -325,8 +317,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "PLUS"
     public final void mPLUS() throws RecognitionException {
         try {
-            int _type = PLUS;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = PLUS;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:215:7: ( '+' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:215:9: '+'
             {
@@ -346,27 +338,25 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "NUMBER"
     public final void mNUMBER() throws RecognitionException {
         try {
-            int _type = NUMBER;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = NUMBER;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:216:9: ( ( PLUS | MINUS )? ( DIGIT )+ ( UNIT )? )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:216:11: ( PLUS | MINUS )? ( DIGIT )+ ( UNIT )?
             {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:216:11: ( PLUS | MINUS )?
             int alt3=2;
-            int LA3_0 = input.LA(1);
+            final int LA3_0 = input.LA(1);
 
-            if ( (LA3_0=='+'||LA3_0=='-') ) {
-                alt3=1;
-            }
+            if ( (LA3_0=='+'||LA3_0=='-') )
+				alt3=1;
             switch (alt3) {
                 case 1 :
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:
                     {
-                    if ( input.LA(1)=='+'||input.LA(1)=='-' ) {
-                        input.consume();
-                    }
-                    else {
-                        MismatchedSetException mse = new MismatchedSetException(null,input);
+                    if ( input.LA(1)=='+'||input.LA(1)=='-' )
+						input.consume();
+					else {
+                        final MismatchedSetException mse = new MismatchedSetException(null,input);
                         recover(mse);
                         throw mse;
                     }
@@ -383,22 +373,20 @@ public class LandscapeScriptLexer extends Lexer {
             loop4:
             do {
                 int alt4=2;
-                int LA4_0 = input.LA(1);
+                final int LA4_0 = input.LA(1);
 
-                if ( ((LA4_0 >= '0' && LA4_0 <= '9')) ) {
-                    alt4=1;
-                }
+                if ( ((LA4_0 >= '0' && LA4_0 <= '9')) )
+					alt4=1;
 
 
                 switch (alt4) {
             	case 1 :
             	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:
             	    {
-            	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
-            	        input.consume();
-            	    }
-            	    else {
-            	        MismatchedSetException mse = new MismatchedSetException(null,input);
+            	    if ( (input.LA(1) >= '0' && input.LA(1) <= '9') )
+						input.consume();
+					else {
+            	        final MismatchedSetException mse = new MismatchedSetException(null,input);
             	        recover(mse);
             	        throw mse;
             	    }
@@ -409,7 +397,7 @@ public class LandscapeScriptLexer extends Lexer {
 
             	default :
             	    if ( cnt4 >= 1 ) break loop4;
-                        EarlyExitException eee =
+                        final EarlyExitException eee =
                             new EarlyExitException(4, input);
                         throw eee;
                 }
@@ -419,11 +407,10 @@ public class LandscapeScriptLexer extends Lexer {
 
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:216:31: ( UNIT )?
             int alt5=2;
-            int LA5_0 = input.LA(1);
+            final int LA5_0 = input.LA(1);
 
-            if ( (LA5_0=='%'||LA5_0=='p') ) {
-                alt5=1;
-            }
+            if ( (LA5_0=='%'||LA5_0=='p') )
+				alt5=1;
             switch (alt5) {
                 case 1 :
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:216:31: UNIT
@@ -451,8 +438,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "NAME"
     public final void mNAME() throws RecognitionException {
         try {
-            int _type = NAME;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = NAME;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:217:7: ( WORD )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:217:9: WORD
             {
@@ -473,8 +460,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "WS"
     public final void mWS() throws RecognitionException {
         try {
-            int _type = WS;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = WS;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:218:5: ( ( ' ' | '\\t' | '\\n' | '\\r' )+ )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:218:7: ( ' ' | '\\t' | '\\n' | '\\r' )+
             {
@@ -483,22 +470,20 @@ public class LandscapeScriptLexer extends Lexer {
             loop6:
             do {
                 int alt6=2;
-                int LA6_0 = input.LA(1);
+                final int LA6_0 = input.LA(1);
 
-                if ( ((LA6_0 >= '\t' && LA6_0 <= '\n')||LA6_0=='\r'||LA6_0==' ') ) {
-                    alt6=1;
-                }
+                if ( ((LA6_0 >= '\t' && LA6_0 <= '\n')||LA6_0=='\r'||LA6_0==' ') )
+					alt6=1;
 
 
                 switch (alt6) {
             	case 1 :
             	    // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:
             	    {
-            	    if ( (input.LA(1) >= '\t' && input.LA(1) <= '\n')||input.LA(1)=='\r'||input.LA(1)==' ' ) {
-            	        input.consume();
-            	    }
-            	    else {
-            	        MismatchedSetException mse = new MismatchedSetException(null,input);
+            	    if ( (input.LA(1) >= '\t' && input.LA(1) <= '\n')||input.LA(1)=='\r'||input.LA(1)==' ' )
+						input.consume();
+					else {
+            	        final MismatchedSetException mse = new MismatchedSetException(null,input);
             	        recover(mse);
             	        throw mse;
             	    }
@@ -509,7 +494,7 @@ public class LandscapeScriptLexer extends Lexer {
 
             	default :
             	    if ( cnt6 >= 1 ) break loop6;
-                        EarlyExitException eee =
+                        final EarlyExitException eee =
                             new EarlyExitException(6, input);
                         throw eee;
                 }
@@ -533,8 +518,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "SLCOMMENT"
     public final void mSLCOMMENT() throws RecognitionException {
         try {
-            int _type = SLCOMMENT;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = SLCOMMENT;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:219:11: ( '//' ( . )* '\\n' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:219:13: '//' ( . )* '\\n'
             {
@@ -546,14 +531,12 @@ public class LandscapeScriptLexer extends Lexer {
             loop7:
             do {
                 int alt7=2;
-                int LA7_0 = input.LA(1);
+                final int LA7_0 = input.LA(1);
 
-                if ( (LA7_0=='\n') ) {
-                    alt7=2;
-                }
-                else if ( ((LA7_0 >= '\u0000' && LA7_0 <= '\t')||(LA7_0 >= '\u000B' && LA7_0 <= '\uFFFF')) ) {
-                    alt7=1;
-                }
+                if ( (LA7_0=='\n') )
+					alt7=2;
+				else if ( ((LA7_0 >= '\u0000' && LA7_0 <= '\t')||(LA7_0 >= '\u000B' && LA7_0 <= '\uFFFF')) )
+					alt7=1;
 
 
                 switch (alt7) {
@@ -589,8 +572,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "MLCOMMENT"
     public final void mMLCOMMENT() throws RecognitionException {
         try {
-            int _type = MLCOMMENT;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = MLCOMMENT;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:220:11: ( '/*' ( . )* '*/' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:220:13: '/*' ( . )* '*/'
             {
@@ -602,23 +585,20 @@ public class LandscapeScriptLexer extends Lexer {
             loop8:
             do {
                 int alt8=2;
-                int LA8_0 = input.LA(1);
+                final int LA8_0 = input.LA(1);
 
                 if ( (LA8_0=='*') ) {
-                    int LA8_1 = input.LA(2);
+                    final int LA8_1 = input.LA(2);
 
-                    if ( (LA8_1=='/') ) {
-                        alt8=2;
-                    }
-                    else if ( ((LA8_1 >= '\u0000' && LA8_1 <= '.')||(LA8_1 >= '0' && LA8_1 <= '\uFFFF')) ) {
-                        alt8=1;
-                    }
+                    if ( (LA8_1=='/') )
+						alt8=2;
+					else if ( ((LA8_1 >= '\u0000' && LA8_1 <= '.')||(LA8_1 >= '0' && LA8_1 <= '\uFFFF')) )
+						alt8=1;
 
 
                 }
-                else if ( ((LA8_0 >= '\u0000' && LA8_0 <= ')')||(LA8_0 >= '+' && LA8_0 <= '\uFFFF')) ) {
-                    alt8=1;
-                }
+                else if ( ((LA8_0 >= '\u0000' && LA8_0 <= ')')||(LA8_0 >= '+' && LA8_0 <= '\uFFFF')) )
+					alt8=1;
 
 
                 switch (alt8) {
@@ -656,8 +636,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "ASSIGN"
     public final void mASSIGN() throws RecognitionException {
         try {
-            int _type = ASSIGN;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = ASSIGN;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:221:9: ( '=' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:221:11: '='
             {
@@ -677,8 +657,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "BLOCKOPEN"
     public final void mBLOCKOPEN() throws RecognitionException {
         try {
-            int _type = BLOCKOPEN;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = BLOCKOPEN;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:222:11: ( '{' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:222:13: '{'
             {
@@ -698,8 +678,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "BLOCKCLOSE"
     public final void mBLOCKCLOSE() throws RecognitionException {
         try {
-            int _type = BLOCKCLOSE;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = BLOCKCLOSE;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:223:12: ( '}' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:223:14: '}'
             {
@@ -719,8 +699,8 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "STATEMENTEND"
     public final void mSTATEMENTEND() throws RecognitionException {
         try {
-            int _type = STATEMENTEND;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = STATEMENTEND;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:224:14: ( ';' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:224:16: ';'
             {
@@ -740,16 +720,15 @@ public class LandscapeScriptLexer extends Lexer {
     // $ANTLR start "OPERATOR"
     public final void mOPERATOR() throws RecognitionException {
         try {
-            int _type = OPERATOR;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
+            final int _type = OPERATOR;
+            final int _channel = DEFAULT_TOKEN_CHANNEL;
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:225:11: ( '|' | '&' | '^' )
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:
             {
-            if ( input.LA(1)=='&'||input.LA(1)=='^'||input.LA(1)=='|' ) {
-                input.consume();
-            }
-            else {
-                MismatchedSetException mse = new MismatchedSetException(null,input);
+            if ( input.LA(1)=='&'||input.LA(1)=='^'||input.LA(1)=='|' )
+				input.consume();
+			else {
+                final MismatchedSetException mse = new MismatchedSetException(null,input);
                 recover(mse);
                 throw mse;
             }
@@ -766,7 +745,8 @@ public class LandscapeScriptLexer extends Lexer {
     }
     // $ANTLR end "OPERATOR"
 
-    public void mTokens() throws RecognitionException {
+    @Override
+	public void mTokens() throws RecognitionException {
         // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:1:8: ( MAP | OVERLAY | POINT | MATCOMBO | MINUS | PLUS | NUMBER | NAME | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR )
         int alt9=16;
         alt9 = dfa9.predict(input);
@@ -987,16 +967,15 @@ public class LandscapeScriptLexer extends Lexer {
     static final short[][] DFA9_transition;
 
     static {
-        int numStates = DFA9_transitionS.length;
+        final int numStates = DFA9_transitionS.length;
         DFA9_transition = new short[numStates][];
-        for (int i=0; i<numStates; i++) {
-            DFA9_transition[i] = DFA.unpackEncodedString(DFA9_transitionS[i]);
-        }
+        for (int i=0; i<numStates; i++)
+			DFA9_transition[i] = DFA.unpackEncodedString(DFA9_transitionS[i]);
     }
 
     class DFA9 extends DFA {
 
-        public DFA9(BaseRecognizer recognizer) {
+        public DFA9(final BaseRecognizer recognizer) {
             this.recognizer = recognizer;
             this.decisionNumber = 9;
             this.eot = DFA9_eot;
@@ -1007,7 +986,8 @@ public class LandscapeScriptLexer extends Lexer {
             this.special = DFA9_special;
             this.transition = DFA9_transition;
         }
-        public String getDescription() {
+        @Override
+		public String getDescription() {
             return "1:1: Tokens : ( MAP | OVERLAY | POINT | MATCOMBO | MINUS | PLUS | NUMBER | NAME | WS | SLCOMMENT | MLCOMMENT | ASSIGN | BLOCKOPEN | BLOCKCLOSE | STATEMENTEND | OPERATOR );";
         }
     }

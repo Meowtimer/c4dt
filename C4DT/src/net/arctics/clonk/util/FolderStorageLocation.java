@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.IPath;
 public abstract class FolderStorageLocation implements IStorageLocation {
 	protected final String engineName;
 
-	public FolderStorageLocation(String engineName) {
+	public FolderStorageLocation(final String engineName) {
 		this.engineName = engineName;
 	}
 
@@ -26,25 +26,24 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 	}
 
 	@Override
-	public URL locatorForEntry(String entryName, boolean create) {
+	public URL locatorForEntry(final String entryName, final boolean create) {
 		try {
-			File file = fileForEntry(entryName);
+			final File file = fileForEntry(entryName);
 			try {
-				if (create) {
+				if (create)
 					try {
 						file.getParentFile().mkdirs();
 						file.createNewFile();
-					} catch (IOException e) {
+					} catch (final IOException e) {
 						e.printStackTrace();
 						return null;
 					}
-				}
 				return file.exists() ? file.toURI().toURL() : null;
-			} catch (MalformedURLException e) {
+			} catch (final MalformedURLException e) {
 				e.printStackTrace();
 				return null;
 			}
-		} catch (AssertionFailedException assertionFail) {
+		} catch (final AssertionFailedException assertionFail) {
 			// happens when invoking getURL without having initialized the workspace (headless utilities)
 			return null;
 		}
@@ -52,40 +51,39 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 
 	protected abstract IPath storageLocationForEngine(String engineName);
 
-	private File fileForEntry(String entryName) {
-		IPath path = storageLocationForEngine(engineName);
-		File file = path.append(entryName).toFile();
+	private File fileForEntry(final String entryName) {
+		final IPath path = storageLocationForEngine(engineName);
+		final File file = path.append(entryName).toFile();
 		return file;
 	}
 
 	@Override
-	public OutputStream outputStreamForURL(URL storageURL) {
+	public OutputStream outputStreamForURL(final URL storageURL) {
 		try {
 			return new FileOutputStream(new File(storageURL.toURI()));
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			return null;
-		} catch (URISyntaxException e) {
+		} catch (final URISyntaxException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	private static void addFilesFrom(File folder, String containerPath, List<URL> list, boolean recurse) {
-		for (File f : folder.listFiles()) {
+	private static void addFilesFrom(final File folder, final String containerPath, final List<URL> list, final boolean recurse) {
+		for (final File f : folder.listFiles()) {
 			try {
 				PathUtil.addURLIfNotDuplicate(containerPath, f.toURI().toURL(), list);
-			} catch (MalformedURLException e) {
+			} catch (final MalformedURLException e) {
 				e.printStackTrace();
 			}
-			if (recurse && f.isDirectory()) {
+			if (recurse && f.isDirectory())
 				addFilesFrom(f, containerPath, list, true);
-			}
 		}
 	}
 	
 	@Override
-	public void collectURLsOfContainer(String containerPath, boolean recurse, List<URL> listToAddTo) {
+	public void collectURLsOfContainer(String containerPath, final boolean recurse, final List<URL> listToAddTo) {
 		final File folder = fileForEntry(containerPath);
 		containerPath = name() + "/" + containerPath;
 		if (folder == null || !folder.exists())

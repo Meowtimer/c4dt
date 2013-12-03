@@ -32,7 +32,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	public boolean hasTilde() { return hasTilde; }
 
 	@Override
-	protected void offsetExprRegion(int amount, boolean start, boolean end) {
+	protected void offsetExprRegion(final int amount, final boolean start, final boolean end) {
 		super.offsetExprRegion(amount, start, end);
 		if (start)
 			idOffset += amount;
@@ -43,7 +43,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	 * @param expression The {@link ASTNode} to test
 	 * @return True if the expression represents something like (CreateObject(Clonk)->GetContainer().), false if not.
 	 */
-	public static boolean endsWithDot(ASTNode expression) {
+	public static boolean endsWithDot(final ASTNode expression) {
 		return
 			expression instanceof Sequence &&
 			((Sequence)expression).lastElement() instanceof MemberOperator &&
@@ -57,7 +57,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	 * @param id {@link ID} specified after '->'. Can be null.
 	 * @param idOffset Relative offset of id, used for correct hyperlink detection (see {@link #entityAt(int, ExpressionLocator)})
 	 */
-	public MemberOperator(boolean dotNotation, boolean hasTilde, ID id, int idOffset) {
+	public MemberOperator(final boolean dotNotation, final boolean hasTilde, final ID id, final int idOffset) {
 		super();
 		this.dotNotation = dotNotation;
 		this.hasTilde = hasTilde;
@@ -68,7 +68,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	public static MemberOperator makeDotOperator() { return new MemberOperator(true, false, null, 0); }
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		if (dotNotation)
 			// so simple
 			output.append('.');
@@ -88,7 +88,7 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	 * MemberOperators are never valid when not preceded by another {@link ASTNode}
 	 */
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) {
+	public boolean isValidInSequence(final ASTNode predecessor) {
 		return
 			predecessor instanceof AccessDeclaration ||
 			predecessor instanceof This ||
@@ -100,14 +100,14 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	public boolean isValidAtEndOfSequence() { return false; }
 
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		if (id != null && offset >= idOffset && offset < idOffset+4)
 			return new EntityRegion(parent(Script.class).nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
 		return null;
 	}
 
 	@Override
-	public boolean equalAttributes(ASTNode other) {
+	public boolean equalAttributes(final ASTNode other) {
 		if (!super.equalAttributes(other))
 			return false;
 		final MemberOperator otherOp = (MemberOperator) other;
@@ -133,12 +133,12 @@ public class MemberOperator extends ASTNode implements ITidyable {
 		return this;
 	}
 
-	public static boolean unforgiving(ASTNode p) {
+	public static boolean unforgiving(final ASTNode p) {
 		return p instanceof MemberOperator && !((MemberOperator)p).hasTilde();
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		return predecessor().evaluate(context);
 	}
 

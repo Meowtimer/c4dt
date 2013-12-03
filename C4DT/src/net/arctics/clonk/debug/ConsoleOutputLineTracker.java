@@ -44,7 +44,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 	private final Pattern lineNumberCharacterMessage = Pattern.compile("(\\d+)(:\\d+)?");
 
 	@Override
-	public void init(IConsole console) {
+	public void init(final IConsole console) {
 		this.console = console;
 		String projName;
 		try {
@@ -76,7 +76,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 	private static class FileHyperlink implements IHyperlink {
 		private final IFile file;
 		private final int line, character;
-		public FileHyperlink(IFile file, int line, int character) {
+		public FileHyperlink(final IFile file, final int line, final int character) {
 			super();
 			this.file = file;
 			this.line = line;
@@ -108,7 +108,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 		}
 	}
 
-	private static List<IResource> getSubResourcesFromResourceCollection(Iterable<IResource> parentResources, String parentName) {
+	private static List<IResource> getSubResourcesFromResourceCollection(final Iterable<IResource> parentResources, String parentName) {
 		if (parentName != null)
 			parentName = parentName.toUpperCase();
 		final List<IResource> result = new LinkedList<IResource>();
@@ -123,7 +123,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 	}
 
 	@Override
-	public void lineAppended(IRegion line) {
+	public void lineAppended(final IRegion line) {
 		try {
 			final String lineStr = console.getDocument().get(line.getOffset(), line.getLength());
 			try {
@@ -144,7 +144,7 @@ public class ConsoleOutputLineTracker implements IConsoleLineTracker {
 	 * @param console The {@link IConsole} links will be added to
 	 * @param lineRegion Region of the line in the console's text
 	 */
-	private void createResourceLinksInLine(String input, List<IResource> resourcesInRelevantProjects, IConsole console, IRegion lineRegion) {
+	private void createResourceLinksInLine(final String input, final List<IResource> resourcesInRelevantProjects, final IConsole console, final IRegion lineRegion) {
 		List<IResource> candidates = new ArrayList<IResource>(resourcesInRelevantProjects);
 		int folderNameCharacterIndex = 0;
 		int folderNameStart = 0;

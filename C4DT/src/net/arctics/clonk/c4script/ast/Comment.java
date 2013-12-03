@@ -36,7 +36,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 
 	public static final IASTVisitor<Markers> TODO_EXTRACTOR = new IASTVisitor<Markers>() {
 		@Override
-		public TraversalContinuation visitNode(ASTNode node_, Markers markers) {
+		public TraversalContinuation visitNode(final ASTNode node_, final Markers markers) {
 			final Comment node = as(node_, Comment.class);
 			if (node == null)
 				return TraversalContinuation.Continue;
@@ -86,7 +86,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * @param multiLine Whether multiline
 	 * @param javadoc The comment is a javadoc-comment
 	 */
-	public Comment(String comment, boolean multiLine, boolean javadoc) {
+	public Comment(final String comment, final boolean multiLine, final boolean javadoc) {
 		super();
 		this.comment = comment;
 		this.multiLine = multiLine;
@@ -119,12 +119,12 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * Set the comment string.
 	 * @param comment The comment string
 	 */
-	public void setComment(String comment) {
+	public void setComment(final String comment) {
 		this.comment = comment;
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		final String c = comment;
 		if (multiLine = multiLine || c.contains("\n")) {
 			builder.append("/*"); //$NON-NLS-1$
@@ -151,7 +151,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * Set multiline-ness of this {@link Comment}.
 	 * @param multiLine Whether multiline
 	 */
-	public void setMultiLine(boolean multiLine) { this.multiLine = multiLine; }
+	public void setMultiLine(final boolean multiLine) { this.multiLine = multiLine; }
 
 	/**
 	 * Whether comment is a javadoc comment
@@ -168,7 +168,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * @param script Script text queried for content to determine the return value.
 	 * @return Whether this comment precedes the offset as described.
 	 */
-	public boolean precedesOffset(int offset, char[] script) {
+	public boolean precedesOffset(final int offset, final char[] script) {
 		int count = 0;
 		if (offset > absoluteOffset+getLength()) {
 			for (int i = absoluteOffset+getLength(); i < offset; i++) {
@@ -183,7 +183,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> l) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> l) {
 		// parse comment as expression and see what goes
 		try {
 			final Script script = parent(Script.class);
@@ -212,7 +212,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	}
 
 	@Override
-	public void applyAttachment(Position position, ASTNodePrinter builder, int depth) {
+	public void applyAttachment(final Position position, final ASTNodePrinter builder, final int depth) {
 		switch (position) {
 		case Pre:
 			if (prependix) {
@@ -234,7 +234,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * Set the absolute offset of this comment. This value is only is used in {@link #precedesOffset(int, CharSequence)}
 	 * @param offset The offset to set as absolute one.
 	 */
-	public void setAbsoluteOffset(int offset) {
+	public void setAbsoluteOffset(final int offset) {
 		absoluteOffset = offset;
 	}
 
@@ -250,7 +250,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * Sets whether the comment - as an {@link Attachment} to a {@link Statement} - is to be printed before the {@link Statement} or following it
 	 * @param Whether to or not
 	 */
-	public void setPrependix(boolean prependix) {
+	public void setPrependix(final boolean prependix) {
 		this.prependix = prependix;
 	}
 
@@ -264,7 +264,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * \@param tags in javadoc comments are taken into account and applied to individual parameters of the function.
 	 * @param function The function to apply the documentation to
 	 */
-	public void applyDocumentation(Function function) {
+	public void applyDocumentation(final Function function) {
 		if (isJavaDoc()) {
 			final String text = this.text().trim();
 			final StringReader reader = new StringReader(text);
@@ -292,7 +292,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 			function.setUserDescription(this.text().trim());
 	}
 
-	private static String processTags(String line, Matcher lineStartMatcher) {
+	private static String processTags(final String line, final Matcher lineStartMatcher) {
 		final Matcher matcher = TAGPATTERN.matcher(line);
 		final StringBuilder builder = new StringBuilder(line);
 		int shift = 0;

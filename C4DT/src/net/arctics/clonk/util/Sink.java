@@ -7,7 +7,7 @@ public abstract class Sink<T> {
 		AbortIteration
 	}
 	private Decision decision;
-	public final Decision elutriate(T item) {
+	public final Decision elutriate(final T item) {
 		if (item == null)
 			return Decision.PurgeItem;
 		else if (filter(item)) {
@@ -18,9 +18,9 @@ public abstract class Sink<T> {
 		else
 			return Decision.Continue;
 	}
-	public final void decision(Decision decision) {
+	public final void decision(final Decision decision) {
 		this.decision = decision;
 	}
 	public abstract void receivedObject(T item);
-	public boolean filter(T item) { return true; }
+	public boolean filter(final T item) { return true; }
 }

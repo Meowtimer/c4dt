@@ -10,9 +10,9 @@ public class DebugElement implements IDebugElement {
 
 	protected static final DebugVariable[] NO_VARIABLES = new DebugVariable[0];
 	
-	private Target target;
+	private final Target target;
 
-	public DebugElement(Target target) {
+	public DebugElement(final Target target) {
 		this.target = target;
 	}
 
@@ -37,20 +37,20 @@ public class DebugElement implements IDebugElement {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public Object getAdapter(Class adapter) {
+	public Object getAdapter(final Class adapter) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 	
-	protected void fireEvent(DebugEvent event) {
+	protected void fireEvent(final DebugEvent event) {
 		DebugPlugin.getDefault().fireDebugEventSet(new DebugEvent[] {event});
 	}
 	
-	public void fireResumeEvent(int detail) {
+	public void fireResumeEvent(final int detail) {
 		fireEvent(new DebugEvent(this, DebugEvent.RESUME, detail));
 	}
 	
-	public void fireSuspendEvent(int detail) {
+	public void fireSuspendEvent(final int detail) {
 		fireEvent(new DebugEvent(this, DebugEvent.SUSPEND, detail));
 	}
 	

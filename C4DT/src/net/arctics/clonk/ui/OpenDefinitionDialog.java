@@ -37,13 +37,13 @@ public class OpenDefinitionDialog extends EntityChooser {
 	private final Object selection;
 	private IConverter<Definition, Image> imageStore;
 
-	public void setImageStore(IConverter<Definition, Image> imageStore) {
+	public void setImageStore(final IConverter<Definition, Image> imageStore) {
 		this.imageStore = imageStore;
 	}
 
 	private class OpenDefinitionLabelProvider extends LabelProvider implements IStyledLabelProvider {
 		@Override
-		public StyledString getStyledText(Object element) {
+		public StyledString getStyledText(final Object element) {
 			if (element == null)
 				return new StyledString(Messages.OpenDefinitionDialog_Empty);
 			if (!(element instanceof Definition)) return new StyledString(element.toString());
@@ -54,7 +54,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 			return buf;
 		}
 		@Override
-		public Image getImage(Object element) {
+		public Image getImage(final Object element) {
 			if (imageStore != null && element instanceof Definition)
 				return imageStore.convert((Definition)element);
 			else
@@ -73,7 +73,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 	 * Another option is passing an {@link Iterable} of items as the selection which will then be displayed as-is.
 	 * @param selection The selection which can be one of the things specified above
 	 */
-	public OpenDefinitionDialog(Object selection) {
+	public OpenDefinitionDialog(final Object selection) {
 		super(Platform.getResourceString(Core.instance().getBundle(), "%OpenDefinition_Name"), //$NON-NLS-1$
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 		this.selection = selection;
@@ -81,13 +81,13 @@ public class OpenDefinitionDialog extends EntityChooser {
 	}
 
 	@Override
-	protected Control createExtendedContentArea(Composite parent) {
+	protected Control createExtendedContentArea(final Composite parent) {
 		// There's nothing special here
 		return null;
 	}
 
 	@Override
-	protected void fillContentProvider(AbstractContentProvider contentProvider, ItemsFilter itemsFilter, IProgressMonitor progressMonitor) throws CoreException {
+	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, final IProgressMonitor progressMonitor) throws CoreException {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource) {
 			final IProject proj = ((IResource)((IStructuredSelection)selection).getFirstElement()).getProject();
 			final ClonkProjectNature nat = ClonkProjectNature.get(proj);
@@ -102,12 +102,12 @@ public class OpenDefinitionDialog extends EntityChooser {
 	private void fillWithIndexContents(
 		final AbstractContentProvider contentProvider,
 		final ItemsFilter itemsFilter, final IProgressMonitor progressMonitor,
-		Index index
+		final Index index
 	) {
 		progressMonitor.beginTask(Messages.OpenDefinitionDialog_Searching, index.numUniqueIds());
 		index.allDefinitions(new Sink<Definition>() {
 			@Override
-			public void receivedObject(Definition item) {
+			public void receivedObject(final Definition item) {
 				contentProvider.add(item, itemsFilter);
 				progressMonitor.worked(1);
 			}
@@ -126,7 +126,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 	}
 
 	@Override
-	public String getElementName(Object item) {
+	public String getElementName(final Object item) {
 		if (!(item instanceof Definition))
 			return item.toString();
 		return ((Definition)item).id().stringValue();
@@ -137,14 +137,14 @@ public class OpenDefinitionDialog extends EntityChooser {
 	protected Comparator getItemsComparator() {
 		return new Comparator() {
 			@Override
-			public int compare(Object arg0, Object arg1) {
+			public int compare(final Object arg0, final Object arg1) {
 				return arg0.toString().compareTo(arg1.toString());
 			}
 		};
 	}
 
 	@Override
-	protected IStatus validateItem(Object item) {
+	protected IStatus validateItem(final Object item) {
 		return Status.OK_STATUS;
 	}
 

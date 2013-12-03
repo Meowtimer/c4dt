@@ -56,13 +56,13 @@ public class EngineLaunch implements ILaunchesListener2 {
 
 	static final Map<IPath, EngineLaunch> list = new HashMap<IPath, EngineLaunch>();
 
-	private static EngineLaunch get(IPath scenarioPath) {
+	private static EngineLaunch get(final IPath scenarioPath) {
 		synchronized (list) {
 			return list.get(scenarioPath);
 		}
 	}
 
-	public static void scriptsBuilt(Script[] scripts) {
+	public static void scriptsBuilt(final Script[] scripts) {
 		synchronized (list) {
 			if (list.size() == 0)
 				return;
@@ -79,10 +79,10 @@ public class EngineLaunch implements ILaunchesListener2 {
 
 	public static class MultipleLaunchesException extends CoreException {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public MultipleLaunchesException(IStatus status) { super(status); }
+		public MultipleLaunchesException(final IStatus status) { super(status); }
 	}
 
-	public EngineLaunch(ILaunchConfiguration configuration, ILaunch launch, IFolder scenarioFolder, File engineFile, String mode) throws CoreException {
+	public EngineLaunch(final ILaunchConfiguration configuration, final ILaunch launch, final IFolder scenarioFolder, final File engineFile, final String mode) throws CoreException {
 		this.launch = launch;
 		this.configuration = configuration;
 		this.scenarioFolder = scenarioFolder;
@@ -123,14 +123,14 @@ public class EngineLaunch implements ILaunchesListener2 {
 		determineArguments();
 	}
 
-	void addWorkspaceDependency(IContainer res) {
+	void addWorkspaceDependency(final IContainer res) {
 		if (tempFolder != null)
 			addArgument(Path.fromOSString(tempFolder.getAbsolutePath()).append(res.getProjectRelativePath()).toOSString());
 		else
 			addArgument(ClonkLaunchConfigurationDelegate.resFilePath(res));
 	}
 
-	public void addArgument(String arg) {
+	public void addArgument(final String arg) {
 		args.add(arg);
 	}
 
@@ -191,14 +191,14 @@ public class EngineLaunch implements ILaunchesListener2 {
 	}
 
 	@Override
-	public void launchesAdded(ILaunch[] launches) {}
+	public void launchesAdded(final ILaunch[] launches) {}
 	@Override
-	public void launchesChanged(ILaunch[] launches) {}
+	public void launchesChanged(final ILaunch[] launches) {}
 	@Override
-	public void launchesRemoved(ILaunch[] launches) {}
+	public void launchesRemoved(final ILaunch[] launches) {}
 
 	@Override
-	public void launchesTerminated(ILaunch[] launches) {
+	public void launchesTerminated(final ILaunch[] launches) {
 		synchronized (list) {
 			list.remove(scenarioFolder.getFullPath());
 		}
@@ -212,7 +212,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 			}
 	}
 
-	public void launch(IProgressMonitor monitor) throws CoreException {
+	public void launch(final IProgressMonitor monitor) throws CoreException {
 		try {
 			// Working directory (work around a bug in early Linux engines)
 			final File workDirectory = engineFile.getParentFile();
@@ -249,7 +249,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 		}
 	}
 
-	private void eraseTypeAnnotations(Script script) {
+	private void eraseTypeAnnotations(final Script script) {
 		if (tempFolder == null)
 			return;
 		final String purged = StaticTypingUtil.eraseTypeAnnotations(script);
@@ -263,7 +263,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 					try {
 						StreamUtil.writeToFile(dest, new StreamWriteRunnable() {
 							@Override
-							public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
+							public void run(final File file, final OutputStream stream, final OutputStreamWriter writer) throws IOException {
 								writer.write(purged);
 							}
 						});

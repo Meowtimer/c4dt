@@ -22,7 +22,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 	 * @param elmType The element type. When providing specific element types, this parameter should be null
 	 * @param knownTypesForSpecificElements Specific types for elements. The index of the type in this array corresponds to the index in the array instances of this type.
 	 */
-	public ArrayType(IType elementType) { this.elementType = elementType; }
+	public ArrayType(final IType elementType) { this.elementType = elementType; }
 	/**
 	 * Get the general element type. If the general element type is not set a type set consisting of the specific element types will be returned.
 	 * @return
@@ -47,7 +47,7 @@ public class ArrayType implements IRefinedPrimitiveType {
 			: format("%s[%s]", generalArray, defaulting(elementType(), PrimitiveType.ANY).typeName(special));
 	}
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (obj instanceof ArrayType) {
 			final ArrayType otherArrType = (ArrayType) obj;
 			return Utilities.eq(this.elementType, otherArrType.elementType);

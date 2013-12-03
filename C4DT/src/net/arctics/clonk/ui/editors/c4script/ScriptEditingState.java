@@ -132,7 +132,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			enableColoredLabels(true);
 			setInformationControlCreator(new IInformationControlCreator() {
 				@Override
-				public IInformationControl createInformationControl(Shell parent) {
+				public IInformationControl createInformationControl(final Shell parent) {
 					final DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_PressTabOrClick);
 					return def;
 				}
@@ -146,7 +146,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		@Override
 		public boolean isProposalPopupActive() { return super.isProposalPopupActive(); }
 		public ScriptCompletionProcessor processor() { return processor; }
-		public void showParameters(ITextOperationTarget target) {
+		public void showParameters(final ITextOperationTarget target) {
 			if (target.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
 				target.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
 		}
@@ -154,7 +154,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	class ScriptHyperlinkDetector implements IHyperlinkDetector {
 		@Override
-		public IHyperlink[] detectHyperlinks(ITextViewer viewer, IRegion region, boolean canShowMultipleHyperlinks) {
+		public IHyperlink[] detectHyperlinks(final ITextViewer viewer, final IRegion region, final boolean canShowMultipleHyperlinks) {
 			try {
 				final EntityLocator locator = new EntityLocator(structure(), viewer.getDocument(), region);
 				if (locator.entity() != null)
@@ -176,14 +176,14 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	public class ScriptTextHover extends ClonkTextHover {
 		private EntityLocator entityLocator;
 		@Override
-		public String getHoverInfo(ITextViewer viewer, IRegion region) {
+		public String getHoverInfo(final ITextViewer viewer, final IRegion region) {
 			final IFile scriptFile = structure().file();
 			final StringBuilder messageBuilder = new StringBuilder();
 			appendEntityInfo(viewer, region, messageBuilder);
 			appendMarkerInfo(region, scriptFile, messageBuilder);
 			return messageBuilder.toString();
 		}
-		private void appendEntityInfo(ITextViewer viewer, IRegion region, final StringBuilder messageBuilder) {
+		private void appendEntityInfo(final ITextViewer viewer, final IRegion region, final StringBuilder messageBuilder) {
 			if (entityLocator != null && entityLocator.entity() != null)
 				messageBuilder.append(entityLocator.infoText());
 			else {
@@ -192,7 +192,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					messageBuilder.append(superInfo);
 			}
 		}
-		private void appendMarkerInfo(IRegion region, final IFile scriptFile, final StringBuilder messageBuilder) {
+		private void appendMarkerInfo(final IRegion region, final IFile scriptFile, final StringBuilder messageBuilder) {
 			try {
 				final IMarker[] markers = scriptFile.findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE);
 				boolean foundSomeMarkers = false;
@@ -219,7 +219,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			}
 		}
 		@Override
-		public IRegion getHoverRegion(ITextViewer viewer, int offset) {
+		public IRegion getHoverRegion(final ITextViewer viewer, final int offset) {
 			super.getHoverRegion(viewer, offset);
 			final IRegion region = new Region(offset, 0);
 			try {
@@ -234,7 +234,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	class DoubleClickStrategy extends DefaultTextDoubleClickStrategy {
 		@Override
-		protected IRegion findExtendedDoubleClickSelection(IDocument document, int pos) {
+		protected IRegion findExtendedDoubleClickSelection(final IDocument document, final int pos) {
 			final IRegion word = findWord(document, pos);
 			try {
 				if (word != null && document.get(word.getOffset(), word.getLength()).matches("(\\w|\\|d)+"))
@@ -277,10 +277,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	public ScriptAutoEditStrategy autoEditStrategy() { return autoEditStrategy; }
 
 	@Override
-	public void documentAboutToBeChanged(DocumentEvent event) {}
+	public void documentAboutToBeChanged(final DocumentEvent event) {}
 
 	@Override
-	public void documentChanged(DocumentEvent event) {
+	public void documentChanged(final DocumentEvent event) {
 		super.documentChanged(event);
 		final Function f = structure().funcAt(event.getOffset());
 		if (f != null && !f.isOldStyle())
@@ -293,7 +293,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	@Override
-	protected void adjustDec(Declaration declaration, int offset, int add) {
+	protected void adjustDec(final Declaration declaration, final int offset, final int add) {
 		super.adjustDec(declaration, offset, add);
 		if (declaration instanceof Function)
 			incrementLocationOffsetsExceedingThreshold(((Function)declaration).bodyLocation(), offset, add);
@@ -307,7 +307,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	@Override
-	public void refreshAfterBuild(Markers markers) {
+	public void refreshAfterBuild(final Markers markers) {
 		super.refreshAfterBuild(markers);
 		reportProblemsOnFunctionsCalledByActiveFunction(markers);
 		oldFunctionBody = null;
@@ -337,7 +337,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		};
 	}
 
-	void reparseWithDocumentContents(Runnable uiRefreshRunnable) throws ProblemException {
+	void reparseWithDocumentContents(final Runnable uiRefreshRunnable) throws ProblemException {
 		structure().requireLoaded();
 
 		final Markers markers = new StructureMarkers(false);
@@ -409,7 +409,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}, 1000);
 	}
 
-	public static void removeMarkers(Function func, Script script) {
+	public static void removeMarkers(final Function func, final Script script) {
 		if (script != null && script.resource() != null)
 			try {
 				// delete regular markers that are in the region of interest
@@ -430,7 +430,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	private final class StructureMarkers extends Markers {
-		StructureMarkers(boolean functionBodies){
+		StructureMarkers(final boolean functionBodies){
 			applyProjectSettings(structure().index());
 			if (functionBodies)
 				captureMarkersInFunctionBodies();
@@ -454,13 +454,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	@SuppressWarnings("serial")
 	static class MarkerConfines extends HashSet<ASTNode> implements IMarkerListener {
-		public MarkerConfines(ASTNode... confines) { this.addAll(Arrays.asList(confines)); }
+		public MarkerConfines(final ASTNode... confines) { this.addAll(Arrays.asList(confines)); }
 		@Override
 		public Decision markerEncountered(
-			Markers markers, IASTPositionProvider positionProvider,
-			Problem code, ASTNode node,
-			int markerStart, int markerEnd, int flags,
-			int severity, Object... args
+			final Markers markers, final IASTPositionProvider positionProvider,
+			final Problem code, final ASTNode node,
+			final int markerStart, final int markerEnd, final int flags,
+			final int severity, final Object... args
 		) {
 			if (node == null)
 				return Decision.DropCharges;
@@ -535,7 +535,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			final Pair<Script, Function> entry = Pair.pair(structure(), function);
 			final IASTVisitor<Script> assignmentFollower = new IASTVisitor<Script>() {
 				@Override
-				public TraversalContinuation visitNode(ASTNode node, Script context) {
+				public TraversalContinuation visitNode(final ASTNode node, final Script context) {
 					if (node instanceof AccessVar) {
 						final AccessVar av = (AccessVar) node;
 						final Variable v = as(av.declaration(), Variable.class);
@@ -559,7 +559,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			int depth = 0;
 			{ function.traverse(this, entry); }
 			@Override
-			public TraversalContinuation visitNode(ASTNode node, Pair<Script, Function> context) {
+			public TraversalContinuation visitNode(final ASTNode node, final Pair<Script, Function> context) {
 				if (typing == null)
 					return TraversalContinuation.Cancel;
 				if (node instanceof CallDeclaration) {
@@ -587,7 +587,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				}
 				return TraversalContinuation.Continue;
 			}
-			private void follow(final Function f, Script s) {
+			private void follow(final Function f, final Script s) {
 				if (localCall == null)
 					return;
 				final Function fn = s.findFunction(f.name());
@@ -621,7 +621,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					if (baseDef != null)
 						ndx.allScripts(new Sink<Script>() {
 							@Override
-							public void receivedObject(Script item) {
+							public void receivedObject(final Script item) {
 								if (item != p.first() && item.doesInclude(ndx, baseDef)) {
 									final Function ovrld = item.findLocalFunction(base.name(), true);
 									if (ovrld != null)
@@ -716,7 +716,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					reparse();
 					result.traverse(new IASTVisitor<Script>() {
 						@Override
-						public TraversalContinuation visitNode(ASTNode node, Script parser) {
+						public TraversalContinuation visitNode(final ASTNode node, final Script parser) {
 							final AccessDeclaration ad = as(node, AccessDeclaration.class);
 							if (ad != null && ad.declaration() != null)
 								ad.setDeclaration(ad.declaration().latestVersion());
@@ -745,7 +745,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	public FunctionFragmentParser updateFunctionFragment(
 		final Function function,
 		final IASTVisitor<ProblemReporter> observer,
-		boolean typingContextVisitInAnyCase
+		final boolean typingContextVisitInAnyCase
 	) {
 		synchronized (structureModificationLock) {
 			if (oldFunctionBody == null)
@@ -770,12 +770,12 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	@Override
-	public void partActivated(IWorkbenchPart part) {
+	public void partActivated(final IWorkbenchPart part) {
 		if (editors.contains(part) && structure() != null) {
 			final Function cf = ((C4ScriptEditor)part).functionAtCursor();
 			new Job("Refreshing problem markers") {
 				@Override
-				protected IStatus run(IProgressMonitor monitor) {
+				protected IStatus run(final IProgressMonitor monitor) {
 					structure().requireLoaded();
 					final Markers markers = new StructureMarkers(true);
 					synchronized (structureModificationLock) {
@@ -793,7 +793,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		super.partBroughtToTop(part);
 	}
 
-	public Function functionAt(int offset) {
+	public Function functionAt(final int offset) {
 		final Script script = structure();
 		if (script != null) {
 			final Function f = script.funcAt(offset);
@@ -807,7 +807,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		public int parmIndex;
 		public int parmsStart, parmsEnd;
 		public EntityLocator locator;
-		public Call(Function func, IFunctionCall callFunc2, ASTNode parm, EntityLocator locator) {
+		public Call(final Function func, final IFunctionCall callFunc2, final ASTNode parm, final EntityLocator locator) {
 			this.callFunc = callFunc2;
 			this.parmIndex = parm != null ? callFunc2.indexOfParm(parm) : 0;
 			this.parmsStart = func.bodyLocation().start()+callFunc2.parmsStart();
@@ -819,7 +819,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 	}
 
-	public Call innermostFunctionCallParmAtOffset(int offset) throws BadLocationException, ProblemException {
+	public Call innermostFunctionCallParmAtOffset(final int offset) throws BadLocationException, ProblemException {
 		final Function f = functionAt(offset);
 		if (f == null)
 			return null;
@@ -857,7 +857,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	@Override
-	public void completionProposalApplied(DeclarationProposal proposal) {
+	public void completionProposalApplied(final DeclarationProposal proposal) {
 		autoEditStrategy().completionProposalApplied(proposal);
 		try {
 			if (proposal.requiresDocumentReparse())
@@ -875,7 +875,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		super.completionProposalApplied(proposal);
 	}
 
-	protected Function functionFromEntity(IIndexEntity entity) {
+	protected Function functionFromEntity(final IIndexEntity entity) {
 		Function function = null;
 		if (entity instanceof Function)
 			function = (Function)entity;
@@ -887,7 +887,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return function;
 	}
 
-	public IIndexEntity mergeFunctions(int offset, final ScriptEditingState.Call call) {
+	public IIndexEntity mergeFunctions(final int offset, final ScriptEditingState.Call call) {
 		IIndexEntity entity = null;
 		call.locator.initializeProposedDeclarations(structure(), null, (ASTNode)call.callFunc);
 		Function commono = null;
@@ -916,19 +916,19 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private static ScannerPerEngine<ScriptCodeScanner> SCANNERS = new ScannerPerEngine<ScriptCodeScanner>(ScriptCodeScanner.class);
 	private final ITextDoubleClickStrategy doubleClickStrategy = new DoubleClickStrategy();
-	public ScriptEditingState(IPreferenceStore store) { super(store); }
+	public ScriptEditingState(final IPreferenceStore store) { super(store); }
 	@Override
-	public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) { return CStylePartitionScanner.PARTITIONS; }
+	public String[] getConfiguredContentTypes(final ISourceViewer sourceViewer) { return CStylePartitionScanner.PARTITIONS; }
 	@Override
-	public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) { return doubleClickStrategy; }
+	public ITextDoubleClickStrategy getDoubleClickStrategy(final ISourceViewer sourceViewer, final String contentType) { return doubleClickStrategy; }
 	@Override
-	public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
+	public IQuickAssistAssistant getQuickAssistAssistant(final ISourceViewer sourceViewer) {
 		final IQuickAssistAssistant assistant = new QuickAssistAssistant();
 		assistant.setQuickAssistProcessor(new ScriptQuickAssistProcessor());
 		return assistant;
 	}
 	@Override
-	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
+	public IPresentationReconciler getPresentationReconciler(final ISourceViewer sourceViewer) {
 		final PresentationReconciler reconciler = new PresentationReconciler();
 		final ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT"); //$NON-NLS-1$
 		final ScriptCodeScanner scanner = SCANNERS.get(structure().engine());
@@ -960,18 +960,18 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return reconciler;
 	}
 	@Override
-	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+	public IHyperlinkDetector[] getHyperlinkDetectors(final ISourceViewer sourceViewer) {
 		return new IHyperlinkDetector[] {
 			new ScriptHyperlinkDetector(),
 			urlDetector
 		};
 	}
 	@Override
-	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
+	public IAutoEditStrategy[] getAutoEditStrategies(final ISourceViewer sourceViewer, final String contentType) {
 		return new IAutoEditStrategy[] {autoEditStrategy};
 	}
 	@Override
-	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+	public ITextHover getTextHover(final ISourceViewer sourceViewer, final String contentType) {
 	    if (hover == null)
 	    	hover = new ScriptTextHover();
 	    return hover;

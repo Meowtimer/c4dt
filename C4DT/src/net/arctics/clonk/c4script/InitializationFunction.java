@@ -13,16 +13,16 @@ import net.arctics.clonk.c4script.ast.SimpleStatement;
 public class InitializationFunction extends SynthesizedFunction {
 	public static final class VarInitializationAccess extends AccessVar {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		public VarInitializationAccess(Declaration declaration) { super(declaration); }
+		public VarInitializationAccess(final Declaration declaration) { super(declaration); }
 	}
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Variable variable;
-	public InitializationFunction(Variable variable) {
+	public InitializationFunction(final Variable variable) {
 		this.variable = variable;
 	}
 	public Variable variable() { return variable; }
 	@Override
-	public void storeBody(ASTNode body, String source) {
+	public void storeBody(final ASTNode body, final String source) {
 		if (body == null) {
 			// oh well
 			super.storeBody(new FunctionBody(this), source);

@@ -11,12 +11,12 @@ import org.eclipse.core.runtime.CoreException;
 public class ResourceCounter implements IResourceVisitor, IResourceDeltaVisitor {
 	
 	private int count;
-	private int flags;
+	private final int flags;
 	
 	public final static int COUNT_CONTAINER = 1;
 	public final static int COUNT_FILE = 2;
 	
-	public ResourceCounter(int countFlags) {
+	public ResourceCounter(final int countFlags) {
 		count = 0;
 		flags = countFlags;
 	}
@@ -29,22 +29,18 @@ public class ResourceCounter implements IResourceVisitor, IResourceDeltaVisitor 
 	}
 
 	@Override
-	public boolean visit(IResource resource) throws CoreException {
-		if ((flags & COUNT_CONTAINER) > 0) {
-			if (resource instanceof IContainer) {
+	public boolean visit(final IResource resource) throws CoreException {
+		if ((flags & COUNT_CONTAINER) > 0)
+			if (resource instanceof IContainer)
 				count++;
-			}
-		}
-		if ((flags & COUNT_FILE) > 0) {
-			if (resource instanceof IFile) {
+		if ((flags & COUNT_FILE) > 0)
+			if (resource instanceof IFile)
 				count++;
-			}
-		}
 		return true;
 	}
 
 	@Override
-	public boolean visit(IResourceDelta delta) throws CoreException {
+	public boolean visit(final IResourceDelta delta) throws CoreException {
 		return visit(delta.getResource());
 	}
 

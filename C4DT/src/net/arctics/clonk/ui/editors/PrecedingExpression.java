@@ -22,8 +22,8 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 	public Sequence contextSequence;
 	public IType precedingType;
 	public final Function function;
-	public void pos(int pos) { this.exprRegion = new Region(pos, 0); exprAtRegion = null; }
-	public PrecedingExpression(Function function, ASTNode contextExpression, Sequence contextSequence, IType precedingType) {
+	public void pos(final int pos) { this.exprRegion = new Region(pos, 0); exprAtRegion = null; }
+	public PrecedingExpression(final Function function, final ASTNode contextExpression, final Sequence contextSequence, final IType precedingType) {
 		super(-1);
 		this.function = function;
 		this.contextExpression = contextExpression;
@@ -31,7 +31,7 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 		this.precedingType = precedingType;
 	}
 	@Override
-	public TraversalContinuation visitNode(ASTNode expression, ProblemReporter context) {
+	public TraversalContinuation visitNode(final ASTNode expression, final ProblemReporter context) {
 		if (context.function() != this.function)
 			return TraversalContinuation.Cancel;
 		final TraversalContinuation c = super.visitNode(expression, context);

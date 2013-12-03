@@ -82,7 +82,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 	 * @see org.eclipse.ui.views.contentoutline.ContentOutlinePage#createControl(org.eclipse.swt.widgets.Composite)
 	 */
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		composite = new Composite(parent, SWT.NO_SCROLL);
 		final GridLayout layout = new GridLayout(1, false);
 		composite.setLayout(layout);
@@ -90,7 +90,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		filterBox.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		filterBox.addModifyListener(new ModifyListener() {
 			@Override
-			public void modifyText(ModifyEvent e) {
+			public void modifyText(final ModifyEvent e) {
 				getTreeViewer().refresh();
 			}
 		});
@@ -100,7 +100,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 			new ViewerFilter() {
 				@SuppressWarnings({ })
 				@Override
-				public boolean select(Viewer viewer, Object parentElement, Object element) {
+				public boolean select(final Viewer viewer, final Object parentElement, final Object element) {
 					if (StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(((ILabelProvider)getTreeViewer().getLabelProvider()).getText(element)).find())
 						return true;
 					if (element instanceof Declaration) {
@@ -116,20 +116,20 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		});
 		getTreeViewer().getTree().addKeyListener(new KeyListener() {
 			@Override
-			public void keyReleased(KeyEvent e) {
+			public void keyReleased(final KeyEvent e) {
 				if (e.keyCode == SWT.CR)
 					openForeignDeclarations();
 			}
 			@Override
-			public void keyPressed(KeyEvent e) {}
+			public void keyPressed(final KeyEvent e) {}
 		});
 		getTreeViewer().getTree().addMouseListener(new MouseListener() {
 			@Override
-			public void mouseUp(MouseEvent e) {}
+			public void mouseUp(final MouseEvent e) {}
 			@Override
-			public void mouseDown(MouseEvent e) {}
+			public void mouseDown(final MouseEvent e) {}
 			@Override
-			public void mouseDoubleClick(MouseEvent e) {openForeignDeclarations();}
+			public void mouseDoubleClick(final MouseEvent e) {openForeignDeclarations();}
 		});
 		if (editor != null) {
 			final Declaration topLevelDeclaration = editor().structure();
@@ -141,7 +141,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 
 	private final ViewerSorter DECLARATION_SORTER = new ViewerSorter() {
 		@Override
-		public int category(Object element) {
+		public int category(final Object element) {
 			int multiplier = 1;
 			if (element instanceof Declaration) {
 				final Declaration d = (Declaration)element;
@@ -153,7 +153,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		}
 	};
 
-	private void setTreeViewerInput(Declaration obj) {
+	private void setTreeViewerInput(final Declaration obj) {
 		final TreeViewer treeViewer = this.getTreeViewer();
 		if (treeViewer == null)
 			return;
@@ -166,7 +166,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 	}
 
 	@Override
-	public void selectionChanged(SelectionChangedEvent event) {
+	public void selectionChanged(final SelectionChangedEvent event) {
 		if (event.getSelection().isEmpty())
 			return;
 		if (event.getSelection() instanceof IStructuredSelection) {
@@ -182,7 +182,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 	/**
 	 * @param editor the editor to set
 	 */
-	public void setEditor(StructureTextEditor editor) {
+	public void setEditor(final StructureTextEditor editor) {
 		this.editor = editor;
 	}
 
@@ -200,7 +200,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		}
 	}
 
-	public void select(Declaration field) {
+	public void select(final Declaration field) {
 		final TreeViewer viewer = getTreeViewer();
 		viewer.removeSelectionChangedListener(this);
 		try {
@@ -210,7 +210,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		}
 	}
 
-	public void setInput(Object input) {
+	public void setInput(final Object input) {
 		getTreeViewer().setInput(input);
 	}
 

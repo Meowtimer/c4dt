@@ -61,7 +61,7 @@ void Reset()
 	Exclusive=-1;
 }
 
-void SetPix(int x, int y, int col)
+void SetPix(final int x, final int y, final int col)
 {
 	// Safety
 	if (!Inside(x,0,MapWdt-1) || !Inside(y,0,MapHgt-1)) return;
@@ -71,7 +71,7 @@ void SetPix(int x, int y, int col)
 	MapBuf.setPixel(x, y, col);
 }
 
-void SetSpot(int x, int y, int rad, int col)
+void SetSpot(final int x, final int y, final int rad, final int col)
 {
 	int ycnt,xcnt,lwdt,dpy;
 	for (ycnt=-rad; ycnt<=rad; ycnt++)
@@ -82,7 +82,7 @@ void SetSpot(int x, int y, int rad, int col)
 	}
 }
 
-void DrawLayer(int x, int y, int size, int col)
+void DrawLayer(int x, int y, final int size, final int col)
 {
 	int cnt,cnt2;
 	for (cnt=0; cnt<size; cnt++)
@@ -93,7 +93,7 @@ void DrawLayer(int x, int y, int size, int col)
 	}
 }
 
-int GetPix(int x, int y)
+int GetPix(final int x, final int y)
 {
 	// Safety
 	if (!Inside(x,0,MapWdt-1) || !Inside(y,0,MapHgt-1)) return 0;
@@ -101,11 +101,12 @@ int GetPix(int x, int y)
 	return MapBuf.getPixel(x,y);
 }
 
-public void create(ImageData sfcMap,
-                          LandscapeSection rLScape, TextureMap rTexMap,
-                          boolean fLayers, int iPlayerNum)
+@Override
+public void create(final ImageData sfcMap,
+                          final LandscapeSection rLScape, final TextureMap rTexMap,
+                          final boolean fLayers, int iPlayerNum)
 {
-	double fullperiod= 20.0 * Math.PI;
+	final double fullperiod= 20.0 * Math.PI;
 	int ccol;
 	int cx,cy;
 
@@ -122,13 +123,13 @@ public void create(ImageData sfcMap,
 
 	// Surface
 	ccol=rTexMap.GetIndexMatTex(rLScape.Material)+MapIFT;
-	float amplitude= rLScape.Amplitude.Evaluate();
-	float phase=     rLScape.Phase.Evaluate();
+	final float amplitude= rLScape.Amplitude.Evaluate();
+	final float phase=     rLScape.Phase.Evaluate();
 	float period=    rLScape.Period.Evaluate();
 	if (rLScape.MapPlayerExtend > 0) period *= Math.min(iPlayerNum, LandscapeSection.C4S_MaxMapPlayerExtend);
-	float natural=   rLScape.Random.Evaluate();
-	int level0=    Math.min(MapWdt,MapHgt)/2;
-	int maxrange=  level0*3/4;
+	final float natural=   rLScape.Random.Evaluate();
+	final int level0=    Math.min(MapWdt,MapHgt)/2;
+	final int maxrange=  level0*3/4;
 	double cy_curve,cy_natural; // -1.0 - +1.0 !
 
 	double rnd_cy,rnd_tend; // -1.0 - +1.0 !
@@ -163,7 +164,7 @@ public void create(ImageData sfcMap,
 	// Raise liquid level
 	Exclusive=0;
 	ccol=rTexMap.GetIndexMatTex(rLScape.Liquid);
-	int wtr_level=rLScape.LiquidLevel.Evaluate();
+	final int wtr_level=rLScape.LiquidLevel.Evaluate();
 	for (cx=0; cx<MapWdt; cx++)
 		for (cy=MapHgt*(100-wtr_level)/100; cy<MapHgt; cy++)
 			SetPix(cx,cy,ccol);

@@ -203,7 +203,7 @@ public class EngineSettings extends SettingsBase {
 	 * @param functionName The function name
 	 * @return The URL string
 	 */
-	public String documentationURLForFunction(String functionName) {
+	public String documentationURLForFunction(final String functionName) {
 		final String urlFormatString = useDocsFromRepository
 			? "file://" + repositoryPath + "/docs/sdk/script/fn/%1$s.xml"
 			: docURLTemplate;

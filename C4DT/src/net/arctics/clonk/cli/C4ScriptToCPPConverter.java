@@ -45,7 +45,7 @@ public class C4ScriptToCPPConverter {
 	private final Set<Function> globalFunctionsUsed = new HashSet<Function>();
 	private final Set<Variable> globalConstantsUsed = new HashSet<Variable>();
 	
-	private String regString(String text) {
+	private String regString(final String text) {
 		String ident = stringConstants.get(text);
 		if (ident == null) {
 			ident = "__string__" + stringConstants.size(); //$NON-NLS-1$
@@ -54,13 +54,13 @@ public class C4ScriptToCPPConverter {
 		return ident;
 	}
 	
-	public void printExprElement(final Function function, ASTNode element, final Writer output, int depth) {
+	public void printExprElement(final Function function, final ASTNode element, final Writer output, final int depth) {
 		element.print(new AppendableBackedExprWriter(output) {
 			
 			boolean prelude = true;
 			
 			@Override
-			public boolean doCustomPrinting(ASTNode elm, int depth) {
+			public boolean doCustomPrinting(final ASTNode elm, final int depth) {
 				if (prelude && elm instanceof Block) {
 					prelude = false;
 					return writePrelude(elm, depth);
@@ -74,11 +74,11 @@ public class C4ScriptToCPPConverter {
 					return true;
 				}
 				else if (elm instanceof VarDeclarationStatement) {
-					VarDeclarationStatement statement = (VarDeclarationStatement) elm;
+					final VarDeclarationStatement statement = (VarDeclarationStatement) elm;
 					append("C4Value"); //$NON-NLS-1$
 					append(" "); //$NON-NLS-1$
 					int counter = 0;
-					for (VarInitialization var : statement.variableInitializations()) {
+					for (final VarInitialization var : statement.variableInitializations()) {
 						append(var.name);
 						if (var.expression != null) {
 							append(" = "); //$NON-NLS-1$
@@ -92,18 +92,18 @@ public class C4ScriptToCPPConverter {
 					return true;
 				}
 				else if (elm instanceof Sequence) {
-					Sequence sequence = (Sequence)elm;
-					ASTNode[] elements = sequence.subElements();
+					final Sequence sequence = (Sequence)elm;
+					final ASTNode[] elements = sequence.subElements();
 					for (int i = elements.length-1; i >= 0; i--) {
-						ASTNode e = elements[i];
-						CallDeclaration callFunc = as(e, CallDeclaration.class);
-						MemberOperator op = i-1 >= 0 ? as(elements[i-1], MemberOperator.class) : null;
+						final ASTNode e = elements[i];
+						final CallDeclaration callFunc = as(e, CallDeclaration.class);
+						final MemberOperator op = i-1 >= 0 ? as(elements[i-1], MemberOperator.class) : null;
 						if (callFunc != null && op != null)
 							if (callFunc.declaration() instanceof Function) {
-								Function f = (Function) callFunc.declaration();
+								final Function f = (Function) callFunc.declaration();
 								if (f.parentDeclaration() instanceof Engine) {
 									globalFunctionsUsed.add(f);
-									Sequence sequenceStart = sequence.subSequenceUpTo(op);
+									final Sequence sequenceStart = sequence.subSequenceUpTo(op);
 									append(String.format("engine%s->Exec(C4Value(", f.name())); sequenceStart.print(this, depth); append(").getPropList(), &C4AulParSet"); Conf.printNodeList(this, callFunc.params(), 0, "(", ")"); append(", true)");
 									return true;
 								}
@@ -111,9 +111,9 @@ public class C4ScriptToCPPConverter {
 					}
 				}
 				else if (elm instanceof CallDeclaration) {
-					CallDeclaration callFunc = (CallDeclaration) elm;
+					final CallDeclaration callFunc = (CallDeclaration) elm;
 					if (callFunc.declaration() instanceof Function) {
-						Function f = (Function) callFunc.declaration();
+						final Function f = (Function) callFunc.declaration();
 						if (f.parentDeclaration() instanceof Engine) {
 							globalFunctionsUsed.add(f);
 							append(String.format("engine%s->Exec(ctx->Obj, &C4AulParSet", f.name()));
@@ -124,7 +124,7 @@ public class C4ScriptToCPPConverter {
 					}
 				}
 				else if (elm instanceof AccessVar) {
-					Variable var = as(((AccessVar)elm).declaration(), Variable.class);
+					final Variable var = as(((AccessVar)elm).declaration(), Variable.class);
 					if (var != null && var.parentDeclaration() instanceof Engine) {
 						globalConstantsUsed.add(var);
 						append(String.format("const%s", var.name()));
@@ -134,9 +134,9 @@ public class C4ScriptToCPPConverter {
 				return false;
 			}
 
-			private boolean writePrelude(ASTNode elm, int depth) {
-				Block block = (Block) elm;
-				Statement[] statements = new Statement[1+block.statements().length];
+			private boolean writePrelude(final ASTNode elm, final int depth) {
+				final Block block = (Block) elm;
+				final Statement[] statements = new Statement[1+block.statements().length];
 				statements[0] = new ReplacementStatement("FindEngineFunctions();");
 				System.arraycopy(block.statements(), 0, statements, 1, block.statements().length);
 				Block.printBlock(statements, this, depth);
@@ -145,11 +145,11 @@ public class C4ScriptToCPPConverter {
 		}, depth);
 	}
 
-	public void printFunction(Function function, Block body, Writer output) throws IOException {
+	public void printFunction(final Function function, final Block body, final Writer output) throws IOException {
 		output.append("static C4Value ");
 		output.append(function.name());
 		output.append("(C4AulContext *ctx");
-		for (Variable parm : function.parameters()) {
+		for (final Variable parm : function.parameters()) {
 			output.append(", C4Value ");
 			output.append(parm.name());
 		}
@@ -158,14 +158,14 @@ public class C4ScriptToCPPConverter {
 		this.printExprElement(function, body, output, 0);
 	}
 	
-	public void printScript(Script script, Writer output) throws IOException {
+	public void printScript(final Script script, final Writer output) throws IOException {
 		
 		printHeader(output);
 		
 		output.append("namespace\n{\n");
 		
-		StringWriter scriptWriter = new StringWriter();
-		for (Function f : script.functions()) {			
+		final StringWriter scriptWriter = new StringWriter();
+		for (final Function f : script.functions()) {			
 			printFunction(f, f.body(), scriptWriter);
 			scriptWriter.append('\n');
 			scriptWriter.append('\n');
@@ -177,8 +177,8 @@ public class C4ScriptToCPPConverter {
 		output.append(scriptWriter.getBuffer());
 	}
 	
-	private void printHeader(Writer output) throws IOException {
-		String[] includes = new String[] {
+	private void printHeader(final Writer output) throws IOException {
+		final String[] includes = new String[] {
 			"C4Include.h",
 			"C4StringTable.h",
 			"C4Aul.h",
@@ -186,51 +186,51 @@ public class C4ScriptToCPPConverter {
 			"C4Def.h",
 			"C4AulDefFunc.h"
 		};
-		for (String include : includes)
+		for (final String include : includes)
 			output.append(String.format("#include \"%s\"\n", include));
 		output.append("\n");
 	}
 
-	private void printStringTable(Writer output) throws IOException {
-		for (Entry<String, String> entry : stringConstants.entrySet())
+	private void printStringTable(final Writer output) throws IOException {
+		for (final Entry<String, String> entry : stringConstants.entrySet())
 			output.append(String.format("C4String* %s = ::Strings.RegString(\"%s\");\n", entry.getValue(), entry.getKey()));
 	}
 	
-	private void printFunctionTable(Writer output) throws IOException {
-		for (Function f : globalFunctionsUsed)
+	private void printFunctionTable(final Writer output) throws IOException {
+		for (final Function f : globalFunctionsUsed)
 			output.append(String.format("C4AulFunc *engine%s;\n", f.name()));
-		for (Variable v : globalConstantsUsed)
+		for (final Variable v : globalConstantsUsed)
 			output.append(String.format("C4Value const%s;\n", v.name()));
 		output.append("bool engineFunctionsFound = false;\n");
 		output.append("void FindEngineFunctions()\n{\n");
 		output.append("\tif(engineFunctionsFound)\n\t\t\treturn;\n");
 		output.append("\tengineFunctionsFound = true;\n");
-		for (Function f : globalFunctionsUsed)
+		for (final Function f : globalFunctionsUsed)
 			output.append(String.format("\tengine%1$s = ::ScriptEngine.GetFirstFunc(\"%1$s\");\n", f.name()));
-		for (Variable v : globalConstantsUsed)
+		for (final Variable v : globalConstantsUsed)
 			output.append(String.format("\t::ScriptEngine.GetGlobalConstant(\"%1$s\", &const%1$s);\n", v.name()));
 		output.append("}\n");
 		output.append("}\n\n");
 	}
 	
-	public static void main(String[] args) throws IOException, ProblemException {
+	public static void main(final String[] args) throws IOException, ProblemException {
 		if (args.length < 3) {
 			help();
 			return;
 		}
-		String engineConfigurationFolder = args[0];
-		String engine = args[1];
-		File scriptToConvert = new File(args[2]);
+		final String engineConfigurationFolder = args[0];
+		final String engine = args[1];
+		final File scriptToConvert = new File(args[2]);
 		if (!scriptToConvert.exists()) {
 			System.out.println(String.format("File %s does not exist", scriptToConvert.getPath()));
 			return;
 		}
 		Core.headlessInitialize(engineConfigurationFolder, engine);
-		InputStreamReader reader = new InputStreamReader(new FileInputStream(scriptToConvert));
-		String script = StreamUtil.stringFromReader(reader);
-		Index dummyIndex = new Index();
-		SelfContainedScript scriptObj = new SelfContainedScript(scriptToConvert.getName(), script, dummyIndex);
-		PrintWriter printWriter = new PrintWriter(System.out);
+		final InputStreamReader reader = new InputStreamReader(new FileInputStream(scriptToConvert));
+		final String script = StreamUtil.stringFromReader(reader);
+		final Index dummyIndex = new Index();
+		final SelfContainedScript scriptObj = new SelfContainedScript(scriptToConvert.getName(), script, dummyIndex);
+		final PrintWriter printWriter = new PrintWriter(System.out);
 		new C4ScriptToCPPConverter().printScript(scriptObj, printWriter);
 		printWriter.flush();
 	}

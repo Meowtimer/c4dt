@@ -32,53 +32,53 @@ public class CustomizationNature implements IProjectNature {
 	}
 
 	@Override
-	public void setProject(IProject project) {
+	public void setProject(final IProject project) {
 		this.project = project;
 	}
 	
 	public static CustomizationNature get() {
-		for (IProject proj : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-			CustomizationNature nat = get(proj);
+		for (final IProject proj : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+			final CustomizationNature nat = get(proj);
 			if (nat != null)
 				return nat;
 		}
 		return null;
 	}
 	
-	public static CustomizationNature get(IProject project) {
+	public static CustomizationNature get(final IProject project) {
 		try {
-			if (project.isOpen() && project.hasNature(NATURE_ID)) {
+			if (project.isOpen() && project.hasNature(NATURE_ID))
 				return (CustomizationNature) project.getNature(NATURE_ID);
-			} else
+			else
 				return null;
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			return null;
 		}
 	}
 	
-	public static CustomizationNature create(String name) {
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IProject newProject = workspace.getRoot().getProject(name);
-		IProjectDescription desc = workspace.newProjectDescription(name);
+	public static CustomizationNature create(final String name) {
+		final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		final IProject newProject = workspace.getRoot().getProject(name);
+		final IProjectDescription desc = workspace.newProjectDescription(name);
 		desc.setNatureIds(new String[] { NATURE_ID });
 		try {
 			newProject.create(desc, null);
 			newProject.open(null);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 			return null;
 		}
-		for (String engineName : Core.instance().namesOfAvailableEngines()) {
-			URI workspaceStorageURI = URIUtil.toURI(Core.instance().workspaceStorageLocationForEngine(engineName));			
+		for (final String engineName : Core.instance().namesOfAvailableEngines()) {
+			final URI workspaceStorageURI = URIUtil.toURI(Core.instance().workspaceStorageLocationForEngine(engineName));			
 			try {
 				newProject.getFolder(engineName).createLink(workspaceStorageURI, 0, null);
-			} catch (CoreException e) {
+			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 		}
 		try {
 			return (CustomizationNature) newProject.getNature(NATURE_ID);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 			return null;
 		}

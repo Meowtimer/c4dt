@@ -16,23 +16,23 @@ class ConnectionJob extends Job {
 	private final Target target;
 	private final int port;
 	
-	public ConnectionJob(Target target, String name, int port) {
+	public ConnectionJob(final Target target, final String name, final int port) {
 		super(name);
 		this.target = target;
 		this.port = port;
 	}
 
 	@Override
-	protected IStatus run(IProgressMonitor monitor) {
+	protected IStatus run(final IProgressMonitor monitor) {
 		boolean success = false;
 		// try several times to give the engine a chance to load
 		for (int attempts = 0; attempts < 30 && !monitor.isCanceled(); attempts++) {
 			Socket socket;
 			try {
 				socket = new Socket("localhost", port); //$NON-NLS-1$
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				if (e instanceof UnknownHostException || e instanceof IOException) {
-					try {Thread.sleep(Target.CONNECTION_ATTEMPT_WAITTIME);} catch (InterruptedException interrupt) {}
+					try {Thread.sleep(Target.CONNECTION_ATTEMPT_WAITTIME);} catch (final InterruptedException interrupt) {}
 					continue;
 				}
 				else {
@@ -45,7 +45,7 @@ class ConnectionJob extends Job {
 			try {
 				socketWriter = new PrintWriter(socket.getOutputStream());
 				socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 			this.target.setConnectionObjects(socket, socketWriter, socketReader);

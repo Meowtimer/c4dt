@@ -95,7 +95,7 @@ public abstract class SpecialEngineRules {
 
 	private final ASTNode RETURN_TRUE;
 	
-	public SpecialEngineRules(Engine engine) {
+	public SpecialEngineRules(final Engine engine) {
 		super();
 		this.engine = engine;
 		RETURN_TRUE = ASTNodeMatcher.prepareForMatching("$:FunctionBody$(return $:True$|$:NumberLiteral,/1/$;)", engine);
@@ -179,17 +179,17 @@ public abstract class SpecialEngineRules {
 		public static class Ticket implements IDeserializationResolvable, Serializable {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			private final String name;
-			public Ticket(SpecialRule obj) {
+			public Ticket(final SpecialRule obj) {
 				this.name = obj.name;
 			}
 			@Override
-			public Object resolve(Index index, IndexEntity deserializee) {
+			public Object resolve(final Index index, final IndexEntity deserializee) {
 				return index.engine().specialRules().rule(name);
 			}
 		}
 
 		@Override
-		public Object saveReplacement(Index context) { return new Ticket(this); }
+		public Object saveReplacement(final Index context) { return new Ticket(this); }
 
 		public String name;
 
@@ -199,7 +199,7 @@ public abstract class SpecialEngineRules {
 		 * @param instanceReference The field with the attached @AppliedTo annotation
 		 * @return Returns empty array if no AppliedTo annotation exists for the field, annotation.functions() if one exists.
 		 */
-		public static String[] getFunctionsAppliedTo(Field instanceReference, int role) {
+		public static String[] getFunctionsAppliedTo(final Field instanceReference, final int role) {
 			AppliedTo[] annots;
 			final AppliedTo annot = instanceReference.getAnnotation(AppliedTo.class);
 			if (annot != null)
@@ -270,7 +270,7 @@ public abstract class SpecialEngineRules {
 		 * @throws ProblemException
 		 */
 		@SignifiesRole(role=ARGUMENT_VALIDATOR)
-		public boolean validateArguments(CallDeclaration callFunc, ASTNode[] arguments, ProblemReporter processor) throws ProblemException {
+		public boolean validateArguments(final CallDeclaration callFunc, final ASTNode[] arguments, final ProblemReporter processor) throws ProblemException {
 			return false;
 		}
 		/**
@@ -280,7 +280,7 @@ public abstract class SpecialEngineRules {
 		 * @return Modified type or null, in which case the default type will be returned.
 		 */
 		@SignifiesRole(role=RETURNTYPE_MODIFIER)
-		public IType returnType(ProblemReporter processor, CallDeclaration callFunc) {
+		public IType returnType(final ProblemReporter processor, final CallDeclaration callFunc) {
 			return null;
 		}
 		/**
@@ -295,7 +295,7 @@ public abstract class SpecialEngineRules {
 		 * @return Return null if no declaration could be found that is referred to.
 		 */
 		@SignifiesRole(role=DECLARATION_LOCATOR)
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			return null;
 		}
 		/**
@@ -305,7 +305,7 @@ public abstract class SpecialEngineRules {
 		 * @return Returns false if this rule doesn't handle assigning default parameters of the passed function call. No types will be assigned and regular type inference takes place.
 		 */
 		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
-		public boolean assignDefaultParmTypes(Script script, Function function, TypeVariable[] parameterTypeVariables) {
+		public boolean assignDefaultParmTypes(final Script script, final Function function, final TypeVariable[] parameterTypeVariables) {
 			return false;
 		}
 		/**
@@ -314,14 +314,14 @@ public abstract class SpecialEngineRules {
 		 * @return Returns null if this rule didn't detect a special name, requiring a specialized function class. Parser will use default class (Function).
 		 */
 		@SignifiesRole(role=DEFAULT_PARMTYPE_ASSIGNER)
-		public Function newFunction(String name) {
+		public Function newFunction(final String name) {
 			return null;
 		}
 
 		@SignifiesRole(role=FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
 		public void contributeAdditionalProposals(
-			CallDeclaration callFunc, int index, ASTNode parmExpression,
-			ScriptCompletionProcessor completions, ProposalsSite pl) {}
+			final CallDeclaration callFunc, final int index, final ASTNode parmExpression,
+			final ScriptCompletionProcessor completions, final ProposalsSite pl) {}
 	}
 
 	private final Map<String, SpecialRule> allRules = new HashMap<String, SpecialEngineRules.SpecialRule>();
@@ -343,7 +343,7 @@ public abstract class SpecialEngineRules {
 	private interface FunctionsByRole {
 		String[] functions(int role);
 	}
-	private void putFuncRule(SpecialFuncRule rule, FunctionsByRole functionsGetter) {
+	private void putFuncRule(final SpecialFuncRule rule, final FunctionsByRole functionsGetter) {
 		final int mask = rule.computeRoleMask();
 		if ((mask & ARGUMENT_VALIDATOR) != 0) for (final String func : functionsGetter.functions(ARGUMENT_VALIDATOR))
 			argumentValidators.put(func, rule);
@@ -359,26 +359,26 @@ public abstract class SpecialEngineRules {
 			parmProposalContributors.put(func, rule);
 	}
 
-	public SpecialRule rule(String name) {
+	public SpecialRule rule(final String name) {
 		return allRules.get(name);
 	}
 
-	public void putFuncRule(SpecialFuncRule rule, final Field fieldReference) {
+	public void putFuncRule(final SpecialFuncRule rule, final Field fieldReference) {
 		putRule(rule, fieldReference);
 		putFuncRule(rule, new FunctionsByRole() {
 			@Override
-			public String[] functions(int role) {
+			public String[] functions(final int role) {
 				return SpecialRule.getFunctionsAppliedTo(fieldReference, role);
 			}
 		});
 	}
 
-	private void putRule(SpecialFuncRule rule, final Field field) {
+	private void putRule(final SpecialFuncRule rule, final Field field) {
 		rule.name = field.getName();
 		allRules.put(field.getName(), rule);
 	}
 
-	private Field fieldWithValue(Object value) {
+	private Field fieldWithValue(final Object value) {
 		for (Class<?> c = getClass(); c != null; c = c.getSuperclass())
 			for (final Field f : c.getDeclaredFields()) {
 				Object obj;
@@ -393,19 +393,19 @@ public abstract class SpecialEngineRules {
 		return null;
 	}
 
-	public void putFuncRule(SpecialFuncRule rule, final String... functions) {
+	public void putFuncRule(final SpecialFuncRule rule, final String... functions) {
 		final Field field  = fieldWithValue(rule);
 		if (field != null)
 			putRule(rule, field);
 		putFuncRule(rule, new FunctionsByRole() {
 			@Override
-			public String[] functions(int role) {
+			public String[] functions(final int role) {
 				return functions;
 			}
 		});
 	}
 
-	public SpecialFuncRule funcRuleFor(String function, int role) {
+	public SpecialFuncRule funcRuleFor(final String function, final int role) {
 		if (role == ARGUMENT_VALIDATOR)
 			return argumentValidators.get(function);
 		else if (role == DECLARATION_LOCATOR)
@@ -424,7 +424,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"CreateObject", "CreateContents", "CreateConstruction", "PlaceAnimal", "FindContents", "PlaceVegetation"})
 	public final SpecialFuncRule objectCreationRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(ProblemReporter processor, CallDeclaration callFunc) {
+		public IType returnType(final ProblemReporter processor, final CallDeclaration callFunc) {
 			if (callFunc.params().length >= 1) {
 				final IType t = processor.typeOf(callFunc.params()[0]);
 				IType r = PrimitiveType.OBJECT;
@@ -445,7 +445,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"GetID"})
 	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(ProblemReporter processor, CallDeclaration callFunc) {
+		public IType returnType(final ProblemReporter processor, final CallDeclaration callFunc) {
 			IType t;
 			if (callFunc.params().length > 0)
 				t = processor.typeOf(callFunc.params()[0]);
@@ -466,7 +466,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"FindObjects"})
 	public final SpecialFuncRule criteriaSearchRule = new SearchCriteriaRuleBase() {
 		@Override
-		public IType returnType(ProblemReporter processor, CallDeclaration callFunc) {
+		public IType returnType(final ProblemReporter processor, final CallDeclaration callFunc) {
 			IType t = searchCriteriaAssumedResult(processor, callFunc, true);
 			if (t == null || t == PrimitiveType.UNKNOWN)
 				t = PrimitiveType.OBJECT;
@@ -477,7 +477,7 @@ public abstract class SpecialEngineRules {
 			}
 			return t;
 		}
-		private IType searchCriteriaAssumedResult(ProblemReporter processor, CallDeclaration node, boolean topLevel) {
+		private IType searchCriteriaAssumedResult(final ProblemReporter processor, final CallDeclaration node, final boolean topLevel) {
 			final String declarationName = node.name();
 			// parameters to FindObjects itself are also &&-ed together
 			if (topLevel || declarationName.equals("Find_And"))
@@ -493,7 +493,7 @@ public abstract class SpecialEngineRules {
 			}
 			return null;
 		}
-		private IType typeByID(ProblemReporter processor, CallDeclaration node) {
+		private IType typeByID(final ProblemReporter processor, final CallDeclaration node) {
 			IType unified = null;
 			if (node.params().length >= 1) {
 				final IType ty = processor.typeOf(node.params()[0]);
@@ -506,7 +506,7 @@ public abstract class SpecialEngineRules {
 			}
 			return unified;
 		}
-		private IType orSubConditions(ProblemReporter processor, CallDeclaration node) {
+		private IType orSubConditions(final ProblemReporter processor, final CallDeclaration node) {
 			final List<IType> types = new LinkedList<IType>();
 			for (final ASTNode parm : node.params())
 				if (parm instanceof CallDeclaration) {
@@ -517,7 +517,7 @@ public abstract class SpecialEngineRules {
 				}
 			return processor.script().typing().unify(types);
 		}
-		private IType andSubConditions(ProblemReporter processor, CallDeclaration node) {
+		private IType andSubConditions(final ProblemReporter processor, final CallDeclaration node) {
 			final List<IType> types = new LinkedList<IType>();
 			for (final ASTNode parm : node.params())
 				if (parm instanceof CallDeclaration) {
@@ -531,7 +531,7 @@ public abstract class SpecialEngineRules {
 				}
 			return processor.script().typing().unify(types);
 		}
-		private IType typeByFunction(Script script, final Object ev) {
+		private IType typeByFunction(final Script script, final Object ev) {
 			final List<Declaration> functions = functionsNamed(script, (String)ev);
 			final List<IType> types = new ArrayList<IType>(functions.size());
 			for (final Declaration f : functions)
@@ -543,7 +543,7 @@ public abstract class SpecialEngineRules {
 			final IType ty = script.typing().unify(types);
 			return ty;
 		}
-		private void addTypeFromFunction(Script script, final List<IType> types, final Function f) {
+		private void addTypeFromFunction(final Script script, final List<IType> types, final Function f) {
 			if (f.body() != null && RETURN_TRUE.match(f.body()) != null)
 				if (f.script() instanceof Definition)
 					types.add(f.script());
@@ -562,7 +562,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Schedule"})
 	public final SpecialFuncRule scheduleScriptValidationRule = new SpecialFuncRule() {
 		@Override
-		public boolean validateArguments(CallDeclaration node, final ASTNode[] arguments, final ProblemReporter processor) {
+		public boolean validateArguments(final CallDeclaration node, final ASTNode[] arguments, final ProblemReporter processor) {
 			if (arguments.length < 1)
 				return false; // no script expression supplied
 			final IType objType = arguments.length >= 4 ? processor.typeOf(arguments[3]) : processor.definition();
@@ -575,9 +575,9 @@ public abstract class SpecialEngineRules {
 					new Standalone(iterable(processor.script())).parse((String)scriptExpr, node.parent(Function.class), null, new IMarkerListener() {
 						@Override
 						public Decision markerEncountered(
-							Markers markers, IASTPositionProvider positionProvider,
-							Problem code, ASTNode node,
-							int markerStart, int markerEnd, int flags, int severity, Object... args
+							final Markers markers, final IASTPositionProvider positionProvider,
+							final Problem code, final ASTNode node,
+							final int markerStart, final int markerEnd, final int flags, final int severity, final Object... args
 						) {
 							switch (code) {
 							// ignore complaining about missing ';' - some genuine errors might slip through but who cares
@@ -600,7 +600,7 @@ public abstract class SpecialEngineRules {
 			return false; // don't stop regular parameter validating
 		};
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration node, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral) parmExpression;
 				final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(offsetInExpression-1); // make up for '"'
@@ -620,7 +620,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"ScheduleCall"})
 	public final SpecialFuncRule scheduleCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral) parmExpression;
 				final IType t = script.typings().get(callFunc.params()[0]);
@@ -639,7 +639,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"AddCommand", "AppendCommand", "SetCommand"})
 	public final SpecialFuncRule addCommandValidationRule = new SpecialFuncRule() {
 		@Override
-		public boolean validateArguments(CallDeclaration node, ASTNode[] arguments, ProblemReporter processor) {
+		public boolean validateArguments(final CallDeclaration node, final ASTNode[] arguments, final ProblemReporter processor) {
 			final Function f = node.declaration() instanceof Function ? (Function)node.declaration() : null;
 			if (f != null && arguments.length >= 3) {
 				// look if command is "Call"; if so treat parms 2, 3, 4 as any
@@ -672,7 +672,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"GameCall"})
 	public final SpecialFuncRule gameCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int parameterIndex, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script, final int parameterIndex, final int offsetInExpression, final ASTNode parmExpression) {
 			if (parameterIndex == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final Index index = script.index();
@@ -685,7 +685,7 @@ public abstract class SpecialEngineRules {
 					final List<Declaration> decs = new LinkedList<Declaration>();
 					index.forAllRelevantIndexes(new Sink<Index>() {
 						@Override
-						public void receivedObject(Index index) {
+						public void receivedObject(final Index index) {
 							for (final Scenario s : index.scenarios()) {
 								final Function f = s.findLocalFunction(lit.literal(), true);
 								if (f != null)
@@ -707,7 +707,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Call"})
 	public final SpecialFuncRule callLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final Function f = script.findFunction(lit.stringValue());
@@ -724,7 +724,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"PrivateCall", "PublicCall", "PrivateCall"})
 	public final SpecialFuncRule scopedCallLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				Definition def = as(script.typings().get(callFunc.params()[0]), Definition.class);
@@ -748,7 +748,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"LocalN"})
 	public final SpecialFuncRule localNLinkRule = new SpecialFuncRule() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				Definition def = callFunc.params().length > 1 ? as(script.typings().get(callFunc.params()[1]), Definition.class) : null;
@@ -772,7 +772,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"GetPlrKnowledge", "GetPlrMagic"})
 	public final SpecialFuncRule getPlrKnowledgeRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(ProblemReporter processor, CallDeclaration callFunc) {
+		public IType returnType(final ProblemReporter processor, final CallDeclaration callFunc) {
 			if (callFunc.params().length >= 3)
 				return PrimitiveType.ID;
 			else
@@ -783,7 +783,7 @@ public abstract class SpecialEngineRules {
 	public abstract class LocateResourceByNameRule extends SpecialFuncRule {
 		public abstract Set<IIndexEntity> locateEntitiesByName(CallDeclaration node, String name, ProjectIndex pi, Script script);
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration node, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			Object parmEv;
 			if (index == 0 && (parmEv = parmExpression.evaluateStatic(node.parent(Function.class))) instanceof String) {
 				final String resourceName = (String)parmEv;
@@ -802,7 +802,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"CreateParticle", "CastAParticles", "CastParticles", "CastBackParticles", "PushParticles"})
 	public final SpecialFuncRule linkToParticles = new LocateResourceByNameRule() {
 		@Override
-		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, Script script) {
+		public Set<IIndexEntity> locateEntitiesByName(final CallDeclaration callFunc, final String name, final ProjectIndex pi, final Script script) {
 			final IIndexEntity unit = pi.findPinnedStructure(ParticleUnit.class, name, script.resource(), true, "Particle.txt");
 			return ArrayUtil.set(unit);
 		}
@@ -815,7 +815,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Format"})
 	public final SpecialFuncRule linkFormat = new LocateResourceByNameRule() {
 		@Override
-		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration formatCall, String name, ProjectIndex pi, Script script) {
+		public Set<IIndexEntity> locateEntitiesByName(final CallDeclaration formatCall, final String name, final ProjectIndex pi, final Script script) {
 			final CallDeclaration containingCall = as(formatCall.parent(), CallDeclaration.class);
 			if (containingCall != null && containingCall.indexOfParm(formatCall) == 0) {
 				final SpecialFuncRule rule = formatCall.parent(Declaration.class).engine().specialRules().funcRuleFor(containingCall.name(), DECLARATION_LOCATOR);
@@ -831,7 +831,7 @@ public abstract class SpecialEngineRules {
 	 */
 	@AppliedTo(functions={"Sound"})
 	public final SpecialFuncRule linkToSound = new LocateResourceByNameRule() {
-		protected void collectSoundResourcesInFolder(Set<IIndexEntity> set, Matcher nameMatcher, Engine engine, IContainer container, ProjectIndex pi) {
+		protected void collectSoundResourcesInFolder(final Set<IIndexEntity> set, final Matcher nameMatcher, final Engine engine, final IContainer container, final ProjectIndex pi) {
 			try {
 				for (final IResource r : container.members())
 					if (nameMatcher.reset(r.getName()).matches())
@@ -841,7 +841,7 @@ public abstract class SpecialEngineRules {
 			}
 		}
 		@Override
-		public Set<IIndexEntity> locateEntitiesByName(CallDeclaration callFunc, String name, ProjectIndex pi, Script script) {
+		public Set<IIndexEntity> locateEntitiesByName(final CallDeclaration callFunc, String name, final ProjectIndex pi, final Script script) {
 			final Engine engine = script.engine();
 			name = name.replace(".", "\\\\.").replaceAll("[\\*\\?]", ".*?").replace("%d", "[0-9]*");
 			final HashSet<IIndexEntity> results = new HashSet<IIndexEntity>();
@@ -876,10 +876,10 @@ public abstract class SpecialEngineRules {
 	 */
 	protected class SetActionLinkRule extends SpecialFuncRule {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration node, Script script, int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration node, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			return actionLinkForDefinition(node.parent(Function.class), as(script, Definition.class), parmExpression);
 		}
-		protected EntityRegion actionLinkForDefinition(Function currentFunction, Definition definition, ASTNode actionNameExpression) {
+		protected EntityRegion actionLinkForDefinition(final Function currentFunction, final Definition definition, final ASTNode actionNameExpression) {
 			Object parmEv;
 			if (definition != null && (parmEv = actionNameExpression.evaluateStatic(currentFunction)) instanceof String) {
 				final String actionName = (String)parmEv;
@@ -905,11 +905,11 @@ public abstract class SpecialEngineRules {
 	public SpecialFuncRule setActionLinkRule = new SetActionLinkRule();
 
 	private abstract class SearchCriteriaRuleBase extends SpecialFuncRule {
-		protected List<Declaration> functionsNamed(Script script, final String name) {
+		protected List<Declaration> functionsNamed(final Script script, final String name) {
 			final List<Declaration> matchingDecs = new LinkedList<Declaration>();
 			final Sink<Script> scriptSink = new Sink<Script>() {
 				@Override
-				public void receivedObject(Script item) {
+				public void receivedObject(final Script item) {
 					if (item.dictionary() != null && item.dictionary().contains(name)) {
 						item.requireLoaded();
 						final Function f = item.findFunction(name);
@@ -920,7 +920,7 @@ public abstract class SpecialEngineRules {
 			};
 			script.index().forAllRelevantIndexes(new Sink<Index>() {
 				@Override
-				public void receivedObject(Index index) {
+				public void receivedObject(final Index index) {
 					index.allScripts(scriptSink);
 				}
 			});
@@ -934,8 +934,8 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"Find_Func"})
 	public final SpecialFuncRule findFuncRule = new SearchCriteriaRuleBase() {
 		@Override
-		public EntityRegion locateEntityInParameter(CallDeclaration callFunc, Script script,
-			int index, int offsetInExpression, ASTNode parmExpression) {
+		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script,
+			final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			if (parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final List<Declaration> matchingDecs = functionsNamed(script, lit.stringValue());
@@ -949,7 +949,7 @@ public abstract class SpecialEngineRules {
 	@AppliedTo(functions={"GetScenarioVal"})
 	public final SpecialFuncRule scenarioValResultRule = new SpecialFuncRule() {
 		@Override
-		public IType returnType(ProblemReporter processor, CallDeclaration callFunc) {
+		public IType returnType(final ProblemReporter processor, final CallDeclaration callFunc) {
 			if (callFunc.params().length > 0 && callFunc.params()[0] instanceof StringLiteral) {
 				final String entryName = ((StringLiteral)callFunc.params()[0]).stringValue();
 				final String sectionName =
@@ -976,7 +976,7 @@ public abstract class SpecialEngineRules {
 			}
 			return PrimitiveType.ANY;
 		}
-		private IType typeFromEntryClass(Class<?> cls) {
+		private IType typeFromEntryClass(final Class<?> cls) {
 			if (SignedInteger.class.isAssignableFrom(cls))
 				return PrimitiveType.INT;
 			if (IDArray.class == cls)
@@ -1010,7 +1010,7 @@ public abstract class SpecialEngineRules {
 	 * @param scanner The scanner to parse the id from
 	 * @return The parsed id or null if parsing failed
 	 */
-	public ID parseId(BufferedScanner scanner) {
+	public ID parseId(final BufferedScanner scanner) {
 		return null;
 	}
 
@@ -1019,7 +1019,7 @@ public abstract class SpecialEngineRules {
 		Save
 	}
 
-	public void processScenarioConfiguration(ScenarioUnit unit, ScenarioConfigurationProcessing processing) {
+	public void processScenarioConfiguration(final ScenarioUnit unit, final ScenarioConfigurationProcessing processing) {
 		// do nothing
 	}
 
@@ -1028,7 +1028,7 @@ public abstract class SpecialEngineRules {
 			return new IPredicate<Definition>() {
 				final String filter = entry.definition().categoryFilter();
 				@Override
-				public boolean test(Definition item) {
+				public boolean test(final Definition item) {
 					final CategoriesValue category = item.category();
 					return category != null && category.constants() != null && category.constants().contains(filter);
 				}
@@ -1036,14 +1036,14 @@ public abstract class SpecialEngineRules {
 		else if (entry.key().equals("Animal"))
 			return new IPredicate<Definition>() {
 				@Override
-				public boolean test(Definition item) {
+				public boolean test(final Definition item) {
 					return item.findFunction("IsAnimal") != null;
 				}
 			};
 		else if (entry.key().equals("Crew"))
 			return new IPredicate<Definition>() {
 				@Override
-				public boolean test(Definition item) {
+				public boolean test(final Definition item) {
 					for (final Directive d : item.directives())
 						if (d.type() == DirectiveType.APPENDTO)
 							return false; // ignore definitions that append
@@ -1053,14 +1053,14 @@ public abstract class SpecialEngineRules {
 		else
 			return new IPredicate<Definition>() {
 				@Override
-				public boolean test(Definition item) {
+				public boolean test(final Definition item) {
 					return true;
 				}
 			};
 	}
 
-	public void refreshIndex(Index index) {}
+	public void refreshIndex(final Index index) {}
 
-	public void contribute(Engine engine) {}
+	public void contribute(final Engine engine) {}
 
 }

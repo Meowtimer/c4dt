@@ -21,7 +21,7 @@ public enum Algorithm {
 		public int x;
 		public int y;
 		public Overlay topOverlay;
-		public Peek(Overlay overlay, int x, int y, Overlay topOverlay) {
+		public Peek(final Overlay overlay, final int x, final int y, final Overlay topOverlay) {
 			super();
 			this.overlay = overlay;
 			this.x = x;
@@ -46,7 +46,7 @@ public enum Algorithm {
 		}
 	}
 	
-	public boolean compute(Overlay overlay, int iX, int iY) {
+	public boolean compute(final Overlay overlay, int iX, int iY) {
 		final Range a = overlay.a;
 		final Range b = overlay.b;
 		final int s = overlay.seed.evaluated();

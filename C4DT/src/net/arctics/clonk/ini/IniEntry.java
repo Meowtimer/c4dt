@@ -23,20 +23,20 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private IniEntryDefinition definition;
 	@Override
-	public void doPrint(ASTNodePrinter writer, int indentation) {
+	public void doPrint(final ASTNodePrinter writer, final int indentation) {
 		writer.append(StringUtil.multiply("\t", indentation));
 		writer.append(toString());
 	}
 	@Override
 	public int sortCategory() { return 0; }
-	public IniEntry(int pos, int endPos, String key, Object value) { super(pos,endPos, key, value); }
-	public IniEntry update(Object value, IniEntryDefinition definition) {
+	public IniEntry(final int pos, final int endPos, final String key, final Object value) { super(pos,endPos, key, value); }
+	public IniEntry update(final Object value, final IniEntryDefinition definition) {
 		this.value = value;
 		this.definition = definition;
 		assignParentToSubElements();
 		return this;
 	}
-	public void setDefinition(IniEntryDefinition entryConfig) { this.definition = entryConfig; }
+	public void setDefinition(final IniEntryDefinition entryConfig) { this.definition = entryConfig; }
 	public IniEntryDefinition definition() { return definition; }
 	public IniUnit unit() { return parent(IniUnit.class); }
 	@Override
@@ -69,7 +69,7 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 			(value instanceof IHasChildrenWithContext && ((IHasChildrenWithContext)value).hasChildren());
 	}
 	@Override
-	public void validate(Markers markers) throws ProblemException {
+	public void validate(final Markers markers) throws ProblemException {
 		if (value instanceof ISelfValidatingIniEntryValue)
 			((ISelfValidatingIniEntryValue)value).validate(markers, this);
 	}

@@ -30,7 +30,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 
 	protected static final Markers NULL_MARKERS = new Markers(false) {
 		@Override
-		public void enabled(boolean value) {
+		public void enabled(final boolean value) {
 			if (value)
 				System.out.println("Nope");
 		}
@@ -101,11 +101,11 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	 * @param scripts Set of scripts to run on.
 	 * @return Return the call target
 	 */
-	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
+	public ProblemReportingStrategy initialize(final Markers markers, final IProgressMonitor progressMonitor, final Script[] scripts) {
 		return initialize(markers, progressMonitor);
 	}
 
-	private ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor) {
+	private ProblemReportingStrategy initialize(final Markers markers, final IProgressMonitor progressMonitor) {
 		this.markers = defaulting(markers, NULL_MARKERS);
 		this.progressMonitor = progressMonitor;
 		return this;
@@ -118,7 +118,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	 * @param functions {@link Script}/{@link Function} pairs to run on
 	 * @return Return the call target
 	 */
-	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Collection<Pair<Script, Function>> functions) {
+	public ProblemReportingStrategy initialize(final Markers markers, final IProgressMonitor progressMonitor, final Collection<Pair<Script, Function>> functions) {
 		return initialize(markers, progressMonitor);
 	}
 
@@ -135,7 +135,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	 * Set an observer which is notified when the strategy visits any {@link ASTNode}.
 	 * @param observer The observer
 	 */
-	public void setObserver(IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
+	public void setObserver(final IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
 
 	/**
 	 * Perform initial configuration before this strategy can be further initialized using {@link #initialize(Markers, IProgressMonitor, Collection)}/{@link #initialize(Markers, IProgressMonitor, Script[])}
@@ -143,7 +143,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	 * @param args Custom arguments string
 	 * @return Return call target.
 	 */
-	public ProblemReportingStrategy configure(Index index, String args) {
+	public ProblemReportingStrategy configure(final Index index, final String args) {
 		this.index = index;
 		findProjectName();
 		return this;
@@ -154,7 +154,7 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	 */
 	public void captureMarkers() {}
 
-	public void steer(Runnable runnable) {
+	public void steer(final Runnable runnable) {
 		try {
 			runnable.run();
 		} catch (final Exception e) {

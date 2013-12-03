@@ -27,10 +27,10 @@ public class LandscapeScriptCompletionProcessor extends StructureCompletionProce
 	private static final Pattern startedAttr    = Pattern.compile(".*\\s+([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 	private static final Pattern startedAttrVal = Pattern.compile(".*\\s+([A-Za-z_0-9]*)\\s*=\\s*([A-Za-z_0-9]*).*"); //$NON-NLS-1$
 
-	public LandscapeScriptCompletionProcessor(LandscapeScriptEditingState state) { super(state); }
+	public LandscapeScriptCompletionProcessor(final LandscapeScriptEditingState state) { super(state); }
 
 	@Override
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+	public ICompletionProposal[] computeCompletionProposals(final ITextViewer viewer, final int offset) {
 
 		try {
 			state().silentReparse();
@@ -102,8 +102,8 @@ public class LandscapeScriptCompletionProcessor extends StructureCompletionProce
 	}
 
 	@Override
-	public IContextInformation[] computeContextInformation(ITextViewer viewer,
-			int offset) {
+	public IContextInformation[] computeContextInformation(final ITextViewer viewer,
+			final int offset) {
 		return null;
 	}
 

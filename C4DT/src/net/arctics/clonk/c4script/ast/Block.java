@@ -23,21 +23,21 @@ public class Block extends Statement implements ITidyable {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode[] statements;
 
-	public Block(List<ASTNode> statements) {
+	public Block(final List<ASTNode> statements) {
 		this(statements.toArray(new ASTNode[statements.size()]));
 	}
 
-	public Block(ASTNode... statements) {
+	public Block(final ASTNode... statements) {
 		super();
 		this.statements = statements;
 		assignParentToSubElements();
 	}
 
 	public ASTNode[] statements() { return statements; }
-	public void setStatements(ASTNode[] statements) { this.statements = statements; }
+	public void setStatements(final ASTNode[] statements) { this.statements = statements; }
 
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		final ASTNode[] typeAdjustedCopy = new ASTNode[elms.length];
 		System.arraycopy(elms, 0, typeAdjustedCopy, 0, elms.length);
 		setStatements(typeAdjustedCopy);
@@ -49,11 +49,11 @@ public class Block extends Statement implements ITidyable {
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		printBlock(statements, builder, depth);
 	}
 
-	public static void printBlock(ASTNode[] statements, ASTNodePrinter builder, int depth) {
+	public static void printBlock(final ASTNode[] statements, final ASTNodePrinter builder, final int depth) {
 		builder.append("{\n"); //$NON-NLS-1$
 		for (final ASTNode statement : statements) {
 			//statement.printPrependix(builder, depth);
@@ -65,7 +65,7 @@ public class Block extends Statement implements ITidyable {
 		Conf.printIndent(builder, depth); builder.append("}"); //$NON-NLS-1$
 	}
 
-	private static Comment commentedOut(ASTNode node) {
+	private static Comment commentedOut(final ASTNode node) {
 		final String str = node.printed();
 		return new Comment(str, str.contains("\n"), false); //$NON-NLS-1$
 	}
@@ -122,18 +122,18 @@ public class Block extends Statement implements ITidyable {
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		for (final ASTNode s : subElements())
 			if (s != null)
 				s.evaluate(context);
 		return null;
 	}
 
-	public void addStatements(ASTNode... statements) {
+	public void addStatements(final ASTNode... statements) {
 		this.statements = ArrayUtil.concat(this.statements, statements);
 	}
 
-	public void removeStatement(ASTNode s) {
+	public void removeStatement(final ASTNode s) {
 		final List<ASTNode> l = new ArrayList<ASTNode>(Arrays.asList(statements));
 		l.remove(s);
 		this.statements = l.toArray(new Statement[l.size()]);

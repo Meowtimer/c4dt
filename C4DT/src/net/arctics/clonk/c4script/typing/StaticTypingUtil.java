@@ -57,7 +57,7 @@ public class StaticTypingUtil {
 	 * @param file The file to operate on
 	 * @return Contents of the file with typing annotations replaced with whitespace or null if no typing annotations stored for the file.
 	 */
-	public static String eraseTypeAnnotations(File file) {
+	public static String eraseTypeAnnotations(final File file) {
 		final IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
 		if (files == null || files.length == 0)
 			return null;
@@ -91,7 +91,7 @@ public class StaticTypingUtil {
 			// cast expressions
 			script.traverse(new IASTVisitor<StringBuilder>() {
 				@Override
-				public TraversalContinuation visitNode(ASTNode node, StringBuilder context) {
+				public TraversalContinuation visitNode(final ASTNode node, final StringBuilder context) {
 					if (node instanceof CastExpression) {
 						final IRegion absolute = node.absolute();
 						final IRegion exprAbsolute = ((CastExpression) node).expression().absolute();
@@ -114,7 +114,7 @@ public class StaticTypingUtil {
 		class Annots extends ArrayList<TypeAnnotation> implements IASTVisitor<Void> {
 			public Annots() { super(defaulting(script.typeAnnotations(), Collections.<TypeAnnotation>emptyList())); }
 			@Override
-			public TraversalContinuation visitNode(ASTNode node, Void context) {
+			public TraversalContinuation visitNode(final ASTNode node, final Void context) {
 				if (node instanceof TypeAnnotation)
 					this.add((TypeAnnotation)node);
 				return TraversalContinuation.Continue;
@@ -125,7 +125,7 @@ public class StaticTypingUtil {
 		return annots.size() > 0 ? annots : null;
 	}
 
-	public static File toFile(IResource resource) {
+	public static File toFile(final IResource resource) {
 		return new File(resource.getLocation().toOSString());
 	}
 
@@ -135,7 +135,7 @@ public class StaticTypingUtil {
 	 * @param mirror Mirror folder
 	 * @param linkFiles Whether to link files with no typing annotations instead of copying them.
 	 */
-	public static void mirrorDirectoryWithTypingAnnotationsRemoved(File rawFolder, File mirrorFolder, boolean linkFiles) {
+	public static void mirrorDirectoryWithTypingAnnotationsRemoved(final File rawFolder, final File mirrorFolder, final boolean linkFiles) {
 		mirrorFolder.mkdirs();
 		for (final File originalFile : rawFolder.listFiles()) {
 			if (originalFile.getName().startsWith("."))
@@ -147,7 +147,7 @@ public class StaticTypingUtil {
 					try {
 						StreamUtil.writeToFile(destinationFile, new StreamWriteRunnable() {
 							@Override
-							public void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException {
+							public void run(final File file, final OutputStream stream, final OutputStreamWriter writer) throws IOException {
 								writer.write(erased);
 							}
 						});
@@ -173,7 +173,7 @@ public class StaticTypingUtil {
 	}
 
 	@CommandFunction
-	public static void MigrateToTyping(Object context, String projectName, String typingMode) {
+	public static void MigrateToTyping(final Object context, final String projectName, final String typingMode) {
 		final Typing typing = Typing.valueOf(typingMode);
 		final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 		if (nature != null) {
@@ -183,7 +183,7 @@ public class StaticTypingUtil {
 				nature.saveSettings();
 				new WorkspaceJob(format("Migrating '%s' to static typing", projectName)) {
 					@Override
-					public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+					public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
 						nature.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
 						return Status.OK_STATUS;
 					}
@@ -194,13 +194,13 @@ public class StaticTypingUtil {
 	}
 
 	@CommandFunction
-	public static void NoSTMirror(Object context, String project, String destinationFolder) {
+	public static void NoSTMirror(final Object context, final String project, final String destinationFolder) {
 		final IProject p = ResourcesPlugin.getWorkspace().getRoot().getProject(project);
 		mirrorDirectoryWithTypingAnnotationsRemoved(toFile(p), new File(destinationFolder), true);
 	}
 
 	@CommandFunction
-	public static  void SetTyping(Object context, String projectName, String typingMode) {
+	public static  void SetTyping(final Object context, final String projectName, final String typingMode) {
 		final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 		final Typing typing = Typing.valueOf(typingMode);
 		nature.settings().typing = typing;

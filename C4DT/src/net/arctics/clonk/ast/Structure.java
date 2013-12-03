@@ -21,6 +21,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -42,7 +43,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param declarationClass the class of the declaration
 	 * @return the declaration or null if it couldn't be found
 	 */
-	public Declaration findDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+	public Declaration findDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
 		return findLocalDeclaration(declarationName, declarationClass);
 	}
 
@@ -51,7 +52,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param declarationName the name of the declaration
 	 * @return the declaration or null if it couldn't be found
 	 */
-	public Declaration findDeclaration(String declarationName) {
+	public Declaration findDeclaration(final String declarationName) {
 		return findDeclaration(declarationName, Declaration.class);
 	}
 
@@ -83,7 +84,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param resource the file
 	 * @throws CoreException
 	 */
-	public void pinTo(IResource resource) {
+	public void pinTo(final IResource resource) {
 		try {
 			resource.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, this);
 		} catch (final CoreException e) {
@@ -99,7 +100,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @throws CoreException
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends Structure> T pinned(IResource file, boolean force, boolean duringBuild) {
+	public static <T extends Structure> T pinned(final IResource file, final boolean force, final boolean duringBuild) {
 		if (file == null)
 			return null;
 		T result;
@@ -118,7 +119,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		}
 	}
 
-	public void setFile(IFile file) {
+	public void setFile(final IFile file) {
 		// i'll do that
 	}
 
@@ -128,7 +129,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return the previously pinned structure or null if there was none
 	 * @throws CoreException
 	 */
-	public static Structure unPinFrom(IFile file) {
+	public static Structure unPinFrom(final IFile file) {
 		final Structure pinned = pinned(file, false, false);
 		if (pinned != null)
 			try {
@@ -161,7 +162,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * Registers a new structure factory
 	 * @param factory the factory
 	 */
-	public static void registerStructureFactory(IStructureFactory factory) {
+	public static void registerStructureFactory(final IStructureFactory factory) {
 		structureFactories.add(factory);
 	}
 
@@ -170,14 +171,14 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param file file
 	 * @return the newly created structure or null if no suitable factory could be found
 	 */
-	public static Structure createStructureForFile(IResource file, boolean duringBuild) {
+	public static Structure createStructureForFile(final IResource file, final boolean duringBuild) {
 		for (final IStructureFactory factory : structureFactories)
 			try {
 				final Structure result = factory.create(file, duringBuild);
 				if (result != null)
 					return result;
 			} catch (final Exception e) {
-				Core.instance().getLog().log(new Status(Status.ERROR, Core.PLUGIN_ID,
+				Core.instance().getLog().log(new Status(IStatus.ERROR, Core.PLUGIN_ID,
 					String.format("Some Structure factory caused an exception while operating on '%s'", file.getProjectRelativePath().toOSString()), e)
 				);
 			}
@@ -189,7 +190,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param script the script to commit to
 	 * @param builder Builders gonna build
 	 */
-	public void commitTo(Script script, ClonkBuilder builder) {
+	public void commitTo(final Script script, final ClonkBuilder builder) {
 		// placeholder
 	}
 
@@ -206,11 +207,11 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param markers
 	 * @throws ProblemException
 	 */
-	public void validate(Markers markers) throws ProblemException {}
+	public void validate(final Markers markers) throws ProblemException {}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T extends Declaration> T latestVersionOf(T from) {
+	public <T extends Declaration> T latestVersionOf(final T from) {
 		return (T) findLocalDeclaration(from.name(), from.getClass());
 	}
 
@@ -219,7 +220,7 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param path The path to find the {@link Declaration} of
 	 * @return The {@link Declaration} or null if not found.
 	 */
-	public Declaration findDeclarationByPath(String path, Class<? extends Declaration> cls) {
+	public Declaration findDeclarationByPath(final String path, final Class<? extends Declaration> cls) {
 		final String[] parts = path.split("\\.");
 		Declaration d = this;
 		for (final String p : parts) {
@@ -247,12 +248,12 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	public void saveNodes(final Collection<? extends ASTNode> expressions, final boolean absoluteLocations) {
 		Core.instance().performActionsOnFileDocument(file(), new IDocumentAction<Boolean>() {
 			@Override
-			public Boolean run(IDocument document) {
+			public Boolean run(final IDocument document) {
 				try {
 					final List<ASTNode> l = new ArrayList<ASTNode>(expressions);
 					Collections.sort(l, new Comparator<ASTNode>() {
 						@Override
-						public int compare(ASTNode o1, ASTNode o2) {
+						public int compare(final ASTNode o1, final ASTNode o2) {
 							final IRegion r1 = absoluteLocations ? o1.absolute() : o1;
 							final IRegion r2 = absoluteLocations ? o2.absolute() : o2;
 							return r2.getOffset() - r1.getOffset();

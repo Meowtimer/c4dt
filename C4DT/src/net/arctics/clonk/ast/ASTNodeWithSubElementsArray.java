@@ -5,7 +5,7 @@ import net.arctics.clonk.Core;
 public class ASTNodeWithSubElementsArray extends ASTNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected ASTNode[] elements;
-	public ASTNodeWithSubElementsArray(ASTNode... elms) {
+	public ASTNodeWithSubElementsArray(final ASTNode... elms) {
 		this.elements = elms;
 		assignParentToSubElements();
 	}
@@ -14,7 +14,7 @@ public class ASTNodeWithSubElementsArray extends ASTNode {
 		return elements;
 	}
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		elements = elms;
 	}
 	public ASTNode lastElement() {

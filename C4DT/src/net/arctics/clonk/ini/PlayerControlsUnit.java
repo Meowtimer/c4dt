@@ -16,7 +16,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	@Override
 	protected String configurationName() { return "PlayerControls.txt"; } //$NON-NLS-1$
 	public List<Variable> controlVariables() { return controlVariables; }
-	public PlayerControlsUnit(Object input) { super(input); }
+	public PlayerControlsUnit(final Object input) { super(input); }
 	@Override
 	public void startParsing() {
 		super.startParsing();
@@ -27,17 +27,17 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	 */
 	@Override
 	protected void endParsing() {
-		IniSection controlsDefsSection = sectionWithName("ControlDefs", false);
+		final IniSection controlsDefsSection = sectionWithName("ControlDefs", false);
 		if (controlsDefsSection != null)
-			for (IniItem item : controlsDefsSection.items())
+			for (final IniItem item : controlsDefsSection.items())
 				if (item instanceof IniSection) {
-					IniSection section = (IniSection) item;
+					final IniSection section = (IniSection) item;
 					if (section.name().equals("ControlDef")) { //$NON-NLS-1$
-						IniItem identifierEntry = section.itemByKey("Identifier"); //$NON-NLS-1$
+						final IniItem identifierEntry = section.itemByKey("Identifier"); //$NON-NLS-1$
 						if (identifierEntry instanceof IniEntry) {
-							IniEntry e = (IniEntry) identifierEntry;
-							String ident = e.stringValue();
-							Variable var = new StructureVariable("CON_" + ident, PrimitiveType.INT); //$NON-NLS-1$
+							final IniEntry e = (IniEntry) identifierEntry;
+							final String ident = e.stringValue();
+							final Variable var = new StructureVariable("CON_" + ident, PrimitiveType.INT); //$NON-NLS-1$
 							var.setScope(Scope.CONST);
 							var.setParent(this);
 							var.setLocation(e);
@@ -48,9 +48,9 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 		super.endParsing();
 	}
 	@Override
-	public String nameOfEntryToTakeSectionNameFrom(IniSection section) {
+	public String nameOfEntryToTakeSectionNameFrom(final IniSection section) {
 		if (section != null && section.parentSection() != null) {
-			IniSection psec = section.parentSection();
+			final IniSection psec = section.parentSection();
 			if (psec.name().equals("ControlDefs"))
 				return "Identifier";
 			else if (psec.name().equals("ControlSets"))
@@ -61,21 +61,21 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 		return super.nameOfEntryToTakeSectionNameFrom(section);
 	}
 	@Override
-	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
 		if (declarationClass == Variable.class && declarationName.startsWith("CON_"))
-			for (Variable var : controlVariables())
+			for (final Variable var : controlVariables())
 				if (var.name().equals(declarationName))
 					return var;
 		return super.findLocalDeclaration(declarationName, declarationClass);
 	}
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends Declaration> T latestVersionOf(T of) {
-		T r = super.latestVersionOf(of);
+	public <T extends Declaration> T latestVersionOf(final T of) {
+		final T r = super.latestVersionOf(of);
 		if (r != null)
 			return r;
 		if (of instanceof Variable)
-			for (Variable c : controlVariables)
+			for (final Variable c : controlVariables)
 				if (of.name().equals(c.name()))
 					return (T) c;
 		return null;

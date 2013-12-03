@@ -33,7 +33,7 @@ public class ProjectConversionConfiguration {
 		private final ASTNode template;
 		private final ASTNode transformation;
 		private final CodeTransformation chain;
-		public CodeTransformation(ASTNode template, ASTNode transformation, CodeTransformation chain) {
+		public CodeTransformation(final ASTNode template, final ASTNode transformation, final CodeTransformation chain) {
 			super();
 			this.template = template;
 			this.transformation = transformation;
@@ -42,7 +42,7 @@ public class ProjectConversionConfiguration {
 		public ASTNode template() { return template; }
 		public ASTNode transformation() { return transformation; }
 		public CodeTransformation chain() { return chain; }
-		public CodeTransformation(ASTNode stmt, CodeTransformation chain) {
+		public CodeTransformation(final ASTNode stmt, final CodeTransformation chain) {
 			this.chain = chain;
 			if (stmt instanceof BinaryOp && ((BinaryOp)stmt).operator() == Operator.Transform) {
 				final BinaryOp op = (BinaryOp)stmt;
@@ -51,7 +51,7 @@ public class ProjectConversionConfiguration {
 			} else
 				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", stmt.toString()));
 		}
-		public CodeTransformation(ASTNode[] tuple, int tupleElementIndex) {
+		public CodeTransformation(final ASTNode[] tuple, final int tupleElementIndex) {
 			this(tuple[tupleElementIndex], tuple.length > tupleElementIndex+1
 				? new CodeTransformation(tuple, tupleElementIndex+1)
 				: null
@@ -67,7 +67,7 @@ public class ProjectConversionConfiguration {
 	private final Map<String, String> idMap = new HashMap<String, String>();
 	private final Engine sourceEngine;
 	
-	public ProjectConversionConfiguration(Engine sourceEngine) {
+	public ProjectConversionConfiguration(final Engine sourceEngine) {
 		this.sourceEngine = sourceEngine;
 	}
 	
@@ -88,7 +88,7 @@ public class ProjectConversionConfiguration {
 		}
 	}
 	
-	public void load(List<URL> files) {
+	public void load(final List<URL> files) {
 		URL codeTransformations = null;
 		URL idMap = null;
 		for (final URL f : files)
@@ -102,7 +102,7 @@ public class ProjectConversionConfiguration {
 			loadIDMap(idMap);
 	}
 	
-	private void loadIDMap(URL idMap) {
+	private void loadIDMap(final URL idMap) {
 		final String text = StreamUtil.stringFromURL(idMap);
 		if (text != null)
 			for (final String line : StringUtil.lines(new StringReader(text))) {
@@ -112,7 +112,7 @@ public class ProjectConversionConfiguration {
 			}
 	}
 
-	private void loadCodeTransformations(URL transformationsFile) {
+	private void loadCodeTransformations(final URL transformationsFile) {
 		try {
 			String text = StreamUtil.stringFromURL(transformationsFile);
 			if (text == null)

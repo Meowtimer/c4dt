@@ -18,7 +18,7 @@ public class ArrayUtil {
 
 	@SafeVarargs
 	@SuppressWarnings("unchecked")
-	public static <T> T[] concat(T[] a, T... b) {
+	public static <T> T[] concat(final T[] a, final T... b) {
 		final int alen = a != null ? a.length : 0;
 		final int blen = b != null ? b.length : 0;
 		if (alen == 0)
@@ -35,7 +35,7 @@ public class ArrayUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T[] concat(T first, T... rest) {
+	public static <T> T[] concat(final T first, final T... rest) {
 		final T[] result = (T[]) Array.newInstance(rest.getClass().getComponentType(), 1+rest.length);
 		result[0] = first;
 		for (int i = 0; i < rest.length; i++)
@@ -43,7 +43,7 @@ public class ArrayUtil {
 		return result;
 	}
 
-	public static <T, B extends T> T[] arrayRange(B[] source, int start, int length, Class<T> elementClass) {
+	public static <T, B extends T> T[] arrayRange(final B[] source, final int start, final int length, final Class<T> elementClass) {
 		@SuppressWarnings("unchecked")
 		final
 		T[] result = (T[]) Array.newInstance(elementClass, length);
@@ -52,11 +52,11 @@ public class ArrayUtil {
 		return result;
 	}
 
-	public static <T> T firstOrNull(T[] arr) {
+	public static <T> T firstOrNull(final T[] arr) {
 		return arr != null && arr.length > 0 ? arr[0] : null;
 	}
 
-	public static <T> T[] removeNullElements(T[] array, Class<T> cls) {
+	public static <T> T[] removeNullElements(T[] array, final Class<T> cls) {
 		int actualCount = 0;
 		for (final T t : array)
 			if (t != null)
@@ -75,7 +75,7 @@ public class ArrayUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <E> ArrayList<E> list(E... elements) {
+	public static <E> ArrayList<E> list(final E... elements) {
 		final ArrayList<E> result = new ArrayList<E>(elements.length);
 		for (final E e : elements)
 			result.add(e);
@@ -83,14 +83,14 @@ public class ArrayUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T[] convertArray(Object[] baseArray, Class<T> newElementClass) {
+	public static <T> T[] convertArray(final Object[] baseArray, final Class<T> newElementClass) {
 		final T[] result = (T[]) Array.newInstance(newElementClass, baseArray.length);
 		System.arraycopy(baseArray, 0, result, 0, baseArray.length);
 		return result;
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T[] filter(T[] array, IPredicate<T> filter) {
+	public static <T> T[] filter(final T[] array, final IPredicate<T> filter) {
 		try {
 			final List<T> list = filter(iterable(array), filter);
 			return list.toArray((T[]) Array.newInstance(array.getClass().getComponentType(), list.size()));
@@ -100,7 +100,7 @@ public class ArrayUtil {
 		}
 	}
 
-	public static <T> List<T> filter(Iterable<? extends T> iterable, IPredicate<T> filter) {
+	public static <T> List<T> filter(final Iterable<? extends T> iterable, final IPredicate<T> filter) {
 		final List<T> result = new LinkedList<T>();
 		for (final T elm : iterable)
 			if (filter.test(elm))
@@ -109,7 +109,7 @@ public class ArrayUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T, C> C[] filter(Iterable<T> iterable, Class<C> cls) {
+	public static <T, C> C[] filter(final Iterable<T> iterable, final Class<C> cls) {
 		final LinkedList<C> result = new LinkedList<C>();
 		for (final T item : iterable)
 			if (cls.isAssignableFrom(item.getClass()))
@@ -118,7 +118,7 @@ public class ArrayUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <A, B> B[] filter(A[] array, Class<B> cls) {
+	public static <A, B> B[] filter(final A[] array, final Class<B> cls) {
 		final List<B> items = new ArrayList<B>(array.length);
 		for (final A item : array)
 			if (cls.isAssignableFrom(item.getClass()))
@@ -154,11 +154,11 @@ public class ArrayUtil {
 		};
 	}
 
-	public static <T> T boundChecked(T[] items, int index) {
+	public static <T> T boundChecked(final T[] items, final int index) {
 		return index >= 0 && index < items.length ? items[index] : null;
 	}
 
-	public static <T> int indexOf(T item, T[] items) {
+	public static <T> int indexOf(final T item, final T[] items) {
 		for (int index = 0; index < items.length; index++)
 			if (items[index] == item)
 				return index;
@@ -166,21 +166,21 @@ public class ArrayUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <From, To> To[] map(From[] elms, Class<To> toClass, IConverter<From, To> converter) {
+	public static <From, To> To[] map(final From[] elms, final Class<To> toClass, final IConverter<From, To> converter) {
 		final To[] result = (To[]) Array.newInstance(toClass, elms.length);
 		for (int i = 0; i < result.length; i++)
 			result[i] = converter.convert(elms[i]);
 		return result;
 	}
 
-	public static <T> Map<T, Integer> mapValueToIndex(T[] items) {
+	public static <T> Map<T, Integer> mapValueToIndex(final T[] items) {
 		final Map<T, Integer> result = new HashMap<T, Integer>();
 		for (int i = 0; i < items.length; i++)
 			result.put(items[i], i);
 		return result;
 	}
 
-	public static <From, To> Iterable<To> map(Iterable<? extends From> source, IConverter<From, To> converter) {
+	public static <From, To> Iterable<To> map(final Iterable<? extends From> source, final IConverter<From, To> converter) {
 		return new ConvertingIterable<From, To>(converter, source);
 	}
 
@@ -193,7 +193,7 @@ public class ArrayUtil {
 	 * @return the map
 	 */
 	@SuppressWarnings("unchecked")
-	public static <KeyType, ValueType> Map<KeyType, ValueType> mapOfType(boolean modifiable, Map<KeyType, ValueType> resultMap, Object... keysAndValues) {
+	public static <KeyType, ValueType> Map<KeyType, ValueType> mapOfType(final boolean modifiable, final Map<KeyType, ValueType> resultMap, final Object... keysAndValues) {
 		try {
 			for (int i = 0; i < keysAndValues.length-1; i += 2)
 				resultMap.put((KeyType)keysAndValues[i], (ValueType)keysAndValues[i+1]);
@@ -204,7 +204,7 @@ public class ArrayUtil {
 		}
 	}
 
-	public static <KeyType, ValueType> Map<ValueType, KeyType> reverseMap(Map<KeyType, ValueType> originalMap, Map<ValueType, KeyType> resultMap) {
+	public static <KeyType, ValueType> Map<ValueType, KeyType> reverseMap(final Map<KeyType, ValueType> originalMap, final Map<ValueType, KeyType> resultMap) {
 		try {
 			for (final Map.Entry<KeyType, ValueType> entry : originalMap.entrySet())
 				resultMap.put(entry.getValue(), entry.getKey());
@@ -222,7 +222,7 @@ public class ArrayUtil {
 	 * @param keysAndValues
 	 * @return
 	 */
-	public static <KeyType, ValueType> Map<KeyType, ValueType> map(boolean modifiable, Object... keysAndValues) {
+	public static <KeyType, ValueType> Map<KeyType, ValueType> map(final boolean modifiable, final Object... keysAndValues) {
 		return mapOfType(modifiable, new HashMap<KeyType, ValueType>(), keysAndValues);
 	}
 
@@ -234,47 +234,47 @@ public class ArrayUtil {
 	/**
 	 * Return the index of an item in an array
 	 */
-	public static <T> int indexOf(T[] items, T item) {
+	public static <T> int indexOf(final T[] items, final T item) {
 		for (int i = 0; i < items.length; i++)
 			if (Utilities.eq(items[i], item))
 				return i;
 		return -1;
 	}
 
-	public static void purgeNullEntries(Collection<?>... collections) {
+	public static void purgeNullEntries(final Collection<?>... collections) {
 		for (final Collection<?> c : collections)
 			if (c != null)
 				c.removeAll(Collections.singletonList(null));
 	}
 
-	public static <T> Set<T> set(@SuppressWarnings("unchecked") T... items) {
+	public static <T> Set<T> set(@SuppressWarnings("unchecked") final T... items) {
 		final HashSet<T> t = new HashSet<T>();
 		for (final T i : items)
 			t.add(i);
 		return t;
 	}
 
-	public static <T> Set<? extends T> setFromIterable(Iterable<T> iterable) {
+	public static <T> Set<? extends T> setFromIterable(final Iterable<T> iterable) {
 		final Set<T> set = new HashSet<T>();
 		for (final T d : iterable)
 			set.add(d);
 		return set;
 	}
 
-	public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
+	public static <T extends Comparable<? super T>> List<T> asSortedList(final Collection<T> c) {
 		final List<T> list = new ArrayList<T>(c);
 		Collections.sort(list);
 		return list;
 	}
 
-	public static <T> List<T> listFromIterable(Iterable<T> iterable) {
+	public static <T> List<T> listFromIterable(final Iterable<T> iterable) {
 		final LinkedList<T> result = new LinkedList<T>();
 		for (final T t : iterable)
 			result.add(t);
 		return result;
 	}
 
-	public static <T> List<? extends T> copyListOrReturnDefaultList(Collection<? extends T> list, List<? extends T> defaultResult) {
+	public static <T> List<? extends T> copyListOrReturnDefaultList(final Collection<? extends T> list, final List<? extends T> defaultResult) {
 		if (list == null)
 			return defaultResult;
 		else synchronized (list) {
@@ -282,7 +282,7 @@ public class ArrayUtil {
 		}
 	}
 
-	public static <T> void addAllSynchronized(Collection<? extends T> list, List<T> into, Object lock) {
+	public static <T> void addAllSynchronized(final Collection<? extends T> list, final List<T> into, Object lock) {
 		if (lock == null)
 			lock = list;
 		if (list != null && lock != null)
@@ -291,14 +291,14 @@ public class ArrayUtil {
 			}
 	}
 
-	public static <T> List<T> list(Iterable<? extends T> iterable) {
+	public static <T> List<T> list(final Iterable<? extends T> iterable) {
 		final List<T> result = new ArrayList<T>();
 		for (final T i : iterable)
 			result.add(i);
 		return result;
 	}
 
-	public static <T> Decision sink(Iterable<? extends T> iterable, Sink<T> sink) {
+	public static <T> Decision sink(final Iterable<? extends T> iterable, final Sink<T> sink) {
 		final Iterator<? extends T> it = iterable.iterator();
 		while (it.hasNext())
 			switch (sink.elutriate(it.next())) {
@@ -313,7 +313,7 @@ public class ArrayUtil {
 		return Decision.Continue;
 	}
 
-	public static <T> boolean elementsEqual(T[] a, T[] b) {
+	public static <T> boolean elementsEqual(final T[] a, final T[] b) {
 		if (a.length != b.length)
 			return false;
 		for (int i = 0; i < a.length; i++)
@@ -322,7 +322,7 @@ public class ArrayUtil {
 		return true;
 	}
 
-	public static <T> int pack(T[] array) {
+	public static <T> int pack(final T[] array) {
 		int i, j;
 		for (i = 0, j = 0; i < array.length; i++)
 			if (array[i] != null)
@@ -334,7 +334,7 @@ public class ArrayUtil {
 		Y fold(T interim, T next, int index);
 	}
 
-	public static <T, Y extends T> Y foldl(Iterable<? extends T> iterable, Folder<T, Y> folder) {
+	public static <T, Y extends T> Y foldl(final Iterable<? extends T> iterable, final Folder<T, Y> folder) {
 		Y interim = null;
 		T first = null;
 		int i = 0;
@@ -354,7 +354,7 @@ public class ArrayUtil {
 	public static <T> Sink<? super T> collectionSink(final Collection<? super T> collection) {
 		return new Sink<T>() {
 			@Override
-			public void receivedObject(T item) {
+			public void receivedObject(final T item) {
 				collection.add(item);
 			}
 		};

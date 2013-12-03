@@ -21,7 +21,7 @@ public class Effect extends ProplistDeclaration {
 
 	private final Map<String, EffectFunction> functions = new HashMap<String, EffectFunction>();
 
-	public Effect(String name, Iterable<EffectFunction> functions) {
+	public Effect(final String name, final Iterable<EffectFunction> functions) {
 		super(new ArrayList<Variable>(5));
 		setName(name);
 		for (final EffectFunction f : functions)
@@ -33,19 +33,19 @@ public class Effect extends ProplistDeclaration {
 	}
 
 	@Override
-	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
 		if (Function.class.isAssignableFrom(declarationClass))
 			return functions.get(declarationName);
 		else
 			return null;
 	}
 
-	public void addFunction(EffectFunction function) {
+	public void addFunction(final EffectFunction function) {
 		function.setEffect(this);
 		functions.put(function.callbackName(), function);
 	}
 
-	public static IType[] parameterTypesForCallback(String callbackName, Script script, IType proplistType) {
+	public static IType[] parameterTypesForCallback(final String callbackName, final Script script, final IType proplistType) {
 		final boolean proplistParameters = script.engine().settings().supportsProplists;
 		if (isAnyOf(callbackName, "Start", "Timer", "Stop"))
 			return new IType[] {PrimitiveType.OBJECT, proplistParameters ? proplistType : PrimitiveType.INT};
@@ -57,7 +57,7 @@ public class Effect extends ProplistDeclaration {
 	}
 
 	@Override
-	public String typeName(boolean special) {
+	public String typeName(final boolean special) {
 		return special ? name() : PrimitiveType.PROPLIST.typeName(false);
 	}
 

@@ -27,7 +27,7 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 	public static class StyleEditor extends ColorFieldEditor {
 		private Button boldButton, italicButton;
 		private final SyntaxElementStyle element;
-		public StyleEditor(SyntaxElementStyle element, Composite parent) {
+		public StyleEditor(final SyntaxElementStyle element, final Composite parent) {
 			super(element.prefName(SyntaxElementStyle.RGB), element.localizedName, parent);
 			this.element = element;
 		}
@@ -36,10 +36,10 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 			return super.getNumberOfControls()+2;
 		}
 		@Override
-		protected void adjustForNumColumns(int numColumns) {
+		protected void adjustForNumColumns(final int numColumns) {
 		}
 		@Override
-		protected void doFillIntoGrid(Composite parent, int numColumns) {
+		protected void doFillIntoGrid(final Composite parent, final int numColumns) {
 			super.doFillIntoGrid(parent, numColumns);
 			getLabelControl().setLayoutData(new GridData());
 			boldButton = new Button(parent, SWT.CHECK|SWT.LEFT);
@@ -57,7 +57,7 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 		protected String stylePrefName() {
 			return element.prefName(SyntaxElementStyle.STYLE);
 		}
-		private void load(int value) {
+		private void load(final int value) {
 			boldButton.setSelection((value & SWT.BOLD) != 0);
 			italicButton.setSelection((value & SWT.ITALIC) != 0);
 		}
@@ -95,7 +95,7 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 	}
 
 	@Override
-	public void init(IWorkbench workbench) {
+	public void init(final IWorkbench workbench) {
 	}
 
 	@Override

@@ -10,23 +10,22 @@ import org.eclipse.ui.IWorkbenchPage;
 
 public class OpenSpecialItemAction extends Action {
 	
-	private ISelectionProvider provider;
+	private final ISelectionProvider provider;
 	
-	public OpenSpecialItemAction(IWorkbenchPage page,
-			ISelectionProvider selectionProvider) {
+	public OpenSpecialItemAction(final IWorkbenchPage page,
+			final ISelectionProvider selectionProvider) {
 		this.setText(Messages.OpenSpecialItemAction_Open);
 		this.provider = selectionProvider;
 	}
 
 	@Override
 	public boolean isEnabled() {
-		ISelection selection = provider.getSelection();
+		final ISelection selection = provider.getSelection();
 		if(!selection.isEmpty()) {
 			final IStructuredSelection sSelection = (IStructuredSelection) selection;
-			for (Object o : sSelection.toArray()) {
+			for (final Object o : sSelection.toArray())
 				if (!(o instanceof Declaration))
 					return false;
-			}
 			return true;
 		}
 		return false;
@@ -34,13 +33,12 @@ public class OpenSpecialItemAction extends Action {
 	
 	@Override
 	public void run() {
-		for (Object o : ((IStructuredSelection)provider.getSelection()).toArray()) {
+		for (final Object o : ((IStructuredSelection)provider.getSelection()).toArray())
 			try {
 				StructureTextEditor.openDeclaration((Declaration)o);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		}
 	}
 	
 }

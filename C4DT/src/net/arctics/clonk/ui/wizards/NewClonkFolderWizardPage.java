@@ -48,7 +48,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		return null;
 	}
 	
-	public NewClonkFolderWizardPage(ISelection selection) {
+	public NewClonkFolderWizardPage(final ISelection selection) {
 		super("wizardPage"); //$NON-NLS-1$
 		setTitle(Messages.NewClonkFolderWizardPage_Title);
 		setDescription(Messages.NewClonkFolderWizardPage_Description);
@@ -61,15 +61,15 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		}
 	}
 	
-	public Text addTextField(String label) {
+	public Text addTextField(final String label) {
 		return addTextField(label, null, null, null);
 	}
 	
-	public Text addTextField(String label, IAdditionToTextField addition) {
+	public Text addTextField(final String label, final IAdditionToTextField addition) {
 		return addTextField(label, null, null, addition);
 	}
 	
-	public Text addTextField(String label, final Object context, final String property, IAdditionToTextField addition) {
+	public Text addTextField(final String label, final Object context, final String property, final IAdditionToTextField addition) {
 		final Composite container = (Composite) getControl();
 		final Label labelObj = new Label(container, SWT.NULL);
 		labelObj.setText(label);
@@ -78,7 +78,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		result.setLayoutData(gd);
 		result.addModifyListener(new ModifyListener() {
 			@Override
-			public void modifyText(ModifyEvent event) {
+			public void modifyText(final ModifyEvent event) {
 				if (context != null && property != null)
 					try {
 						final Field field = context.getClass().getField(property);
@@ -98,17 +98,17 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	}
 	
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		layout(parent);
 		fields();
 		containerText = addTextField(Messages.NewClonkFolderWizardPage_ContainerText, new IAdditionToTextField() {
 			@Override
-			public void fill(Composite container, Text textField) {
+			public void fill(final Composite container, final Text textField) {
 				final Button button = new Button(container, SWT.PUSH);
 				button.setText(Messages.NewClonkFolderWizardPage_BrowseContainer);
 				button.addSelectionListener(new SelectionAdapter() {
 					@Override
-					public void widgetSelected(SelectionEvent e) {
+					public void widgetSelected(final SelectionEvent e) {
 						handleBrowse();
 					}
 				});
@@ -118,7 +118,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		dialogChanged();
 	}
 
-	protected void layout(Composite parent) {
+	protected void layout(final Composite parent) {
 		final Composite container = new Composite(parent, SWT.NULL);
 		setControl(container);
 		final GridLayout layout = new GridLayout();
@@ -163,7 +163,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		updateStatus(null);
 	}
 	
-	protected void updateStatus(String message) {
+	protected void updateStatus(final String message) {
 		setErrorMessage(message);
 		setPageComplete(message == null);
 	}
@@ -225,7 +225,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		return folderExtension;
 	}
 	
-	public void setFolderExtension(String value) {
+	public void setFolderExtension(final String value) {
 		folderExtension = value;
 	}
 

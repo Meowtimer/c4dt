@@ -49,7 +49,7 @@ public class IniTextEditor extends StructureTextEditor {
 		return null;
 	}
 
-	private void collectAnnotationPositions(IniItem item, List<Position> positions) {
+	private void collectAnnotationPositions(final IniItem item, final List<Position> positions) {
 		if (item.childCollection() != null)
 			for (final INode i : item.childCollection())
 				if (i instanceof IniItem) {
@@ -76,7 +76,7 @@ public class IniTextEditor extends StructureTextEditor {
 	}
 
 	@Override
-	public void createPartControl(Composite parent) {
+	public void createPartControl(final Composite parent) {
 		super.createPartControl(parent);
 		unit();
 		updateFoldingStructure();
@@ -91,7 +91,7 @@ public class IniTextEditor extends StructureTextEditor {
 	}
 
 	@Override
-	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
+	protected ISourceViewer createSourceViewer(final Composite parent, final IVerticalRuler ruler, final int styles) {
 		final ISourceViewer viewer = new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
 		getSourceViewerDecorationSupport(viewer);
 		return viewer;

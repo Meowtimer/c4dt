@@ -16,7 +16,7 @@ final class UIRefresher implements Runnable {
 
 	private final Script[] resourcesToBeRefreshed;
 
-	public UIRefresher(Script[] resourcesToBeRefreshed) {
+	public UIRefresher(final Script[] resourcesToBeRefreshed) {
 		super();
 		this.resourcesToBeRefreshed = resourcesToBeRefreshed;
 	}

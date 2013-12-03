@@ -6,15 +6,15 @@ import net.arctics.clonk.ast.Declaration;
 public abstract class TypeVariable implements Cloneable {
 	protected IType type = PrimitiveType.UNKNOWN;
 	public final IType get() { return type; }
-	public final void set(IType type) { this.type = defaulting(type, PrimitiveType.UNKNOWN); }
-	public final void set(Typing typing, IType[] types) {
+	public final void set(final IType type) { this.type = defaulting(type, PrimitiveType.UNKNOWN); }
+	public final void set(final Typing typing, final IType[] types) {
 		IType result = PrimitiveType.UNKNOWN;
 		for (final IType t : types)
 			if (t != null && t != PrimitiveType.VOID)
 				result = typing.unify(result, t);
 		set(result);
 	}
-	public void apply(boolean soft) {}
+	public void apply(final boolean soft) {}
 	public abstract Declaration declaration();
 	public abstract Declaration key();
 	@Override

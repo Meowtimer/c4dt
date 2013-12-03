@@ -12,13 +12,13 @@ import net.arctics.clonk.c4script.Conf;
  */
 public class CallExpr extends Tuple implements IFunctionCall {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public CallExpr(ASTNode... params) { super(params); }
+	public CallExpr(final ASTNode... params) { super(params); }
 	@Override
 	public ASTNode[] params() { return subElements(); }
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) { return predecessor != null; }
+	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor != null; }
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) { Conf.printNodeList(output, subElements(), depth, "(", ")"); }
+	public void doPrint(final ASTNodePrinter output, final int depth) { Conf.printNodeList(output, subElements(), depth, "(", ")"); }
 	@Override
 	public boolean hasSideEffects() { return true; }
 	@Override
@@ -26,7 +26,7 @@ public class CallExpr extends Tuple implements IFunctionCall {
 	@Override
 	public int parmsEnd() { return this.end()-1; }
 	@Override
-	public int indexOfParm(ASTNode parm) {
+	public int indexOfParm(final ASTNode parm) {
 		for (int i = 0; i < elements.length; i++)
 			if (elements[i] == parm)
 				return i;

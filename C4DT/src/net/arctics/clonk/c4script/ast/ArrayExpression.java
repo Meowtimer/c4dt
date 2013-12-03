@@ -15,17 +15,17 @@ public class ArrayExpression extends ASTNodeWithSubElementsArray {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public ArrayExpression(ASTNode... elms) {
+	public ArrayExpression(final ASTNode... elms) {
 		super(elms);
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		printNodeList(output, elements, depth, "[", "]");
 	}
 
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) {
+	public boolean isValidInSequence(final ASTNode predecessor) {
 		return predecessor == null;
 	}
 
@@ -38,7 +38,7 @@ public class ArrayExpression extends ASTNodeWithSubElementsArray {
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		final ArrayList<Object> elm = new ArrayList<Object>(elements.length);
 		for (final ASTNode e : elements)
 			elm.add(e != null ? e.evaluate(context) : null);

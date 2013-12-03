@@ -20,7 +20,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 public class LookupLocalDeclarationHandler extends AbstractHandler {
 
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final IWorkbenchPart part = HandlerUtil.getActivePart(event);
 		if (part instanceof C4ScriptEditor) {
 			final Script script = ((C4ScriptEditor)part).script();

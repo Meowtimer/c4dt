@@ -22,11 +22,11 @@ public class C4GroupTopLevelCompressed extends C4Group {
 	private transient InputStream stream;
 	private long streamPos;
 	
-	public C4GroupTopLevelCompressed(String name, File file) {
+	public C4GroupTopLevelCompressed(final String name, final File file) {
 		super(null, name, file);
 	}
 	
-	protected C4GroupTopLevelCompressed(C4Group parent, String name, File file) {
+	protected C4GroupTopLevelCompressed(final C4Group parent, final String name, final File file) {
 		super(parent, name, file);
 	}
 	
@@ -35,7 +35,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 	 * @param parent
 	 * @param folder
 	 */
-	protected C4GroupTopLevelCompressed(File folder) {
+	protected C4GroupTopLevelCompressed(final File folder) {
 		this (folder.getName(), folder);
 		assert (folder.isDirectory());
 	}
@@ -54,9 +54,9 @@ public class C4GroupTopLevelCompressed extends C4Group {
 	}
 	
 	@Override
-	public synchronized void readFromStream(C4GroupItem whoWantsThat, long pos, StreamReadCallback callback) throws IOException {
+	public synchronized void readFromStream(final C4GroupItem whoWantsThat, final long pos, final StreamReadCallback callback) throws IOException {
 		try {
-			boolean createdStream = stream == null;
+			final boolean createdStream = stream == null;
 			if (createdStream)
 				requireStream();
 			try {
@@ -74,22 +74,22 @@ public class C4GroupTopLevelCompressed extends C4Group {
 
 						@Override
 						public int read() throws IOException {
-							int result = stream.read();
+							final int result = stream.read();
 							if (result != -1)
 								streamPos++;
 							return result;
 						}
 
 						@Override
-						public int read(byte[] b) throws IOException {
-							int read = stream.read(b);
+						public int read(final byte[] b) throws IOException {
+							final int read = stream.read(b);
 							streamPos += read;
 							return read;
 						}
 
 						@Override
-						public int read(byte[] b, int off, int len) throws IOException {
-							int read = stream.read(b, off, len);
+						public int read(final byte[] b, final int off, final int len) throws IOException {
+							final int read = stream.read(b, off, len);
 							streamPos += read;
 							return read;
 						}
@@ -102,7 +102,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 				if (createdStream)
 					releaseStream();
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			System.out.println("Look what you did, " + whoWantsThat.toString() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 			e.printStackTrace();
 		}
@@ -129,7 +129,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 				public int read() throws IOException {
 					if (timesRead < 2) { // deface magic header
 						timesRead++;
-						int readByte = stream.read();
+						final int readByte = stream.read();
 						if (readByte == 0x1E) return 0x1F;
 						if (readByte == 0x8C) return 0x8B;
 						return readByte;
@@ -138,12 +138,12 @@ public class C4GroupTopLevelCompressed extends C4Group {
 				}
 
 				@Override
-				public int read(byte[] b) throws IOException {
+				public int read(final byte[] b) throws IOException {
 					return stream.read(b);
 				}
 
 				@Override
-				public int read(byte[] b, int off, int len) throws IOException {
+				public int read(final byte[] b, final int off, final int len) throws IOException {
 					return stream.read(b, off, len);
 				}
 
@@ -153,7 +153,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 				}
 
 				@Override
-				public synchronized void mark(int readlimit) {
+				public synchronized void mark(final int readlimit) {
 					stream.mark(readlimit);
 				}
 
@@ -163,7 +163,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 				}
 
 				@Override
-				public long skip(long n) throws IOException {
+				public long skip(final long n) throws IOException {
 					return stream.skip(n);
 				}
 
@@ -178,7 +178,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 				}
 
 			});
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -190,7 +190,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 	}
 	
 	@Override
-	public void delete(int options, IProgressMonitor monitor) throws CoreException {
+	public void delete(final int options, final IProgressMonitor monitor) throws CoreException {
 		C4GroupFileSystem.instance().removeGroupFromRegistry(this);
 	}
 	
@@ -202,7 +202,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 	
 	@Override
 	public boolean existsOnDisk() {
-		File origin = origin();
+		final File origin = origin();
 		return origin != null && origin.exists();
 	}
 

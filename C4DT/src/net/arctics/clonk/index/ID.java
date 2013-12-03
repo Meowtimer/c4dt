@@ -18,7 +18,7 @@ public final class ID implements Serializable, IDeserializationResolvable {
 
 	private final String name;
 
-	private ID(String id) {
+	private ID(final String id) {
 		name = id;
 		idPool.put(id, this);
 	}
@@ -27,7 +27,7 @@ public final class ID implements Serializable, IDeserializationResolvable {
 	 * Resolve serialized {@link ID} by returning an interned version of it.
 	 */
 	@Override
-	public ID resolve(Index index, IndexEntity deserializee) {
+	public ID resolve(final Index index, final IndexEntity deserializee) {
 		synchronized (idPool) {
 			final ID special = idPool.get(name);
 			if (special == null) {
@@ -43,7 +43,7 @@ public final class ID implements Serializable, IDeserializationResolvable {
 	 * @param stringValue The string value
 	 * @return A newly created {@link ID} added to the global pool or an already existing one.
 	 */
-	public static ID get(String stringValue) {
+	public static ID get(final String stringValue) {
 		synchronized (idPool) {
 			final ID existing = idPool.get(stringValue);
 			return existing != null ? existing : new ID(stringValue);
@@ -54,7 +54,7 @@ public final class ID implements Serializable, IDeserializationResolvable {
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		return obj == this; // ids are unique and magnifique
 	}
 

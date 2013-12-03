@@ -19,7 +19,7 @@ public class UnaryOp extends OperatorExpression implements ITidyable {
 	private final UnaryOp.Placement placement;
 	private ASTNode argument;
 
-	public UnaryOp(Operator operator, UnaryOp.Placement placement, ASTNode argument) {
+	public UnaryOp(final Operator operator, final UnaryOp.Placement placement, final ASTNode argument) {
 		super(operator);
 		this.placement = placement;
 		this.argument = argument;
@@ -29,11 +29,11 @@ public class UnaryOp extends OperatorExpression implements ITidyable {
 	@Override
 	public ASTNode[] subElements() { return new ASTNode[] {argument}; }
 	@Override
-	public void setSubElements(ASTNode[] elements) { argument = elements[0]; }
+	public void setSubElements(final ASTNode[] elements) { argument = elements[0]; }
 	public UnaryOp.Placement placement() { return placement; }
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		UnaryOp unop = (argument instanceof UnaryOp) ? (UnaryOp)argument : null;
 		if (unop != null && unop.placement != this.placement)
 			unop = null;
@@ -94,7 +94,7 @@ public class UnaryOp extends OperatorExpression implements ITidyable {
 	}
 
 	@Override
-	public Object evaluateStatic(IEvaluationContext context) {
+	public Object evaluateStatic(final IEvaluationContext context) {
 		try {
 			final Object ev = argument.evaluateStatic(context);
 			final Object conv = operator().firstArgType().convert(ev);

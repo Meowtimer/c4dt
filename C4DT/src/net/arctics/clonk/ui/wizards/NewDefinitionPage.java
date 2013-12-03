@@ -18,7 +18,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 	 * 
 	 * @param pageName
 	 */
-	public NewDefinitionPage(ISelection selection) {
+	public NewDefinitionPage(final ISelection selection) {
 		super(selection);
 		setTitle(Messages.NewC4ObjectPage_Title);
 		setDescription(Messages.NewC4ObjectPage_Description);
@@ -33,7 +33,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		c4idText = addTextField(Messages.NewC4ObjectPage_ID);
 		c4idText.addModifyListener(new ModifyListener() {
 			@Override
-			public void modifyText(ModifyEvent e) {
+			public void modifyText(final ModifyEvent e) {
 				if (folderText != null)
 					folderText.setText(c4idText.getText());
 			}

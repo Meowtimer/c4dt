@@ -14,12 +14,12 @@ public class IntegerArray extends IniEntryValue implements IHasChildrenWithConte
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private CategoriesValue[] values;
 	public IntegerArray() {}
-	public IntegerArray(int[] values) {
+	public IntegerArray(final int[] values) {
 		this.values = new CategoriesValue[values.length];
 		for (int i = 0; i < values.length; i++)
 			this.values[i] = new CategoriesValue(i);
 	}
-	public IntegerArray(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException { setInput(value, entryData, context); }
+	public IntegerArray(final String value, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException { setInput(value, entryData, context); }
 	public String getStringRepresentation() { return toString(); }
 	@Override
 	public String toString() {
@@ -31,7 +31,7 @@ public class IntegerArray extends IniEntryValue implements IHasChildrenWithConte
 		return builder.toString();
 	}
 	@Override
-	public void setInput(String input, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+	public void setInput(final String input, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		try {
 			// empty input should be okay
 			if (input.equals("")) { //$NON-NLS-1$
@@ -63,17 +63,17 @@ public class IntegerArray extends IniEntryValue implements IHasChildrenWithConte
 	@Override
 	public boolean hasChildren() { return values.length > 0; }
 	@Override
-	public IHasContext[] children(Object context) {
+	public IHasContext[] children(final Object context) {
 		final IHasContext[] result = new IHasContext[values.length];
 		for (int i = 0; i < result.length; i++)
 			result[i] = new EntrySubItem<IntegerArray>(this, context, i);
 		return result;
 	}
 	@Override
-	public Object valueOfChildAt(int index) { return values[index]; }
-	public int get(int index) { return values[index].summedValue(); }
+	public Object valueOfChildAt(final int index) { return values[index]; }
+	public int get(final int index) { return values[index].summedValue(); }
 	@Override
 	public Object convertToPrimitive() { return values; }
 	public CategoriesValue[] values() { return values; }
-	public void grow(int size) { values = Arrays.copyOf(values, Math.max(size, values.length)); }
+	public void grow(final int size) { values = Arrays.copyOf(values, Math.max(size, values.length)); }
 }

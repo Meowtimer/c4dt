@@ -49,7 +49,7 @@ public class CombinedWordRule implements IRule {
 	public static class WordMatcher {
 
 		/** The table of predefined words and token for this matcher */
-		private Map<CharacterBuffer, IToken> fWords= new HashMap<CharacterBuffer, IToken>();
+		private final Map<CharacterBuffer, IToken> fWords= new HashMap<CharacterBuffer, IToken>();
 
 		/**
 		 * Adds a word and the token to be returned if it is detected.
@@ -57,7 +57,7 @@ public class CombinedWordRule implements IRule {
 		 * @param word the word this rule will search for, may not be <code>null</code>
 		 * @param token the token to be returned if the word has been found, may not be <code>null</code>
 		 */
-		public void addWord(String word, IToken token) {
+		public void addWord(final String word, final IToken token) {
 			Assert.isNotNull(word);
 			Assert.isNotNull(token);
 
@@ -71,8 +71,8 @@ public class CombinedWordRule implements IRule {
 		 * @param word the word
 		 * @return the token or <code>null</code> if none is associated by this matcher
 		 */
-		public IToken evaluate(ICharacterScanner scanner, CharacterBuffer word) {
-			IToken token= fWords.get(word);
+		public IToken evaluate(final ICharacterScanner scanner, final CharacterBuffer word) {
+			final IToken token= fWords.get(word);
 			if (token != null)
 				return token;
 			return Token.UNDEFINED;
@@ -106,7 +106,7 @@ public class CombinedWordRule implements IRule {
 		 *
 		 * @param capacity the initial capacity
 		 */
-		public CharacterBuffer(int capacity) {
+		public CharacterBuffer(final int capacity) {
 			fContent= new char[capacity];
 		}
 
@@ -115,7 +115,7 @@ public class CombinedWordRule implements IRule {
 		 *
 		 * @param content the initial content
 		 */
-		public CharacterBuffer(String content) {
+		public CharacterBuffer(final String content) {
 			fContent= content.toCharArray();
 			fLength= content.length();
 		}
@@ -133,10 +133,10 @@ public class CombinedWordRule implements IRule {
 		 *
 		 * @param c the character
 		 */
-		public void append(char c) {
+		public void append(final char c) {
 			fIsHashCached= false;
 			if (fLength == fContent.length) {
-				char[] old= fContent;
+				final char[] old= fContent;
 				fContent= new char[old.length << 1];
 				System.arraycopy(old, 0, fContent, 0, old.length);
 			}
@@ -168,7 +168,7 @@ public class CombinedWordRule implements IRule {
 		 * @param i the position
 		 * @return the character at position <code>i</code>
 		 */
-		public char charAt(int i) {
+		public char charAt(final int i) {
 			return fContent[i];
 		}
 
@@ -193,13 +193,13 @@ public class CombinedWordRule implements IRule {
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			if (obj == this)
 				return true;
 			if (!(obj instanceof CharacterBuffer))
 				return false;
-			CharacterBuffer buffer= (CharacterBuffer) obj;
-			int length= buffer.length();
+			final CharacterBuffer buffer= (CharacterBuffer) obj;
+			final int length= buffer.length();
 			if (length != fLength)
 				return false;
 			for (int i= 0; i < length; i++)
@@ -214,8 +214,8 @@ public class CombinedWordRule implements IRule {
 		 * @param string the string
 		 * @return <code>true</code> iff the content is the same character sequence as in the string
 		 */
-		public boolean equals(String string) {
-			int length= string.length();
+		public boolean equals(final String string) {
+			final int length= string.length();
 			if (length != fLength)
 				return false;
 			for (int i= 0; i < length; i++)
@@ -229,16 +229,16 @@ public class CombinedWordRule implements IRule {
 	private static final int UNDEFINED= -1;
 
 	/** The word detector used by this rule */
-	private IWordDetector fDetector;
+	private final IWordDetector fDetector;
 	/** The default token to be returned on success and if nothing else has been specified. */
-	private IToken fDefaultToken;
+	private final IToken fDefaultToken;
 	/** The column constraint */
 	private int fColumn= UNDEFINED;
 	/** Buffer used for pattern detection */
-	private CharacterBuffer fBuffer= new CharacterBuffer(16);
+	private final CharacterBuffer fBuffer= new CharacterBuffer(16);
 
 	/** List of word matchers */
-	private List<WordMatcher> fMatchers= new ArrayList<WordMatcher>();
+	private final List<WordMatcher> fMatchers= new ArrayList<WordMatcher>();
 
 	/**
 	 * Creates a rule which, with the help of an word detector, will return the token
@@ -250,7 +250,7 @@ public class CombinedWordRule implements IRule {
 	 *
 	 * @see WordMatcher#addWord(String, IToken)
 	 */
-	public CombinedWordRule(IWordDetector detector) {
+	public CombinedWordRule(final IWordDetector detector) {
 		this(detector, null, Token.UNDEFINED);
 	}
 
@@ -265,7 +265,7 @@ public class CombinedWordRule implements IRule {
 	 *
 	 * @see WordMatcher#addWord(String, IToken)
 	 */
-	public CombinedWordRule(IWordDetector detector, IToken defaultToken) {
+	public CombinedWordRule(final IWordDetector detector, final IToken defaultToken) {
 		this(detector, null, defaultToken);
 	}
 
@@ -280,7 +280,7 @@ public class CombinedWordRule implements IRule {
 	 *
 	 * @see WordMatcher#addWord(String, IToken)
 	 */
-	public CombinedWordRule(IWordDetector detector, WordMatcher matcher) {
+	public CombinedWordRule(final IWordDetector detector, final WordMatcher matcher) {
 		this(detector, matcher, Token.UNDEFINED);
 	}
 
@@ -296,7 +296,7 @@ public class CombinedWordRule implements IRule {
 	 *
 	 * @see WordMatcher#addWord(String, IToken)
 	 */
-	public CombinedWordRule(IWordDetector detector, WordMatcher matcher, IToken defaultToken) {
+	public CombinedWordRule(final IWordDetector detector, final WordMatcher matcher, final IToken defaultToken) {
 
 		Assert.isNotNull(detector);
 		Assert.isNotNull(defaultToken);
@@ -313,7 +313,7 @@ public class CombinedWordRule implements IRule {
 	 *
 	 * @param matcher the matcher
 	 */
-	public void addWordMatcher(WordMatcher matcher) {
+	public void addWordMatcher(final WordMatcher matcher) {
 		fMatchers.add(matcher);
 	}
 
@@ -335,9 +335,9 @@ public class CombinedWordRule implements IRule {
 	 * @see IRule#evaluate(ICharacterScanner)
 	 */
 	@Override
-	public IToken evaluate(ICharacterScanner scanner) {
+	public IToken evaluate(final ICharacterScanner scanner) {
 		int c= scanner.read();
-		if (fDetector.isWordStart((char) c)) {
+		if (fDetector.isWordStart((char) c))
 			if (fColumn == UNDEFINED || (fColumn == scanner.getColumn() - 1)) {
 
 				fBuffer.clear();
@@ -348,7 +348,7 @@ public class CombinedWordRule implements IRule {
 				scanner.unread();
 
 				for (int i= 0, n= fMatchers.size(); i < n; i++) {
-					IToken token= fMatchers.get(i).evaluate(scanner, fBuffer);
+					final IToken token= fMatchers.get(i).evaluate(scanner, fBuffer);
 					if (!token.isUndefined())
 						return token;
 				}
@@ -358,7 +358,6 @@ public class CombinedWordRule implements IRule {
 
 				return fDefaultToken;
 			}
-		}
 
 		scanner.unread();
 		return Token.UNDEFINED;
@@ -369,7 +368,7 @@ public class CombinedWordRule implements IRule {
 	 *
 	 * @param scanner the scanner to be used
 	 */
-	private void unreadBuffer(ICharacterScanner scanner) {
+	private void unreadBuffer(final ICharacterScanner scanner) {
 		for (int i= fBuffer.length() - 1; i >= 0; i--)
 			scanner.unread();
 	}

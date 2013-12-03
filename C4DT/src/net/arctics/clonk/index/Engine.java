@@ -104,7 +104,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * based on modification of settings such as {@link EngineSettings#readDocumentationFromRepository}
 	 * @param settings The settings to apply
 	 */
-	public void applySettings(EngineSettings settings) {
+	public void applySettings(final EngineSettings settings) {
 		final EngineSettings oldSettings = this.settings;
 		this.settings = settings;
 		saveSettings();
@@ -144,7 +144,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * Create new engine with the specified name.
 	 * @param name The name of the engine
 	 */
-	public Engine(String name) {
+	public Engine(final String name) {
 		super(null);
 		setName(name);
 		intrinsicSettings = new EngineSettings();
@@ -181,7 +181,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @param text The ID text
 	 * @return Whether accepted or not
 	 */
-	public boolean acceptsId(String text) { return specialRules().parseId(new BufferedScanner(text)) != null; }
+	public boolean acceptsId(final String text) { return specialRules().parseId(new BufferedScanner(text)) != null; }
 	private boolean hasCustomSettings() { return !settings.equals(intrinsicSettings); }
 
 	/**
@@ -194,7 +194,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public Scenario templateScenario() { return templateScenario; }
 
 	@Override
-	public void postLoad(Declaration parent, Index root) {
+	public void postLoad(final Declaration parent, final Index root) {
 		super.postLoad(parent, root);
 		final Function f = findLocalFunction("this", false);
 		if (f != null)
@@ -262,7 +262,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private class DeclarationsConfiguration extends IniConfiguration {
 		@Override
-		public boolean hasSection(String sectionName) {
+		public boolean hasSection(final String sectionName) {
 			return Engine.this.findDeclaration(sectionName) != null;
 		}
 	}
@@ -369,14 +369,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @param declaration The declaration for which to obtain a description
 	 * @return The description or null if I don't know what went wrong
 	 */
-	public <T extends IHasUserDescription & IHasName> String obtainDescription(T declaration) {
+	public <T extends IHasUserDescription & IHasName> String obtainDescription(final T declaration) {
 		if (declaration.userDescription() != null && namesOfDeclarationsForWhichDocsWereFreshlyObtained.contains(declaration.name()))
 			return declaration.userDescription();
 		applyDocumentationAndSignatureFromRepository(declaration);
 		return declaration.userDescription();
 	}
 
-	private <T extends IHasUserDescription & IHasName> boolean applyDocumentationAndSignatureFromRepository(T declaration) {
+	private <T extends IHasUserDescription & IHasName> boolean applyDocumentationAndSignatureFromRepository(final T declaration) {
 		namesOfDeclarationsForWhichDocsWereFreshlyObtained.add(declaration.name());
 		// dynamically load from repository
 		if (settings().readDocumentationFromRepository) {
@@ -503,13 +503,13 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		public static class Ticket implements Serializable, IDeserializationResolvable {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
-			public Object resolve(Index index, IndexEntity deserializee) {
+			public Object resolve(final Index index, final IndexEntity deserializee) {
 				return index.engine().templateScenario();
 			}
 		}
-		public TemplateScenario(Index index, String name, IContainer container) { super(index, name, container); }
+		public TemplateScenario(final Index index, final String name, final IContainer container) { super(index, name, container); }
 		@Override
-		public Object saveReplacement(Index context) { return new Ticket(); }
+		public Object saveReplacement(final Index context) { return new Ticket(); }
 	}
 
 	private void load(final IStorageLocation... providers) {
@@ -577,12 +577,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		}
 	}
 
-	public ProjectConversionConfiguration projectConversionConfigurationForEngine(Engine engine) {
+	public ProjectConversionConfiguration projectConversionConfigurationForEngine(final Engine engine) {
 		loadProjectConversionConfigurations();
 		return projectConversionConfigurations.get(engine.name());
 	}
 
-	public void writeEngineScript(Writer writer) throws IOException {
+	public void writeEngineScript(final Writer writer) throws IOException {
 		for (final Variable v : variables()) {
 			final String text = String.format("%s %s;\n", v.scope().toKeyword(), v.name()); //$NON-NLS-1$
 			writer.append(text);
@@ -643,7 +643,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		}
 	}
 
-	public Collection<URL> getURLsOfStorageLocationPath(String configurationFolder, boolean onlyFromReadonlyStorageLocation) {
+	public Collection<URL> getURLsOfStorageLocationPath(final String configurationFolder, final boolean onlyFromReadonlyStorageLocation) {
 		final LinkedList<URL> result = new LinkedList<URL>();
 		for (final IStorageLocation loc : storageLocations) {
 			if (onlyFromReadonlyStorageLocation && loc.toFolder() != null)
@@ -653,7 +653,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		return result;
 	}
 
-	public OutputStream outputStreamForStorageLocationEntry(String entryPath) {
+	public OutputStream outputStreamForStorageLocationEntry(final String entryPath) {
 		for (final IStorageLocation loc : storageLocations) {
 			final URL url = loc.locatorForEntry(entryPath, true);
 			if (url != null) {
@@ -671,7 +671,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		cachedPrefixedVariables = null;
 	}
 
-	public Variable[] variablesWithPrefix(String prefix) {
+	public Variable[] variablesWithPrefix(final String prefix) {
 		// FIXME: oh noes, will return array stored in map, making it possible to modify it
 		if (cachedPrefixedVariables != null) {
 			final Variable[] inCache = cachedPrefixedVariables.get(prefix);
@@ -689,7 +689,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		return resultArray;
 	}
 
-	public Process executeEmbeddedUtility(String name, String... args) {
+	public Process executeEmbeddedUtility(final String name, final String... args) {
 		if (!settings().supportsEmbeddedUtilities)
 			return null;
 		final String path = settings().engineExecutablePath;
@@ -724,7 +724,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			return null;
 	}
 
-	public C4Group.GroupType groupTypeForExtension(String ext) {
+	public C4Group.GroupType groupTypeForExtension(final String ext) {
 		final C4Group.GroupType gt = settings.fileExtensionToGroupTypeMapping().get(ext);
 		if (gt != null)
 			return gt;
@@ -732,11 +732,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			return C4Group.GroupType.OtherGroup;
 	}
 
-	public C4Group.GroupType groupTypeForFileName(String fileName) {
+	public C4Group.GroupType groupTypeForFileName(final String fileName) {
 		return groupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
 	}
 
-	public Object image(String name, boolean returnDescriptor) {
+	public Object image(final String name, final boolean returnDescriptor) {
 		final Collection<URL> urls = getURLsOfStorageLocationPath("images", false); //$NON-NLS-1$
 		if (urls != null)
 			for (final URL url : urls)
@@ -745,10 +745,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		return null;
 	}
 
-	public Image image(GroupType groupType) {return (Image) image(groupType.name(), false);}
-	public ImageDescriptor imageDescriptor(GroupType groupType) {return (ImageDescriptor) image(groupType.name(), true);}
-	public Image image(String name) {return (Image) image(name, false);}
-	public ImageDescriptor imageDescriptor(String name) {return (ImageDescriptor) image(name, true);}
+	public Image image(final GroupType groupType) {return (Image) image(groupType.name(), false);}
+	public ImageDescriptor imageDescriptor(final GroupType groupType) {return (ImageDescriptor) image(groupType.name(), true);}
+	public Image image(final String name) {return (Image) image(name, false);}
+	public ImageDescriptor imageDescriptor(final String name) {return (ImageDescriptor) image(name, true);}
 
 	/**
 	 * Construct group name based on the name without extension and a {@link GroupType}
@@ -756,7 +756,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @param groupType The group type
 	 * @return Group name with correct extension.
 	 */
-	public String groupName(String name, GroupType groupType) {
+	public String groupName(final String name, final GroupType groupType) {
 		return name + "." + settings().groupTypeToFileExtensionMapping().get(groupType); //$NON-NLS-1$
 	}
 
@@ -775,7 +775,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	@Override
 	public String qualifiedName() { return name(); }
 
-	public boolean supportsPrimitiveType(PrimitiveType type) {
+	public boolean supportsPrimitiveType(final PrimitiveType type) {
 		switch (type) {
 		case NUM:
 			return settings().supportsFloats;

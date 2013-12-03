@@ -13,7 +13,7 @@ public class ProblemException extends Exception {
 	
 	public ScriptParser parser() { return parser; }
 	
-	public ProblemException(String msg) {
+	public ProblemException(final String msg) {
 		super(msg);
 	}
 }

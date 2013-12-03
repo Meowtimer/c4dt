@@ -23,7 +23,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	
 	private final WeakReference<Script> script;
 	
-	public ScriptWithStorageEditorInput(Script script) {
+	public ScriptWithStorageEditorInput(final Script script) {
 		super();
 		
 		if (!(script.source() instanceof IStorage))
@@ -53,7 +53,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 
 	@Override
 	@SuppressWarnings("rawtypes")
-	public Object getAdapter(Class cls) {
+	public Object getAdapter(final Class cls) {
 		return null;
 	}
 
@@ -70,7 +70,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 	
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).script() == script());
 	}
 
@@ -89,7 +89,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	@Override
-	public void saveState(IMemento memento) {
+	public void saveState(final IMemento memento) {
 		memento.putString("path", getPath().toPortableString()); //$NON-NLS-1$
 	}
 

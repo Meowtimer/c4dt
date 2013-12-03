@@ -20,18 +20,16 @@ public class DropAssistant extends CommonDropAdapterAssistant {
 	}
 
 	@Override
-	public IStatus handleDrop(CommonDropAdapter dropAdapter, DropTargetEvent dropTargetEvent, Object target) {
+	public IStatus handleDrop(final CommonDropAdapter dropAdapter, final DropTargetEvent dropTargetEvent, final Object target) {
 		if (target instanceof IContainer && ClonkProjectNature.get(((IContainer)target).getProject()) != null &&
 			dropTargetEvent.dataTypes.length == 1 &&
 			FileTransfer.getInstance().isSupportedType(dropTargetEvent.dataTypes[0]))
-		{
 			return new Status(IStatus.OK, Core.PLUGIN_ID, "Drag"); //$NON-NLS-1$
-		}
 		return new Status(IStatus.CANCEL, Core.PLUGIN_ID, "Nope"); //$NON-NLS-1$
 	}
 
 	@Override
-	public IStatus validateDrop(Object target, int operation, TransferData transferType) {
+	public IStatus validateDrop(final Object target, final int operation, final TransferData transferType) {
 //		Class<?>[] classes = new Class[] {
 //			EditorInputTransfer.class,
 //			FileTransfer.class,

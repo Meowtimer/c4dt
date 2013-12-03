@@ -107,7 +107,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	@Override
-	public boolean canAssist(IQuickAssistInvocationContext invocationContext) { return true; }
+	public boolean canAssist(final IQuickAssistInvocationContext invocationContext) { return true; }
 
 	private static final Set<Problem> fixableParserErrorCodes = ArrayUtil.set(
 		Problem.VariableCalled,
@@ -126,7 +126,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	);
 
 	@Override
-	public boolean canFix(Annotation annotation) {
+	public boolean canFix(final Annotation annotation) {
 		if (annotation instanceof MarkerAnnotation) {
 			final MarkerAnnotation ma = (MarkerAnnotation)annotation;
 			String ty;
@@ -141,12 +141,12 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		return false;
 	}
 
-	private static boolean isAtPosition(int offset, Position pos) {
+	private static boolean isAtPosition(final int offset, final Position pos) {
 		return (pos != null) && (offset >= pos.getOffset() && offset <= (pos.getOffset() +  pos.getLength()));
 	}
 
 	@Override
-	public ICompletionProposal[] computeQuickAssistProposals(IQuickAssistInvocationContext context) {
+	public ICompletionProposal[] computeQuickAssistProposals(final IQuickAssistInvocationContext context) {
 		final int offset = context.getOffset();
 		final List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		final IAnnotationModel model = context.getSourceViewer().getAnnotationModel();
@@ -171,7 +171,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private final ParameterizedProposal proposal;
 		private final IMarker originalMarker;
 
-		public ParameterizedProposalMarkerResolution(ParameterizedProposal proposal, IMarker originalMarker) {
+		public ParameterizedProposalMarkerResolution(final ParameterizedProposal proposal, final IMarker originalMarker) {
 			this.proposal = proposal;
 			this.originalMarker = originalMarker;
 		}
@@ -192,18 +192,18 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		}
 
 		@Override
-		public void run(IMarker marker) {
+		public void run(final IMarker marker) {
 			proposal.runOnMarker(marker);
 		}
 
-		private boolean relevant(IMarker marker) {
+		private boolean relevant(final IMarker marker) {
 			return
 				!marker.equals(this.originalMarker) &&
 				Markers.problem(marker) == Markers.problem(originalMarker);
 		}
 
 		@Override
-		public IMarker[] findOtherMarkers(IMarker[] markers) {
+		public IMarker[] findOtherMarkers(final IMarker[] markers) {
 			final List<IMarker> result = new ArrayList<IMarker>(markers.length);
 			for (final IMarker m : markers)
 				if (relevant(m))
@@ -219,14 +219,14 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private final ScriptParser parser;
 		private final Function func;
 
-		private ParameterizedProposal(Declaration declaration,
-			String replacementString, int replacementOffset,
-			int replacementLength, int cursorPosition, Image image,
-			String displayString, IContextInformation contextInformation,
-			String additionalProposalInfo, String postInfo,
-			ProposalsSite site,
-			Replacement replacement, int tabIndentation,
-			ScriptParser parser, Function func
+		private ParameterizedProposal(final Declaration declaration,
+			final String replacementString, final int replacementOffset,
+			final int replacementLength, final int cursorPosition, final Image image,
+			final String displayString, final IContextInformation contextInformation,
+			final String additionalProposalInfo, final String postInfo,
+			final ProposalsSite site,
+			final Replacement replacement, final int tabIndentation,
+			final ScriptParser parser, final Function func
 		) {
 			super(declaration, declaration, replacementString, replacementOffset,
 				replacementLength, cursorPosition, image, displayString,
@@ -238,17 +238,17 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			this.func = func;
 		}
 
-		public boolean createdFrom(Replacement other) {
+		public boolean createdFrom(final Replacement other) {
 			return this.replacement.equals(other);
 		}
 
 		@Override
-		public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
+		public void apply(final ITextViewer viewer, final char trigger, final int stateMask, final int offset) {
 			this.apply(viewer.getDocument());
 		}
 
 		@Override
-		public void apply(IDocument document) {
+		public void apply(final IDocument document) {
 			replacement.performAdditionalActionsBeforeDoingReplacements();
 			final ASTNode replacementExpr = replacement.replacementExpression();
 			if (replacementExpr != ASTNode.NULL_EXPR) {
@@ -261,7 +261,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.name()), accessDec.name(),
 							new IInputValidator() {
 								@Override
-								public String isValid(String newText) {
+								public String isValid(final String newText) {
 									if (!validIdentifierPattern.matcher(newText).matches())
 										return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
 									else
@@ -306,7 +306,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		public void runOnMarker(final IMarker marker) {
 			Core.instance().performActionsOnFileDocument((IFile)marker.getResource(), new IDocumentAction<Object>() {
 				@Override
-				public Object run(IDocument document) {
+				public Object run(final IDocument document) {
 					replacementOffset = marker.getAttribute(IMarker.CHAR_START, replacementOffset);
 					replacementLength = marker.getAttribute(IMarker.CHAR_END, replacementOffset+replacementLength)-replacementOffset;
 					apply(document);
@@ -326,7 +326,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private final ASTNode[] specifiable;
 		private final List<Declaration> additionalDeclarations = new LinkedList<Declaration>();
 		private boolean regionToBeReplacedSpecifiedByReplacementExpression; // yes!
-		public Replacement(String title, ASTNode replacementExpression, ASTNode... specifiable) {
+		public Replacement(final String title, final ASTNode replacementExpression, final ASTNode... specifiable) {
 			super();
 			this.title = title;
 			this.replacementExpression = replacementExpression;
@@ -334,12 +334,12 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			this.regionToBeReplacedSpecifiedByReplacementExpression = !(replacementExpression instanceof Statement);
 		}
 		public String title() { return title; }
-		public void setTitle(String title) { this.title = title; }
+		public void setTitle(final String title) { this.title = title; }
 		public ASTNode replacementExpression() { return replacementExpression; }
 		public ASTNode[] specifiable() { return specifiable; }
 		public List<Declaration> additionalDeclarations() { return additionalDeclarations; }
 		@Override
-		public boolean equals(Object other) {
+		public boolean equals(final Object other) {
 			if (other instanceof Replacement) {
 				final Replacement otherR = (Replacement) other;
 				return otherR.title.equals(title) && otherR.replacementExpression.equals(replacementExpression);
@@ -360,12 +360,12 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final ASTNode offending;
 		private final List<ICompletionProposal> existingList;
-		public ReplacementsList(ASTNode offending, List<ICompletionProposal> existingList) {
+		public ReplacementsList(final ASTNode offending, final List<ICompletionProposal> existingList) {
 			super();
 			this.offending = offending;
 			this.existingList = existingList;
 		}
-		public Replacement add(String replacement, ASTNode elm, boolean alwaysStatement, Boolean regionSpecified, ASTNode... specifiable) {
+		public Replacement add(final String replacement, ASTNode elm, final boolean alwaysStatement, final Boolean regionSpecified, final ASTNode... specifiable) {
 			if (alwaysStatement && !(elm instanceof Statement))
 				elm = new SimpleStatement(elm);
 			if (elm.end() == elm.start() && offending != null)
@@ -383,12 +383,12 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			this.add(newOne);
 			return newOne;
 		}
-		public Replacement add(String replacement, ASTNode elm, ASTNode... specifiable) {
+		public Replacement add(final String replacement, final ASTNode elm, final ASTNode... specifiable) {
 			return add(replacement, elm, true, null, specifiable);
 		}
 	}
 
-	private static ASTNode identifierReplacement(AccessDeclaration original, String newName) {
+	private static ASTNode identifierReplacement(final AccessDeclaration original, final String newName) {
 		final AccessVar result = new AccessVar(newName);
 		result.setLocation(original.start(), original.start()+original.identifierLength());
 		return result;
@@ -396,7 +396,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 	private static final Pattern validIdentifierPattern = Pattern.compile("[a-zA-Z_]\\w*"); //$NON-NLS-1$
 
-	private static String parmNameFromExpression(ASTNode expression, int index) {
+	private static String parmNameFromExpression(final ASTNode expression, final int index) {
 		final String exprString = expression.toString();
 		final Matcher m = validIdentifierPattern.matcher(exprString);
 		if (m.matches())
@@ -405,7 +405,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			return "par"+index; //$NON-NLS-1$
 	}
 
-	public void collectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, C4ScriptEditor editor) {
+	public void collectProposals(final IMarker marker, final Position position, final List<ICompletionProposal> proposals, IDocument document, final C4ScriptEditor editor) {
 		if (document == null)
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		if (document == null)
@@ -421,7 +421,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		final IMarker marker,
 		final Position position,
 		final List<ICompletionProposal> proposals,
-		IDocument document,
+		final IDocument document,
 		final Script script
 	) {
 		if (document != null)
@@ -429,14 +429,14 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		else
 			Core.instance().performActionsOnFileDocument(script.source(), new IDocumentAction<Void>() {
 				@Override
-				public Void run(IDocument connectedDocument) {
+				public Void run(final IDocument connectedDocument) {
 					internalCollectProposals(marker, position, proposals, connectedDocument, script);
 					return null;
 				}
 			}, false);
 	}
 
-	private void internalCollectProposals(IMarker marker, Position position, List<ICompletionProposal> proposals, IDocument document, Script script) {
+	private void internalCollectProposals(final IMarker marker, final Position position, final List<ICompletionProposal> proposals, final IDocument document, final Script script) {
 		final Problem errorCode = Markers.problem(marker);
 		IRegion expressionRegion = new SourceLocation(marker.getAttribute(IMarker.CHAR_START, 0),  marker.getAttribute(IMarker.CHAR_END, 0));
 		if (expressionRegion.getOffset() == -1)
@@ -488,8 +488,8 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						new ASTNode() {
 							private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 							@Override
-							public void doPrint(ASTNodePrinter output, int depth) {
-								Unfinished.unwrap(topLevel).print(output, depth);
+							public void doPrint(final ASTNodePrinter output, final int depth) {
+								SimpleStatement.unwrap(topLevel).print(output, depth);
 								output.append(arrayElement ? ',' : ';');
 							}
 						}, false, true
@@ -748,7 +748,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 	}
 
-	private Replacement addRemoveReplacement(IDocument document, final IRegion expressionRegion, ReplacementsList replacements, Function func) {
+	private Replacement addRemoveReplacement(final IDocument document, final IRegion expressionRegion, final ReplacementsList replacements, final Function func) {
 		final Replacement result = replacements.add(
 			Messages.ClonkQuickAssistProcessor_Remove,
 			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()), //$NON-NLS-1$

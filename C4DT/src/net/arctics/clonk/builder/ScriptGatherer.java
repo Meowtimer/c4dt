@@ -39,12 +39,12 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 	private final Set<Script> obsoleted = new HashSet<Script>();
 	private final ClonkBuilder builder;
 
-	public ScriptGatherer(ClonkBuilder clonkBuilder) { builder = clonkBuilder; }
+	public ScriptGatherer(final ClonkBuilder clonkBuilder) { builder = clonkBuilder; }
 
-	public void obsoleteCorrespondingScriptFromIndex(final IResource deleted, Index index) {
+	public void obsoleteCorrespondingScriptFromIndex(final IResource deleted, final Index index) {
 		index.allScripts(new Sink<Script>() {
 			@Override
-			public void receivedObject(Script item) {
+			public void receivedObject(final Script item) {
 				if (item instanceof Definition) {
 					final Definition d = (Definition)item;
 					if (d.definitionFolder() == null || !d.definitionFolder().equals(deleted))
@@ -57,7 +57,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		});
 	}
 
-	private Definition createDefinition(IContainer folder) {
+	private Definition createDefinition(final IContainer folder) {
 		final IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
 		final IFile scenario = as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
 		final IFile script = Script.findScriptFile(folder);
@@ -87,7 +87,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		}
 	}
 	@Override
-	public boolean visit(IResourceDelta delta) throws CoreException {
+	public boolean visit(final IResourceDelta delta) throws CoreException {
 		if (delta == null)
 			return false;
 
@@ -162,7 +162,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		return visitChildren;
 	}
 	@Override
-	public boolean visit(IResource resource) throws CoreException {
+	public boolean visit(final IResource resource) throws CoreException {
 		if (builder.monitor().isCanceled())
 			return false;
 		if (resource instanceof IContainer) {
@@ -186,7 +186,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		}
 		return false;
 	}
-	private boolean processAuxiliaryFiles(IFile file, Script script) throws CoreException {
+	private boolean processAuxiliaryFiles(final IFile file, final Script script) throws CoreException {
 		boolean result = true;
 		Structure structure;
 		if ((structure = Structure.createStructureForFile(file, true)) != null) {
@@ -215,14 +215,14 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			builder.index().removeScript(s);
 		obsoleted.clear();
 	}
-	private SystemScript makeSystemScript(IResource resource) throws CoreException {
+	private SystemScript makeSystemScript(final IResource resource) throws CoreException {
 		final SystemScript pinned = SystemScript.pinned(resource, true);
 		if (pinned != null)
 			return pinned;
 		if (resource instanceof IFile) {
 			final String ln = resource.getName().toLowerCase();
 			final IFile file = (IFile) resource;
-			if (Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent())) //$NON-NLS-1$
+			if (Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent())) 
 				return new SystemScript(builder.index(), file);
 			else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
 				return new MapScript(builder.index(), file);
@@ -231,12 +231,12 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		}
 		return null;
 	}
-	public boolean isMapScript(IResource resource) {
+	public boolean isMapScript(final IResource resource) {
 		return
 			resource instanceof IFile &&
 			resource.getName().equals("Map.c");
 	}
-	private boolean isSystemGroup(IContainer container) {
+	private boolean isSystemGroup(final IContainer container) {
 		return container.getName().equals(builder.index().engine().groupName("System", GroupType.ResourceGroup)); //$NON-NLS-1$
 	}
 }

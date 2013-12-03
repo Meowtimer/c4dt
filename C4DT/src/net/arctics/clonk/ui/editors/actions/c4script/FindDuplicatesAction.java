@@ -16,27 +16,27 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.FindDuplicates")
 public class FindDuplicatesAction extends ClonkTextEditorAction {
-	public FindDuplicatesAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
+	public FindDuplicatesAction(final ResourceBundle bundle, final String prefix, final ITextEditor editor) {
 		super(bundle, prefix, editor);
 	}
 	@Override
 	public void run() {
 		try {
 			//getTextEditor().doSave(null);
-			C4ScriptEditor ed = (C4ScriptEditor) getTextEditor();
+			final C4ScriptEditor ed = (C4ScriptEditor) getTextEditor();
 			ed.reparse(false);
 			// force refreshing index so the functions acting as origins will be properly added to the declaration map
 			ed.script().index().refresh(false);
 			
-			List<Function> functions = new LinkedList<Function>();
-			Declaration declaration = declarationAtSelection(true);
+			final List<Function> functions = new LinkedList<Function>();
+			final Declaration declaration = declarationAtSelection(true);
 			if (declaration instanceof Function)
 				functions.add((Function) declaration);
-			else for (Function f : ((C4ScriptEditor)getTextEditor()).script().functions())
+			else for (final Function f : ((C4ScriptEditor)getTextEditor()).script().functions())
 				functions.add(f);
 			if (functions.size() > 0)
 				NewSearchUI.runQueryInBackground(DuplicatesSearchQuery.queryWithFunctions(functions));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}

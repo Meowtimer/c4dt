@@ -19,11 +19,11 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 	public ASTNode returnExpr() { return returnExpr; }
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		throw new ReturnException(value(returnExpr.evaluate(context)));
 	}
 
-	public ReturnStatement(ASTNode returnExpr) {
+	public ReturnStatement(final ASTNode returnExpr) {
 		super();
 		this.returnExpr = returnExpr;
 		assignParentToSubElements();
@@ -35,7 +35,7 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(keyword());
 		if (returnExpr != null) {
 			builder.append(" "); //$NON-NLS-1$
@@ -52,7 +52,7 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 		return returnExpr;
 	}
 
-	public void setReturnExpr(ASTNode returnExpr) {
+	public void setReturnExpr(final ASTNode returnExpr) {
 		this.returnExpr = returnExpr;
 	}
 
@@ -62,7 +62,7 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 	}
 
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		returnExpr = elms[0];
 	}
 

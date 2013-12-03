@@ -13,17 +13,17 @@ public final class Range implements Serializable {
 	private final NumVal lo, hi;
 	private final int evaluated;
 	
-	public Range(NumVal lo) { this(lo, lo); }
-	public Range(Unit unit, int val) { this(new NumVal(unit, val)); }
+	public Range(final NumVal lo) { this(lo, lo); }
+	public Range(final Unit unit, final int val) { this(new NumVal(unit, val)); }
 
-	public Range(NumVal lo, NumVal hi) {
+	public Range(final NumVal lo, final NumVal hi) {
 		super();
 		this.lo = lo;
 		this.hi = hi;
 		this.evaluated = lo.value() + (hi != null ? Random(hi.value()-lo.value()) : 0);
 	}
 	
-	public int evaluate(int relative_to) {
+	public int evaluate(final int relative_to) {
 		switch (lo.unit()) {
 		case Percent:
 			return evaluated * relative_to / 100;

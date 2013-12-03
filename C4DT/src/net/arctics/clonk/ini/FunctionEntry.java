@@ -12,7 +12,7 @@ import org.eclipse.core.resources.IMarker;
 public class FunctionEntry extends NamedReference implements ISelfValidatingIniEntryValue {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	@Override
-	public void validate(Markers markers, IniEntry context) throws ProblemException {
+	public void validate(final Markers markers, final IniEntry context) throws ProblemException {
 		if (toString().equals("None") || toString().equals("")) // special null value //$NON-NLS-1$ //$NON-NLS-2$
 			return;
 		final IniUnit iniUnit = context.unit();

@@ -20,7 +20,7 @@ public abstract class SettingsBase implements Cloneable {
 		}
 	}
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (obj == this)
 			return true;
 		if (obj.getClass() != this.getClass())
@@ -37,14 +37,14 @@ public abstract class SettingsBase implements Cloneable {
 			}
 		return true;
 	}
-	public void loadFrom(InputStream stream) {
+	public void loadFrom(final InputStream stream) {
 		try {
 			CustomIniUnit.load(stream, this);
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
-	public void saveTo(OutputStream stream, SettingsBase defaults) {
+	public void saveTo(final OutputStream stream, final SettingsBase defaults) {
 		try {
 			try (Writer writer = new OutputStreamWriter(stream)) {
 				CustomIniUnit.save(new AppendableBackedExprWriter(writer), this, defaults);
@@ -53,7 +53,7 @@ public abstract class SettingsBase implements Cloneable {
 			e.printStackTrace();
 		}
 	}
-	public static <T extends SettingsBase> T createFrom(Class<T> cls, InputStream stream) {
+	public static <T extends SettingsBase> T createFrom(final Class<T> cls, final InputStream stream) {
 		try {
 			final T settings = cls.newInstance();
 			settings.loadFrom(stream);

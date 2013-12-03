@@ -31,18 +31,18 @@ public class ASTSearchQuery extends SearchQuery {
 	public static class Match extends SearchMatch {
 		private final Map<String, Object> subst;
 		public Map<String, Object> subst() { return subst; }
-		public Match(String line, int lineOffset, Object element, ASTNode matched, Map<String, Object> subst) {
+		public Match(final String line, final int lineOffset, final Object element, final ASTNode matched, final Map<String, Object> subst) {
 			super(line, lineOffset, element, matched, false, false);
 			this.subst = subst;
 		}
 	}
 
-	private void addMatch(ASTNode match, Structure struct, int s, int l, Map<String, Object> subst) {
+	private void addMatch(final ASTNode match, final Structure struct, final int s, final int l, final Map<String, Object> subst) {
 		final Match m = match(match, struct, subst);
 		result.addMatch(m);
 	}
 
-	protected Match match(ASTNode match, Structure struct, Map<String, Object> subst) {
+	protected Match match(final ASTNode match, final Structure struct, final Map<String, Object> subst) {
 		final BufferedScanner scanner = scanner(struct);
 		final IRegion lineRegion = scanner.regionOfLineContainingRegion(match.absolute());
 		final String line = scanner.bufferSubstringAtRegion(lineRegion);
@@ -50,7 +50,7 @@ public class ASTSearchQuery extends SearchQuery {
 		return m;
 	}
 
-	protected BufferedScanner scanner(Structure script) {
+	protected BufferedScanner scanner(final Structure script) {
 		synchronized (scanners) {
 			BufferedScanner scanner = scanners.get(script);
 			if (scanner == null)
@@ -69,7 +69,7 @@ public class ASTSearchQuery extends SearchQuery {
 	public ASTNode replacement() { return replacement; }
 	public ASTNode template() { return template; }
 
-	public ASTSearchQuery(String templateExpressionText, String replacementExpressionText, Collection<Structure> scope) throws ProblemException {
+	public ASTSearchQuery(final String templateExpressionText, final String replacementExpressionText, final Collection<Structure> scope) throws ProblemException {
 		final Standalone stal = new Standalone(scope);
 		this.templateText = templateExpressionText;
 		this.template = ASTNodeMatcher.prepareForMatching(stal.parse(templateExpressionText));
@@ -81,11 +81,11 @@ public class ASTSearchQuery extends SearchQuery {
 	protected IStatus doRun(final IProgressMonitor monitor) throws OperationCanceledException {
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
-			public void receivedObject(ExecutorService pool) {
+			public void receivedObject(final ExecutorService pool) {
 				class ScriptSearcher implements Runnable, IASTVisitor<Structure> {
 					private final Structure script;
 					private final Map<String, Match> matches = new HashMap<String, Match>();
-					public ScriptSearcher(Structure script) {
+					public ScriptSearcher(final Structure script) {
 						if (script instanceof IndexEntity)
 							((IndexEntity)script).requireLoaded();
 						this.script = script;
@@ -107,7 +107,7 @@ public class ASTSearchQuery extends SearchQuery {
 						matches.clear();
 					}
 					@Override
-					public TraversalContinuation visitNode(ASTNode expression, Structure script) {
+					public TraversalContinuation visitNode(final ASTNode expression, final Structure script) {
 						if (monitor.isCanceled())
 							return TraversalContinuation.Cancel;
 						final Map<String, Object> subst = template.match(expression);

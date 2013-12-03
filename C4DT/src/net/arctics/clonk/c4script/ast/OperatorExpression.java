@@ -10,7 +10,7 @@ public class OperatorExpression extends ASTNode implements IPlaceholderPatternMa
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final Operator operator;
 
-	public OperatorExpression(Operator operator) {
+	public OperatorExpression(final Operator operator) {
 		super();
 		this.operator = operator;
 	}
@@ -25,7 +25,7 @@ public class OperatorExpression extends ASTNode implements IPlaceholderPatternMa
 	}
 
 	@Override
-	public boolean equalAttributes(ASTNode other) {
+	public boolean equalAttributes(final ASTNode other) {
 		if (!super.equalAttributes(other))
 			return false;
 		if (operator != ((OperatorExpression)other).operator)

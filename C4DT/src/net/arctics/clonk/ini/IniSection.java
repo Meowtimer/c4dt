@@ -39,9 +39,9 @@ public class IniSection
 	private int indentation;
 
 	public IniSectionDefinition definition() { return definition; }
-	public void setDefinition(IniSectionDefinition sectionData) { this.definition = sectionData; }
+	public void setDefinition(final IniSectionDefinition sectionData) { this.definition = sectionData; }
 	public Map<String, IniItem> map() { return map; }
-	public IniItem itemByKey(String key) { return map.get(key); }
+	public IniItem itemByKey(final String key) { return map.get(key); }
 	public List<IniItem> items() { return list; }
 	@Override
 	public String key() { return name(); }
@@ -60,9 +60,9 @@ public class IniSection
 	@Override
 	public IPath path() { return ITreeNode.Default.path(this); }
 	@Override
-	public boolean subNodeOf(ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
+	public boolean subNodeOf(final ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
 	public int indentation() { return indentation; }
-	public void setIndentation(int indentation) { this.indentation = indentation; }
+	public void setIndentation(final int indentation) { this.indentation = indentation; }
 	@Override
 	public int sortCategory() { return 1; }
 	public IniUnit iniUnit() { return parent(IniUnit.class); }
@@ -77,15 +77,15 @@ public class IniSection
 	@Override
 	public int absoluteOffset() { return sectionOffset()+start; }
 
-	public IniSection(String name) { this.name = name; }
+	public IniSection(final String name) { this.name = name; }
 
-	public IniSection(SourceLocation location, String name) {
+	public IniSection(final SourceLocation location, final String name) {
 		this(name);
 		setLocation(location);
 	}
 
 	@Override
-	public void addChild(ITreeNode node) {
+	public void addChild(final ITreeNode node) {
 		if (node instanceof IniItem)
 			addDeclaration((Declaration)node);
 		else
@@ -93,7 +93,7 @@ public class IniSection
 	}
 
 	@Override
-	public <T extends Declaration> T addDeclaration(T item) {
+	public <T extends Declaration> T addDeclaration(final T item) {
 		final IniItem ini = (IniItem) item;
 		map.put(ini.key(), ini);
 		list.add(ini);
@@ -101,7 +101,7 @@ public class IniSection
 		return item;
 	}
 
-	public void removeItem(IniItem item) {
+	public void removeItem(final IniItem item) {
 		map.remove(item.key());
 		list.remove(item);
 	}
@@ -112,14 +112,14 @@ public class IniSection
 		return unit != null ? unit.sectionToString(this) : name();
 	}
 
-	public void putEntry(IniEntry entry) {
+	public void putEntry(final IniEntry entry) {
 		map.put(entry.name(), entry);
 		list.add(entry);
 		entry.setParent(this);
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter writer, int indentation) {
+	public void doPrint(final ASTNodePrinter writer, final int indentation) {
 		if (indentation >= 0)
 			writer.append(StringUtil.multiply("\t", indentation+1));
 		writer.append('[');
@@ -143,7 +143,7 @@ public class IniSection
 	}
 
 	@Override
-	public void validate(Markers markers) throws ProblemException {
+	public void validate(final Markers markers) throws ProblemException {
 		for (final IniItem e : this)
 			e.validate(markers);
 	}
@@ -163,12 +163,12 @@ public class IniSection
 	}
 
 	@Override
-	public String infoText(IIndexEntity context) {
+	public String infoText(final IIndexEntity context) {
 		final IniUnit unit = iniUnit();
 		return String.format(Messages.IniSection_InfoTextFormat, unit.sectionToString(this), unit.infoText(context));
 	}
 
-	private static void setFromString(Field f, Object object, String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {
+	private static void setFromString(final Field f, final Object object, final String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {
 		if (f.getType() == Integer.TYPE)
 			f.set(object, Integer.valueOf(val));
 		else if (f.getType() == Long.TYPE)
@@ -177,7 +177,7 @@ public class IniSection
 			f.set(object, java.lang.Boolean.valueOf(val));
 	}
 
-	public void commit(Object object, boolean takeIntoAccountCategory) {
+	public void commit(final Object object, final boolean takeIntoAccountCategory) {
 		for (final IniItem item : map().values())
 			if (item instanceof IniSection)
 				((IniSection)item).commit(object, takeIntoAccountCategory);

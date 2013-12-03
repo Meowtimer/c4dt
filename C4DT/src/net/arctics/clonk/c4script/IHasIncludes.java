@@ -48,7 +48,7 @@ public interface IHasIncludes<T extends IHasIncludes<?>> extends IType {
 		 * @param options Options mask. See {@link GatherIncludesOptions}
 		 * @return Requested includes.
 		 */
-		public static <T extends IHasIncludes<?>> Collection<T> includes(Index contextIndex, IHasIncludes<T> instance, T origin, int options) {
+		public static <T extends IHasIncludes<?>> Collection<T> includes(final Index contextIndex, final IHasIncludes<T> instance, final T origin, final int options) {
 			final Set<T> result = new HashSet<T>(10);
 			instance.gatherIncludes(contextIndex, origin, result, options);
 			result.remove(instance);

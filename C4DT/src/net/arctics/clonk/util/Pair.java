@@ -13,7 +13,7 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 	private First first;
 	private Second second;
 
-	public Pair(First first, Second second) {
+	public Pair(final First first, final Second second) {
 		super();
 		this.first = first;
 		this.second = second;
@@ -21,13 +21,13 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 	public final First first() {
 		return first;
 	}
-	public final void setFirst(First first) {
+	public final void setFirst(final First first) {
 		this.first = first;
 	}
 	public final Second second() {
 		return second;
 	}
-	public final void setSecond(Second second) {
+	public final void setSecond(final Second second) {
 		this.second = second;
 	}
 	@Override
@@ -37,7 +37,7 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 		return "("+first.toString()+", "+second.toString()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	@Override
-	public boolean equals(Object other) {
+	public boolean equals(final Object other) {
 		if (other instanceof Pair<?, ?>) {
 			final Pair<?, ?> otherPair = (Pair<?, ?>) other;
 			return eq(first, otherPair.first) && eq(second, otherPair.second);
@@ -54,7 +54,7 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 		return (Pair<First, Second>) super.clone();
 	}
 
-	public static <F, S> Pair<F, S> pair(F first, S second) {
+	public static <F, S> Pair<F, S> pair(final F first, final S second) {
 		return new Pair<F, S>(first, second);
 	}
 }

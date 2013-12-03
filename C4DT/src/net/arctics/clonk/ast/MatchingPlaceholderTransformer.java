@@ -18,7 +18,7 @@ import net.arctics.clonk.c4script.ast.Parenthesized;
 enum MatchingPlaceholderTransformer implements ITransformer {
 	/** Singleton */
 	INSTANCE;
-	private ASTNode toMatchingPlaceholder(ASTNode expression) {
+	private ASTNode toMatchingPlaceholder(final ASTNode expression) {
 		if (expression != null)
 			if (expression.getClass() == Placeholder.class)
 				try {
@@ -49,7 +49,7 @@ enum MatchingPlaceholderTransformer implements ITransformer {
 		return null;
 	}
 	@Override
-	public Object transform(ASTNode prev, Object prevT, ASTNode expression) {
+	public Object transform(final ASTNode prev, final Object prevT, final ASTNode expression) {
 		final ASTNode matchingPlaceholder = toMatchingPlaceholder(expression);
 		if (matchingPlaceholder != null)
 			return matchingPlaceholder;

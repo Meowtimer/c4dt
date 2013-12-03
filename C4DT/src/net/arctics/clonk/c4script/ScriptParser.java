@@ -147,7 +147,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * Sets the current function. There should be a good reason to call this.
 	 * @param func
 	 */
-	protected void setCurrentFunction(Function func) {
+	protected void setCurrentFunction(final Function func) {
 		if (func != currentFunction) {
 			currentFunction = func;
 			this.currentDeclaration = func;
@@ -179,7 +179,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	/**
 	 * Creates a script parser. The script is read from the file attached to the script (queried through getScriptFile()).
 	 */
-	public ScriptParser(Script script) {
+	public ScriptParser(final Script script) {
 		this(script.source(), script, null);
 		initialize();
 	}
@@ -214,7 +214,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param scriptFile
 	 * @param obj
 	 */
-	public ScriptParser(Object source, Script script, IFile scriptFile) {
+	public ScriptParser(final Object source, final Script script, final IFile scriptFile) {
 		super(source);
 		this.scriptFile = defaulting(scriptFile, as(source, IFile.class));
 		this.script = script;
@@ -365,7 +365,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param function The function to be parsed
 	 * @throws ProblemException
 	 */
-	private void parseFunctionBody(Function function) throws ProblemException {
+	private void parseFunctionBody(final Function function) throws ProblemException {
 		try {
 			final int bodyStart = this.offset;
 			if (!function.staticallyTyped())
@@ -393,7 +393,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		}
 	}
 
-	private Variable addVarParmsParm(Function func) {
+	private Variable addVarParmsParm(final Function func) {
 		final Variable v = new Variable("...", PrimitiveType.ANY); //$NON-NLS-1$
 		v.setParent(func);
 		v.setScope(Variable.Scope.PARAMETER);
@@ -416,7 +416,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return null;
 	}
 
-	public final void setRelativeLocation(ASTNode expr, int start, int end) {
+	public final void setRelativeLocation(final ASTNode expr, final int start, final int end) {
 		final int bodyOffset = sectionOffset();
 		expr.setLocation(start-bodyOffset, end-bodyOffset);
 	}
@@ -489,13 +489,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return result;
 	}
 
-	protected InitializationFunction synthesizeInitializationFunction(VarInitialization vi) {
+	protected InitializationFunction synthesizeInitializationFunction(final VarInitialization vi) {
 		final InitializationFunction synth = new InitializationFunction(vi.variable);
 		final SourceLocation expressionLocation = absoluteSourceLocationFromExpr(vi.expression);
 		final int es = expressionLocation.start();
 		vi.expression.traverse(new IASTVisitor<Void>() {
 			@Override
-			public TraversalContinuation visitNode(ASTNode node, Void parser) {
+			public TraversalContinuation visitNode(final ASTNode node, final Void parser) {
 				node.setLocation(node.start()-es, node.end()-es);
 				final CallDeclaration cd = as(node, CallDeclaration.class);
 				if (cd != null)
@@ -530,7 +530,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		public final IType returnType;
 		public final TypeAnnotation typeAnnotation;
 		public final Comment desc;
-		public FunctionHeader(int start, String name, FunctionScope scope, boolean isOldStyle, int nameStart, IType returnType, TypeAnnotation typeAnnotation, Comment desc) {
+		public FunctionHeader(final int start, final String name, final FunctionScope scope, final boolean isOldStyle, final int nameStart, final IType returnType, final TypeAnnotation typeAnnotation, final Comment desc) {
 			super();
 			this.start = start;
 			this.name = name;
@@ -541,7 +541,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			this.typeAnnotation = typeAnnotation;
 			this.desc = desc;
 		}
-		public static FunctionHeader parse(ScriptParser parser, boolean allowOldStyle) throws ProblemException {
+		public static FunctionHeader parse(final ScriptParser parser, final boolean allowOldStyle) throws ProblemException {
 			final Comment desc = parser.collectPrecedingComment(parser.offset);
 			final int initialOffset = parser.offset;
 			int nameStart = parser.offset;
@@ -613,7 +613,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			parser.seek(initialOffset);
 			return null;
 		}
-		public void apply(Function func) {
+		public void apply(final Function func) {
 			func.setOldStyle(isOldStyle);
 			func.setName(name);
 			func.setVisibility(scope);
@@ -626,7 +626,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		}
 	}
 
-	private List<VarInitialization> parseVariableDeclaration(boolean checkForFinalSemicolon, Scope initialScope, Comment comment) throws ProblemException {
+	private List<VarInitialization> parseVariableDeclaration(final boolean checkForFinalSemicolon, final Scope initialScope, final Comment comment) throws ProblemException {
 		final Variable.Scope scope = adjustScope(initialScope);
 		final List<VarInitialization> createdVariables = new LinkedList<VarInitialization>();
 		{
@@ -687,11 +687,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return scope;
 	}
 
-	protected TypeAnnotation typeAnnotation(int s, int e, IType type) {
+	protected TypeAnnotation typeAnnotation(final int s, final int e, final IType type) {
 		return new TypeAnnotation(-sectionOffset()+s, -sectionOffset()+e, type);
 	}
 
-	private VarInitialization parseVarInitialization(Scope scope, Comment comment) throws ProblemException {
+	private VarInitialization parseVarInitialization(final Scope scope, final Comment comment) throws ProblemException {
 		final int backtrack = this.offset;
 		eatWhitespace();
 		TypeAnnotation annot;
@@ -774,7 +774,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return null;
 	}
 
-	private TypeAnnotation placeholderTypeAnnotationIfMigrating(int offset) {
+	private TypeAnnotation placeholderTypeAnnotationIfMigrating(final int offset) {
 		TypeAnnotation typeAnnotation;
 		if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
 			typeAnnotation = typeAnnotation(offset, offset, null);
@@ -785,16 +785,16 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return typeAnnotation;
 	}
 
-	private void typeRequiredAt(int typeExpectedAt) throws ProblemException {
+	private void typeRequiredAt(final int typeExpectedAt) throws ProblemException {
 		error(Problem.TypeExpected, typeExpectedAt, typeExpectedAt+1,  Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
 	}
 
 	@Override
-	public Variable newVariable(String varName, Scope scope) {
+	public Variable newVariable(final String varName, final Scope scope) {
 		return new Variable(varName, scope);
 	}
 
-	private TypeAnnotation parseTypeAnnotation(boolean topLevel, boolean required) throws ProblemException {
+	private TypeAnnotation parseTypeAnnotation(final boolean topLevel, boolean required) throws ProblemException {
 		required |= typing == Typing.STATIC && migrationTyping == null;
 		final int start = this.offset;
 		String str;
@@ -899,7 +899,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return The parse function or null if something went wrong
 	 * @throws ProblemException
 	 */
-	private Function parseFunctionDeclaration(FunctionHeader header) throws ProblemException {
+	private Function parseFunctionDeclaration(final FunctionHeader header) throws ProblemException {
 		int endOfHeader;
 		eatWhitespace();
 		setCurrentFunction(null);
@@ -970,7 +970,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return func;
 	}
 
-	private void parseParameters(Function func) throws ProblemException {
+	private void parseParameters(final Function func) throws ProblemException {
 		// get parameters
 		boolean parmExpected = false;
 		do {
@@ -1000,7 +1000,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			else if (readByte == ',')
 				parmExpected = true;
 			else
-				error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, (char)readByte);  //$NON-NLS-1$//$NON-NLS-2$
+				error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, (char)readByte);  
 		} while(!reachedEOF());
 	}
 
@@ -1009,7 +1009,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param nameWillBe What the name of the function will be.
 	 * @return The newly created function. Might be of some special class.
 	 */
-	protected Function newFunction(String nameWillBe) {
+	protected Function newFunction(final String nameWillBe) {
 		if (specialEngineRules != null)
 			for (final SpecialFuncRule funcRule : specialEngineRules.defaultParmTypeAssignerRules()) {
 				final Function f = funcRule.newFunction(nameWillBe);
@@ -1019,7 +1019,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return new Function();
 	}
 
-	private Comment collectPrecedingComment(int absoluteOffset) {
+	private Comment collectPrecedingComment(final int absoluteOffset) {
 		final Comment c = (lastComment != null && lastComment.precedesOffset(absoluteOffset, buffer)) ? lastComment : null;
 		lastComment = null;
 		return c;
@@ -1194,23 +1194,23 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			return null;
 	}
 
-	private void warning(Problem code, int errorStart, int errorEnd, int flags, Object... args) {
+	private void warning(final Problem code, final int errorStart, final int errorEnd, final int flags, final Object... args) {
 		try {
 			marker(code, errorStart, errorEnd, flags|Markers.NO_THROW, IMarker.SEVERITY_WARNING, args);
 		} catch (final ProblemException e) {
 			// won't happen
 		}
 	}
-	private void warning(Problem code, IRegion region, int flags, Object... args) {
+	private void warning(final Problem code, final IRegion region, final int flags, final Object... args) {
 		warning(code, region.getOffset(), region.getOffset()+region.getLength(), flags, args);
 	}
-	private void error(Problem code, int errorStart, int errorEnd, int flags, Object... args) throws ProblemException {
+	private void error(final Problem code, final int errorStart, final int errorEnd, final int flags, final Object... args) throws ProblemException {
 		marker(code, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
 	}
 
 	private Markers markers;
 
-	public void setMarkers(Markers markers) {
+	public void setMarkers(final Markers markers) {
 		this.markers = markers;
 	}
 
@@ -1234,15 +1234,15 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param args Format arguments used when creating the marker message with the message from the error code as the format.
 	 * @throws ProblemException
 	 */
-	public void marker(Problem code, int markerStart, int markerEnd, int flags, int severity, Object... args) throws ProblemException {
+	public void marker(final Problem code, final int markerStart, final int markerEnd, final int flags, final int severity, final Object... args) throws ProblemException {
 		markers().marker(this, code, null, markerStart, markerEnd, flags, severity, args);
 	}
 
-	public IMarker todo(String todoText, int markerStart, int markerEnd, int priority) {
+	public IMarker todo(final String todoText, final int markerStart, final int markerEnd, final int priority) {
 		return markers().todo(file(), null, todoText, markerStart, markerEnd, priority);
 	}
 
-	private void tokenExpectedError(String token) throws ProblemException {
+	private void tokenExpectedError(final String token) throws ProblemException {
 		int off = this.offset;
 		while (off >= 0 && off < size && buffer[off] == '\t')
 			off--;
@@ -1533,11 +1533,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return result;
 	}
 
-	protected Placeholder makePlaceholder(String placeholder) throws ProblemException {
+	protected Placeholder makePlaceholder(final String placeholder) throws ProblemException {
 		return new Placeholder(placeholder);
 	}
 
-	private ASTNode parsePropListExpression(ASTNode prevElm) throws ProblemException {
+	private ASTNode parsePropListExpression(final ASTNode prevElm) throws ProblemException {
 		final int off = this.offset;
 		final ProplistDeclaration proplDec = parsePropListDeclaration();
 		if (proplDec != null) {
@@ -1622,16 +1622,16 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return null;
 	}
 
-	public final SourceLocation absoluteSourceLocation(int start, int end) {
+	public final SourceLocation absoluteSourceLocation(final int start, final int end) {
 		return new SourceLocation(start+offsetOfScriptFragment, end+offsetOfScriptFragment);
 	}
 
-	public SourceLocation absoluteSourceLocationFromExpr(ASTNode expression) {
+	public SourceLocation absoluteSourceLocationFromExpr(final ASTNode expression) {
 		final int bodyOffset = sectionOffset();
 		return absoluteSourceLocation(expression.start()+bodyOffset, expression.end()+bodyOffset);
 	}
 
-	private ASTNode parseArrayExpression(ASTNode prevElm) throws ProblemException {
+	private ASTNode parseArrayExpression(final ASTNode prevElm) throws ProblemException {
 		ASTNode elm = null;
 		int c = read();
 		if (c == '[') {
@@ -1702,7 +1702,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return elm;
 	}
 
-	private void parseRestOfTuple(List<ASTNode> listToAddElementsTo) throws ProblemException {
+	private void parseRestOfTuple(final List<ASTNode> listToAddElementsTo) throws ProblemException {
 		boolean expectingComma = false;
 		int lastStart = this.offset;
 		Loop: while (!reachedEOF()) {
@@ -1748,7 +1748,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return parseExpression();
 	}
 
-	protected ASTNode parseExpression(char[] delimiters) throws ProblemException {
+	protected ASTNode parseExpression(final char[] delimiters) throws ProblemException {
 
 		final int offset = this.offset;
 
@@ -1853,7 +1853,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param region The region to convert
 	 * @return The relative region or the passed region, if there is no current function.
 	 */
-	public IRegion convertRelativeRegionToAbsolute(int flags, IRegion region) {
+	public IRegion convertRelativeRegionToAbsolute(final int flags, final IRegion region) {
 		final int offset = sectionOffset();
 		if (offset == 0 || (flags & Markers.ABSOLUTE_MARKER_LOCATION) == 0)
 			return region;
@@ -1980,7 +1980,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return The parsed statement or null if parsing was unsuccessful.
 	 * @throws ProblemException
 	 */
-	private Statement parseStatement(EnumSet<ParseStatementOption> options) throws ProblemException {
+	private Statement parseStatement(final EnumSet<ParseStatementOption> options) throws ProblemException {
 		int emptyLines = -1;
 		int delim;
 		for (; (delim = peek()) != -1 && BufferedScanner.isWhiteSpace((char) delim); read()) {
@@ -2091,7 +2091,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param flavour Whether parsing statements or only expressions
 	 * @throws ProblemException
 	 */
-	protected List<ASTNode> parseStatements(int start, EnumSet<ParseStatementOption> options, boolean oldStyle) throws ProblemException {
+	protected List<ASTNode> parseStatements(final int start, final EnumSet<ParseStatementOption> options, final boolean oldStyle) throws ProblemException {
 		final List<ASTNode> statements = new LinkedList<>();
 		boolean done = false;
 		int garbageStart = -1;
@@ -2127,7 +2127,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return statements;
 	}
 
-	private int maybeAddGarbageStatement(List<ASTNode> statements, int garbageStart, int potentialGarbageEnd) throws ProblemException {
+	private int maybeAddGarbageStatement(final List<ASTNode> statements, int garbageStart, final int potentialGarbageEnd) throws ProblemException {
 		String garbageString = new String(buffer, garbageStart, Math.min(potentialGarbageEnd, buffer.length-garbageStart));
 		garbageString = modifyGarbage(garbageString);
 		if (garbageString != null && garbageString.length() > 0) {
@@ -2164,7 +2164,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param expected The character expected
 	 * @throws ProblemException
 	 */
-	private void expect(char expected) throws ProblemException {
+	private void expect(final char expected) throws ProblemException {
 		if (read() != expected) {
 			unread();
 			tokenExpectedError(String.valueOf(expected));
@@ -2176,7 +2176,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param expected The identifier expected
 	 * @throws ProblemException
 	 */
-	private void expect(String expected) throws ProblemException {
+	private void expect(final String expected) throws ProblemException {
 		final String r = readIdent();
 		if (r == null || !r.equals(expected))
 			tokenExpectedError(expected);
@@ -2207,7 +2207,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return The parsed KeywordStatement or null if the keyword was not recognized
 	 * @throws ProblemException
 	 */
-	private Statement parseKeywordStatement(String keyWord) throws ProblemException {
+	private Statement parseKeywordStatement(final String keyWord) throws ProblemException {
 		switch (keyWord) {
 		case Keywords.If:
 			return parseIf();
@@ -2448,7 +2448,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return result;
 	}
 
-	private Statement withMissingFallback(int offsetWhereExpected, Statement statement) throws ProblemException {
+	private Statement withMissingFallback(final int offsetWhereExpected, final Statement statement) throws ProblemException {
 		return statement != null
 			? statement
 				: new MissingStatement(offsetWhereExpected-sectionOffset());
@@ -2473,7 +2473,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return Whether parsing the parameter was successful
 	 * @throws ProblemException
 	 */
-	private Variable parseParameter(Function function) throws ProblemException {
+	private Variable parseParameter(final Function function) throws ProblemException {
 
 		final int backtrack = this.offset;
 		eatWhitespace();
@@ -2561,7 +2561,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param function the function to return the source code of
 	 * @return source code
 	 */
-	protected String functionSource(Function function) {
+	protected String functionSource(final Function function) {
 		if (function == null)
 			return null;
 		else {
@@ -2575,7 +2575,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param garbage The expression string recognized as garbage
 	 * @return Actual garbage string to be wrapped in a GarbageStatement. Null if no GarbageStatement should be created
 	 */
-	protected String modifyGarbage(String garbage) {
+	protected String modifyGarbage(final String garbage) {
 		return garbage; // normal parser accepts teh garbage
 	}
 
@@ -2585,7 +2585,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @param length The length of the null-expression
 	 * @return The constructed whitespace expression
 	 */
-	public final ASTNode whitespace(int start, int length) {
+	public final ASTNode whitespace(final int start, final int length) {
 		final ASTNode result = new Whitespace();
 		setRelativeLocation(result, start, start+length);
 		return result;
@@ -2600,7 +2600,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return The {@link Statement}, or a {@link BunchOfStatements} if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
 	 * @throws ProblemException
 	 */
-	public <T> ASTNode parseStandaloneStatement(final String statementText, Function function) throws ProblemException {
+	public <T> ASTNode parseStandaloneStatement(final String statementText, final Function function) throws ProblemException {
 		init(statementText);
 		setCurrentFunction(function);
 		markers().enableError(Problem.NotFinished, false);

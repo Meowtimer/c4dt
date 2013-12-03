@@ -18,12 +18,12 @@ public class FunctionDescription extends Statement implements Serializable {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private String contents;
-	public FunctionDescription(String contents) {
+	public FunctionDescription(final String contents) {
 		super();
 		this.contents = contents;
 	}
 	@Override
-	public void doPrint(ASTNodePrinter builder, int depth) {
+	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append('[');
 		builder.append(contents);
 		builder.append(']');
@@ -31,11 +31,11 @@ public class FunctionDescription extends Statement implements Serializable {
 	public String contents() {
 		return contents;
 	}
-	public void setContents(String contents) {
+	public void setContents(final String contents) {
 		this.contents = contents;
 	}
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		if (contents == null)
 			return null;
 		final String[] parts = contents.split("\\|"); //$NON-NLS-1$
@@ -70,7 +70,7 @@ public class FunctionDescription extends Statement implements Serializable {
 		return null;
 	}
 	@Override
-	public boolean equalAttributes(ASTNode other) {
+	public boolean equalAttributes(final ASTNode other) {
 		if (!super.equalAttributes(other))
 			return false;
 		if (!((FunctionDescription)other).contents.equals(this.contents))

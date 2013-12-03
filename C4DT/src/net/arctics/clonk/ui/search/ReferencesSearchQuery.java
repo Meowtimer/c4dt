@@ -49,7 +49,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 	protected Declaration declaration;
 	private final Object[] scope;
 
-	public ReferencesSearchQuery(ClonkProjectNature start, Declaration declaration) {
+	public ReferencesSearchQuery(final ClonkProjectNature start, final Declaration declaration) {
 		super();
 		this.declaration = declaration.latestVersion();
 		this.scope = declaration.occurenceScope(map(start.projectSet(), ClonkProjectNature.SELECT_INDEX));
@@ -61,14 +61,14 @@ public class ReferencesSearchQuery extends SearchQuery {
 	}
 
 	private class Visitor extends ExpressionLocator<Structure> implements IResourceVisitor {
-		private boolean potentiallyReferencedByObjectCall(ASTNode expression) {
+		private boolean potentiallyReferencedByObjectCall(final ASTNode expression) {
 			if (expression instanceof CallDeclaration && expression.predecessor() instanceof MemberOperator) {
 				final CallDeclaration callFunc = (CallDeclaration) expression;
 				return callFunc.declaration() == null && callFunc.name().equals(declaration.name());
 			}
 			return false;
 		}
-		private boolean related(Function fn) {
+		private boolean related(final Function fn) {
 			final Set<Function> catcher = new HashSet<>();
 			for (Function inh = fn; inh != null && catcher.add(inh); inh = inh.inheritedFunction())
 				if (inh == declaration)
@@ -76,7 +76,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 			return false;
 		}
 		@Override
-		public TraversalContinuation visitNode(ASTNode node, Structure context) {
+		public TraversalContinuation visitNode(final ASTNode node, final Structure context) {
 			if (node instanceof Function) {
 				final Function fn = (Function) node;
 				if (related(fn))
@@ -112,7 +112,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 			return TraversalContinuation.Continue;
 		}
 		@Override
-		public boolean visit(IResource resource) throws CoreException {
+		public boolean visit(final IResource resource) throws CoreException {
 			if (resource instanceof IFile) {
 				final Script script = Script.get(resource, true);
 				if (script != null)
@@ -120,7 +120,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 			}
 			return true;
 		}
-		public void searchScript(IResource resource, Script script) {
+		public void searchScript(final IResource resource, final Script script) {
 			script.requireLoaded();
 			if (script.file() != null) {
 				if (declaration instanceof Definition) {
@@ -139,7 +139,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 				e.printStackTrace();
 			}
 		}
-		private void searchScriptRelatedFiles(Script script) throws CoreException {
+		private void searchScriptRelatedFiles(final Script script) throws CoreException {
 			if (script instanceof Definition) {
 				final IContainer objectFolder = ((Definition)script).definitionFolder();
 				for (final IResource res : objectFolder.members())
@@ -154,12 +154,12 @@ public class ReferencesSearchQuery extends SearchQuery {
 	}
 
 	@Override
-	protected IStatus doRun(IProgressMonitor monitor) throws OperationCanceledException {
+	protected IStatus doRun(final IProgressMonitor monitor) throws OperationCanceledException {
 		getSearchResult(); // make sure we have one
 		final Visitor visitor = new Visitor();
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
-			public void receivedObject(ExecutorService pool) {
+			public void receivedObject(final ExecutorService pool) {
 				for (final Object scope : ReferencesSearchQuery.this.scope)
 					if (scope instanceof IContainer) try {
 						((IContainer)scope).accept(visitor);
@@ -187,7 +187,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 	}
 
 	@Override
-	public Match[] computeContainedMatches(AbstractTextSearchResult result, IEditorPart editor) {
+	public Match[] computeContainedMatches(final AbstractTextSearchResult result, final IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
 			final Script script = Utilities.scriptForEditor(editor);
 			if (script != null)
@@ -197,7 +197,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 	}
 
 	@Override
-	public boolean isShownInEditor(Match match, IEditorPart editor) {
+	public boolean isShownInEditor(final Match match, final IEditorPart editor) {
 		if (editor instanceof ITextEditor) {
 			final Script script = Utilities.scriptForEditor(editor);
 			if (script != null && match.getElement().equals(script.source()))
@@ -207,7 +207,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 	}
 
 	@Override
-	public Match[] computeContainedMatches(AbstractTextSearchResult result, IFile file) {
+	public Match[] computeContainedMatches(final AbstractTextSearchResult result, final IFile file) {
 		final Script script = Script.get(file, true);
 		if (script != null)
 			return result.getMatches(script);

@@ -48,7 +48,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 				LinkC4GroupFileHandler.linkC4GroupFile(proj, new File(group));
 			QuickImportHandler.importFiles(getShell(), proj, ArrayUtil.map(page.getGroupsToBeImported(), File.class, new IConverter<String, File>() {
 				@Override
-				public File convert(String from) {
+				public File convert(final String from) {
 					return new File(from);
 				}
 			}));
@@ -61,7 +61,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 	}
 
 	@Override
-	public void init(IWorkbench workbench, IStructuredSelection selection) {
+	public void init(final IWorkbench workbench, final IStructuredSelection selection) {
 		page = new NewClonkProjectWizardCreationPage("newProject"); //$NON-NLS-1$
 		page.setTitle(Messages.NewClonkProject_PageTitle);
 		addPage(page);

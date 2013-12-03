@@ -6,7 +6,7 @@ public class ParticleUnit extends IniUnit {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public ParticleUnit(Object input) {
+	public ParticleUnit(final Object input) {
 		super(input);
 	}
 	
@@ -16,10 +16,9 @@ public class ParticleUnit extends IniUnit {
 	}
 	
 	@Override
-	protected IniEntry validateEntry(IniEntry entry, IniSection section, boolean modifyMarkers) throws IniParserException {
-		if (section.name().equals("Particle") && entry.name().equals("Name")) {
+	protected IniEntry validateEntry(final IniEntry entry, final IniSection section, final boolean modifyMarkers) throws IniParserException {
+		if (section.name().equals("Particle") && entry.name().equals("Name"))
 			setName(entry.stringValue());
-		}
 		return super.validateEntry(entry, section, modifyMarkers);
 	}
 

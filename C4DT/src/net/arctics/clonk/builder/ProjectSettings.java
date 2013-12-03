@@ -73,7 +73,7 @@ public class ProjectSettings extends SettingsBase {
 	}
 
 	public static final class ProblemReportingStrategyInfo {
-		public ProblemReportingStrategyInfo(Class<? extends ProblemReportingStrategy> cls, String args) {
+		public ProblemReportingStrategyInfo(final Class<? extends ProblemReportingStrategy> cls, final String args) {
 			super();
 			this.cls = cls;
 			this.args = args;
@@ -114,12 +114,12 @@ public class ProjectSettings extends SettingsBase {
 		return _problemReportingStrategies;
 	}
 
-	public void setDisabledErrors(String disabledErrors) {
+	public void setDisabledErrors(final String disabledErrors) {
 		this.disabledErrors = disabledErrors;
 		disabledErrorsSet = null;
 	}
 
-	public void setDisabledErrorsSet(Set<Problem> errorCodes) {
+	public void setDisabledErrorsSet(final Set<Problem> errorCodes) {
 		this.disabledErrorsSet = errorCodes;
 		if (errorCodes != null)
 			this.disabledErrors = StringUtil.writeBlock(null, "", "", ",", errorCodes);
@@ -128,16 +128,16 @@ public class ProjectSettings extends SettingsBase {
 	public String disabledErrorsString() { return disabledErrors; }
 	public String engineName() { return engineName; }
 
-	public void setEngineName(String engineName) {
+	public void setEngineName(final String engineName) {
 		this.engineName = engineName;
 		cachedEngine = null;
 	}
 
-	public void guessValues(ClonkProjectNature nature) {
+	public void guessValues(final ClonkProjectNature nature) {
 		guessEngine(nature);
 	}
 
-	private void guessEngine(ClonkProjectNature nature) {
+	private void guessEngine(final ClonkProjectNature nature) {
 		final List<IProject> referencingProjects = nature.referencingClonkProjects();
 		final Map<String, Integer> score = new HashMap<String, Integer>();
 		for (final String engine : Core.instance().namesOfAvailableEngines())

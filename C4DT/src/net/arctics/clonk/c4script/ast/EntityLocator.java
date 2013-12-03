@@ -52,7 +52,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 
 	private static IPredicate<IIndexEntity> IS_GLOBAL = new IPredicate<IIndexEntity>() {
 		@Override
-		public boolean test(IIndexEntity item) {
+		public boolean test(final IIndexEntity item) {
 			return item instanceof Declaration && ((Declaration)item).isGlobal();
 		};
 	};
@@ -64,7 +64,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	 * @throws BadLocationException
 	 * @throws ProblemException
 	 */
-	public EntityLocator(Script script, IDocument doc, IRegion region) throws BadLocationException, ProblemException {
+	public EntityLocator(final Script script, final IDocument doc, final IRegion region) throws BadLocationException, ProblemException {
 		if (script == null)
 			return;
 		exprRegion = region;
@@ -75,7 +75,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		}
 	}
 
-	public void initializeProposedDeclarations(final Script script, EntityRegion declRegion, ASTNode exprAtRegion) {
+	public void initializeProposedDeclarations(final Script script, final EntityRegion declRegion, final ASTNode exprAtRegion) {
 		boolean setRegion;
 		if (declRegion != null && declRegion.potentialEntities() != null && declRegion.potentialEntities().size() > 0) {
 			// region denotes multiple declarations - set proposed declarations to those
@@ -124,7 +124,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 			if (projectDeclarations != null)
 				projectDeclarations = filter(projectDeclarations, new IPredicate<IIndexEntity>() {
 					@Override
-					public boolean test(IIndexEntity item) {
+					public boolean test(final IIndexEntity item) {
 						return access.declarationClass().isInstance(item);
 					}
 				});
@@ -166,12 +166,12 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	public IIndexEntity entity() { return entity; }
 
 	@Override
-	public TraversalContinuation visitNode(ASTNode expression, Void _) {
+	public TraversalContinuation visitNode(final ASTNode expression, final Void _) {
 		if (expression instanceof ProplistDeclaration)
 			return TraversalContinuation.SkipSubElements;
 		expression.traverse(new IASTVisitor<Void>() {
 			@Override
-			public TraversalContinuation visitNode(ASTNode expression, Void _) {
+			public TraversalContinuation visitNode(final ASTNode expression, final Void _) {
 				if (expression instanceof ProplistDeclaration)
 					return TraversalContinuation.SkipSubElements;
 				final IRegion a = expression.absolute();

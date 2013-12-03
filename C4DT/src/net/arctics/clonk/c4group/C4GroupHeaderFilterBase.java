@@ -11,15 +11,15 @@ public abstract class C4GroupHeaderFilterBase {
 	
 	public abstract boolean accepts(C4GroupEntryHeader header, C4Group context);
 	
-	public void processGroupItem(C4GroupItem item) throws CoreException {
+	public void processGroupItem(final C4GroupItem item) throws CoreException {
 		
 	}
 	
-	public void notifyAboutCreatedItem(C4GroupEntryHeader header, C4GroupItem item) {
+	public void notifyAboutCreatedItem(final C4GroupEntryHeader header, final C4GroupItem item) {
 		
 	}
 	
-	public int flagsForEntry(C4GroupFile entry) {
+	public int flagsForEntry(final C4GroupFile entry) {
 		return 0;
 	}
 }

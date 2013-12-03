@@ -21,28 +21,28 @@ import org.eclipse.ui.handlers.HandlerUtil;
 public class FindDuplicatesHandler extends AbstractHandler {
 
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final ISelection selection = HandlerUtil.getCurrentSelection(event);
 		if (selection instanceof IStructuredSelection) {
-			IStructuredSelection ssel = (IStructuredSelection) selection;
-			Iterator<?> it = ssel.iterator();
+			final IStructuredSelection ssel = (IStructuredSelection) selection;
+			final Iterator<?> it = ssel.iterator();
 			final Set<Script> scripts = new HashSet<Script>();
-			IResourceVisitor visitor = new IResourceVisitor() {
+			final IResourceVisitor visitor = new IResourceVisitor() {
 				@Override
-				public boolean visit(IResource resource) throws CoreException {
-					Script script = Script.get(resource, false);
+				public boolean visit(final IResource resource) throws CoreException {
+					final Script script = Script.get(resource, false);
 					if (script != null)
 						scripts.add(script);
 					return true;
 				}
 			}; 
 			while (it.hasNext()) {
-				Object obj = it.next();
+				final Object obj = it.next();
 				if (obj instanceof IResource) {
-					IResource res = (IResource) obj;
+					final IResource res = (IResource) obj;
 					try {
 						res.accept(visitor);
-					} catch (CoreException e) {
+					} catch (final CoreException e) {
 						e.printStackTrace();
 					}
 				}

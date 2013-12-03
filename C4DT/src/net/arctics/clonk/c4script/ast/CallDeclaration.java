@@ -45,7 +45,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	private int parmsStart, parmsEnd;
 
 	@Override
-	protected void offsetExprRegion(int amount, boolean start, boolean end) {
+	protected void offsetExprRegion(final int amount, final boolean start, final boolean end) {
 		super.offsetExprRegion(amount, start, end);
 		if (start) {
 			parmsStart += amount;
@@ -58,7 +58,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	 * @param start Start of the region
 	 * @param end End of the region
 	 */
-	public void setParmsRegion(int start, int end) {
+	public void setParmsRegion(final int start, final int end) {
 		parmsStart = start;
 		parmsEnd   = end;
 	}
@@ -86,7 +86,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	 * @param funcName The function name
 	 * @param parms Parameter expressions
 	 */
-	public CallDeclaration(String funcName, ASTNode... parms) {
+	public CallDeclaration(final String funcName, final ASTNode... parms) {
 		super(funcName);
 		params = parms;
 		assignParentToSubElements();
@@ -97,14 +97,14 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	 * @param function The {@link Function} the new CallFunc will refer to.
 	 * @param parms Parameter expressions
 	 */
-	public CallDeclaration(Function function, ASTNode... parms) {
+	public CallDeclaration(final Function function, final ASTNode... parms) {
 		this(function.name(), parms);
 		this.declaration = function;
 		assignParentToSubElements();
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		super.doPrint(output, depth);
 		printNodeList(output, params, depth, "(", ")");
 	}
@@ -113,7 +113,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	public boolean hasSideEffects() { return true; }
 
 	@Override
-	public boolean isValidInSequence(ASTNode elm) {
+	public boolean isValidInSequence(final ASTNode elm) {
 		return super.isValidInSequence(elm) || elm instanceof MemberOperator;
 	}
 
@@ -122,10 +122,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		return params;
 	}
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		params = elms;
 	}
-	protected BinaryOp applyOperatorTo(Tidy tidy, ASTNode[] parms, Operator operator) throws CloneNotSupportedException {
+	protected BinaryOp applyOperatorTo(final Tidy tidy, final ASTNode[] parms, final Operator operator) throws CloneNotSupportedException {
 		BinaryOp op = new BinaryOp(operator);
 		final BinaryOp result = op;
 		for (int i = 0; i < parms.length; i++) {
@@ -144,11 +144,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		}
 		return result;
 	}
-	boolean isEngineFunction(String name) {
+	boolean isEngineFunction(final String name) {
 		return declaration instanceof EngineFunction && declaration.name().equals(name);
 	}
 	@Override
-	public ASTNode tidy(Tidy tidy) throws CloneNotSupportedException {
+	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 
 		// And(ugh, blugh) -> ugh && blugh
 		final Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
@@ -250,7 +250,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		return new EntityRegion(set(declaration()), new Region(start(), name().length()));
 	}
 	public ASTNode soleParm() {
@@ -267,13 +267,13 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		return params;
 	}
 	@Override
-	public int indexOfParm(ASTNode parm) {
+	public int indexOfParm(final ASTNode parm) {
 		for (int i = 0; i < params.length; i++)
 			if (params[i] == parm)
 				return i;
 		return -1;
 	}
-	public Variable parmDefinitionForParmExpression(ASTNode parm) {
+	public Variable parmDefinitionForParmExpression(final ASTNode parm) {
 		if (declaration instanceof Function) {
 			final Function f = (Function) declaration;
 			final int i = indexOfParm(parm);
@@ -283,7 +283,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	}
 
 	@Override
-	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		final Object self = value(predecessor() != null ? predecessor().evaluate(context) : context.self());
 		final Object[] args = new Object[params().length];
     	for (int i = 0; i < args.length; i++)
@@ -316,7 +316,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		return Function.class;
 	}
 
-	public final Function function(ProblemReporter context) {
+	public final Function function(final ProblemReporter context) {
 		return as(context.obtainDeclaration(this), Function.class);
 	}
 

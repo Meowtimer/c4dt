@@ -19,11 +19,11 @@ public class ClonkActionProvider extends CommonActionProvider {
 	}
 	
 	@Override
-	public void init(ICommonActionExtensionSite site) {
+	public void init(final ICommonActionExtensionSite site) {
 		super.init(site);
-		ICommonViewerSite viewSite = site.getViewSite();
+		final ICommonViewerSite viewSite = site.getViewSite();
 		if(viewSite instanceof ICommonViewerWorkbenchSite) {
-			ICommonViewerWorkbenchSite workbenchSite = 
+			final ICommonViewerWorkbenchSite workbenchSite = 
 				(ICommonViewerWorkbenchSite) viewSite;
 			openAction = 
 				new OpenSpecialItemAction(workbenchSite.getPage(), 
@@ -35,14 +35,14 @@ public class ClonkActionProvider extends CommonActionProvider {
 	 * @see org.eclipse.ui.actions.ActionGroup#fillContextMenu(org.eclipse.jface.action.IMenuManager)
 	 */
 	@Override
-	public void fillContextMenu(IMenuManager menu) {
+	public void fillContextMenu(final IMenuManager menu) {
 		super.fillContextMenu(menu);
 		if (openAction.isEnabled())
 			menu.appendToGroup(ICommonMenuConstants.GROUP_OPEN, openAction);
 	}
 	
 	@Override
-	public void fillActionBars(IActionBars actionBars) {
+	public void fillActionBars(final IActionBars actionBars) {
 		super.fillActionBars(actionBars);
 		if (openAction.isEnabled())
 			actionBars.setGlobalActionHandler(ICommonActionConstants.OPEN, openAction);

@@ -6,7 +6,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 
 public class Unfinished extends SimpleStatement {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	public Unfinished(ASTNode expression) { super(expression); }
+	public Unfinished(final ASTNode expression) { super(expression); }
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) { expression().print(output, depth); }
+	public void doPrint(final ASTNodePrinter output, final int depth) { expression().print(output, depth); }
 }

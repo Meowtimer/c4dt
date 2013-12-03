@@ -17,47 +17,46 @@ import org.eclipse.ui.texteditor.ITextEditor;
 public class BreakpointAdapter implements IToggleBreakpointsTarget {
 
 	@Override
-	public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection)  throws CoreException {
-		ITextEditor textEditor = (ITextEditor)part;
+	public void toggleLineBreakpoints(final IWorkbenchPart part, final ISelection selection)  throws CoreException {
+		final ITextEditor textEditor = (ITextEditor)part;
 		if (textEditor != null) {
-			IResource resource = (IResource) textEditor.getEditorInput().getAdapter(IResource.class);
-			ITextSelection textSelection = (ITextSelection) selection;
-			int lineNumber = textSelection.getStartLine();
-			IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
+			final IResource resource = (IResource) textEditor.getEditorInput().getAdapter(IResource.class);
+			final ITextSelection textSelection = (ITextSelection) selection;
+			final int lineNumber = textSelection.getStartLine();
+			final IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
 			for (int i = 0; i < breakpoints.length; i++) {
-				IBreakpoint breakpoint = breakpoints[i];
-				if (resource.equals(breakpoint.getMarker().getResource())) {
+				final IBreakpoint breakpoint = breakpoints[i];
+				if (resource.equals(breakpoint.getMarker().getResource()))
 					if (((ILineBreakpoint)breakpoint).getLineNumber() == (lineNumber + 1)) {
 						breakpoint.delete();
 						return;
 					}
-				}
 			}
-			Breakpoint lineBreakpoint = new Breakpoint(resource, lineNumber + 1);
+			final Breakpoint lineBreakpoint = new Breakpoint(resource, lineNumber + 1);
 			DebugPlugin.getDefault().getBreakpointManager().addBreakpoint(lineBreakpoint);
 		}
 	}
 	
 	@Override
-	public boolean canToggleLineBreakpoints(IWorkbenchPart part, ISelection selection) {
+	public boolean canToggleLineBreakpoints(final IWorkbenchPart part, final ISelection selection) {
 		return part instanceof C4ScriptEditor;
 	}
 
 	@Override
-	public void toggleMethodBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
+	public void toggleMethodBreakpoints(final IWorkbenchPart part, final ISelection selection) throws CoreException {
 	}
 
 	@Override
-	public boolean canToggleMethodBreakpoints(IWorkbenchPart part, ISelection selection) {
+	public boolean canToggleMethodBreakpoints(final IWorkbenchPart part, final ISelection selection) {
 		return false;
 	}
 
 	@Override
-	public void toggleWatchpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
+	public void toggleWatchpoints(final IWorkbenchPart part, final ISelection selection) throws CoreException {
 	}
 
 	@Override
-	public boolean canToggleWatchpoints(IWorkbenchPart part, ISelection selection) {
+	public boolean canToggleWatchpoints(final IWorkbenchPart part, final ISelection selection) {
 		return false;
 	}
 

@@ -11,7 +11,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.C4ScriptSearch")
 public class ScriptSearchAction extends ClonkTextEditorAction {
-	public ScriptSearchAction(ResourceBundle bundle, String prefix, ITextEditor editor) {
+	public ScriptSearchAction(final ResourceBundle bundle, final String prefix, final ITextEditor editor) {
 		super(bundle, prefix, editor);
 	}
 	@Override

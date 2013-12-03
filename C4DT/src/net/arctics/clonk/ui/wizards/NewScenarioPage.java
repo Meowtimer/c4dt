@@ -14,9 +14,9 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 	
 	private Text titleText;
 
-	public NewScenarioPage(ISelection selection) {
+	public NewScenarioPage(final ISelection selection) {
 		super(selection);
-		Engine engine = ClonkProjectNature.engineFromResource((IResource)((IStructuredSelection)selection).getFirstElement());
+		final Engine engine = ClonkProjectNature.engineFromResource((IResource)((IStructuredSelection)selection).getFirstElement());
 		setTitle(Messages.NewScenarioPage_Title);
 		setDescription(Messages.NewScenarioPage_Description);
 		setFolderExtension(engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ScenarioGroup));
@@ -39,7 +39,7 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 	}
 	
 	@Override
-	protected void layout(Composite parent) {
+	protected void layout(final Composite parent) {
 		super.layout(parent);
 		titleText = addTextField(Messages.NewScenarioPage_TitleText, null);
 	}

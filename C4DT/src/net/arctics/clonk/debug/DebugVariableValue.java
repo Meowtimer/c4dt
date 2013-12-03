@@ -4,9 +4,9 @@ import org.eclipse.debug.core.model.IValue;
 
 public class DebugVariableValue extends Value implements IValue {
 	
-	private DebugVariable variable;
+	private final DebugVariable variable;
 	
-	public DebugVariableValue(DebugVariable variable) {
+	public DebugVariableValue(final DebugVariable variable) {
 		super(variable.getTarget(), null);
 		this.variable = variable;
 	}
@@ -16,7 +16,7 @@ public class DebugVariableValue extends Value implements IValue {
     }
 	
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		return super.equals(obj) && obj instanceof DebugVariableValue && ((DebugVariableValue)obj).variable == this.variable;
 	}
 

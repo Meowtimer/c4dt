@@ -9,7 +9,7 @@ public class FolderMapUnit extends IniUnit {
 		return "FolderMap.txt";
 	}
 	
-	public FolderMapUnit(Object input) {
+	public FolderMapUnit(final Object input) {
 		super(input);
 	}
 

@@ -53,17 +53,17 @@ public class Scenario extends Definition {
 	public Declaration propList() { return scenarioPropList; }
 
 	@Override
-	public void postLoad(Declaration parent, Index root) {
+	public void postLoad(final Declaration parent, final Index root) {
 		createScenarioProplist();
 		super.postLoad(parent, root);
 	}
 
-	public Scenario(Index index, String name, IContainer container) {
+	public Scenario(final Index index, final String name, final IContainer container) {
 		super(index, ID.get(container != null ? container.getName() : name), name, container);
 	}
 
 	@Override
-	public void load(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+	public void load(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		super.load(stream);
 	}
 
@@ -81,17 +81,17 @@ public class Scenario extends Definition {
 	}
 
 	@Override
-	public void extractSaveState(SaveState state) {
+	public void extractSaveState(final SaveState state) {
 		super.extractSaveState(state);
 		scenarioPropList = ((ScenarioSaveState)state).scenarioProplist;
 	}
 
-	public static Scenario get(IContainer folder) {
+	public static Scenario get(final IContainer folder) {
 		final Definition obj = at(folder);
 		return obj instanceof Scenario ? (Scenario)obj : null;
 	}
 
-	public static Scenario containingScenario(IResource res) {
+	public static Scenario containingScenario(final IResource res) {
 		if (res == null)
 			return null;
 		for (IContainer c = res instanceof IContainer ? (IContainer)res : res.getParent(); c != null; c = c.getParent()) {
@@ -119,7 +119,7 @@ public class Scenario extends Definition {
 	}
 
 	@Override
-	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
 		if (declarationName.equals(PROPLIST_NAME))
 			return scenarioPropList;
 		else

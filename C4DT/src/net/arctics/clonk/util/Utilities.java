@@ -36,19 +36,19 @@ import org.eclipse.ui.part.FileEditorInput;
  */
 public abstract class Utilities {
 
-	public static IFile fileEditedBy(IEditorPart editor) {
+	public static IFile fileEditedBy(final IEditorPart editor) {
 		final IEditorInput editorInput = editor.getEditorInput();
 		return fileFromEditorInput(editorInput);
 	}
 
-	public static IFile fileFromEditorInput(IEditorInput editorInput) {
+	public static IFile fileFromEditorInput(final IEditorInput editorInput) {
 		if (editorInput instanceof FileEditorInput)
 			return ((FileEditorInput)editorInput).getFile();
 		else
 			return null;
 	}
 
-	public static Script scriptForResource(IResource resource) {
+	public static Script scriptForResource(final IResource resource) {
 		if (resource instanceof IContainer)
 			return Definition.at((IContainer) resource);
 		else if (resource instanceof IFile)
@@ -57,7 +57,7 @@ public abstract class Utilities {
 			return null;
 	}
 
-	public static Script scriptForEditor(IEditorPart editor) {
+	public static Script scriptForEditor(final IEditorPart editor) {
 		if (editor instanceof C4ScriptEditor)
 			return ((C4ScriptEditor) editor).script();
 		else
@@ -70,11 +70,11 @@ public abstract class Utilities {
 	 * @param b the second resource
 	 * @return true if resources are both null or denote the same resource, false if not
 	 */
-	public static boolean eq(Object a, Object b) {
+	public static boolean eq(final Object a, final Object b) {
 		return (a == null && b == null) || (a != null && b != null && (a.equals(b)||b.equals(a)));
 	}
 
-	public static boolean objectsNonNullEqual(Object a, Object b) {
+	public static boolean objectsNonNullEqual(final Object a, final Object b) {
 		return a != null && b != null && a.equals(b);
 	}
 
@@ -84,14 +84,14 @@ public abstract class Utilities {
 	 * @param container the container
 	 * @return true if resource is below container, false if not
 	 */
-	public static boolean resourceInside(IResource resource, IContainer container) {
+	public static boolean resourceInside(final IResource resource, final IContainer container) {
 		for (IContainer c = resource instanceof IContainer ? (IContainer)resource : resource.getParent(); c != null; c = c.getParent())
 			if (c.equals(container))
 				return true;
 		return false;
 	}
 
-	private static int distanceToCommonContainer(IResource a, IResource b, Scenario aScenario, Scenario bScenario) {
+	private static int distanceToCommonContainer(final IResource a, final IResource b, Scenario aScenario, Scenario bScenario) {
 		IContainer c;
 		int dist = 0;
 		for (c = a instanceof IContainer ? (IContainer)a : a.getParent(); c != null; c = c.getParent()) {
@@ -119,7 +119,7 @@ public abstract class Utilities {
 	 * @param filter A filter to exclude some of the items contained in the list
 	 * @return The item 'nearest' to resource
 	 */
-	public static <T extends IHasRelatedResource> T pickNearest(List<? extends T> fromList, IResource resource, IPredicate<T> filter) {
+	public static <T extends IHasRelatedResource> T pickNearest(final List<? extends T> fromList, final IResource resource, final IPredicate<T> filter) {
 		int bestDist = Integer.MAX_VALUE;
 		T best = null;
 		if (fromList != null) {
@@ -144,21 +144,21 @@ public abstract class Utilities {
 		return best;
 	}
 
-	public static boolean allInstanceOf(Object[] objects, Class<?> cls) {
+	public static boolean allInstanceOf(final Object[] objects, final Class<?> cls) {
 		for (final Object item : objects)
 			if (!(cls.isAssignableFrom(item.getClass())))
 				return false;
 		return true;
 	}
 
-	public static Class<?> baseClass(Class<?> a, Class<?> b) {
+	public static Class<?> baseClass(final Class<?> a, final Class<?> b) {
 		Class<?> result = a;
 		while (!result.isAssignableFrom(b))
 			result = result.getSuperclass();
 		return result;
 	}
 
-	public static IRegion wordRegionAt(CharSequence line, int relativeOffset) {
+	public static IRegion wordRegionAt(final CharSequence line, int relativeOffset) {
 		int start, end;
 		relativeOffset = clamp(relativeOffset, 0, line.length()-1);
 		start = end = relativeOffset;
@@ -169,15 +169,15 @@ public abstract class Utilities {
 		return new Region(start, end-start+1);
 	}
 
-	public static boolean regionContainsOffset(IRegion region, int offset) {
+	public static boolean regionContainsOffset(final IRegion region, final int offset) {
 		return offset >= region.getOffset() && offset < region.getOffset() + region.getLength();
 	}
 
-	public static boolean regionContainsOtherRegion(IRegion region, IRegion otherRegion) {
+	public static boolean regionContainsOtherRegion(final IRegion region, final IRegion otherRegion) {
 		return otherRegion.getOffset() >= region.getOffset() && otherRegion.getOffset()+otherRegion.getLength() < region.getOffset()+region.getLength();
 	}
 
-	public static int clamp(int value, int min, int max) {
+	public static int clamp(final int value, final int min, final int max) {
 		if (value < min)
 			return min;
 		else if (value > max)
@@ -186,14 +186,14 @@ public abstract class Utilities {
 			return value;
 	}
 
-	public static <T> T itemMatching(IPredicate<T> predicate, List<T> sectionsList) {
+	public static <T> T itemMatching(final IPredicate<T> predicate, final List<T> sectionsList) {
 		for (final T item : sectionsList)
 			if (predicate.test(item))
 				return item;
 		return null;
 	}
 
-	public static Enum<?>[] enumValues(Class<?> enumClass) {
+	public static Enum<?>[] enumValues(final Class<?> enumClass) {
 		try {
 			return (Enum<?>[]) enumClass.getMethod("values").invoke(null); //$NON-NLS-1$
 		} catch (IllegalAccessException | IllegalArgumentException
@@ -205,7 +205,7 @@ public abstract class Utilities {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T> T enumValueFromString(Class<T> enumClass, String value) {
+	public static <T> T enumValueFromString(final Class<T> enumClass, final String value) {
 		try {
 			return (T) Enum.valueOf((Class<Enum>)enumClass, value);
 		} catch (final IllegalArgumentException e) {
@@ -222,7 +222,7 @@ public abstract class Utilities {
 		}
 	}
 
-	private static String makeJavaConstantString(String value) {
+	private static String makeJavaConstantString(final String value) {
 		final StringBuilder builder = new StringBuilder(value.length()+5);
 		for (int i = 0; i < value.length(); i++) {
 			final char c = value.charAt(i);
@@ -236,7 +236,7 @@ public abstract class Utilities {
 		return builder.toString();
 	}
 
-	public static <E, T extends Collection<E>> T collectionFromArray(Class<T> cls, E[] array) {
+	public static <E, T extends Collection<E>> T collectionFromArray(final Class<T> cls, final E[] array) {
 		try {
 			final T result = cls.newInstance();
 			for (final E e : array)
@@ -248,7 +248,7 @@ public abstract class Utilities {
 		}
 	}
 
-	public static <S, T extends S> boolean isAnyOf(S something, @SuppressWarnings("unchecked") T... things) {
+	public static <S, T extends S> boolean isAnyOf(final S something, @SuppressWarnings("unchecked") final T... things) {
 		if (something != null)
 			for (final Object o : things)
 				if (something.equals(o))
@@ -256,14 +256,14 @@ public abstract class Utilities {
 		return false;
 	}
 
-	public static <T> boolean collectionContains(Collection<T> list, T elm) {
+	public static <T> boolean collectionContains(final Collection<T> list, final T elm) {
 		for (final T e : list)
 			if (e.equals(elm))
 				return true;
 		return false;
 	}
 
-	public static void errorMessage(Throwable error, final String title) {
+	public static void errorMessage(final Throwable error, final String title) {
 		String message = error.getClass().getSimpleName();
 		if (error.getLocalizedMessage() != null)
 			message += ": " + error.getLocalizedMessage(); //$NON-NLS-1$
@@ -284,7 +284,7 @@ public abstract class Utilities {
 		});
 	}
 
-	public static IResource findMemberCaseInsensitively(IContainer container, String name) {
+	public static IResource findMemberCaseInsensitively(final IContainer container, final String name) {
 		if (container == null)
 			return null;
 		try {
@@ -304,7 +304,7 @@ public abstract class Utilities {
 	 * @param predicate predicate
 	 * @return see above
 	 */
-	public static <T> boolean any(Iterable<? extends T> items, IPredicate<T> predicate) {
+	public static <T> boolean any(final Iterable<? extends T> items, final IPredicate<T> predicate) {
 		for (final T item : items)
 			if (predicate.test(item))
 				return true;
@@ -314,20 +314,20 @@ public abstract class Utilities {
 	@SuppressWarnings("rawtypes")
 	public static final IConverter<Object, Class> INSTANCE_TO_CLASS_CONVERTER = new IConverter<Object, Class>() {
 		@Override
-		public Class convert(Object from) {
+		public Class convert(final Object from) {
 			return from.getClass();
 		}
 	};
 
-	public static <A, B> B as(A obj, Class<B> type) {
+	public static <A, B> B as(final A obj, final Class<B> type) {
 		return type.isInstance(obj) ? type.cast(obj) : null;
 	}
 
-	public static <A> A defaulting(A firstChoice, A defaultChoice) {
+	public static <A> A defaulting(final A firstChoice, final A defaultChoice) {
 		return firstChoice != null ? firstChoice : defaultChoice;
 	}
 
-	public static <A> A or(A a, A b) {
+	public static <A> A or(final A a, final A b) {
 		if (a != null)
 			return a;
 		else
@@ -345,7 +345,7 @@ public abstract class Utilities {
 
 	private static Object autoBuildDisablingLock = new Object();
 
-	public static void runWithoutAutoBuild(Runnable runnable) {
+	public static void runWithoutAutoBuild(final Runnable runnable) {
 		synchronized (autoBuildDisablingLock) {
 			final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 			final IWorkspaceDescription workspaceDescription = workspace.getDescription();
@@ -369,19 +369,19 @@ public abstract class Utilities {
 		}
 	}
 
-	public static void removeRecursively(File f) {
+	public static void removeRecursively(final File f) {
 		if (f.isDirectory())
 			for (final File fi : f.listFiles())
 				removeRecursively(fi);
 		f.delete();
 	}
 
-	public static void abort(int severity, String message, Throwable nested) throws CoreException {
+	public static void abort(final int severity, final String message, final Throwable nested) throws CoreException {
 		throw new CoreException(new Status(severity, Core.PLUGIN_ID, message, nested));
 	}
 
 	/** Helper for throwing CoreException objects */
-	public static void abort(int severity, String message) throws CoreException {
+	public static void abort(final int severity, final String message) throws CoreException {
 		throw new CoreException(new Status(severity, Core.PLUGIN_ID, message));
 	}
 

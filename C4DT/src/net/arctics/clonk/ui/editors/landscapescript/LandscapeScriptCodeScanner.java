@@ -34,7 +34,7 @@ public class LandscapeScriptCodeScanner extends StructureTextScanner {
 		 *
 		 * @param token Token to use for this rule
 		 */
-		public OperatorRule(IToken token) {
+		public OperatorRule(final IToken token) {
 			fToken= token;
 		}
 
@@ -44,11 +44,10 @@ public class LandscapeScriptCodeScanner extends StructureTextScanner {
 		 * @param character Character to determine whether it is an operator character
 		 * @return <code>true</code> if the character is an operator, <code>false</code> otherwise.
 		 */
-		public boolean isOperator(char character) {
-			for (int index= 0; index < CLONK_OPERATORS.length; index++) {
+		public boolean isOperator(final char character) {
+			for (int index= 0; index < CLONK_OPERATORS.length; index++)
 				if (CLONK_OPERATORS[index] == character)
 					return true;
-			}
 			return false;
 		}
 
@@ -56,13 +55,13 @@ public class LandscapeScriptCodeScanner extends StructureTextScanner {
 		 * @see org.eclipse.jface.text.rules.IRule#evaluate(org.eclipse.jface.text.rules.ICharacterScanner)
 		 */
 		@Override
-		public IToken evaluate(ICharacterScanner scanner) {
+		public IToken evaluate(final ICharacterScanner scanner) {
 
 			int character= scanner.read();
 			if (isOperator((char) character)) {
-				do {
+				do
 					character= scanner.read();
-				} while (isOperator((char) character));
+				while (isOperator((char) character));
 				scanner.unread();
 				return fToken;
 			} else {
@@ -76,21 +75,21 @@ public class LandscapeScriptCodeScanner extends StructureTextScanner {
 
 	private IRule[] currentRules;
 
-	public LandscapeScriptCodeScanner(ColorManager manager) {
+	public LandscapeScriptCodeScanner(final ColorManager manager) {
 		super(manager, null);
 	}
 
 	@Override
-	protected void commitRules(ColorManager manager, Engine engine) {
-		IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
+	protected void commitRules(final ColorManager manager, final Engine engine) {
+		final IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
 
-		IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
-		IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
-		IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
-		IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
-		IToken comment = createToken(manager, "COMMENT"); //$NON-NLS-1$
+		final IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
+		final IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
+		final IToken number = createToken(manager, "NUMBER"); //$NON-NLS-1$
+		final IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
+		final IToken comment = createToken(manager, "COMMENT"); //$NON-NLS-1$
 
-		List<IRule> rules = new ArrayList<IRule>();
+		final List<IRule> rules = new ArrayList<IRule>();
 		
 		rules.add(new EndOfLineRule("//", comment)); //$NON-NLS-1$
 		rules.add(new MultiLineRule("/*", "*/", comment)); //$NON-NLS-1$ //$NON-NLS-2$
@@ -106,12 +105,12 @@ public class LandscapeScriptCodeScanner extends StructureTextScanner {
 		// Add rule for brackets
 		rules.add(new BracketRule(bracket));
 
-		WordScanner wordDetector= new WordScanner();
-		CombinedWordRule combinedWordRule= new CombinedWordRule(wordDetector, defaultToken);
+		final WordScanner wordDetector= new WordScanner();
+		final CombinedWordRule combinedWordRule= new CombinedWordRule(wordDetector, defaultToken);
 
 		// Add word rule for keywords, types, and constants.
-		CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-		for (String mapGenKeyword : OverlayBase.DEFAULT_CLASS.keySet())
+		final CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
+		for (final String mapGenKeyword : OverlayBase.DEFAULT_CLASS.keySet())
 			wordRule.addWord(mapGenKeyword, keyword);
 
 		combinedWordRule.addWordMatcher(wordRule);

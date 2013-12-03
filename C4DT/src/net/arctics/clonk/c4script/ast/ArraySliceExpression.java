@@ -9,7 +9,7 @@ public class ArraySliceExpression extends ASTNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode lo, hi;
 
-	public ArraySliceExpression(ASTNode lo, ASTNode hi) {
+	public ArraySliceExpression(final ASTNode lo, final ASTNode hi) {
 		this.lo = lo;
 		this.hi = hi;
 		assignParentToSubElements();
@@ -24,7 +24,7 @@ public class ArraySliceExpression extends ASTNode {
 	}
 
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append("["); //$NON-NLS-1$
 		if (lo != null)
 			lo.print(output, depth+1);
@@ -39,11 +39,11 @@ public class ArraySliceExpression extends ASTNode {
 		return new ASTNode[] {lo, hi};
 	}
 	@Override
-	public void setSubElements(ASTNode[] subElements) {
+	public void setSubElements(final ASTNode[] subElements) {
 		lo  = subElements[0];
 		hi = subElements[1];
 	}
 	@Override
-	public boolean isValidInSequence(ASTNode predecessor) { return predecessor != null; }
+	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor != null; }
 
 }

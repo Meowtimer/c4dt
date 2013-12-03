@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.CoreException;
 public class LocalizedScript extends SystemScript {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public static final Pattern FILENAME_PATTERN = Pattern.compile("Script(..)\\.c", Pattern.CASE_INSENSITIVE);
-	public LocalizedScript(Index index, IFile scriptFile) throws CoreException {
+	public LocalizedScript(final Index index, final IFile scriptFile) throws CoreException {
 		super(index, scriptFile);
 		final Matcher m = FILENAME_PATTERN.matcher(scriptFile.getName());
 		if (!m.matches())
@@ -26,7 +26,7 @@ public class LocalizedScript extends SystemScript {
 		language = m.group(1);
 	}
 	@Override
-	public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
+	public boolean gatherIncludes(final Index contextIndex, final Script origin, final Collection<Script> set, final int options) {
 		if (!super.gatherIncludes(contextIndex, origin, set, options))
 			return false;
 		set.add(definition());

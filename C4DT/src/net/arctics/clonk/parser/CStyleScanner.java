@@ -14,41 +14,41 @@ public class CStyleScanner extends BufferedScanner {
 
 	protected Comment lastComment;
 
-	public CStyleScanner(Object source) { super(source); }
+	public CStyleScanner(final Object source) { super(source); }
 
 	protected Comment parseComment() {
-		int start = this.offset;
-		int a = this.read();
-		int b = this.read();
+		final int start = this.offset;
+		final int a = this.read();
+		final int b = this.read();
 		if (a == -1 || b == -1) {
 			this.seek(start);
 			return null;
-		} else if (a == '/' && b == '/') { //$NON-NLS-1$
+		} else if (a == '/' && b == '/') { 
 			boolean javadoc;
 			if (read() != '/') {
 				javadoc = false;
 				unread();
 			} else
 				javadoc = true;
-			String commentText = this.readStringUntil(BufferedScanner.NEWLINE_CHARS);
+			final String commentText = this.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 			//fReader.eat(BufferedScanner.NEWLINE_DELIMITERS);
 			return new Comment(commentText, false, javadoc);
-		} else if (a == '/' && b == '*') { //$NON-NLS-1$
+		} else if (a == '/' && b == '*') { 
 			boolean javadoc;
 			if (read() != '*') {
 				javadoc = false;
 				unread();
 			} else
 				javadoc = true;
-			int startMultiline = this.offset;
+			final int startMultiline = this.offset;
 			while (!this.reachedEOF())
 				if (this.read() == '*')
 					if (this.read() == '/') {
-						String commentText = this.readStringAt(startMultiline, this.offset-2);
+						final String commentText = this.readStringAt(startMultiline, this.offset-2);
 						return new Comment(commentText, true, javadoc); // genug gefressen
 					} else
 						this.unread();
-			String commentText = this.readStringAt(startMultiline, this.offset);
+			final String commentText = this.readStringAt(startMultiline, this.offset);
 			return new Comment(commentText, true, javadoc);
 		} else {
 			this.seek(start);
@@ -58,7 +58,7 @@ public class CStyleScanner extends BufferedScanner {
 
 	@Override
 	public int eatWhitespace() {
-		int pos = offset;
+		final int pos = offset;
 		while (super.eatWhitespace() > 0 || parseComment() != null);
 		return offset-pos;
 	}
@@ -68,7 +68,7 @@ public class CStyleScanner extends BufferedScanner {
 		while (true) {
 			if (super.eatWhitespace() > 0)
 				continue;
-			Comment c = parseComment();
+			final Comment c = parseComment();
 			if (c != null) {
 				c.setPrependix(true);
 				if (result == null)

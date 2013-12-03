@@ -26,14 +26,14 @@ public final class TypeAnnotation extends ASTNode implements IType {
 	private ITypeable target;
 	private IType type;
 	private TypeAnnotation[] subAnnotations;
-	public TypeAnnotation(int start, int end, IType type) {
+	public TypeAnnotation(final int start, final int end, final IType type) {
 		super(start, end);
 		this.type = type;
 	}
 	/** The typeable element this annotation is targeted at */
 	public ITypeable target() {return target;}
 	/** Set the target of this annotation. */
-	public void setTarget(ITypeable typeable) {
+	public void setTarget(final ITypeable typeable) {
 		if (this.target != null && this.target != typeable)
 			throw new IllegalArgumentException();
 		else
@@ -42,24 +42,24 @@ public final class TypeAnnotation extends ASTNode implements IType {
 	/** The type this annotation refers to. */
 	public IType type() {return type;}
 	/** Set the type of this annotation. */
-	public void setType(IType type) {
+	public void setType(final IType type) {
 		this.type = type;
 		assignParentToSubElements();
 	}
 	@Override
 	public ASTNode[] subElements() { return concat(as(type, Placeholder.class), defaulting(subAnnotations, EMPTY_EXPR_ARRAY)); }
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		type = (IType)elms[0];
 		subAnnotations = elms.length > 1 ? Arrays.copyOfRange(elms, 1, elms.length, TypeAnnotation[].class) : null;
 		assignParentToSubElements();
 	}
-	public void setSubAnnotations(TypeAnnotation[] subAnnotations) {
+	public void setSubAnnotations(final TypeAnnotation[] subAnnotations) {
 		this.subAnnotations = subAnnotations;
 		assignParentToSubElements();
 	}
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) {
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		if (type == null)
 			return null;
 		final Set<IIndexEntity> entities = new HashSet<>();
@@ -73,11 +73,11 @@ public final class TypeAnnotation extends ASTNode implements IType {
 	@Override
 	public String toString() { return printed(); }
 	@Override
-	public boolean equalAttributes(ASTNode other) { return super.equalAttributes(other); }
+	public boolean equalAttributes(final ASTNode other) { return super.equalAttributes(other); }
 	@Override
 	public Iterator<IType> iterator() { return null; }
 	@Override
-	public String typeName(boolean special) { return type.typeName(special); }
+	public String typeName(final boolean special) { return type.typeName(special); }
 	@Override
 	public IType simpleType() { return type.simpleType(); }
 }

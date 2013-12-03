@@ -10,9 +10,9 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ShowInAdapter implements IShowInSource, IShowInTargetList {
 
-	private IEditorPart editor;
+	private final IEditorPart editor;
 	
-	public ShowInAdapter(IEditorPart editor) {
+	public ShowInAdapter(final IEditorPart editor) {
 		super();
 		this.editor = editor;
 	}

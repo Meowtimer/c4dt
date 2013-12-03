@@ -7,13 +7,13 @@ public class MutableRegion implements IRegion {
 	private int offset;
 	private int length;
 	
-	public MutableRegion(int offset, int length) {
+	public MutableRegion(final int offset, final int length) {
 		super();
 		this.offset = offset;
 		this.length = length;
 	}
 	
-	public MutableRegion(IRegion other) {
+	public MutableRegion(final IRegion other) {
 		this(other.getOffset(), other.getLength());
 	}
 
@@ -27,23 +27,23 @@ public class MutableRegion implements IRegion {
 		return offset;
 	}
 
-	public void setLength(int length) {
+	public void setLength(final int length) {
 		this.length = length;
 	}
 
-	public void setOffset(int offset) {
+	public void setOffset(final int offset) {
 		this.offset = offset;
 	}
 	
-	public void incOffset(int amount) {
+	public void incOffset(final int amount) {
 		offset += amount;
 	}
 	
-	public void incLength(int amount) {
+	public void incLength(final int amount) {
 		length += amount;
 	}
 	
-	public void setStartAndEnd(int start, int end) {
+	public void setStartAndEnd(final int start, final int end) {
 		offset = start;
 		length = end-start;
 	}
@@ -52,7 +52,7 @@ public class MutableRegion implements IRegion {
 		return offset+length;
 	}
 	
-	public boolean maybeIncOffset(int minOffsetAffected, int amount) {
+	public boolean maybeIncOffset(final int minOffsetAffected, final int amount) {
 		if (offset >= minOffsetAffected) {
 			offset += amount;
 			return true;

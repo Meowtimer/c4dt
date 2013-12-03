@@ -53,14 +53,14 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	/** Listener used to track changes in widgets */
 	private class WidgetListener implements ModifyListener, SelectionListener {
 		@Override
-		public void modifyText(ModifyEvent e) {
+		public void modifyText(final ModifyEvent e) {
 			updateLaunchConfigurationDialog();
 		}
 		@Override
-		public void widgetDefaultSelected(SelectionEvent e) {
+		public void widgetDefaultSelected(final SelectionEvent e) {
 		}
 		@Override
-		public void widgetSelected(SelectionEvent e) {
+		public void widgetSelected(final SelectionEvent e) {
 			if(e.getSource() == projectEditor.addButton)
 				chooseClonkProject();
 			else if(e.getSource() == fScenButton)
@@ -75,10 +75,10 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	
 	/** Places all needed widgets into the tab */
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 
 		// Create top-level composite
-		Composite comp = new Composite(parent, SWT.NONE);
+		final Composite comp = new Composite(parent, SWT.NONE);
 		comp.setLayout(new GridLayout());
 		setControl(comp);
 		
@@ -94,7 +94,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	 * Create widgets for project selection
 	 * @see org.eclipse.jdt.internal.debug.ui.launcher.AbstractJavaMainTab#createProjectEditor
 	 */
-	private void createProjectEditor(Composite parent)
+	private void createProjectEditor(final Composite parent)
 	{
 		projectEditor = new UI.ProjectSelectionBlock(parent, fListener, fListener, null, Messages.LaunchMainTab_ProjectTitle);
 	}
@@ -103,11 +103,11 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	/** 
 	 * Create widgets for scenario selection
 	 */
-	private void createScenarioEditor(Composite parent)
+	private void createScenarioEditor(final Composite parent)
 	{
 		
 		// Create widget group
-		Group grp = new Group(parent, SWT.NONE);
+		final Group grp = new Group(parent, SWT.NONE);
 		grp.setText(Messages.LaunchMainTab_ScenarioTitle);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -128,10 +128,10 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	/** 
 	 * Create widgets for launch options
 	 */
-	private void createLaunchOptionsEditor(Composite parent) {
+	private void createLaunchOptionsEditor(final Composite parent) {
 		
 		// Create widget group
-		Group grp = new Group(parent, SWT.NONE);
+		final Group grp = new Group(parent, SWT.NONE);
 		grp.setText(Messages.LaunchMainTab_LaunchMode);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -149,9 +149,9 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 	}
 	
-	private void createCustomOptionsEditor(Composite parent) {
+	private void createCustomOptionsEditor(final Composite parent) {
 		// Create widget group
-		Group grp = new Group(parent, SWT.NONE);
+		final Group grp = new Group(parent, SWT.NONE);
 		grp.setText(Messages.LaunchMainTab_CustomOptions);
 		grp.setLayout(new GridLayout(1, false));
 		grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -171,7 +171,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 	
 	@Override
-	public void initializeFrom(ILaunchConfiguration conf) {
+	public void initializeFrom(final ILaunchConfiguration conf) {
 		
 		try {
 
@@ -183,7 +183,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			fRecordButton.setSelection(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, false));
 			fCustomOptions.setText(conf.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, "")); //$NON-NLS-1$
 			
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			setErrorMessage(e.getStatus().getMessage());
 			
 			// Set defaults
@@ -198,7 +198,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 
 	@Override
-	public void performApply(ILaunchConfigurationWorkingCopy wc) {
+	public void performApply(final ILaunchConfigurationWorkingCopy wc) {
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, projectEditor.text.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, fScenText.getText());
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, fFullscreenButton.getSelection());
@@ -207,7 +207,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 
 	@Override
-	public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
+	public void setDefaults(final ILaunchConfigurationWorkingCopy wc) {
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
 		wc.setAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, Util.isMac()); // Clonk Rage for Mac will crash when passing /console
@@ -218,15 +218,15 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	public IProject validateProject() {
 		
 		// Must be a valid path segment
-		String projectName = projectEditor.text.getText();
+		final String projectName = projectEditor.text.getText();
 		if(!new Path("").isValidSegment(projectName)) { //$NON-NLS-1$
 			setErrorMessage(Messages.LaunchMainTab_InvalidProjectName);
 			return null;
 		}
 		
 		// Search project in workspace
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IProject project = root.getProject(projectName);
+		final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		final IProject project = root.getProject(projectName);
 		if(project == null) {
 			setErrorMessage(String.format(Messages.LaunchMainTab_ProjectDoesNotExist, projectName));
 			return null;
@@ -242,17 +242,17 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		return project;
 	}
 
-	public IResource validateScenario(IProject project) {
+	public IResource validateScenario(final IProject project) {
 		
 		// Must be a valid scenario file name
-		String scenName = fScenText.getText();
+		final String scenName = fScenText.getText();
 		if (getEngine().groupTypeForFileName(scenName) != C4Group.GroupType.ScenarioGroup) {
 			setErrorMessage(Messages.LaunchMainTab_ScenarioNameInvalid);
 			return null;
 		}
 		
 		// Must exist in project
-		IResource scenFile = project.getFolder(scenName);
+		final IResource scenFile = project.getFolder(scenName);
 		if(!scenFile.exists()) {
 			setErrorMessage(Messages.LaunchMainTab_ScenarioDoesNotExist);
 			return null;
@@ -263,13 +263,13 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 	
 	@Override
-	public boolean isValid(ILaunchConfiguration launchConfig) {
+	public boolean isValid(final ILaunchConfiguration launchConfig) {
 		
 		// Reset existing messages
 		setErrorMessage(null); setMessage(null);
 		
 		// Validate scenario
-		IProject project = validateProject();
+		final IProject project = validateProject();
 		if(project == null)
 			return false;
 		if(validateScenario(project) == null)
@@ -280,14 +280,13 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 	}
 
 	public void chooseClonkProject() {
-		IProject project = UI.selectClonkProject(validateProject());
-		if (project != null) {
+		final IProject project = UI.selectClonkProject(validateProject());
+		if (project != null)
 			projectEditor.text.setText(project.getName());
-		}
 	}
 	
 	public Engine getEngine() {
-		ClonkProjectNature nat = ClonkProjectNature.get(validateProject());
+		final ClonkProjectNature nat = ClonkProjectNature.get(validateProject());
 		return nat != null ? nat.index().engine() : null;
 	}
 	
@@ -298,27 +297,27 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		//       dialog when the scenario selection doesn't use the available information.
 		//       But it's the way Eclipse's built-in tabs work, so whatever...
 		final Collection<IResource> scenarios = new LinkedList<IResource>();
-		IResourceVisitor scenCollector = new IResourceVisitor() {
+		final IResourceVisitor scenCollector = new IResourceVisitor() {
 			@Override
-			public boolean visit(IResource res) throws CoreException {
+			public boolean visit(final IResource res) throws CoreException {
 				// Top-level
 				if(res instanceof IProject)
 					return true;
 				// Type lookup
-				C4Group.GroupType type = getEngine().groupTypeForExtension(res.getFileExtension());
+				final C4Group.GroupType type = getEngine().groupTypeForExtension(res.getFileExtension());
 				if(type == C4Group.GroupType.ScenarioGroup)
 					scenarios.add(res);
 				// Only recurse into scenario folders
 				return type == C4Group.GroupType.FolderGroup;
 			}
 		};
-		for(IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+		for(final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
 			try {
 				proj.accept(scenCollector);
-			} catch (CoreException e) {}
+			} catch (final CoreException e) {}
 		
 		// Create dialog with all available scenarios
-		ElementListSelectionDialog dialog
+		final ElementListSelectionDialog dialog
 			= new ElementListSelectionDialog(getShell(), new ClonkLabelProvider());
 		dialog.setTitle(Messages.LaunchMainTab_ChooseClonkScenario);
 		dialog.setMessage(Messages.LaunchMainTab_ChooseClonkScenarioPretty);
@@ -326,7 +325,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		
 		// Show
 		if(dialog.open() == Window.OK) {
-			IResource scen = (IResource) dialog.getFirstResult();
+			final IResource scen = (IResource) dialog.getFirstResult();
 			projectEditor.text.setText(scen.getProject().getName());
 			fScenText.setText(scen.getProjectRelativePath().toString());
 		}

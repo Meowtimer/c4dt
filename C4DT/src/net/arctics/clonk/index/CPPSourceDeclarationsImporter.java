@@ -34,43 +34,43 @@ public class CPPSourceDeclarationsImporter {
 	 * @param repository Repository path to prepend to cpp source paths
 	 * @param monitor Monitor used to monitor the progress of the operation.
 	 */
-	public void importFromRepository(Script importsContainer, String repository, IProgressMonitor monitor) {
-		File pony = new Path(repository).append("scriptdefinitionsources.txt").toFile();
+	public void importFromRepository(final Script importsContainer, final String repository, final IProgressMonitor monitor) {
+		final File pony = new Path(repository).append("scriptdefinitionsources.txt").toFile();
 		String[] sourceFiles;
 		if (pony.exists())
 			sourceFiles = StreamUtil.stringFromFile(pony).split("\n");
 		else
 			sourceFiles = importsContainer.engine().settings().cppSources.split(",");
-		for (String sourceFile : sourceFiles)
+		for (final String sourceFile : sourceFiles)
 			readDeclarationsFromSource(importsContainer, repository, sourceFile.trim());
 		if (monitor != null)
 			monitor.done();
 	}
 
-	private void readDeclarationsFromSource(Script importsContainer, String repository, String sourceFilePath) {
+	private void readDeclarationsFromSource(final Script importsContainer, final String repository, final String sourceFilePath) {
 
-		String origin = sourceFilePath;
+		final String origin = sourceFilePath;
 		
 		final int SECTION_None = 0;
 		final int SECTION_InitFunctionMap = 1;
 		final int SECTION_C4ScriptConstMap = 2;
 		final int SECTION_C4ScriptFnMap = 3;
 
-		File sourceFile = new Path(repository).append(sourceFilePath).toFile();
-		EngineSettings settings = importsContainer.engine().settings();
+		final File sourceFile = new Path(repository).append(sourceFilePath).toFile();
+		final EngineSettings settings = importsContainer.engine().settings();
 		if (sourceFile.exists()) {
-			Matcher[] sectionStartMatchers = new Matcher[] {
+			final Matcher[] sectionStartMatchers = new Matcher[] {
 				Pattern.compile(settings.initFunctionMapPattern).matcher(""),
 				Pattern.compile(settings.constMapPattern).matcher(""),
 				Pattern.compile(settings.fnMapPattern).matcher("")
 			};
-			Matcher fnMapEntryMatcher = Pattern.compile(settings.fnMapEntryPattern).matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
-			Matcher constMapEntryMatcher = Pattern.compile(settings.constMapEntryPattern).matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
-			Matcher addFuncMatcher = Pattern.compile(settings.addFuncPattern).matcher(""); //$NON-NLS-1$ //$NON-NLS-2$
-			Matcher fnDeclarationMatcher = Pattern.compile(settings.fnDeclarationPattern).matcher("");
+			final Matcher fnMapEntryMatcher = Pattern.compile(settings.fnMapEntryPattern).matcher(""); //$NON-NLS-1$ 
+			final Matcher constMapEntryMatcher = Pattern.compile(settings.constMapEntryPattern).matcher(""); //$NON-NLS-1$ 
+			final Matcher addFuncMatcher = Pattern.compile(settings.addFuncPattern).matcher(""); //$NON-NLS-1$ 
+			final Matcher fnDeclarationMatcher = Pattern.compile(settings.fnDeclarationPattern).matcher("");
 
 			try {
-				BufferedScanner scanner = new BufferedScanner(sourceFile);
+				final BufferedScanner scanner = new BufferedScanner(sourceFile);
 				int section = SECTION_None;
 				int lineOffset = 0;
 				Outer: for (String line = scanner.readLine(); !scanner.reachedEOF(); lineOffset = scanner.tell(), line = scanner.readLine()) {
@@ -86,12 +86,12 @@ public class CPPSourceDeclarationsImporter {
 					switch (section) {
 					case SECTION_InitFunctionMap:
 						if (addFuncMatcher.reset(line).matches()) {
-							String name = addFuncMatcher.group(1);
+							final String name = addFuncMatcher.group(1);
 							Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
 								fun = new DocumentedFunction(name, PrimitiveType.ANY, origin);
 								fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
-								List<Variable> parms = new ArrayList<Variable>(1);
+								final List<Variable> parms = new ArrayList<Variable>(1);
 								parms.add(new Variable("...", PrimitiveType.ANY)); //$NON-NLS-1$
 								fun.setParameters(parms);
 								importsContainer.addDeclaration(fun);
@@ -102,12 +102,12 @@ public class CPPSourceDeclarationsImporter {
 					case SECTION_C4ScriptConstMap:
 						if (constMapEntryMatcher.reset(line).matches()) {
 							int i = 1;
-							String name = constMapEntryMatcher.group(i++);
-							String typeString = constMapEntryMatcher.group(i++);
+							final String name = constMapEntryMatcher.group(i++);
+							final String typeString = constMapEntryMatcher.group(i++);
 							PrimitiveType type;
 							try {
 								type = PrimitiveType.fromString(typeString.substring(4).toLowerCase());
-							} catch (Exception e) {
+							} catch (final Exception e) {
 								type = PrimitiveType.INT;
 							}
 
@@ -123,19 +123,19 @@ public class CPPSourceDeclarationsImporter {
 					case SECTION_C4ScriptFnMap:
 						if (fnMapEntryMatcher.reset(line).matches()) {
 							int i = 1;
-							String name = fnMapEntryMatcher.group(i++);
+							final String name = fnMapEntryMatcher.group(i++);
 							i++;//String public_ = fnMapMatcher.group(i++);
-							String retType = fnMapEntryMatcher.group(i++);
-							String parms = fnMapEntryMatcher.group(i++);
+							final String retType = fnMapEntryMatcher.group(i++);
+							final String parms = fnMapEntryMatcher.group(i++);
 							//String pointer = fnMapMatcher.group(i++);
 							//String oldPointer = fnMapMatcher.group(i++);
 							Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
 								fun = new DocumentedFunction(name, PrimitiveType.fromString(retType.substring(4).toLowerCase(), true), origin);
 								fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
-								String[] p = parms.split(","); //$NON-NLS-1$
-								List<Variable> parList = new ArrayList<Variable>(p.length);
-								for (String pa : p)
+								final String[] p = parms.split(","); //$NON-NLS-1$
+								final List<Variable> parList = new ArrayList<Variable>(p.length);
+								for (final String pa : p)
 									parList.add(new Variable("par"+(parList.size()+1), PrimitiveType.fromString(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
 								fun.setParameters(parList);
 								importsContainer.addDeclaration(fun);
@@ -147,26 +147,26 @@ public class CPPSourceDeclarationsImporter {
 					
 					if (fnDeclarationMatcher.reset(line).matches()) {
 						int i = 1;
-						String returnType = fnDeclarationMatcher.group(i++);
-						String name = fnDeclarationMatcher.group(i++);
+						final String returnType = fnDeclarationMatcher.group(i++);
+						final String name = fnDeclarationMatcher.group(i++);
 						// some functions to be ignored
 						if (name.equals("_goto") || name.equals("_this"))
 							continue;
 						i++; // optional Object in C4AulContext
 						i++; // optional actual parameters with preceding comma
-						String parms = fnDeclarationMatcher.group(i++);
+						final String parms = fnDeclarationMatcher.group(i++);
 						Function fun = importsContainer.findLocalFunction(name, false);
 						if (fun == null) {
 							fun = new DocumentedFunction(name, PrimitiveType.fromCPPString(returnType), origin);
 							fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
-							String[] parmStrings = parms != null ? parms.split("\\,") : null;
-							List<Variable> parList = new ArrayList<Variable>(parmStrings != null ? parmStrings.length : 0);
+							final String[] parmStrings = parms != null ? parms.split("\\,") : null;
+							final List<Variable> parList = new ArrayList<Variable>(parmStrings != null ? parmStrings.length : 0);
 							if (parmStrings != null)
-								for (String parm : parmStrings) {
+								for (final String parm : parmStrings) {
 									int x;
 									for (x = parm.length()-1; x >= 0 && BufferedScanner.isWordPart(parm.charAt(x)); x--);
-									String pname = parm.substring(x+1);
-									String type = parm.substring(0, x+1).trim();
+									final String pname = parm.substring(x+1);
+									final String type = parm.substring(0, x+1).trim();
 									parList.add(new Variable(pname, PrimitiveType.fromCPPString(type)));
 								}
 							fun.setParameters(parList);
@@ -174,7 +174,7 @@ public class CPPSourceDeclarationsImporter {
 						}
 					}
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		} else

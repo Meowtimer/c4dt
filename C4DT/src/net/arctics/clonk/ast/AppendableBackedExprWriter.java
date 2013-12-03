@@ -6,41 +6,41 @@ import java.io.IOException;
 public class AppendableBackedExprWriter implements ASTNodePrinter {
 	private final Appendable appendable;
 
-	public AppendableBackedExprWriter(Appendable builder) {
+	public AppendableBackedExprWriter(final Appendable builder) {
 		this.appendable = builder;
 	}
 
 	@Override
-	public boolean doCustomPrinting(ASTNode elm, int depth) {
+	public boolean doCustomPrinting(final ASTNode elm, final int depth) {
 		return false;
 	}
 
 	@Override
-	public Appendable append(char c) {
+	public Appendable append(final char c) {
 		try {
 			return appendable.append(c);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 
 	@Override
-	public void append(String text) {
+	public void append(final String text) {
 		try {
 			appendable.append(text);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public Appendable append(CharSequence sequence) throws IOException {
+	public Appendable append(final CharSequence sequence) throws IOException {
 		return appendable.append(sequence);
 	}
 
 	@Override
-	public Appendable append(CharSequence sequence, int start, int end) throws IOException {
+	public Appendable append(final CharSequence sequence, final int start, final int end) throws IOException {
 		return appendable.append(sequence, start, end);
 	}
 	
@@ -52,17 +52,17 @@ public class AppendableBackedExprWriter implements ASTNodePrinter {
 	private int flags;
 	
 	@Override
-	public void enable(int flag) {
+	public void enable(final int flag) {
 		flags |= flag;
 	}
 
 	@Override
-	public void disable(int flag) {
+	public void disable(final int flag) {
 		flags &= ~flag;
 	}
 
 	@Override
-	public boolean flag(int flag) {
+	public boolean flag(final int flag) {
 		return (flags & flag) != 0;
 	}
 }

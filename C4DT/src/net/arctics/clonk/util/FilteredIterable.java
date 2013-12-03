@@ -9,16 +9,16 @@ import java.util.Iterator;
  * @param <T> Type the objects returned by this iterable are at least of.
  */
 public class FilteredIterable<T, B> implements Iterable<T> {
-	private Iterable<? extends B> base;
-	private Class<? extends T> cls;
-	private boolean callRemove;
+	private final Iterable<? extends B> base;
+	private final Class<? extends T> cls;
+	private final boolean callRemove;
 	/**
 	 * Create a new FilteredIterable.
 	 * @param cls Class that needs to be passed in order for runtime type information to be available...
 	 * @param base Base iterable that will be queried.
 	 * @param callRemove Whether to call remove on the base iterator if an item has been determined to be invalid.
 	 */
-	public FilteredIterable(Class<? extends T> cls, Iterable<? extends B> base, boolean callRemove) {
+	public FilteredIterable(final Class<? extends T> cls, final Iterable<? extends B> base, final boolean callRemove) {
 		this.base = base;
 		this.cls = cls;
 		this.callRemove = callRemove;
@@ -28,19 +28,19 @@ public class FilteredIterable<T, B> implements Iterable<T> {
 	 * @param item The item to test
 	 * @return Whether it's still valid or not.
 	 */
-	protected boolean stillValid(B item) {
+	protected boolean stillValid(final B item) {
 		return true;
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected T map(B original) {
+	protected T map(final B original) {
 		return cls.isAssignableFrom(original.getClass()) ? (T) original : null;
 	}
 	
 	@Override
 	public Iterator<T> iterator() {
 		return new Iterator<T>() {
-			private Iterator<? extends B> baseIterator = base.iterator();
+			private final Iterator<? extends B> baseIterator = base.iterator();
 			private boolean calledHasNext = false;
 			private T next;
 			@Override
@@ -50,16 +50,14 @@ public class FilteredIterable<T, B> implements Iterable<T> {
 				else {
 					calledHasNext = true;
 					while (baseIterator.hasNext()) {
-						B n = baseIterator.next();
+						final B n = baseIterator.next();
 						T mapped;
 						if (n != null && stillValid(n) && (mapped = map(n)) != null) {
 							next = mapped;
 							return true;
-						} else {
-							// not deemed valid? remove!
-							if (callRemove)
-								baseIterator.remove();
-						}
+						} else // not deemed valid? remove!
+						if (callRemove)
+							baseIterator.remove();
 					}
 					next = null;
 					return false;

@@ -20,10 +20,10 @@ public class Breakpoint extends LineBreakpoint {
 	}
 	
 	public Breakpoint(final IResource resource, final int lineNumber) throws CoreException {
-		IWorkspaceRunnable markerAttribs = new IWorkspaceRunnable() {
+		final IWorkspaceRunnable markerAttribs = new IWorkspaceRunnable() {
 			@Override
-			public void run(IProgressMonitor monitor) throws CoreException {
-				IMarker marker = resource.createMarker(Core.id("breakpointMarker")); //$NON-NLS-1$
+			public void run(final IProgressMonitor monitor) throws CoreException {
+				final IMarker marker = resource.createMarker(Core.id("breakpointMarker")); //$NON-NLS-1$
 				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
 				marker.setAttribute(IBreakpoint.ENABLED, true);
 				marker.setAttribute(IBreakpoint.ID, getModelIdentifier());

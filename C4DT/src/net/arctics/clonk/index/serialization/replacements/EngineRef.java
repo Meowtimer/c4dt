@@ -11,11 +11,11 @@ import net.arctics.clonk.index.IndexEntity;
 public class EngineRef implements Serializable, IDeserializationResolvable {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private final String engineName;
-	public EngineRef(Engine engine) {
+	public EngineRef(final Engine engine) {
 		this.engineName = engine.name();
 	}
 	@Override
-	public Object resolve(Index index, IndexEntity deserializee) {
+	public Object resolve(final Index index, final IndexEntity deserializee) {
 		return Core.instance().loadEngine(engineName);
 	}
 }

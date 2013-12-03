@@ -16,9 +16,6 @@ import java.io.InputStreamReader;
 
 
 import org.antlr.runtime.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked"})
 public class LandscapeScriptParser extends Parser {
@@ -56,15 +53,17 @@ public class LandscapeScriptParser extends Parser {
     // delegators
 
 
-    public LandscapeScriptParser(TokenStream input) {
+    public LandscapeScriptParser(final TokenStream input) {
         this(input, new RecognizerSharedState());
     }
-    public LandscapeScriptParser(TokenStream input, RecognizerSharedState state) {
+    public LandscapeScriptParser(final TokenStream input, final RecognizerSharedState state) {
         super(input, state);
     }
 
-    public String[] getTokenNames() { return LandscapeScriptParser.tokenNames; }
-    public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g"; }
+    @Override
+	public String[] getTokenNames() { return LandscapeScriptParser.tokenNames; }
+    @Override
+	public String getGrammarFileName() { return "/Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g"; }
 
 
     LandscapeScript script;
@@ -74,74 +73,74 @@ public class LandscapeScriptParser extends Parser {
     Token valueLo, valueHi;
     private boolean createMarkers;
 
-    public LandscapeScriptParser(LandscapeScript script, TokenStream input) {
+    public LandscapeScriptParser(final LandscapeScript script, final TokenStream input) {
     	this(input);
     	this.script = script;
     	createMarkers = script.resource() == null || C4GroupItem.groupItemBackingResource(script.resource()) == null;
     	this.current = script;
     }
 
-    public LandscapeScriptParser(LandscapeScript script) {
+    public LandscapeScriptParser(final LandscapeScript script) {
     	this (script, getTokenStream(script));
     }
 
-    private static TokenStream getTokenStream(LandscapeScript script) {
+    private static TokenStream getTokenStream(final LandscapeScript script) {
     	CharStream charStream;
     	try {
     		charStream = new ANTLRReaderStream(new InputStreamReader(((IFile)script.resource()).getContents()));
-    		LandscapeScriptLexer lexer = new LandscapeScriptLexer(charStream);
-    		CommonTokenStream tokenStream = new CommonTokenStream();
+    		final LandscapeScriptLexer lexer = new LandscapeScriptLexer(charStream);
+    		final CommonTokenStream tokenStream = new CommonTokenStream();
     		tokenStream.setTokenSource(lexer);
     		return tokenStream;
-    	} catch (IOException e) {
+    	} catch (final IOException e) {
     		e.printStackTrace();
     		return null;
-    	} catch (CoreException e) {
+    	} catch (final CoreException e) {
     		e.printStackTrace();
     		return null;
     	}
     }
 
-    private static int startPos(Token t) {
+    private static int startPos(final Token t) {
     	return ((CommonToken)t).getStartIndex();
     }
 
-    private static int endPos(Token t, Token fallback) {
+    private static int endPos(final Token t, final Token fallback) {
     	return ((CommonToken)(t!=null?t:fallback)).getStopIndex()+1;
     }
 
-    private static int endPos(Token t) {
+    private static int endPos(final Token t) {
     	return endPos(t, null);
     }
 
-    private void setCurrentOverlay(OverlayBase overlay, Token typeToken, Token nameToken) {
+    private void setCurrentOverlay(final OverlayBase overlay, final Token typeToken, final Token nameToken) {
     	current = overlay;
     	current.setLocation(new SourceLocation(startPos(typeToken), endPos(nameToken, typeToken)));
     }
 
-    private void createMapObject(Token typeToken, Token nameToken) {
+    private void createMapObject(final Token typeToken, final Token nameToken) {
     	try {
     		if (current instanceof Overlay) {
-    			OverlayBase newOverlay = ((Overlay) current).createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
+    			final OverlayBase newOverlay = ((Overlay) current).createOverlay(typeToken.getText(), nameToken!=null?nameToken.getText():null);
     			if (newOverlay == null)
     				errorWithCode(Problem.UndeclaredIdentifier, startPos(typeToken), endPos(typeToken), typeToken.getText());
     			else
     				setCurrentOverlay(newOverlay, typeToken, nameToken);
     		}
-    	} catch (Exception e) {
+    	} catch (final Exception e) {
     		e.printStackTrace();
     	}
     }
 
-    private void setVal(Token nameToken, Token valueTokenLo, Token valueTokenHi) {
+    private void setVal(final Token nameToken, final Token valueTokenLo, final Token valueTokenHi) {
     	try {
     		if (valueTokenLo == null)
     			errorWithCode(Problem.ExpressionExpected, endPos(nameToken), endPos(nameToken)+1);
     		else
     			current.setAttribute(nameToken.getText(), valueTokenLo.getText(), valueTokenHi != null ? valueTokenHi.getText() : null);
-    	} catch (NoSuchFieldException e) {
+    	} catch (final NoSuchFieldException e) {
     		errorWithCode(Problem.UndeclaredIdentifier, startPos(nameToken), endPos(nameToken), nameToken.getText());
-    	} catch (Exception e) {
+    	} catch (final Exception e) {
     		errorWithCode(Problem.InvalidExpression, startPos(valueTokenLo), endPos(valueTokenLo), nameToken.getText());
     	}
     }
@@ -152,34 +151,34 @@ public class LandscapeScriptParser extends Parser {
     		current = (Overlay) current.parentDeclaration();
     }
 
-    private void assignOperator(String t) {
-    	Operator op = Operator.valueOf(t.charAt(0));
+    private void assignOperator(final String t) {
+    	final Operator op = Operator.valueOf(t.charAt(0));
     	if (lastOverlay instanceof Overlay)
     	((Overlay)lastOverlay).setOperator(op);
     }
 
-    private IMarker createMarker(int start, int end, String message, int severity) {
+    private IMarker createMarker(final int start, final int end, final String message, final int severity) {
     	if (!createMarkers || script.resource() == null) return null;
     	try {
-    		IMarker marker = script.resource().createMarker(IMarker.PROBLEM);
+    		final IMarker marker = script.resource().createMarker(IMarker.PROBLEM);
     		marker.setAttribute(IMarker.SEVERITY, severity);
     		marker.setAttribute(IMarker.TRANSIENT, false);
     		marker.setAttribute(IMarker.MESSAGE, message);
     		marker.setAttribute(IMarker.CHAR_START, start);
     		marker.setAttribute(IMarker.CHAR_END, end);
     		return marker;
-    	} catch (CoreException e) {
+    	} catch (final CoreException e) {
     		e.printStackTrace();
     	}
     	return null;
     }
 
-    private IMarker createErrorMarker(int start, int end, String message) {
+    private IMarker createErrorMarker(final int start, final int end, final String message) {
     	return createMarker(start, end, message, IMarker.SEVERITY_ERROR);
     }
 
-    private void errorWithCode(Problem code, int errorStart, int errorEnd, Object... args) {
-    	String problem = code.makeErrorString(args);
+    private void errorWithCode(final Problem code, final int errorStart, final int errorEnd, final Object... args) {
+    	final String problem = code.makeErrorString(args);
     	createErrorMarker(errorStart, errorEnd, problem);    	
     }
 
@@ -187,32 +186,32 @@ public class LandscapeScriptParser extends Parser {
     	try {
     		if (script.resource() != null)
     			script.resource().deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ONE);
-    	} catch (CoreException e) {
+    	} catch (final CoreException e) {
     		e.printStackTrace();
     	}
     }
 
     @Override
-    public void reportError(RecognitionException error) {
+    public void reportError(final RecognitionException error) {
     	if (error.token.getText() != null)	
     		errorWithCode(Problem.UnexpectedToken, startPos(error.token), endPos(error.token), error.token.getText());
     	super.reportError(error);
     }
 
-    private void setBody(Token blockOpen, Token blockClose) {
+    private void setBody(final Token blockOpen, final Token blockClose) {
     	if (current != null)
     		current.setBody(new SourceLocation(startPos(blockOpen), endPos(blockClose)));
     }
 
     @Override
-    public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
+    public void displayRecognitionError(final String[] tokenNames, final RecognitionException e) {
     	// do nothing
     }
 
     public void parse() {
     	try {
     		start();
-    	} catch (RecognitionException e) {
+    	} catch (final RecognitionException e) {
     		e.printStackTrace();
     	}
     }
@@ -234,11 +233,10 @@ public class LandscapeScriptParser extends Parser {
             loop1:
             do {
                 int alt1=2;
-                int LA1_0 = input.LA(1);
+                final int LA1_0 = input.LA(1);
 
-                if ( (LA1_0==MAP||LA1_0==NAME||LA1_0==OVERLAY||LA1_0==POINT) ) {
-                    alt1=1;
-                }
+                if ( (LA1_0==MAP||LA1_0==NAME||LA1_0==OVERLAY||LA1_0==POINT) )
+					alt1=1;
 
 
                 switch (alt1) {
@@ -263,7 +261,7 @@ public class LandscapeScriptParser extends Parser {
             }
 
         }
-        catch (RecognitionException re) {
+        catch (final RecognitionException re) {
             reportError(re);
             recover(input,re);
         }
@@ -297,7 +295,7 @@ public class LandscapeScriptParser extends Parser {
             }
 
         }
-        catch (RecognitionException re) {
+        catch (final RecognitionException re) {
             reportError(re);
             recover(input,re);
         }
@@ -328,11 +326,10 @@ public class LandscapeScriptParser extends Parser {
 
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:182:14: (op= OPERATOR composition )?
             int alt2=2;
-            int LA2_0 = input.LA(1);
+            final int LA2_0 = input.LA(1);
 
-            if ( (LA2_0==OPERATOR) ) {
-                alt2=1;
-            }
+            if ( (LA2_0==OPERATOR) )
+				alt2=1;
             switch (alt2) {
                 case 1 :
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:182:15: op= OPERATOR composition
@@ -356,7 +353,7 @@ public class LandscapeScriptParser extends Parser {
             }
 
         }
-        catch (RecognitionException re) {
+        catch (final RecognitionException re) {
             reportError(re);
             recover(input,re);
         }
@@ -402,7 +399,7 @@ public class LandscapeScriptParser extends Parser {
                 }
                 break;
             default:
-                NoViableAltException nvae =
+                final NoViableAltException nvae =
                     new NoViableAltException("", 7, 0, input);
 
                 throw nvae;
@@ -417,11 +414,10 @@ public class LandscapeScriptParser extends Parser {
 
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:185:17: (name= NAME )?
                     int alt3=2;
-                    int LA3_0 = input.LA(1);
+                    final int LA3_0 = input.LA(1);
 
-                    if ( (LA3_0==NAME) ) {
-                        alt3=1;
-                    }
+                    if ( (LA3_0==NAME) )
+						alt3=1;
                     switch (alt3) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:185:17: name= NAME
@@ -451,11 +447,10 @@ public class LandscapeScriptParser extends Parser {
 
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:186:21: (name= NAME )?
                     int alt4=2;
-                    int LA4_0 = input.LA(1);
+                    final int LA4_0 = input.LA(1);
 
-                    if ( (LA4_0==NAME) ) {
-                        alt4=1;
-                    }
+                    if ( (LA4_0==NAME) )
+						alt4=1;
                     switch (alt4) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:186:21: name= NAME
@@ -485,11 +480,10 @@ public class LandscapeScriptParser extends Parser {
 
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:187:19: (name= NAME )?
                     int alt5=2;
-                    int LA5_0 = input.LA(1);
+                    final int LA5_0 = input.LA(1);
 
-                    if ( (LA5_0==NAME) ) {
-                        alt5=1;
-                    }
+                    if ( (LA5_0==NAME) )
+						alt5=1;
                     switch (alt5) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:187:19: name= NAME
@@ -519,11 +513,10 @@ public class LandscapeScriptParser extends Parser {
 
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:188:22: (name= NAME )?
                     int alt6=2;
-                    int LA6_0 = input.LA(1);
+                    final int LA6_0 = input.LA(1);
 
-                    if ( (LA6_0==NAME) ) {
-                        alt6=1;
-                    }
+                    if ( (LA6_0==NAME) )
+						alt6=1;
                     switch (alt6) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:188:22: name= NAME
@@ -549,7 +542,7 @@ public class LandscapeScriptParser extends Parser {
 
             }
         }
-        catch (RecognitionException re) {
+        catch (final RecognitionException re) {
             reportError(re);
             recover(input,re);
         }
@@ -572,11 +565,10 @@ public class LandscapeScriptParser extends Parser {
             {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:191:4: ( block )?
             int alt8=2;
-            int LA8_0 = input.LA(1);
+            final int LA8_0 = input.LA(1);
 
-            if ( (LA8_0==BLOCKOPEN) ) {
-                alt8=1;
-            }
+            if ( (LA8_0==BLOCKOPEN) )
+				alt8=1;
             switch (alt8) {
                 case 1 :
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:191:4: block
@@ -598,7 +590,7 @@ public class LandscapeScriptParser extends Parser {
             }
 
         }
-        catch (RecognitionException re) {
+        catch (final RecognitionException re) {
             reportError(re);
             recover(input,re);
         }
@@ -628,11 +620,10 @@ public class LandscapeScriptParser extends Parser {
             loop9:
             do {
                 int alt9=2;
-                int LA9_0 = input.LA(1);
+                final int LA9_0 = input.LA(1);
 
-                if ( (LA9_0==MAP||LA9_0==NAME||LA9_0==OVERLAY||LA9_0==POINT) ) {
-                    alt9=1;
-                }
+                if ( (LA9_0==MAP||LA9_0==NAME||LA9_0==OVERLAY||LA9_0==POINT) )
+					alt9=1;
 
 
                 switch (alt9) {
@@ -661,7 +652,7 @@ public class LandscapeScriptParser extends Parser {
             }
 
         }
-        catch (RecognitionException re) {
+        catch (final RecognitionException re) {
             reportError(re);
             recover(input,re);
         }
@@ -681,30 +672,27 @@ public class LandscapeScriptParser extends Parser {
         try {
             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:197:2: ( attribute | statement )
             int alt10=2;
-            int LA10_0 = input.LA(1);
+            final int LA10_0 = input.LA(1);
 
             if ( (LA10_0==NAME) ) {
-                int LA10_1 = input.LA(2);
+                final int LA10_1 = input.LA(2);
 
-                if ( (LA10_1==ASSIGN) ) {
-                    alt10=1;
-                }
-                else if ( (LA10_1==BLOCKOPEN||LA10_1==NAME||LA10_1==OPERATOR||LA10_1==STATEMENTEND) ) {
-                    alt10=2;
-                }
-                else {
-                    NoViableAltException nvae =
+                if ( (LA10_1==ASSIGN) )
+					alt10=1;
+				else if ( (LA10_1==BLOCKOPEN||LA10_1==NAME||LA10_1==OPERATOR||LA10_1==STATEMENTEND) )
+					alt10=2;
+				else {
+                    final NoViableAltException nvae =
                         new NoViableAltException("", 10, 1, input);
 
                     throw nvae;
 
                 }
             }
-            else if ( (LA10_0==MAP||LA10_0==OVERLAY||LA10_0==POINT) ) {
-                alt10=2;
-            }
-            else {
-                NoViableAltException nvae =
+            else if ( (LA10_0==MAP||LA10_0==OVERLAY||LA10_0==POINT) )
+				alt10=2;
+			else {
+                final NoViableAltException nvae =
                     new NoViableAltException("", 10, 0, input);
 
                 throw nvae;
@@ -736,7 +724,7 @@ public class LandscapeScriptParser extends Parser {
 
             }
         }
-        catch (RecognitionException re) {
+        catch (final RecognitionException re) {
             reportError(re);
             recover(input,re);
         }
@@ -778,7 +766,7 @@ public class LandscapeScriptParser extends Parser {
             }
 
         }
-        catch (RecognitionException re) {
+        catch (final RecognitionException re) {
             reportError(re);
             recover(input,re);
         }
@@ -820,7 +808,7 @@ public class LandscapeScriptParser extends Parser {
                 }
                 break;
             default:
-                NoViableAltException nvae =
+                final NoViableAltException nvae =
                     new NoViableAltException("", 12, 0, input);
 
                 throw nvae;
@@ -849,11 +837,10 @@ public class LandscapeScriptParser extends Parser {
 
                     // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:202:74: ( MINUS valHi= NUMBER )?
                     int alt11=2;
-                    int LA11_0 = input.LA(1);
+                    final int LA11_0 = input.LA(1);
 
-                    if ( (LA11_0==MINUS) ) {
-                        alt11=1;
-                    }
+                    if ( (LA11_0==MINUS) )
+						alt11=1;
                     switch (alt11) {
                         case 1 :
                             // /Users/madeen/Projects/Clonk/C4DT/C4DT/src/net/arctics/clonk/parser/landscapescript/LandscapeScript.g:202:75: MINUS valHi= NUMBER
@@ -887,7 +874,7 @@ public class LandscapeScriptParser extends Parser {
 
             }
         }
-        catch (RecognitionException re) {
+        catch (final RecognitionException re) {
             reportError(re);
             recover(input,re);
         }

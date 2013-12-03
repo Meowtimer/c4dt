@@ -17,7 +17,7 @@ public class StringUtil {
 	 * @param s The string to return a capitalized version of
 	 * @return The capitalized version
 	 */
-	public static String capitalize(String s) {
+	public static String capitalize(final String s) {
 		if (s == null || s.length() == 0)
 			return "";
 		return Character.toUpperCase(s.charAt(0)) + s.substring(1);
@@ -33,8 +33,8 @@ public class StringUtil {
 	 */
 	public static String writeBlock(
 		Appendable output,
-		CharSequence startBlock, CharSequence endBlock, CharSequence delimiter,
-		Iterable<?> enumeration
+		final CharSequence startBlock, final CharSequence endBlock, final CharSequence delimiter,
+		final Iterable<?> enumeration
 	) {
 		final boolean returnString = output == null;
 		if (returnString)
@@ -58,7 +58,7 @@ public class StringUtil {
 		return returnString ? output.toString() : null;
 	}
 
-	public static String blockString(CharSequence startBlock, CharSequence endBlock, CharSequence delimiter, Iterable<?> enumeration) {
+	public static String blockString(final CharSequence startBlock, final CharSequence endBlock, final CharSequence delimiter, final Iterable<?> enumeration) {
 		return writeBlock(null, startBlock, endBlock, delimiter, enumeration);
 	}
 
@@ -67,7 +67,7 @@ public class StringUtil {
 	 * @param str The string containing escapes
 	 * @return The str with escapes evaluated
 	 */
-	public static String evaluateEscapes(String str) {
+	public static String evaluateEscapes(final String str) {
 		final StringBuilder sBuilder = new StringBuilder(str.length());
 		final int len = str.length();
 		for (int i = 0; i < len; i++) {
@@ -85,7 +85,7 @@ public class StringUtil {
 		return sBuilder.toString();
 	}
 
-	public static String wildcardToRegex(String wildcard){
+	public static String wildcardToRegex(final String wildcard){
 		final StringBuffer s = new StringBuffer(wildcard.length());
 		//s.append('^');
 		for (int i = 0, is = wildcard.length(); i < is; i++) {
@@ -113,7 +113,7 @@ public class StringUtil {
 		return s.toString();
 	}
 
-	public static Pattern patternFromRegExOrWildcard(String pattern) {
+	public static Pattern patternFromRegExOrWildcard(final String pattern) {
 		try {
 			return Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
 		} catch (final Exception e) {
@@ -125,7 +125,7 @@ public class StringUtil {
 		}
 	}
 
-	public static String rawFileName(String s) {
+	public static String rawFileName(final String s) {
 
 	    final String separator = System.getProperty("file.separator");
 	    String filename;
@@ -145,7 +145,7 @@ public class StringUtil {
 	    return filename.substring(0, extensionIndex);
 	}
 
-	public static String unquote(String s) {
+	public static String unquote(final String s) {
 		if (s.length() >= 2 && s.charAt(0) == '"' && s.charAt(s.length()-1) == '"')
 			return s.substring(1, s.length()-1);
 		else
@@ -228,7 +228,7 @@ public class StringUtil {
 		final int tolerance= name2len / 4 + 1;
 		return (tolerance - (k - i)) * 256 / tolerance;
 	}
-	static boolean isSimilarChar(char ch1, char ch2) {
+	static boolean isSimilarChar(final char ch1, final char ch2) {
 		return Character.toLowerCase(ch1) == Character.toLowerCase(ch2);
 	}
 	/**
@@ -237,13 +237,13 @@ public class StringUtil {
 	 * @param times The number of repetitions
 	 * @return The string containing the repetitions
 	 */
-	public static String multiply(String s, int times) {
+	public static String multiply(final String s, final int times) {
 		final StringBuilder builder = new StringBuilder(s.length()*times);
 		for (int i = 0; i < times; i++)
 			builder.append(s);
 		return builder.toString();
 	}
-	public static String htmlerize(String text) {
+	public static String htmlerize(final String text) {
 		return text.
 			replace("&", "&amp;"). //$NON-NLS-1$ //$NON-NLS-2$
 			replace("<", "&lt;"). //$NON-NLS-1$ //$NON-NLS-2$

@@ -53,14 +53,14 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	 * @param declarationToRename The declaration to rename
 	 * @param newName The new name (default value shown in the renaming UI)
 	 */
-	public RenameDeclarationProcessor(Declaration declarationToRename, String newName) {
+	public RenameDeclarationProcessor(final Declaration declarationToRename, final String newName) {
 		this.newName = newName;
 		this.oldName = declarationToRename.name();
 		this.decl = declarationToRename;
 	}
 
 	@Override
-	public Change createChange(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
+	public Change createChange(final IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		final IFile declaringFile = decl.file();
 		final ReferencesSearchQuery query = new ReferencesSearchQuery(ClonkProjectNature.get(declaringFile), decl);
 		query.run(monitor);
@@ -77,7 +77,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		final Map<IFile, Object> reverseLookup = new HashMap<>();
 		final Set<IFile> files = new HashSet<IFile>(Arrays.asList(map(elements.toArray(), IFile.class, new IConverter<Object, IFile>() {
 			@Override
-			public IFile convert(Object element) {
+			public IFile convert(final Object element) {
 				IFile file;
 				if (element instanceof IFile)
 					file = (IFile)element;
@@ -131,13 +131,13 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	}
 
 	@Override
-	public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException, OperationCanceledException {
+	public RefactoringStatus checkInitialConditions(final IProgressMonitor pm) throws CoreException, OperationCanceledException {
 		return new RefactoringStatus();
 	}
 
 	@Override
-	public RefactoringStatus checkFinalConditions(IProgressMonitor monitor,
-			CheckConditionsContext context) throws CoreException,
+	public RefactoringStatus checkFinalConditions(final IProgressMonitor monitor,
+			final CheckConditionsContext context) throws CoreException,
 			OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
 		final Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
@@ -157,8 +157,8 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 
 	@Override
 	public RefactoringParticipant[] loadParticipants(
-		RefactoringStatus status,
-		SharableParticipants sharableParticipants
+		final RefactoringStatus status,
+		final SharableParticipants sharableParticipants
 	) throws CoreException { return null; }
 	@Override
 	public String getIdentifier() { return Core.id("refactoring.renameDeclaration"); } //$NON-NLS-1$
@@ -169,7 +169,7 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 	@Override
 	public boolean isApplicable() throws CoreException { return true; }
 	public Declaration declarationBeingRenamed() { return decl; }
-	public void setNewName(String newName) { this.newName = newName; }
+	public void setNewName(final String newName) { this.newName = newName; }
 	public String newName() { return newName; }
 
 }

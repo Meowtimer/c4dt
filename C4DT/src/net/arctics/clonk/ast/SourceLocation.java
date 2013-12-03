@@ -16,27 +16,27 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 
 	public SourceLocation() {}
 
-	public SourceLocation(int start,int end) {
+	public SourceLocation(final int start,final int end) {
 		this.start = start;
 		this.end = end;
 	}
-	public SourceLocation(Matcher matcher) {
+	public SourceLocation(final Matcher matcher) {
 		start = matcher.start();
 		end = matcher.end();
 	}
-	public SourceLocation(int offset, IRegion relativeLocation) {
+	public SourceLocation(final int offset, final IRegion relativeLocation) {
 		start = offset+relativeLocation.getOffset();
 		end = offset+relativeLocation.getOffset()+relativeLocation.getLength();
 	}
-	public SourceLocation(String stringRepresentation) {
+	public SourceLocation(final String stringRepresentation) {
 		final int comma = stringRepresentation.indexOf(",");
 		start = Integer.parseInt(stringRepresentation.substring(1, comma));
 		end = Integer.parseInt(stringRepresentation.substring(comma+2, stringRepresentation.length()-1));
 	}
 
-	public void setStart(int start) { this.start = start; }
+	public void setStart(final int start) { this.start = start; }
 	public int start() { return start; }
-	public void setEnd(int end) { this.end = end; }
+	public void setEnd(final int end) { this.end = end; }
 	public int end() { return end; }
 	@Override
 	public int getLength() { return end-start; }
@@ -44,7 +44,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	public int getOffset() { return start; }
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (obj instanceof SourceLocation) {
 			final SourceLocation cmp = (SourceLocation) obj;
 			return (cmp.start() == start && cmp.end() == end);
@@ -64,7 +64,7 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 		return start * 37 + end * 37;
 	}
 
-	public SourceLocation offset(int o) {
+	public SourceLocation offset(final int o) {
 		return new SourceLocation(o+start, o+end);
 	}
 
@@ -78,28 +78,28 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 		}
 	}
 
-	public SourceLocation relativeTo(IRegion other) {
+	public SourceLocation relativeTo(final IRegion other) {
 		return new SourceLocation(this.start-other.getOffset(), this.end-other.getOffset());
 	}
 
 	@Override
-	public int compareTo(SourceLocation o) {
+	public int compareTo(final SourceLocation o) {
 		return start - o.start;
 	}
 
-	public SourceLocation add(IRegion other) {
+	public SourceLocation add(final IRegion other) {
 		return new SourceLocation(start+other.getOffset(), start+other.getOffset()+other.getLength());
 	}
 
-	public boolean containsOffset(int offset) {
+	public boolean containsOffset(final int offset) {
 		return offset >= start && offset <= end;
 	}
 
-	public boolean sameLocation(SourceLocation other) {
+	public boolean sameLocation(final SourceLocation other) {
 		return other != null && this.start == other.start && this.end == other.end;
 	}
 
-	public boolean isAt(int offset) {
+	public boolean isAt(final int offset) {
 		return offset >= start && offset <= end;
 	}
 

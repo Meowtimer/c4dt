@@ -19,7 +19,7 @@ final class DynamicTypingMigrationJob extends TypingMigrationJob {
 	private final ScriptParser[] parsers;
 	private final ProjectSettings settings;
 
-	DynamicTypingMigrationJob(ClonkProjectNature nature, String name, ScriptParser[] parsers, ProjectSettings settings) {
+	DynamicTypingMigrationJob(final ClonkProjectNature nature, final String name, final ScriptParser[] parsers, final ProjectSettings settings) {
 		super(name, nature);
 		this.parsers = parsers;
 		this.settings = settings;
@@ -45,7 +45,7 @@ final class DynamicTypingMigrationJob extends TypingMigrationJob {
 			return;
 		Core.instance().performActionsOnFileDocument(parser.script().file(), new IDocumentAction<Object>() {
 			@Override
-			public Object run(IDocument document) {
+			public Object run(final IDocument document) {
 				final StringBuilder builder = new StringBuilder(document.get());
 				final List<TypeAnnotation> annotations = parser.typeAnnotations();
 				Collections.sort(annotations);

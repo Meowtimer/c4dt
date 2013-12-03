@@ -47,7 +47,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	}
 
 	protected Map<String, String> initTemplateReplacements() {
-		Map<String, String> result = new HashMap<String, String>();
+		final Map<String, String> result = new HashMap<String, String>();
 		result.put("$$Name$$", page.getFileName().substring(0, page.getFileName().lastIndexOf('.'))); //$NON-NLS-1$
 		result.put("$$Author$$", ClonkPreferences.value(ClonkPreferences.AUTHOR));
 		return result;
@@ -63,12 +63,12 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		final String containerName = page.getContainerName();
 		final String fileName = page.getFileName();
 		templateReplacements = initTemplateReplacements();
-		IRunnableWithProgress op = new IRunnableWithProgress() {
+		final IRunnableWithProgress op = new IRunnableWithProgress() {
 			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException {
+			public void run(final IProgressMonitor monitor) throws InvocationTargetException {
 				try {
 					doFinish(containerName, fileName, monitor);
-				} catch (CoreException e) {
+				} catch (final CoreException e) {
 					throw new InvocationTargetException(e);
 				} finally {
 					monitor.done();
@@ -77,10 +77,10 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		};
 		try {
 			getContainer().run(true, false, op);
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			return false;
-		} catch (InvocationTargetException e) {
-			Throwable realException = e.getTargetException();
+		} catch (final InvocationTargetException e) {
+			final Throwable realException = e.getTargetException();
 			MessageDialog.openError(getShell(), Messages.NewClonkFolderWizard_Error, realException.getMessage());
 			return false;
 		}
@@ -94,54 +94,51 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	 */
 
 	protected void doFinish(
-		String containerName,
-		String fileName,
+		final String containerName,
+		final String fileName,
 		IProgressMonitor monitor)
 		throws CoreException {
 
 		monitor = new NullProgressMonitor(); // srsly, for creating some files...
 		monitor.beginTask(String.format(Messages.NewClonkFolderWizard_CreatingFolder, fileName), 1);
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IResource resource = root.findMember(new Path(containerName));
-		if (!resource.exists() || !(resource instanceof IContainer)) {
+		final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		final IResource resource = root.findMember(new Path(containerName));
+		if (!resource.exists() || !(resource instanceof IContainer))
 			throwCoreException(String.format(Messages.NewClonkFolderWizard_FolderDoesNotExist, containerName));
-		}
-		IContainer container = (IContainer) resource;
+		final IContainer container = (IContainer) resource;
 		final IFolder newFolder = container.getFolder(new Path(fileName));
-		if (!newFolder.exists()) {
+		if (!newFolder.exists())
 			newFolder.create(IResource.NONE,true,monitor);
-		}
 		try {
-			Iterable<URL> templates = getTemplateFiles();
-			if (templates != null) {
-				for (URL template : templates) {
-					String templateFile = new Path(template.getFile()).lastSegment();
+			final Iterable<URL> templates = getTemplateFiles();
+			if (templates != null)
+				for (final URL template : templates) {
+					final String templateFile = new Path(template.getFile()).lastSegment();
 					if (templateFile.startsWith(".")) //$NON-NLS-1$
 						continue;
-					InputStream stream = getTemplateStream(template, templateFile);
+					final InputStream stream = getTemplateStream(template, templateFile);
 					try {
 						newFolder.getFile(templateFile).create(stream, true, monitor);
 					} finally {
 						stream.close();
 					}
 				}
-			}
 			Display.getDefault().asyncExec(new Runnable() {
 				@Override
 				public void run() {
 					UI.projectExplorer(workbenchWindow).selectReveal(new StructuredSelection(newFolder));
 				}
 			});
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	protected Iterable<URL> getTemplateFiles() {
 		try {
-			ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
+			final ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
 			return nature.index().engine().getURLsOfStorageLocationPath("wizards/"+getClass().getSimpleName(), false); //$NON-NLS-1$
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return null;
 		}
 	}
@@ -150,22 +147,20 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		return templateReplacements;
 	}
 	
-	protected InputStream getTemplateStream(URL template, String fileName) throws IOException {
-		InputStream result = template.openStream();
+	protected InputStream getTemplateStream(final URL template, final String fileName) throws IOException {
+		final InputStream result = template.openStream();
 		if (fileName.endsWith(".txt") || fileName.endsWith(".c")) { //$NON-NLS-1$ //$NON-NLS-2$
-			Reader reader = new InputStreamReader(result);
+			final Reader reader = new InputStreamReader(result);
 			try {
-				StringBuilder builder = new StringBuilder();
-				char[] buffer = new char[1024];
+				final StringBuilder builder = new StringBuilder();
+				final char[] buffer = new char[1024];
 				int read;
-				while ((read = reader.read(buffer)) > 0) {
+				while ((read = reader.read(buffer)) > 0)
 					builder.append(buffer, 0, read);
-				}
 				String readString = builder.toString();
-				Map<String, String> replacements = getTemplateReplacements();
-				for (Entry<String, String> entry : replacements.entrySet()) {
+				final Map<String, String> replacements = getTemplateReplacements();
+				for (final Entry<String, String> entry : replacements.entrySet())
 					readString = readString.replace(entry.getKey(), entry.getValue());
-				}
 				return new ByteArrayInputStream(readString.getBytes());
 			} finally {
 				reader.close();
@@ -174,8 +169,8 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		return result;
 	}
 	
-	protected void throwCoreException(String message) throws CoreException {
-		IStatus status =
+	protected void throwCoreException(final String message) throws CoreException {
+		final IStatus status =
 			new Status(IStatus.ERROR, Core.PLUGIN_ID, IStatus.OK, message, null);
 		throw new CoreException(status);
 	}
@@ -186,7 +181,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	 * @see IWorkbenchWizard#init(IWorkbench, IStructuredSelection)
 	 */
 	@Override
-	public void init(IWorkbench workbench, IStructuredSelection selection) {
+	public void init(final IWorkbench workbench, final IStructuredSelection selection) {
 		this.selection = selection;
 		this.workbenchWindow = workbench.getActiveWorkbenchWindow();
 	}

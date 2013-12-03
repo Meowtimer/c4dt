@@ -14,7 +14,7 @@ public class DefinitionPack extends IniEntryValue {
 	@Override
 	public String toString() { return value; }
 	@Override
-	public void setInput(String value, IniEntryDefinition entryData, IniUnit context) throws IniParserException {
+	public void setInput(final String value, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		this.value = value;
 	}
 }

@@ -27,11 +27,11 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	public static class Name extends ASTNode {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final String name;
-		public Name(String name) {
+		public Name(final String name) {
 			this.name = name;
 		}
 		@Override
-		protected boolean equalAttributes(ASTNode other) {
+		protected boolean equalAttributes(final ASTNode other) {
 			return super.equalAttributes(other) && eq(this.name, ((Name)other).name);
 		}
 		public String name() { return name; }
@@ -62,7 +62,7 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	 * @param var Variable. May be null.
 	 * @param typeAnnotation Explicit type annotation
 	 */
-	public VarInitialization(String name, ASTNode expression, int start, int end, Variable var, TypeAnnotation typeAnnotation) {
+	public VarInitialization(final String name, final ASTNode expression, final int start, final int end, final Variable var, final TypeAnnotation typeAnnotation) {
 		super();
 		this.name = name;
 		this.expression = expression;
@@ -74,14 +74,14 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	@Override
 	public ASTNode[] subElements() { return new ASTNode[] {typeAnnotation, tempSubElement(new Name(name)), expression}; }
 	@Override
-	public void setSubElements(ASTNode[] elms) {
+	public void setSubElements(final ASTNode[] elms) {
 		typeAnnotation = (TypeAnnotation) elms[0];
 		name = ((Name)elms[1]).name();
 		expression = elms[2];
 	}
 	public IType type() { return typeAnnotation != null ? typeAnnotation.type() : null; }
 	@Override
-	public void doPrint(ASTNodePrinter output, int depth) {
+	public void doPrint(final ASTNodePrinter output, final int depth) {
 		final Declaration p = parent(Declaration.class);
 		final Typing typing = p != null ? p.typing() : Typing.INFERRED;
 		switch (typing) {
@@ -120,12 +120,12 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	}
 
 	@Override
-	public EntityRegion entityAt(int offset, ExpressionLocator<?> locator) { return new EntityRegion(variable, this); }
+	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) { return new EntityRegion(variable, this); }
 	@Override
 	public String patternMatchingText() { return name; }
 	
 	@Override
-	protected boolean equalAttributes(ASTNode _other) {
+	protected boolean equalAttributes(final ASTNode _other) {
 		if (!super.equalAttributes(_other))
 			return false;
 		final VarInitialization other = (VarInitialization) _other;

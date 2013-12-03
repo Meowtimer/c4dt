@@ -17,7 +17,7 @@ public class SelfContainedScript extends Script implements TopLevelEntity {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	protected String script;
 
-	public SelfContainedScript(String name, String script, Index index) {
+	public SelfContainedScript(final String name, final String script, final Index index) {
 		super(null);
 		this.index = index;
 		setName(name);

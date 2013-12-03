@@ -7,9 +7,9 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
 public class ClonkRenameRefactoringWizard extends RefactoringWizard {
 	
-	private boolean letUserSpecifyNewName;
+	private final boolean letUserSpecifyNewName;
 
-	public ClonkRenameRefactoringWizard(Refactoring refactoring, boolean letUserSpecifyNewName) {
+	public ClonkRenameRefactoringWizard(final Refactoring refactoring, final boolean letUserSpecifyNewName) {
 		super(refactoring, RefactoringWizard.WIZARD_BASED_USER_INTERFACE);
 		this.letUserSpecifyNewName = letUserSpecifyNewName;
 	}

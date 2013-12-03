@@ -30,8 +30,8 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	 * @see AbstractEncodingFieldEditor#setGroupTitle(String)
 	 * @since 3.3
 	 */
-	public ExceptionlessEncodingFieldEditor(String name, String labelText,
-			String groupTitle, Composite parent) {
+	public ExceptionlessEncodingFieldEditor(final String name, final String labelText,
+			final String groupTitle, final Composite parent) {
 		super();
 		init(name, labelText);
 		setGroupTitle(groupTitle);
@@ -44,7 +44,7 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	 * @param labelText
 	 * @param parent
 	 */
-	public ExceptionlessEncodingFieldEditor(String name, String labelText, Composite parent) {
+	public ExceptionlessEncodingFieldEditor(final String name, final String labelText, final Composite parent) {
 		super();
 		init(name, labelText);
 		createControl(parent);
@@ -54,7 +54,7 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	 */
 	@Override
 	protected String getStoredValue() {
-		String val = getPreferenceStore().getString(getPreferenceName());
+		final String val = getPreferenceStore().getString(getPreferenceName());
 		// return null if equal to default so AbstractEncodingFieldEditor will reflect that
 		if (val.equals(getPreferenceStore().getDefaultString(getPreferenceName())))
 			return null;
@@ -67,23 +67,21 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	 */
 	@Override
 	protected void doStore() {
-		String encoding = getSelectedEncoding();
+		final String encoding = getSelectedEncoding();
 		
-		if(hasSameEncoding(encoding)) {
+		if(hasSameEncoding(encoding))
 			return;
-		}
 		
 		IDEEncoding.addIDEEncoding(encoding);
 		
-		if (encoding.equals(getDefaultEnc())) {
+		if (encoding.equals(getDefaultEnc()))
 			getPreferenceStore().setToDefault(getPreferenceName());
-		} else {
+		else
 			getPreferenceStore().setValue(getPreferenceName(), encoding);
-		}
 	}
 	
 	@Override
-	public void setPreferenceStore(IPreferenceStore store) {
+	public void setPreferenceStore(final IPreferenceStore store) {
 		if (store != null)
 			super.setPreferenceStore(store);
 	}

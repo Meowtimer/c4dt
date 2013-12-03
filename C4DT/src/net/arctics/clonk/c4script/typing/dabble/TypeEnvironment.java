@@ -11,15 +11,15 @@ import net.arctics.clonk.c4script.typing.Typing;
 public class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 	final Typing typing;
 	public final TypeEnvironment up;
-	public TypeEnvironment(Typing typing, TypeEnvironment up) {
+	public TypeEnvironment(final Typing typing, final TypeEnvironment up) {
 		super(5);
 		this.typing = typing;
 		this.up = up;
 	}
-	public TypeEnvironment(Typing typing) {
+	public TypeEnvironment(final Typing typing) {
 		this(typing, null);
 	}
-	public TypeEnvironment inject(TypeEnvironment other) {
+	public TypeEnvironment inject(final TypeEnvironment other) {
 		for (final Map.Entry<Declaration, TypeVariable> otherInfo : other.entrySet()) {
 			final TypeVariable myVar = this.get(otherInfo.getKey());
 			if (myVar != null)
@@ -29,19 +29,19 @@ public class TypeEnvironment extends HashMap<Declaration, TypeVariable> {
 		}
 		return this;
 	}
-	public void apply(boolean soft) {
+	public void apply(final boolean soft) {
 		for (final TypeVariable info : this.values())
 			info.apply(soft);
 	}
-	public void add(TypeVariable var) { this.put(var.key(), var); }
-	public static TypeEnvironment newSynchronized(Typing typing) {
+	public void add(final TypeVariable var) { this.put(var.key(), var); }
+	public static TypeEnvironment newSynchronized(final Typing typing) {
 		return new TypeEnvironment(typing) {
 			@Override
-			public synchronized TypeEnvironment inject(TypeEnvironment other) {
+			public synchronized TypeEnvironment inject(final TypeEnvironment other) {
 				return super.inject(other);
 			}
 			@Override
-			public synchronized TypeVariable get(Object key) { return super.get(key); }
+			public synchronized TypeVariable get(final Object key) { return super.get(key); }
 		};
 	}
 }

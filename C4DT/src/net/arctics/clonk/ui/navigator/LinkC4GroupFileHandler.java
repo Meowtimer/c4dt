@@ -22,35 +22,34 @@ import org.eclipse.ui.handlers.HandlerUtil;
 public class LinkC4GroupFileHandler extends AbstractHandler {
 
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		ISelection sel = HandlerUtil.getCurrentSelection(event);
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
+		final ISelection sel = HandlerUtil.getCurrentSelection(event);
 		if (sel instanceof IStructuredSelection) {
-			Object obj = ((IStructuredSelection)sel).getFirstElement();
+			final Object obj = ((IStructuredSelection)sel).getFirstElement();
 			if (obj instanceof IProject) {
-				IProject proj = (IProject) obj;
-				for (File f : QuickImportHandler.selectFiles("Select C4Group files", proj, false)) {
+				final IProject proj = (IProject) obj;
+				for (final File f : QuickImportHandler.selectFiles("Select C4Group files", proj, false))
 					linkC4GroupFile(proj, f);
-				}
 			}
 		}
 		return null;
 	}
 
-	public static IFolder linkC4GroupFile(IProject proj, final File f) {
+	public static IFolder linkC4GroupFile(final IProject proj, final File f) {
 		final IFolder linkedFolder = proj.getFolder(f.getName());
 		final ProgressMonitorDialog dialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 		try {
 			dialog.run(false, false, new IRunnableWithProgress() {
 				@Override
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						linkedFolder.createLink(new URI(C4GroupFileSystem.SCHEME, C4GroupFileSystem.replaceSpecialChars(f.getAbsolutePath()), null), 0, dialog.getProgressMonitor());
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						e.printStackTrace();
 					}
 				}
 			});
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		return linkedFolder;

@@ -12,14 +12,14 @@ import org.eclipse.jface.window.Window;
 public class OpenDefinitionHandler extends AbstractHandler {
 
 	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		OpenDefinitionDialog dialog = new OpenDefinitionDialog();
+	public Object execute(final ExecutionEvent event) throws ExecutionException {
+		final OpenDefinitionDialog dialog = new OpenDefinitionDialog();
 		switch (dialog.open()) {
 		case Window.OK:
-			for (Definition o : dialog.selectedDefinitions())
+			for (final Definition o : dialog.selectedDefinitions())
 				try {
 					StructureTextEditor.openDeclaration(o);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 			break;

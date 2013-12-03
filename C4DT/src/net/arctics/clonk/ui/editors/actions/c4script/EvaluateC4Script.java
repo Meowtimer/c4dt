@@ -23,7 +23,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.EvaluateC4Script")
 public class EvaluateC4Script extends ClonkTextEditorAction {
-	public EvaluateC4Script(ResourceBundle bundle, String prefix, ITextEditor editor) {
+	public EvaluateC4Script(final ResourceBundle bundle, final String prefix, final ITextEditor editor) {
 		super(bundle, prefix, editor);
 	}
 	@Override
@@ -37,7 +37,7 @@ public class EvaluateC4Script extends ClonkTextEditorAction {
 					final Script script = new ExecutableScript("Eval", String.format("func Main() { %s; }", code), editor.script().index()) {
 						private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 						@Override
-						public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
+						public boolean gatherIncludes(final Index contextIndex, final Script origin, final Collection<Script> set, final int options) {
 							set.add(Command.BASE);
 							set.add(editor.script());
 							return super.gatherIncludes(contextIndex, origin, set, options);
