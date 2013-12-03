@@ -319,13 +319,18 @@ global func object CreateContents(id id, int count);
 global func bool CreateMenu(id symbol, object command_object, int extra, string caption, int extra_data, int style, bool permanent, id menu_id);
 global func object CreateObject(id id, int xoffset, int yoffset, int owner);
 global func bool CreateParticle(string szName, int x, int y, int xdir, int ydir, int a, int b, object target, bool behind_target);
-global func bool CreateParticleEx(string particle_name, int x, int y, int speed_x, int speed_y, int lifetime, proplist properties, int amount);
+global func bool CreateParticleEx(string particle_name, int|array x, int|array y, int|array speed_x, int|array speed_y, int|array lifetime, proplist properties, int amount);
 global func array PV_Linear(any start_value, any end_value);
 global func array PV_Random(any start_value, any end_value, any reroll_interval);
 global func array PV_Direction(any factor);
 global func array PV_Step(any step, any start_value, any delay);
 global func array PV_KeyFrames(any smoothing, any position1, any value1, any position2, any value2);
 global func array PV_Speed(any factor, any start_value);
+global func array PV_Wind(int strength);
+global func array PV_Gravity(int val);
+global func array PC_Die();
+global func array PC_Bounce(int bounciness);
+global func array PC_Stop();
 global func bool CreateParticleAtBone(string szName, string szBoneName, array pos, array dir, int a, int b, object target, bool behind_target);
 global func bool CreateScriptPlayer(string name, int color, int team, int flags, id extra_data);
 global func bool CustomMessage(string message, object obj, int plr, int offset_x, int offset_y, int color, id deco, any portrait, int flags);
@@ -803,3 +808,7 @@ global func bool FindPosition(proplist out_pos, any mask_spec);
 global func array CreateMatTexMask(any mask_spec);
 
 static const object Global;
+
+static const int ATTACH_Front;
+static const int ATTACH_Back;
+static const int ATTACH_MoveRelative;
