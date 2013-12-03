@@ -123,7 +123,6 @@ public class MatchingPlaceholder extends Placeholder {
 		@SuppressWarnings("unchecked")
 		public static Class<? extends ASTNode> findClass(String className) {
 			final String[] packageFormats = new String[] {
-				"%s.ast.%s",
 				"%s.c4script.ast.%s",
 				"%s.parser.%s",
 				"%s.c4script.%s",
@@ -132,7 +131,9 @@ public class MatchingPlaceholder extends Placeholder {
 				"%s.c4script.ast.%sDeclaration",
 				"%s.c4script.ast.Access%s",
 				"%s.c4script.typing.%s",
-				"%s.index.%s"
+				"%s.index.%s",
+				"%s.ast.%s",
+				"%s.%s"
 			};
 			synchronized (classCache) {
 				final Class<? extends ASTNode> existing = classCache.get(className);
@@ -289,10 +290,15 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		this.entryName = entry;
 	}
-	private void setRequiredClass(final String className) throws ProblemException {
-		requiredClass = Transformations.findClass(className);
-		if (requiredClass == null)
-			throw new ProblemException(String.format("AST class not found: %s", className));
+	private boolean setRequiredClass(final String className) throws ProblemException {
+		final Class<? extends ASTNode> cls = Transformations.findClass(className);
+		if (cls != null) {
+			requiredClass = cls;
+			return true;
+		} else {
+			System.out.println(String.format("AST class not found: %s", className));
+			return false;
+		}
 	}
 	private void setCode(Placeholder original, final String entry, String codeString) {
 		final Index index = original.parent(Declaration.class).index();
