@@ -916,4 +916,13 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		return null;
 	}
 
+	@Override
+	public char[] getContextInformationAutoActivationCharacters() {
+		final C4ScriptEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart(), C4ScriptEditor.class);
+		if (ed != null && !ed.showParametersEnabled())
+			return new char[0];
+		else
+			return super.getContextInformationAutoActivationCharacters();
+	}
+
 }

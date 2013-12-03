@@ -869,7 +869,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			@Override
 			public void run() {
 				for (final C4ScriptEditor ed : editors)
-					ed.showContentAssistance();
+					ed.showParameters();
 			}
 		});
 		super.completionProposalApplied(proposal);

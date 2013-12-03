@@ -57,21 +57,20 @@ import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 public class C4ScriptEditor extends StructureTextEditor {
 
 	private boolean showParametersEnabled = true;
-	
+
 	private final class ShowContentAssistAtKeyUpListener implements MouseListener, KeyListener {
 		@Override
 		public void keyPressed(KeyEvent e) {}
 		@Override
 		public void keyReleased(KeyEvent e) {
-			if (showParametersEnabled)
-				showContentAssistance(); 
+			showParameters();
 		}
 		@Override
 		public void mouseDoubleClick(MouseEvent e) {}
 		@Override
 		public void mouseDown(MouseEvent e) {}
 		@Override
-		public void mouseUp(MouseEvent e) { showContentAssistance(); }
+		public void mouseUp(MouseEvent e) { showParameters(); }
 	}
 
 	@CommandId(id="ui.editors.actions.ToggleParametersShown")
@@ -83,11 +82,10 @@ public class C4ScriptEditor extends StructureTextEditor {
 		@Override
 		public void run() {
 			final C4ScriptEditor ed = ed();
-			final boolean s = ed.showParametersEnabled = !ed.showParametersEnabled;
-			if (!s)
-				ed.state().assistant().hide();
+			if (ed.showParametersEnabled = !ed.showParametersEnabled)
+				ed.showParameters();
 			else
-				ed.showContentAssistance();
+				ed.hideContentAssistance();
 		}
 	}
 
@@ -99,8 +97,16 @@ public class C4ScriptEditor extends StructureTextEditor {
 
 	public C4ScriptEditor() { super(); }
 
-	public void showContentAssistance() {
+	public void hideContentAssistance() {
+		state().assistant().hide();
+	}
+
+	public boolean showParametersEnabled() { return showParametersEnabled; }
+
+	public void showParameters() {
 		// show parameter help
+		if (!showParametersEnabled)
+			return;
 		try {
 			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this) {
 				final ScriptEditingState.Assistant a = as(contentAssistant(), ScriptEditingState.Assistant.class);
