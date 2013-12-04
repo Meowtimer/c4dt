@@ -22,14 +22,14 @@ public class SearchMatch extends Match {
 	public int lineOffset() { return lineOffset; }
 	public boolean isPotential() { return potential; }
 	public boolean isIndirect() { return indirect; }
-	private static int nodeStart(final ASTNode node) {
-		return node instanceof CallDeclaration ? node.start() : node.identifierStart();
+	private static int nodeStart(final ASTNode node, final boolean spanWholeNode) {
+		return spanWholeNode && node instanceof CallDeclaration ? node.start() : node.identifierStart();
 	}
-	private static int nodeLength(final ASTNode node) {
-		return node instanceof CallDeclaration ? node.getLength() : node.identifierLength();
+	private static int nodeLength(final ASTNode node, final boolean spanWholeNode) {
+		return spanWholeNode && node instanceof CallDeclaration ? node.getLength() : node.identifierLength();
 	}
-	public SearchMatch(final String line, final int lineOffset, final Object element, final ASTNode node, final boolean potential, final boolean indirect) {
-		super(element, node.sectionOffset()+nodeStart(node), nodeLength(node));
+	public SearchMatch(final String line, final int lineOffset, final Object element, final ASTNode node, final boolean potential, final boolean indirect, final boolean spanWholeNode) {
+		super(element, node.sectionOffset()+nodeStart(node, spanWholeNode), nodeLength(node, spanWholeNode));
 		this.node = new WeakReference<>(node);
 		this.line = defaulting(line, "...");
 		this.lineOffset = lineOffset;

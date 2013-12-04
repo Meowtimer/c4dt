@@ -49,7 +49,7 @@ public class SearchResult extends AbstractTextSearchResult {
 	 * @param potential Flag indicating that the match is only potential and not definite
 	 * @param indirect Flag indicating whether the match indirectly refers to the declaration references were searched for.
 	 */
-	public void addMatch(final Structure structure, final ASTNode node, final boolean potential, final boolean indirect) {
+	public void addIdentifierMatch(final Structure structure, final ASTNode node, final boolean potential, final boolean indirect) {
 		BufferedScanner scanner;
 		synchronized (scanners) {
 			scanner = scanners.get(structure);
@@ -63,7 +63,7 @@ public class SearchResult extends AbstractTextSearchResult {
 		}
 		final IRegion lineRegion = scanner.regionOfLineContainingRegion(node.absolute());
 		final String line = scanner.bufferSubstringAtRegion(lineRegion);
-		addMatch(new SearchMatch(line, lineRegion.getOffset(), structure, node, potential, indirect));
+		addMatch(new SearchMatch(line, lineRegion.getOffset(), structure, node, potential, indirect, false));
 	}
 	/**
 	 * Clear internally maintained list of {@link BufferedScanner}s that were created for each file in which a match was found.

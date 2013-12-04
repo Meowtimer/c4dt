@@ -388,13 +388,13 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		if (associatedDeclarationNamePattern != null) {
 			final Declaration decl = associatedDeclaration(element);
-			if (decl != null && associatedDeclarationNamePattern.matcher(decl.name()).matches())
-				return true;
-			return false;
+			if (decl == null || !associatedDeclarationNamePattern.matcher(decl.name()).matches())
+				return false;
 		}
 		if (code != null)
 			try {
-				if (!eq(Boolean.TRUE, code.invoke(code.new FunctionInvocation(new Object[] {element}, code.script(), this))))
+				final Object codeResult = code.invoke(code.new FunctionInvocation(new Object[] {element}, code.script(), this));
+				if (!eq(Boolean.TRUE, codeResult))
 					return false;
 			} catch (final Exception e) {
 				//System.out.println(e.getMessage());

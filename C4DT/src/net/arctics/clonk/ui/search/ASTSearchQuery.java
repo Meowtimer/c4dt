@@ -28,11 +28,11 @@ import org.eclipse.jface.text.IRegion;
 
 public class ASTSearchQuery extends SearchQuery {
 
-	public static class Match extends SearchMatch {
+	public class Match extends SearchMatch {
 		private final Map<String, Object> subst;
 		public Map<String, Object> subst() { return subst; }
 		public Match(final String line, final int lineOffset, final Object element, final ASTNode matched, final Map<String, Object> subst) {
-			super(line, lineOffset, element, matched, false, false);
+			super(line, lineOffset, element, matched, false, false, spanWholeNodes);
 			this.subst = subst;
 		}
 	}
@@ -65,16 +65,18 @@ public class ASTSearchQuery extends SearchQuery {
 	private final ASTNode replacement;
 	private final Collection<Structure> scope;
 	private final Map<Structure, BufferedScanner> scanners = new HashMap<>();
+	private final boolean spanWholeNodes;
 
 	public ASTNode replacement() { return replacement; }
 	public ASTNode template() { return template; }
 
-	public ASTSearchQuery(final String templateExpressionText, final String replacementExpressionText, final Collection<Structure> scope) throws ProblemException {
+	public ASTSearchQuery(final String templateExpressionText, final String replacementExpressionText, final Collection<Structure> scope, final boolean spanWholeNodes) throws ProblemException {
 		final Standalone stal = new Standalone(scope);
 		this.templateText = templateExpressionText;
 		this.template = ASTNodeMatcher.prepareForMatching(stal.parse(templateExpressionText));
 		this.replacement = replacementExpressionText != null ? ASTNodeMatcher.prepareForMatching(stal.parse(replacementExpressionText)) : null;
 		this.scope = scope;
+		this.spanWholeNodes = spanWholeNodes;
 	}
 
 	@Override

@@ -265,15 +265,16 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
+		Object leftEv = value(leftSide().evaluate(context));
 		switch (operator()) {
 		case Or:
-			if (eq(Boolean.TRUE, value(leftSide().evaluate(context))))
+			if (eq(Boolean.TRUE, leftEv))
 				return true;
 			if (eq(Boolean.TRUE, value(rightSide().evaluate(context))))
 				return true;
 			return false;
 		case And:
-			if (!eq(Boolean.TRUE, value(leftSide().evaluate(context))))
+			if (!eq(Boolean.TRUE, leftEv))
 				return false;
 			if (!eq(Boolean.TRUE, value(rightSide().evaluate(context))))
 				return false;

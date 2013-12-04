@@ -213,7 +213,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		templateText.selectAll();
 	}
 
-	private ASTSearchQuery newQuery() {
+	private ASTSearchQuery newQuery(final boolean spanWholeNodes) {
 		final ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
 		final ISelection sel = selectionService.getSelection();
 		final Set<Structure> scope = new HashSet<Structure>();
@@ -284,7 +284,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 			return null;
 		}
 		try {
-			return new ASTSearchQuery(templateText.getText(), replacementText.getText(), scope);
+			return new ASTSearchQuery(templateText.getText(), replacementText.getText(), scope, spanWholeNodes);
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 			MessageDialog.openError(this.getShell(), e.parser().bufferSequence(0).toString(), e.getMessage());
@@ -295,14 +295,14 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 	@Override
 	public boolean performAction() {
 		addRecent();
-		NewSearchUI.runQueryInBackground(newQuery());
+		NewSearchUI.runQueryInBackground(newQuery(true));
 		return true;
 	}
 
 	@Override
 	public boolean performReplace() {
 		addRecent();
-		final ASTSearchQuery query = newQuery();
+		final ASTSearchQuery query = newQuery(false);
 		final IStatus status= NewSearchUI.runQueryInForeground(container.getRunnableContext(), query);
 		if (status.matches(IStatus.CANCEL))
 			return false;

@@ -80,7 +80,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 			if (node instanceof Function) {
 				final Function fn = (Function) node;
 				if (related(fn))
-					result.addMatch(context, fn, false, true);
+					result.addIdentifierMatch(context, fn, false, true);
 			}
 			if (node instanceof AccessDeclaration) {
 				final AccessDeclaration accessDeclExpr = (AccessDeclaration) node;
@@ -88,26 +88,26 @@ public class ReferencesSearchQuery extends SearchQuery {
 				if (dec != null)
 					dec = dec.latestVersion();
 				if (dec == declaration || (dec instanceof ProxyVar && ((ProxyVar)dec).definition() == declaration))
-					result.addMatch(context, node, false, accessDeclExpr.indirectAccess());
+					result.addIdentifierMatch(context, node, false, accessDeclExpr.indirectAccess());
 				else if (
 					dec instanceof Function && declaration instanceof Function &&
 					related((Function)dec)
 				)
-					result.addMatch(context, node, false, true);
+					result.addIdentifierMatch(context, node, false, true);
 				else if (potentiallyReferencedByObjectCall(node)) {
 					final Function otherFunc = (Function) accessDeclExpr.declaration();
 					final boolean potential = (otherFunc == null || !((Function)declaration).isRelatedFunction(otherFunc));
-					result.addMatch(context, node, potential, accessDeclExpr.indirectAccess());
+					result.addIdentifierMatch(context, node, potential, accessDeclExpr.indirectAccess());
 				}
 			}
 			else if (node instanceof IDLiteral && declaration instanceof Definition) {
 				if (context.index().definitionNearestTo(context.file(), ((IDLiteral)node).idValue()) == declaration)
-					result.addMatch(context, node, false, false);
+					result.addIdentifierMatch(context, node, false, false);
 			}
 			else if (node instanceof StringLiteral) {
 				final EntityRegion decRegion = node.entityAt(0, this);
 				if (decRegion != null && decRegion.entityAs(Declaration.class) == declaration)
-					result.addMatch(context, node, true, true);
+					result.addIdentifierMatch(context, node, true, true);
 			}
 			return TraversalContinuation.Continue;
 		}
@@ -126,7 +126,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 				if (declaration instanceof Definition) {
 					final Directive include = script.directiveIncludingDefinition((Definition) declaration);
 					if (include != null)
-						result.addMatch(script, include, false, false);
+						result.addIdentifierMatch(script, include, false, false);
 				}
 				for (final Function f : script.functions())
 					f.traverse(this, script);
