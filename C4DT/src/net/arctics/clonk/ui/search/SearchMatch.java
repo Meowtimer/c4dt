@@ -6,6 +6,7 @@ import java.lang.ref.WeakReference;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.c4script.ast.CallDeclaration;
 
 import org.eclipse.search.ui.text.Match;
 
@@ -21,8 +22,14 @@ public class SearchMatch extends Match {
 	public int lineOffset() { return lineOffset; }
 	public boolean isPotential() { return potential; }
 	public boolean isIndirect() { return indirect; }
+	private static int nodeStart(final ASTNode node) {
+		return node instanceof CallDeclaration ? node.start() : node.identifierStart();
+	}
+	private static int nodeLength(final ASTNode node) {
+		return node instanceof CallDeclaration ? node.getLength() : node.identifierLength();
+	}
 	public SearchMatch(final String line, final int lineOffset, final Object element, final ASTNode node, final boolean potential, final boolean indirect) {
-		super(element, node.sectionOffset()+node.identifierStart(), node.identifierLength());
+		super(element, node.sectionOffset()+nodeStart(node), nodeLength(node));
 		this.node = new WeakReference<>(node);
 		this.line = defaulting(line, "...");
 		this.lineOffset = lineOffset;
