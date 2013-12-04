@@ -43,12 +43,12 @@ public class Standalone {
 		for (final Structure s : scripts) {
 			if (engine == null)
 				engine = s.engine();
-			else if (engine != s.engine())
-				throw new IllegalArgumentException("Scripts from different engines");
+			else if (s.engine() != null && engine != s.engine())
+				throw new IllegalArgumentException("Structures from different engines");
 			if (typing == null)
 				typing = s.typing();
 			else if (typing != s.typing())
-				throw new IllegalArgumentException("Scripts have different typing modes");
+				throw new IllegalArgumentException("Structures have different typing modes");
 			indices.addAll(s.index().relevantIndexes());
 		}
 		this.engine = engine;
