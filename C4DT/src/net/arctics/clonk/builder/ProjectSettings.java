@@ -84,12 +84,12 @@ public class ProjectSettings extends SettingsBase {
 
 	private Collection<ProblemReportingStrategyInfo> _problemReportingStrategies;
 
-	public synchronized Collection<ProblemReportingStrategyInfo> problemReportingStrategies() {
+	public Collection<ProblemReportingStrategyInfo> problemReportingStrategies() {
 		if (_problemReportingStrategies == null) {
+			final Collection<ProblemReportingStrategyInfo> strats = new ArrayList<ProblemReportingStrategyInfo>();
 			if (problemReportingStrategies != null && problemReportingStrategies.length() > 0) {
 				final Matcher strategyRefMatcher = Pattern.compile("(.*?)(\\[(.*?)\\])?").matcher("");
 				final String[] classNames = problemReportingStrategies.split(",");
-				_problemReportingStrategies = new ArrayList<ProblemReportingStrategyInfo>();
 				for (int i = 0; i < classNames.length; i++) {
 					final String strategyRef = classNames[i];
 					if (strategyRefMatcher.reset(strategyRef).matches()) {
@@ -99,17 +99,17 @@ public class ProjectSettings extends SettingsBase {
 							@SuppressWarnings("unchecked")
 							final Class<? extends ProblemReportingStrategy> cls = (Class<? extends ProblemReportingStrategy>) ProblemReportingStrategy.class.getClassLoader().loadClass(Core.id(className));
 							if (ProblemReportingStrategy.class.isAssignableFrom(cls))
-								_problemReportingStrategies.add(new ProblemReportingStrategyInfo(cls, args));
+								strats.add(new ProblemReportingStrategyInfo(cls, args));
 						} catch (final ClassNotFoundException e) {
 							e.printStackTrace();
 							continue;
 						}
 					}
 				}
-			} else
-				_problemReportingStrategies = new ArrayList<ProblemReportingStrategyInfo>();
-			if (_problemReportingStrategies.size() == 0)
-				_problemReportingStrategies.add(new ProblemReportingStrategyInfo(DabbleInference.class, ""));
+			}
+			if (strats.isEmpty())
+				strats.add(new ProblemReportingStrategyInfo(DabbleInference.class, ""));
+			return _problemReportingStrategies = strats;
 		}
 		return _problemReportingStrategies;
 	}

@@ -358,11 +358,13 @@ public class ClonkProjectNature implements IProjectNature {
 		else
 			return null;
 	}
+	
+	private static final List<ProblemReportingStrategy> NULL_PROBLEM_REPORTERS = Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
 
 	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(final int requiredCapabilities) {
 		try {
 			if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
-				return Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
+				return NULL_PROBLEM_REPORTERS;
 			final Collection<ProblemReportingStrategyInfo> classes = settings().problemReportingStrategies();
 			final List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
 			for (final ProblemReportingStrategyInfo c : classes) {
