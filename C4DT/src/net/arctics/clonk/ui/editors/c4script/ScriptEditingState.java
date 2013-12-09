@@ -32,7 +32,6 @@ import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.FunctionFragmentParser;
 import net.arctics.clonk.c4script.ProblemReporter;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Variable;
@@ -754,17 +753,16 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			final boolean change = fparser.update();
 			if (change || (observer != null && typingContextVisitInAnyCase))
 				for (final ProblemReportingStrategy s : problemReportingStrategies())
-					if ((s.capabilities() & Capabilities.TYPING) != 0)
-						s.steer(new Runnable() {
-							@Override
-							public void run() {
-								s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
-								s.setObserver(observer);
-								s.run();
-								s.apply();
-								s.run2();
-							}
-						});
+					s.steer(new Runnable() {
+						@Override
+						public void run() {
+							s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
+							s.setObserver(observer);
+							s.run();
+							s.apply();
+							s.run2();
+						}
+					});
 			return fparser;
 		}
 	}
