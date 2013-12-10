@@ -60,6 +60,7 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.ui.editors.DeclarationProposal;
+import net.arctics.clonk.ui.editors.PrimitiveTypeProposal;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.util.UI;
@@ -489,11 +490,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		case STATIC:
 			for (final Index ndx : site.index.relevantIndexes())
 				proposalsForIndexedDefinitions(site, ndx);
-			final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 			for (final PrimitiveType t : PrimitiveType.values())
 				if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ERRONEOUS && site.index.engine().supportsPrimitiveType(t)) {
-					final DeclarationProposal prop = new DeclarationProposal(null, null, t.scriptName(), site.offset, site.prefix != null ? site.prefix.length() : 0 , t.scriptName().length(),
-						keywordImg , t.scriptName(), null, null, Messages.C4ScriptCompletionProcessor_Engine, site);
+					final DeclarationProposal prop = new PrimitiveTypeProposal(site, t);
 					prop.setCategory(cats.Keywords);
 					site.addProposal(prop);
 				}
