@@ -355,7 +355,7 @@ global func bool DoWealth(int player, int value);
 global func bool DrawDefMap(int x, int y, int width, int height, string map_name);
 global func bool DrawMap(int x, int y, int width, int height, string map);
 global func bool DrawMaterialQuad(string szMaterialTexture, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, bool sub);
-global func int DrawParticleLine(string particle, int x0, int y0, int x1, int y1, int prtdist, int a, int b0, int b1, int ydir);
+global func int DrawParticleLine(string particle, int x0, int y0, int x1, int y1, int prtdist, any xdir, any ydir, any lifetime, proplist properties);
 global func object EditCursor();
 global func any EffectCall(object target, proplist effect, string command);
 global func bool EliminatePlayer(int player);
