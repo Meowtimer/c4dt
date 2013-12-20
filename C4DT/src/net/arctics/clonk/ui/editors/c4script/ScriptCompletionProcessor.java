@@ -63,6 +63,7 @@ import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.PrimitiveTypeProposal;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;
@@ -588,16 +589,19 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	public static List<ICompletionProposal> computeProposalsForExpression
 		(final IDocument document, final Function function, final ASTNode expression) {
 		final List<ICompletionProposal> result = new LinkedList<ICompletionProposal>();
-		new ScriptEditingState(Core.instance().getPreferenceStore()).set(null, function.script(), document);
-		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(
-			new ScriptEditingState(Core.instance().getPreferenceStore())
-		);
+		final ScriptEditingState state = new ScriptEditingState(Core.instance().getPreferenceStore());
+		state.set(null, function.script(), document);
+		final ScriptCompletionProcessor processor = new ScriptCompletionProcessor(state);
 		final ProposalsSite site = new ProposalsSite(
 			null, expression != null ? expression.end() : 0,
 			0, document, "", result, function.index(), function, function.script(),
 			expression, expression.parent(Sequence.class), PrimitiveType.UNKNOWN
 		);
-		processor.innerProposalsInFunction(site);
+		try {
+			processor.innerProposalsInFunction(site);
+		} catch (final Exception e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 
