@@ -2,6 +2,7 @@ package net.arctics.clonk.c4script.typing.dabble;
 
 import static java.lang.String.format;
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.Utilities.any;
 
 import java.util.ArrayList;
@@ -153,6 +154,9 @@ class Plan {
 		this.linear = linear();
 		this.total = linear.length;
 		determineDependencies();
+		if (DEBUG)
+			for (final Visit v : linear)
+				System.out.println(format("%s: %s", v, blockString("", "", ", ", v.dependencies)));
 		//transferEdges();
 		findRoots();
 	}
@@ -182,7 +186,7 @@ class Plan {
 				result[num++] = v;
 		return result;
 	}
-	
+
 	private final Object edgeLock = new Object();
 
 	private void addEdge(final Visit dependency, final Visit dependent) {
