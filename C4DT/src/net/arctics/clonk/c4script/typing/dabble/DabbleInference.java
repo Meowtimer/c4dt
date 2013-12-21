@@ -149,6 +149,29 @@ public class DabbleInference extends ProblemReportingStrategy {
 	final Map<Script, Input> input = new HashMap<>();
 	Typing typing;
 
+	private Input script(final String script) {
+		for (final Input i : input.values())
+			if (i.script().qualifiedName().equals(script))
+				return i;
+		return null;
+	}
+
+	Visit visitFor(String identification) {
+		final String[] parts = identification.split("::");
+		if (parts.length != 2)
+			return null;
+		final String script = parts[0];
+		final String func = parts[1];
+		final Input input = script(script);
+		if (input != null) {
+			final Function fn = input.script().function(func);
+			if (fn != null)
+				return input.visits.get(fn);
+		}
+		return null;
+	}
+
+
 	Visit visitFor(final Function function, final Script script) {
 		if (function.body() == null)
 			return null;
@@ -1299,6 +1322,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 
 		public boolean judgment(final T node, final IType type, final ASTNode origin, final Visitor visitor, final TypingJudgementMode mode) {
+			if (DEBUG)
+				visitor.warning(visitor, Problem.TypingJudgment, node, node, Markers.NO_THROW, node.printed(), type.typeName(true));
 			final TypeVariable tyvar = requestTypeVariable(node, visitor);
 			if (tyvar != null) {
 				switch (mode) {
