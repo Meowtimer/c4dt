@@ -2310,7 +2310,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public Declaration typeEnvironmentKey(final CallDeclaration node, final Visitor visitor) {
-					return internalObtainDeclaration(node, visitor);
+					return null;
 				}
 				@Override
 				public boolean isModifiable(final CallDeclaration node, final Visitor visitor) {
@@ -2360,7 +2360,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public Declaration typeEnvironmentKey(final CallInherited node, final Visitor visitor) {
 					final Function f = node.parent(Function.class);
-					return f != null ? f.inheritedFunction() : null;
+					return f != null ? f.baseFunction() : null;
 				}
 			},
 
