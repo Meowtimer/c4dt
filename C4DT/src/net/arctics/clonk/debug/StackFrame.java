@@ -49,7 +49,7 @@ public class StackFrame extends DebugElement implements IStackFrame {
 				if (parm.isActualParm())
 					l.add(new DebugVariable(this, parm));
 			for (final Variable local : f.locals())
-				l.add(new DebugVariable(this, local));
+				l.add(new DebugVariable(StackFrame.this, local));
 			variables = l.toArray(new DebugVariable[l.size()]);
 		} else
 			variables = NO_VARIABLES;

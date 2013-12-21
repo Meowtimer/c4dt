@@ -12,7 +12,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -158,11 +157,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		this(null, scope, name);
 	}
 
-	/**
-	 * @return the localVars
-	 */
-	public List<Variable> locals() { return defaulting(locals, Collections.<Variable>emptyList()); }
-
 	public Variable addLocal(final Variable local) {
 		synchronized (parameters) {
 			if (locals == null)
@@ -201,6 +195,35 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		synchronized (parameters) {
 			return parameters.size();
 		}
+	}
+
+	private static final Variable[] NO_VARIABLES = new Variable[0];
+
+	public Variable[] locals() {
+		final List<Variable> locs = locals;
+		if (locs == null)
+			return NO_VARIABLES;
+		else
+			synchronized (parameters) {
+				return locs.toArray(new Variable[locs.size()]);
+			}
+	}
+
+	public int numLocals() {
+		final List<Variable> locs = locals;
+		return locs != null ? locs.size() : null;
+	}
+
+	public Variable local(String name) {
+		final List<Variable> locs = locals;
+		if (locs == null)
+			return null;
+		synchronized (parameters) {
+			for (final Variable v : locs)
+				if (v.name().equals(name))
+					return v;
+		}
+		return null;
 	}
 
 	/**
@@ -263,35 +286,33 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			this.args = args;
 			this.up = up;
 			this.context = context;
-			this.locals = new Object[locals().size()];
+			this.locals = new Object[numLocals()];
 		}
 		@Override
 		public IVariable variable(final AccessVar access, final Object obj) throws ControlFlowException {
+			final String aname = access.name();
 			if (access.predecessor() == null) {
 				int i = 0;
 				for (final Variable v : parameters) {
-					if (v.name().equals(access.name()))
+					if (v.name().equals(aname))
 						return new Constant(args[i]);
 					i++;
 				}
-				i = 0;
-				for (final Variable l : locals()) {
-					if (l.name().equals(access.name()))
-						return new Constant(locals[i]);
-					i++;
-				}
+				final Variable l = local(aname);
+				if (l != null)
+					return new Constant(locals[i]);
 			} else {
 				final Object self = value(access.predecessor().evaluate(this));
 				if (self == null)
 					throw new IllegalStateException(format("%s yields null result",
 						access.predecessor().parent(Sequence.class).subSequenceIncluding(access.predecessor()).printed()));
 				try {
-					return new Constant(self.getClass().getMethod(access.name()).invoke(self));
+					return new Constant(self.getClass().getMethod(aname).invoke(self));
 				} catch (final NoSuchMethodException n) {
 					try {
-						return new Constant(self.getClass().getField(access.name()).get(self));
+						return new Constant(self.getClass().getField(aname).get(self));
 					} catch (final NoSuchFieldException nf) {
-						if (self instanceof Object[] && access.name().equals("length"))
+						if (self instanceof Object[] && aname.equals("length"))
 							return new Constant(Array.getLength(self));
 					} catch (final Exception e) {
 						e.printStackTrace();
@@ -606,7 +627,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public Object[] subDeclarationsForOutline() { return locals().toArray(); }
+	public Object[] subDeclarationsForOutline() {
+		final List<Variable> l = locals;
+		return l != null ? l.toArray() : new Object[0];
+	}
 
 	/**
 	 * Create num generically named parameters (par1, par2, ...)

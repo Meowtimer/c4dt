@@ -63,7 +63,6 @@ import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.PrimitiveTypeProposal;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;

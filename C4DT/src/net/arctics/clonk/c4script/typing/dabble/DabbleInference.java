@@ -840,15 +840,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 					for (final Variable p : func.parameters())
 						if (!p.isUsed())
 							this.markers().warning(this, Problem.UnusedParameter, null, p, Markers.ABSOLUTE_MARKER_LOCATION, p.name());
-				if (func.locals() != null)
-					for (final Variable v : func.locals()) {
-						if (!v.isUsed())
-							createWarningAtDeclarationOfVariable(func.body(), v, Problem.Unused, v.name());
-						final Variable shadowed = script().findVariable(v.name());
-						// ignore those pesky static variables from scenario scripts
-						if (shadowed != null && !(shadowed.parentDeclaration() instanceof Scenario))
-							createWarningAtDeclarationOfVariable(func.body(), v, Problem.IdentShadowed, v.qualifiedName(), shadowed.qualifiedName());
-					}
+				for (final Variable v : func.locals()) {
+					if (!v.isUsed())
+						createWarningAtDeclarationOfVariable(func.body(), v, Problem.Unused, v.name());
+					final Variable shadowed = script().findVariable(v.name());
+					// ignore those pesky static variables from scenario scripts
+					if (shadowed != null && !(shadowed.parentDeclaration() instanceof Scenario))
+						createWarningAtDeclarationOfVariable(func.body(), v, Problem.IdentShadowed,
+							v.qualifiedName(), shadowed.qualifiedName());
+				}
 			}
 
 			private final void startRoaming() { roaming++; }
@@ -1689,7 +1689,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public boolean isModifiable(final VarInitializationAccess node, final Visitor visitor) { return true; /* sudo */ }
 			},
-			
+
 			new AccessVarExpert<TempAccessVar>(TempAccessVar.class) {
 				@Override
 				protected Declaration obtainDeclaration(final AccessVar node, final Visitor visitor) { return node.declaration(); }
@@ -2568,7 +2568,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().error(visitor, Problem.NotSupported, node, node, Markers.NO_THROW,
 							"",
 							visitor.script().engine().name());
-					
+
 					for (final Variable v : node.components())
 						if (v.initializationExpression() != null) {
 							visitor.visit(v.initializationExpression(), true);

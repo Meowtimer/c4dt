@@ -179,7 +179,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 							Variable.DEFAULT_VARIABLE_FACTORY,
 							node.parent(Function.class),
 							(String) nameEv, Scope.LOCAL, loc.start(), loc.end(), null
-							);
+						);
 						var.setLocation(processor.absoluteSourceLocationFromExpr(arguments[0]));
 						var.setScope(Scope.LOCAL);
 						// clone argument since the offset of the expression inside the func body is relative while
