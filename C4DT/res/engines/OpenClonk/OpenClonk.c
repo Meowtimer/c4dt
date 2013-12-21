@@ -318,8 +318,7 @@ global func object CreateConstruction(id object_id, int xoffset, int yoffset, in
 global func object CreateContents(id id, int count);
 global func bool CreateMenu(id symbol, object command_object, int extra, string caption, int extra_data, int style, bool permanent, id menu_id);
 global func object CreateObject(id id, int xoffset, int yoffset, int owner);
-global func bool CreateParticle(string szName, int x, int y, int xdir, int ydir, int a, int b, object target, bool behind_target);
-global func bool CreateParticleEx(string particle_name, int|array x, int|array y, int|array speed_x, int|array speed_y, int|array lifetime, proplist properties, int amount);
+global func bool CreateParticle(string name, int|array x, int|array y, int|array speedX, int|array speedY, int|array lifetime, proplist properties, int amount);
 global func array PV_Linear(any start_value, any end_value);
 global func array PV_Random(any start_value, any end_value, any reroll_interval);
 global func array PV_Direction(any factor);
