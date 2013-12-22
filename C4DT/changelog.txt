@@ -212,3 +212,14 @@ are then taken into account in various places
 1.8.9
 -OpenClonk: Debugging C4Scripts works with OpenClonk starting at git revision b6a01b62aaca66bf33a1a3671cc59c658766b80f
 -Bugs fixed, new bugs introduced
+1.9
+-OpenClonk: Adjustments to c4dt's list of engine declarations to keep false errors to a minimum (git revision b70b195e2453c00de182ec6c86f02da93c170749)
+-Type inference: Set return type of functions to void when they do not return anything
+-Preferences: Allow setting number of threads to use when doing various parallel
+computations (like performing a clean build or some such)
+-Questionable performance optimizations
+-Hover over identifier in script: Show type inferred for the respective declaration at that location
+-Script: Mark having a function reference with no brackets right to -> as error
+-Fix renaming wizard
+-Fix quick assist proposals
+-C4ScriptEditor: Toggle parameters shown action (can be invoked to hide the automatic parameter help)
