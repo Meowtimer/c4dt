@@ -37,6 +37,51 @@ import net.arctics.clonk.util.TaskExecution;
 @SuppressWarnings("serial")
 class Plan {
 
+	private final class CallerCalleeDependencyDetector extends Sink<ExecutorService> {
+		@Override
+		public void receivedObject(final ExecutorService item) {
+			for (final Input i : inference.input.values())
+				for (final Visit v : i.visits.values())
+					item.execute(new Runnable() {
+						@Override
+						public void run() {
+							final Function fn = v.function();
+							if (fn instanceof EffectFunction) {
+								final EffectFunction efn = (EffectFunction) fn;
+								final List<CallDeclaration> addEffectCalls = inference.index().callsTo("AddEffect");
+								if (addEffectCalls != null)
+									for (final CallDeclaration call : addEffectCalls) {
+										final ASTNode[] p = call.params();
+										if (p.length > 0 && p[0] instanceof StringLiteral && ((StringLiteral)p[0]).literal().equals(efn.effect().name())) {
+											final Function caller = call.parent(Function.class);
+											final List<Visit> callerVisits = visits.get(caller.name());
+											if (callerVisits != null)
+												for (final Visit callerVisit : callerVisits)
+													if (callerVisit.function == caller)
+														addEdge(callerVisit, v);
+										}
+									}
+							}
+							final int numParameters = fn.numParameters();
+							if (i.shouldTypeFromCalls(fn)) {
+								final List<CallDeclaration> calls = inference.index().callsTo(fn.name());
+								if (calls != null)
+									for (final CallDeclaration call : calls) {
+										if (call.params().length != numParameters)
+											continue;
+										final Function caller = call.parent(Function.class);
+										final List<Visit> callerVisits = visits.get(caller.name());
+										if (callerVisits != null)
+											for (final Visit callerVisit : callerVisits)
+												if (callerVisit.function == caller)
+													addEdge(callerVisit, v);
+									}
+							}
+						};
+					});
+		}
+	}
+
 	private final class VariableInitializationDependenciesVisitor implements IASTVisitor<Visit> {
 		@Override
 		public TraversalContinuation visitNode(final ASTNode node, final Visit v) {
@@ -222,60 +267,14 @@ class Plan {
 			break;
 		}
 
-		final IASTVisitor<Visit> resultUsedDependencyDetector = new ResultUsedDependencyDetector();
-		final IASTVisitor<Visit> variableInitializationsDependencyVisitor = new VariableInitializationDependenciesVisitor();
-
 		// callee -> caller if callee's result used
-		TaskExecution.threadPool(visitorRunnables(resultUsedDependencyDetector), 3);
+		TaskExecution.threadPool(visitorRunnables(new ResultUsedDependencyDetector()), 3);
 
 		// caller -> callee
-		TaskExecution.threadPool(new Sink<ExecutorService>() {
-			@Override
-			public void receivedObject(final ExecutorService item) {
-				for (final Input i : inference.input.values())
-					for (final Visit v : i.visits.values())
-						item.execute(new Runnable() {
-							@Override
-							public void run() {
-								final Function fn = v.function();
-								if (fn instanceof EffectFunction) {
-									final EffectFunction efn = (EffectFunction) fn;
-									final List<CallDeclaration> addEffectCalls = inference.index().callsTo("AddEffect");
-									if (addEffectCalls != null)
-										for (final CallDeclaration call : addEffectCalls) {
-											final ASTNode[] p = call.params();
-											if (p.length > 0 && p[0] instanceof StringLiteral && ((StringLiteral)p[0]).literal().equals(efn.effect().name())) {
-												final Function caller = call.parent(Function.class);
-												final List<Visit> callerVisits = visits.get(caller.name());
-												if (callerVisits != null)
-													for (final Visit callerVisit : callerVisits)
-														if (callerVisit.function == caller)
-															addEdge(callerVisit, v);
-											}
-										}
-								}
-								final int numParameters = fn.numParameters();
-								if (i.shouldTypeFromCalls(fn)) {
-									final List<CallDeclaration> calls = inference.index().callsTo(fn.name());
-									if (calls != null)
-										for (final CallDeclaration call : calls) {
-											if (call.params().length != numParameters)
-												continue;
-											final Function caller = call.parent(Function.class);
-											final List<Visit> callerVisits = visits.get(caller.name());
-											if (callerVisits != null)
-												for (final Visit callerVisit : callerVisits)
-													if (callerVisit.function == caller)
-														addEdge(callerVisit, v);
-										}
-								}
-							};
-						});
-			}
-		}, 3, total);
+		TaskExecution.threadPool(new CallerCalleeDependencyDetector(), 3, total);
 
 		// functions containing initialization of used variable -> variable user
-		TaskExecution.threadPool(visitorRunnables(variableInitializationsDependencyVisitor), 3);
+		TaskExecution.threadPool(visitorRunnables(new VariableInitializationDependenciesVisitor()), 3);
 	}
 
 	private void findRoots() {
