@@ -211,7 +211,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	public int numLocals() {
 		final List<Variable> locs = locals;
-		return locs != null ? locs.size() : null;
+		return locs != null ? locs.size() : 0;
 	}
 
 	public Variable local(String name) {
