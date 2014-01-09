@@ -806,6 +806,8 @@ global func bool Resize(int new_wdt, int new_hgt);
 global func bool FindPosition(proplist out_pos, any mask_spec);
 global func array CreateMatTexMask(any mask_spec);
 
+global func bool FileWrite(int handle, string data);
+
 static const object Global;
 
 static const int ATTACH_Front;
