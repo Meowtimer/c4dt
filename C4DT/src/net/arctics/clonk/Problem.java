@@ -97,7 +97,8 @@ public enum Problem {
 	FunctionRefAfterArrow(Messages.FunctionRefAfterArrow),
 	FunctionCallAfterDot(Messages.FunctionCallAfterDot),
 	GlobalFunctionInAppendTo(Messages.GlobalFunctionInAppendTo),
-	NoopAssignment(Messages.NoopAssignment);
+	NoopAssignment(Messages.NoopAssignment),
+	EmptyBody(Messages.EmptyBody);
 
 	private String message;
 	private String[] formatArgumentDescriptions;
