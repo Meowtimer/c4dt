@@ -12,8 +12,10 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.util.ArrayUtil;
 
 public class Effect extends ProplistDeclaration {
 
@@ -21,11 +23,24 @@ public class Effect extends ProplistDeclaration {
 
 	private final Map<String, EffectFunction> functions = new HashMap<String, EffectFunction>();
 
+	private static final Map<String, IType> engineDefinedProperties = ArrayUtil.map(false,
+		"CommandTarget", PrimitiveType.OBJECT,
+		"Interval", PrimitiveType.INT,
+		"Priority", PrimitiveType.INT,
+		"Name", PrimitiveType.STRING,
+		"Time", PrimitiveType.INT
+	);
+
 	public Effect(final String name, final Iterable<EffectFunction> functions) {
 		super(new ArrayList<Variable>(5));
 		setName(name);
 		for (final EffectFunction f : functions)
 			addFunction(f);
+		for (final Map.Entry<String, IType> e : engineDefinedProperties.entrySet()) {
+			final Variable v = new Variable(e.getKey(), e.getValue());
+			v.setScope(Scope.VAR);
+			addComponent(v, false);
+		}
 	}
 
 	public Map<String, EffectFunction> functions() {
