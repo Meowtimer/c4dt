@@ -91,11 +91,8 @@ public class Command {
 	}
 
 	private static class NativeCommandFunction extends Function {
-
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
 		private final transient Method method;
-
 		@Override
 		public Object invoke(final IEvaluationContext context) {
 			try {
@@ -108,12 +105,10 @@ public class Command {
 				return null;
 			}
 		}
-
 		public NativeCommandFunction(final Script parent, final Method method) {
 			super(parent, FunctionScope.PUBLIC, method.getName());
 			this.method = method;
 		}
-
 	}
 
 	public static void addCommand(final Script script, final Method method) {

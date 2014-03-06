@@ -358,8 +358,8 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public static boolean runsHeadless() { return runsHeadless; }
 
 	public static void headlessInitialize(final String engineConfigurationFolder, final String engine) {
-		runsHeadless = true;
 		if (instance == null) {
+			runsHeadless = true;
 			instance = new Core();
 			instance.engineConfigurationFolder = engineConfigurationFolder;
 			instance.setActiveEngineByName(engine);

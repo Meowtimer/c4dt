@@ -1,16 +1,22 @@
 package net.arctics.clonk;
 
 import java.io.File;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.Stack;
 
+import net.arctics.clonk.c4script.Function.FunctionInvocation;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.command.Command;
+import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.StreamUtil;
+
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
@@ -20,8 +26,12 @@ import org.eclipse.equinox.app.IApplicationContext;
  * @author madeen
  *
  */
-public class CLI implements IApplication {
-
+public class CLI implements IApplication, AutoCloseable {
+	{
+		Command.registerCommandsFromClass(Command.BASE, CLI.class);
+	}
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface Callable {}
 	public static void main(final String[] args) throws Exception {
 		try {
 			new CLI().run(args);
@@ -31,10 +41,11 @@ public class CLI implements IApplication {
 			System.exit(0);
 		}
 	}
-
 	public String engine;
 	public String engineConfigurationRoot;
-
+	private final Scanner input = new Scanner(System.in);
+	@Override
+	public void close() throws Exception { input.close(); }
 	private int parseOptions(final String[] args) {
 		readSettingsFromHome();
 		for (int i = 0; i < args.length; i++) {
@@ -59,7 +70,6 @@ public class CLI implements IApplication {
 		}
 		return args.length;
 	}
-
 	private void readSettingsFromHome() {
 		final File settingsFile = new File(new File(System.getenv().get("HOME")), ".c4dt");
 		if (settingsFile.exists()) {
@@ -76,7 +86,6 @@ public class CLI implements IApplication {
 			}
 		}
 	}
-
 	/**
 	 * Main entry point. Will interpret arguments of the form --<option>=<value> as assignment to the instance field <option>
 	 * and the rest of the arguments as <method> <parameters...>
@@ -90,7 +99,7 @@ public class CLI implements IApplication {
 			throw new IllegalArgumentException("Missing command");
 		final String methodName = args[methodIndex];
 		for (final Method method : getClass().getMethods())
-			if (method.getName().equals(methodName))
+			if (method.getName().equals(methodName) && method.getAnnotation(Callable.class) != null)
 				try {
 					initialize();
 					method.invoke(this, (Object[])Arrays.copyOfRange(args, methodIndex+1, args.length));
@@ -99,40 +108,67 @@ public class CLI implements IApplication {
 					throw e;
 				} catch (final Exception e) {
 					e.printStackTrace();
-					// fallthrough to invalid command
 				}
 		throw new IllegalArgumentException(String.format("Invalid command: '%s'", methodName));
 	}
-
 	private void initialize() {
 		if (engine == null || engineConfigurationRoot == null)
 			throw new IllegalArgumentException("--engine and --engineConfigurationRoot command required");
 		Core.headlessInitialize(engineConfigurationRoot, engine);
 	}
-
+	private class DoneToken implements AutoCloseable {
+		public DoneToken() { doneTokens.push(this); }
+		public boolean done = false;
+		@Override
+		public void close() {
+			if (doneTokens.peek() != this)
+				throw new UnsupportedOperationException();
+			else
+				doneTokens.pop();
+		}
+	}
+	private final Stack<DoneToken> doneTokens = new Stack<>();
+	@CommandFunction
+	public static void exit(FunctionInvocation context) {
+		((CLI)context.self()).exit();
+	}
+	@Callable
+	public void exit() {
+		doneTokens.peek().done = true;
+	}
 	/**
 	 * repl interface using c4script expressions
 	 */
+	@Callable
 	public void repl() {
-		final boolean done = false;
-		final Scanner scanner = new Scanner(System.in);
-		try {
-			while (!done) {
-				final String command = scanner.nextLine();
+		try (final DoneToken done = new DoneToken()) {
+			while (!done.done) {
+				final String command = input.nextLine();
 				final ExecutableScript script = Command.executableScriptFromCommand(command);
 				if (script != null) try {
-					final Object result = script.main().invoke(script.main().new FunctionInvocation(new Object[0], null, null));
+					final Object result = script.main().invoke(script.main().new FunctionInvocation(new Object[0], null, this));
 					if (result != null)
 						System.out.println(result.toString());
 				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 			}
-		} finally {
-			scanner.close();
 		}
 	}
-
+	@Callable
+	public void interactive() {
+		try (final DoneToken done = new DoneToken()) {
+			while (!done.done) {
+				final String command = input.nextLine();
+				try {
+					run(command.split("\\s"));
+				} catch (final Exception e) {
+					System.err.println(e.getMessage());
+				}
+			}
+		}
+	}
+	@Callable
 	public void verifyScript(final String fileName) {
 		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -147,7 +183,7 @@ public class CLI implements IApplication {
 			e.printStackTrace();
 		}
 	}
-
+	@Callable
 	public void printAST(final String fileName) throws ProblemException {
 		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -159,14 +195,15 @@ public class CLI implements IApplication {
 		parser.parse();
 		System.out.println(parser.script().printed());
 	}
-
+	@Callable
+	public void help(String on) {
+		System.out.println("I dunno");
+	}
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
 		main(new String[0]);
 		return null;
 	}
-
 	@Override
 	public void stop() {}
-
 }

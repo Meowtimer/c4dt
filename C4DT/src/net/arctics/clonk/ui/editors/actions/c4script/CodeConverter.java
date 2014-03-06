@@ -40,18 +40,15 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 
 public abstract class CodeConverter {
-
 	public interface ICodeConverterContext {
 		String defineFunctionLocalVariable(String name);
 	}
-
 	private ASTNode codeFor(final Declaration declaration) {
 		if (declaration instanceof IHasCode)
 			return ((IHasCode)declaration).code();
 		else
 			return declaration;
 	}
-
 	public void runOnDocument(
 		final Script script,
 		final IDocument document
@@ -98,13 +95,10 @@ public abstract class CodeConverter {
 			}
 		}
 	}
-
 	protected abstract ASTNode performConversion(ASTNode expression, Declaration declaration, CodeConverter.ICodeConverterContext cookie);
-
 	private static boolean superflousBetweenFuncHeaderAndBody(final char c) {
 		return c == '\t' || c == ' ' || c == '\n' || c == '\r';
 	}
-
 	private void convertCode(final IDocument document, final TextChange textChange, final Declaration codeOwner, final ASTNode code) throws BadLocationException, CloneNotSupportedException {
 		final IRegion region = code.absolute();
 		int oldStart = region.getOffset();
@@ -154,5 +148,4 @@ public abstract class CodeConverter {
 			throw malformed;
 		}
 	}
-
 }
