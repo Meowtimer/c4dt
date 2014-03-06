@@ -42,7 +42,7 @@ import org.eclipse.text.edits.ReplaceEdit;
 public abstract class CodeConverter {
 
 	public interface ICodeConverterContext {
-		String var(String name);
+		String defineFunctionLocalVariable(String name);
 	}
 
 	private ASTNode codeFor(final Declaration declaration) {
@@ -125,7 +125,7 @@ public abstract class CodeConverter {
 		final class CodeConverterContext implements ICodeConverterContext {
 			private final Map<String, VarInitialization> addedVars = new HashMap<>(3);
 			@Override
-			public String var(final String name) {
+			public String defineFunctionLocalVariable(final String name) {
 				if (function != null && function.findVariable(name) == null && addedVars.get(name) == null) {
 					final Variable var = new Variable(name, PrimitiveType.ANY);
 					addedVars.put(name, new VarInitialization(name, null, 0, 0, var, null));

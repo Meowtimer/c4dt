@@ -94,7 +94,7 @@ public class MatchingPlaceholder extends Placeholder {
 		@CommandFunction
 		public static String EnforceLocal(final IEvaluationContext context, final String name) {
 			if (context.self() instanceof CodeConverter.ICodeConverterContext)
-				return ((CodeConverter.ICodeConverterContext)context.self()).var(name);
+				return ((CodeConverter.ICodeConverterContext)context.self()).defineFunctionLocalVariable(name);
 			else
 				return null;
 		}
