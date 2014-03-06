@@ -5,21 +5,13 @@ import static java.lang.System.out;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.io.InputStream;
-import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.ITransformer;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.ast.AccessVar;
-import net.arctics.clonk.c4script.ast.IDLiteral;
-import net.arctics.clonk.c4script.ast.Tidy;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
-import net.arctics.clonk.index.ProjectConversionConfiguration.CodeTransformation;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
 import net.arctics.clonk.util.StringUtil;
 
@@ -54,6 +46,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		this.sourceProject = ClonkProjectNature.get(sourceProject);
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
 		this.configuration = destinationEngine().projectConversionConfigurationForEngine(sourceEngine());
+		this.codeConverter = new TransformationsBasedCodeConverter(configuration);
 		assert(sourceEngine() != destinationEngine());
 	}
 	private IPath convertPath(final IPath path) {
@@ -113,44 +106,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		}
 		return true;
 	}
-	private final CodeConverter codeConverter = new CodeConverter() {
-		@Override
-		protected ASTNode performConversion(final ASTNode expression, final Declaration declaration, final ICodeConverterContext context) {
-			if (configuration == null)
-				return expression;
-			ASTNode node = (ASTNode)(new ITransformer() {
-				@Override
-				public Object transform(final ASTNode prev, final Object prevT, ASTNode expression) {
-					if (expression == null)
-						return null;
-					if (expression instanceof IDLiteral || (expression instanceof AccessVar && (((AccessVar)expression).proxiedDefinition()) != null)) {
-						final String mapped = configuration.idMap().get(expression.toString());
-						if (mapped != null)
-							return new AccessVar(mapped);
-					}
-					expression = expression.transformSubElements(this);
-					for (final ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
-						boolean success = false;
-						for (CodeTransformation c = ct; c != null; c = c.chain()) {
-							final Map<String, Object> matched = c.template().match(expression);
-							if (matched != null) {
-								expression = c.transformation().transform(matched, context);
-								success = true;
-							}
-						}
-						if (success)
-							break;
-					}
-					return expression;
-				}
-			}).transform(null, null, expression);
-			if (node != null)
-				try {
-					node = new Tidy(declaration.topLevelStructure(), 2).tidyExhaustive(node);
-				} catch (final CloneNotSupportedException e) {}
-			return node;
-		}
-	};
+	private final CodeConverter codeConverter;
 	private boolean skipResource(final IResource sourceResource) {
 		return sourceResource.getName().equals(".project");
 	}
