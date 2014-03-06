@@ -37,6 +37,8 @@ public enum PrimitiveType implements IType {
 			switch (correspondingToInstance(value)) {
 			case INT:
 				return ((Number)value).intValue() != 0;
+			case BOOL:
+				return Boolean.TRUE.equals(value);
 			default:
 				return null;
 			}

@@ -72,6 +72,7 @@ import net.arctics.clonk.c4script.ast.CastExpression;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.ConditionalStatement;
 import net.arctics.clonk.c4script.ast.ContinueStatement;
+import net.arctics.clonk.c4script.ast.EmptyStatement;
 import net.arctics.clonk.c4script.ast.FloatLiteral;
 import net.arctics.clonk.c4script.ast.ForStatement;
 import net.arctics.clonk.c4script.ast.FunctionBody;
@@ -1681,6 +1682,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final ASTNode condition = node.condition();
 				if (node.body() == null || condition == null || !(node instanceof ILoop))
 					return;
+				if (node.body() instanceof EmptyStatement && !condition.hasSideEffects())
+					visitor.markers().warning(visitor, Problem.EmptyBody, node.body(), node.body(), Markers.NO_THROW, condition);
 				final Object condEv = PrimitiveType.BOOL.convert(condition == null ? true : condition.evaluateStatic(node.parent(Function.class)));
 				if (Boolean.FALSE.equals(condEv))
 					visitor.markers().warning(visitor, Problem.ConditionAlwaysFalse, condition, condition, Markers.NO_THROW, condition);
