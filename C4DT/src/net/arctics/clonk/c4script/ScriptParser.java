@@ -234,6 +234,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		filterLocalTypeAnnotations();
 		script().setTypeAnnotations(typeAnnotations);
 	}
+	
 	private void filterLocalTypeAnnotations() {
 		if (typeAnnotations == null)
 			return;
@@ -982,15 +983,17 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			final Comment parameterCommentPost = parseComment();
 			eat(WHITESPACE_CHARS);
 			if (parm != null) {
-				final StringBuilder commentBuilder = new StringBuilder(30);
-				if (parameterCommentPre != null)
-					commentBuilder.append(parameterCommentPre.text());
-				if (parameterCommentPost != null) {
+				if (parameterCommentPre != null || parameterCommentPost != null) {
+					final StringBuilder commentBuilder = new StringBuilder(30);
 					if (parameterCommentPre != null)
-						commentBuilder.append("\n"); //$NON-NLS-1$
-					commentBuilder.append(parameterCommentPost.text());
+						commentBuilder.append(parameterCommentPre.text());
+					if (parameterCommentPost != null) {
+						if (parameterCommentPre != null)
+							commentBuilder.append("\n"); //$NON-NLS-1$
+						commentBuilder.append(parameterCommentPost.text());
+					}
+					parm.setUserDescription(commentBuilder.toString());
 				}
-				parm.setUserDescription(commentBuilder.toString());
 			} else if (parmExpected)
 				error(Problem.NameExpected, this.offset, offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
 			parmExpected = false;
@@ -1304,7 +1307,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			final int elmStart = this.offset;
 
 			// operator always ends a sequence without operators
-			if (parseOperator() != null) {// || fReader.readWord().equals(Keywords.In)) {
+			if (parseOperator() != null) {
 				this.seek(elmStart);
 				break;
 			}
@@ -1317,8 +1320,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 			// hex number
 			if (elm == null && (number = parseHexNumber()) != null)
-				//				if (parsedNumber < Integer.MIN_VALUE || parsedNumber > Integer.MAX_VALUE)
-				//					warningWithCode(ErrorCode.OutOfIntRange, elmStart, fReader.getPosition(), String.valueOf(parsedNumber));
 				elm = new IntegerLiteral(number.longValue(), true);
 
 			// id
@@ -2600,7 +2601,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return The {@link Statement}, or a {@link BunchOfStatements} if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
 	 * @throws ProblemException
 	 */
-	public <T> ASTNode parseStandaloneStatement(final String statementText, final Function function) throws ProblemException {
+	public ASTNode parseStandaloneStatement(final String statementText, final Function function) throws ProblemException {
 		init(statementText);
 		setCurrentFunction(function);
 		markers().enableError(Problem.NotFinished, false);
@@ -2616,7 +2617,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			else
 				break;
 		} while (true);
-		//reportProblemsOf(statements, true);
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
 	}
 

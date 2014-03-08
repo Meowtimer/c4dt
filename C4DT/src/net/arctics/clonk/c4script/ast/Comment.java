@@ -313,4 +313,16 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	
 	@Override
 	public Comment clone() { return (Comment)super.clone(); }
+	
+	public static void printUserDescription(ASTNodePrinter output, int depth, String desc, boolean lineBreak) {
+		if (desc != null) {
+			if (!lineBreak)
+				output.append(' ');
+			final String trimmed = " " + desc.trim() + " ";
+			new Comment(trimmed, trimmed.contains("\n"), false).print(output, depth);
+			if (lineBreak)
+				output.append('\n');
+		}
+	}
+	
 }

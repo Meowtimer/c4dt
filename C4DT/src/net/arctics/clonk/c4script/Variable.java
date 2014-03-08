@@ -12,6 +12,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.typing.IType;
@@ -94,7 +95,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public Variable(final String name, final Scope scope) {
 		this(name);
 		this.scope = scope;
-		description = ""; //$NON-NLS-1$
 		type = PrimitiveType.UNKNOWN;
 	}
 
@@ -194,7 +194,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	/**
 	 * The scope of a variable
 	 * @author ZokRadonh
-	 *
 	 */
 	public enum Scope implements Serializable {
 		STATIC,
@@ -328,7 +327,13 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		output.append(scope().toKeyword());
 		output.append(" "); //$NON-NLS-1$
 		output.append(name());
+		final ASTNode init = initializationExpression();
+		if (init != null) {
+			output.append(" = ");
+			init.print(output, depth);
+		}
 		output.append(";"); //$NON-NLS-1$
+		Comment.printUserDescription(output, depth, userDescription(), false);
 	}
 
 	@Override
