@@ -5,11 +5,14 @@ import static java.lang.System.out;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
@@ -32,11 +35,28 @@ import org.eclipse.jface.text.IDocument;
  *
  */
 public class ProjectConverter implements IResourceVisitor, Runnable {
+	
+	class DefinitionConversion implements Runnable {
+		final IFolder origin;
+		final IFolder target;
+		final Definition definition;
+		public DefinitionConversion(IFolder origin, IFolder target, Definition definition) {
+			super();
+			this.origin = origin;
+			this.target = target;
+			this.definition = definition;
+		}
+		@Override
+		public void run() {
+		}
+	}
+	
 	private final ClonkProjectNature sourceProject, destinationProject;
-	private IProgressMonitor monitor;
 	private final ProjectConversionConfiguration configuration;
 	private Engine sourceEngine() { return sourceProject.index().engine(); }
 	private Engine destinationEngine() { return destinationProject.index().engine(); }
+	private IProgressMonitor monitor;
+	private final List<DefinitionConversion> folderConversions = new LinkedList<>();
 	/**
 	 * Create a new converter by specifying source and destination.
 	 * @param sourceProject Source project
@@ -64,6 +84,8 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public void run() {
 		try {
 			sourceProject.getProject().accept(this);
+			for (final DefinitionConversion fconv : folderConversions)
+				fconv.run();
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
@@ -80,13 +102,13 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	 * By letting this converter visit the source project the actual conversion is performed.
 	 */
 	@Override
-	public boolean visit(final IResource other) throws CoreException {
-		if (other instanceof IProject || skipResource(other))
+	public boolean visit(final IResource origin) throws CoreException {
+		if (origin instanceof IProject || skipResource(origin))
 			return true;
 		//System.out.println(format("Copying %s", other.getFullPath()));
-		final IPath path = convertPath(other.getProjectRelativePath());
-		if (other instanceof IFile) {
-			final IFile sourceFile = (IFile) other;
+		final IPath path = convertPath(origin.getProjectRelativePath());
+		if (origin instanceof IFile) {
+			final IFile sourceFile = (IFile) origin;
 			final IFile file = destinationProject.getProject().getFile(path);
 			try (InputStream contents = sourceFile.getContents()) {
 				if (file.exists())
@@ -96,15 +118,23 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				//file.setCharset(sourceFile.getCharset(), monitor);
 				convertFileContents(sourceFile, file);
 			} catch (final Exception e) {
-				out.println(format("Failed to convert contents of %s: %s", other.getFullPath(), e.getMessage()));
+				out.println(format("Failed to convert contents of %s: %s", origin.getFullPath(), e.getMessage()));
 				e.printStackTrace();
 			}
-		} else if (other instanceof IFolder) {
+			return true;
+		} else if (origin instanceof IFolder) {
 			final IFolder container = destinationProject.getProject().getFolder(path);
 			if (!container.exists())
 				container.create(true, true, monitor);
-		}
-		return true;
+			final Definition def = Definition.at(container);
+			if (def != null) {
+				folderConversions.add(new DefinitionConversion((IFolder) origin, container, def));
+				return true;
+			}
+			else
+				return true;
+		} else
+			return false;
 	}
 	private final CodeConverter codeConverter;
 	private boolean skipResource(final IResource sourceResource) {
@@ -116,13 +146,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
 				@Override
 				public Object run(final IDocument document) {
-					//final SelfContainedScript s = new SelfContainedScript(sourceScript.name(), document.get(), sourceScript.index());
-					// passing the original script here, be careful about modifying it
 					codeConverter.runOnDocument(sourceScript, document);
-					/*if (script instanceof Definition) {
-						Definition def = (Definition) script;
-						//ActMapUnit unit = (ActMapUnit) Structure.pinned(def.definitionFolder().findMember("ActMap.txt"), true, false);
-					}*/
 					return null;
 				}
 			}, true);
