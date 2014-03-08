@@ -15,6 +15,7 @@ import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.runtime.Platform;
@@ -102,7 +103,10 @@ public class CLI implements IApplication, AutoCloseable {
 			if (method.getName().equals(methodName) && method.getAnnotation(Callable.class) != null)
 				try {
 					initialize();
-					method.invoke(this, (Object[])Arrays.copyOfRange(args, methodIndex+1, args.length));
+					method.invoke(this, ArrayUtil.concat(
+						(Object[])Arrays.copyOfRange(args, methodIndex+1, args.length),
+						new Object[method.getParameterTypes().length-(args.length-(methodIndex+1))])
+					);
 					return;
 				} catch (final IllegalArgumentException e) {
 					throw e;
@@ -183,9 +187,13 @@ public class CLI implements IApplication, AutoCloseable {
 			e.printStackTrace();
 		}
 	}
+	private static String readFile() {
+		return StreamUtil.stringFromInputStream(System.in);
+	}
 	@Callable
 	public void printAST(final String fileName) throws ProblemException {
-		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
+		final String scriptText = fileName != null ? StreamUtil.stringFromFile(new File(fileName)) : readFile();
+		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, scriptText, new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public Engine engine() {
