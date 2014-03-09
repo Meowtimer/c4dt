@@ -36,10 +36,10 @@ public class CLI implements IApplication, AutoCloseable {
 	public static void main(final String[] args) throws Exception {
 		try {
 			new CLI().run(args);
-			System.exit(2);
+			System.exit(0);
 		} catch (final Exception e) {
 			System.out.println(e.getMessage());
-			System.exit(0);
+			System.exit(2);
 		}
 	}
 	public String engine;
@@ -162,7 +162,7 @@ public class CLI implements IApplication, AutoCloseable {
 	@Callable
 	public void interactive() {
 		try (final DoneToken done = new DoneToken()) {
-			while (!done.done) {
+			while (!done.done && input.hasNextLine()) {
 				final String command = input.nextLine();
 				try {
 					run(command.split("\\s"));
@@ -209,8 +209,13 @@ public class CLI implements IApplication, AutoCloseable {
 	}
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
-		main(new String[0]);
-		return null;
+		try {
+			run(null);
+		} catch (final Exception e) {
+			e.printStackTrace();
+			return 2;
+		}
+		return EXIT_OK;
 	}
 	@Override
 	public void stop() {}
