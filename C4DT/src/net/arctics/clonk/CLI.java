@@ -8,16 +8,31 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Stack;
 
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.builder.ProjectSettings;
 import net.arctics.clonk.c4script.Function.FunctionInvocation;
 import net.arctics.clonk.c4script.ScriptParser;
+import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.ExecutableScript;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.Index.Built;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StreamUtil;
 
+import org.eclipse.core.resources.ICommand;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
@@ -206,6 +221,53 @@ public class CLI implements IApplication, AutoCloseable {
 	@Callable
 	public void help(String on) {
 		System.out.println("I dunno");
+	}
+	@Callable
+	public void setupWorkspace(String ocRepo, String crFolder) {
+		try {
+			final NullProgressMonitor npm = new NullProgressMonitor();
+			if (ocRepo != null) {
+				
+				IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription("OpenClonk");
+				desc.setLocation(new Path(ocRepo).append("planet"));
+				desc.setNatureIds(new String[0]);
+				desc.setBuildSpec(new ICommand[0]);
+				
+				final IProject oc = ResourcesPlugin.getWorkspace().getRoot().getProject("OpenClonk");
+				if (oc.exists())
+					oc.delete(false, true, npm);
+				oc.create(desc, npm);
+				oc.open(null);
+				oc.refreshLocal(IResource.DEPTH_INFINITE, npm);
+				
+				desc = oc.getDescription();
+				desc.setNatureIds(new String[] {Core.NATURE_ID});
+				final ICommand command = desc.newCommand();
+				command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
+				desc.setBuildSpec(new ICommand[] {command});
+				oc.setDescription(desc, npm);				
+
+				final ClonkProjectNature nature = ClonkProjectNature.get(oc);
+				nature.forceIndexRecreation().built(Built.LeaveAlone);
+				final ProjectSettings settings = nature.settings();
+				settings.engineName = "OpenClonk";
+				settings.typing = Typing.INFERRED;
+				nature.saveSettings();
+				oc.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
+				oc.build(IncrementalProjectBuilder.FULL_BUILD, npm);
+				nature.index().allDefinitions(new Sink<Definition>() {
+					@Override
+					public void receivedObject(Definition item) {
+						System.out.println(item.name());
+					}
+				});
+			}
+			if (crFolder != null) {
+				
+			}
+		} catch (final CoreException e) {
+			e.printStackTrace();
+		}
 	}
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
