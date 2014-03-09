@@ -2,14 +2,18 @@ package net.arctics.clonk.builder;
 
 import static java.lang.String.format;
 import static java.lang.System.out;
+import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Core.IDocumentAction;
+import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
@@ -26,6 +30,7 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.text.IDocument;
 
@@ -48,6 +53,42 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		}
 		@Override
 		public void run() {
+			try {
+				final NullProgressMonitor npm = new NullProgressMonitor();
+				class FileConversion {
+					final Structure original;
+					final IFile target;
+					Structure converted;
+					public FileConversion(Structure original, IFile target) {
+						super();
+						this.original = original;
+						this.target = target;
+					}
+					void convert() {
+						converted = as(codeConverter.convert(original, original), Structure.class);
+					}
+					void write() throws CoreException {
+						final String convString = converted.printed();
+						target.setContents(new ByteArrayInputStream(convString.getBytes()), true, true, npm);
+					}
+				}
+				final List<FileConversion> conversions = new ArrayList<>();
+				for (final IResource res : origin.members(IResource.FILE)) {
+					final IFile file = (IFile)res;
+					final Structure struct = Structure.pinned(file, false, false);
+					if (struct != null) {
+						final IFile target = this.target.getFile(file.getName());
+						if (target.exists())
+							conversions.add(new FileConversion(struct, target));
+					}
+				}
+				for (final FileConversion c : conversions)
+					c.convert();
+				for (final FileConversion c : conversions)
+					c.write();
+			} catch (final CoreException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -115,8 +156,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					file.setContents(contents, true, true, monitor);
 				else
 					file.create(contents, true, monitor);
-				//file.setCharset(sourceFile.getCharset(), monitor);
-				convertFileContents(sourceFile, file);
+				//convertFileContents(sourceFile, file);
 			} catch (final Exception e) {
 				out.println(format("Failed to convert contents of %s: %s", origin.getFullPath(), e.getMessage()));
 				e.printStackTrace();
@@ -127,12 +167,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			if (!container.exists())
 				container.create(true, true, monitor);
 			final Definition def = Definition.at(container);
-			if (def != null) {
+			if (def != null)
 				folderConversions.add(new DefinitionConversion((IFolder) origin, container, def));
-				return true;
-			}
-			else
-				return true;
+			return true;
 		} else
 			return false;
 	}

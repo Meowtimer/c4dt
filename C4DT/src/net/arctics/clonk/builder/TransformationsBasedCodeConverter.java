@@ -18,7 +18,7 @@ public final class TransformationsBasedCodeConverter extends CodeConverter {
 		this.configuration = configuration;
 	}
 	@Override
-	protected ASTNode performConversion(final ASTNode expression, final Declaration declaration, final ICodeConverterContext context) {
+	public ASTNode performConversion(final ASTNode expression, final Declaration declaration, final ICodeConverterContext context) {
 		if (configuration == null)
 			return expression;
 		ASTNode node = (ASTNode)(new ITransformer() {
