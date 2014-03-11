@@ -4,6 +4,8 @@ import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Stack;
@@ -11,6 +13,7 @@ import java.util.Stack;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectSettings;
+import net.arctics.clonk.c4group.C4GroupFileSystem;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionInvocation;
 import net.arctics.clonk.c4script.Script;
@@ -28,6 +31,7 @@ import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.ICommand;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -246,48 +250,103 @@ public class CLI implements IApplication, AutoCloseable {
 	public void help(String on) {
 		System.out.println("I dunno");
 	}
-	private IProject oc;
+	private IProject oc, cr;
 	@Callable
 	public void setupWorkspace(String ocRepo, String crFolder) {
 		try {
-			final NullProgressMonitor npm = new NullProgressMonitor();
-			if (ocRepo != null) {
-				
-				IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription("OpenClonk");
-				desc.setLocation(new Path(ocRepo).append("planet"));
-				desc.setNatureIds(new String[0]);
-				desc.setBuildSpec(new ICommand[0]);
-				
-				oc = ResourcesPlugin.getWorkspace().getRoot().getProject("OpenClonk");
-				if (oc.exists())
-					oc.delete(false, true, npm);
-				oc.create(desc, npm);
-				oc.open(npm);
-				oc.refreshLocal(IResource.DEPTH_INFINITE, npm);
-				
-				desc = oc.getDescription();
-				desc.setNatureIds(new String[] {Core.NATURE_ID});
-				final ICommand command = desc.newCommand();
-				command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
-				desc.setBuildSpec(new ICommand[] {command});
-				oc.setDescription(desc, npm);				
+			if (ocRepo != null)
+				setupOCProject(ocRepo);
+			if (crFolder != null)
+				setupCRProject(crFolder);
+		} catch (final CoreException e) { e.printStackTrace(); }
+		System.out.println("Set up workspace");
+	}
+	@Callable
+	public void setupCRProject(String crFolder) throws CoreException {
+		final NullProgressMonitor npm = new NullProgressMonitor();
+		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription("OpenClonk");
+		desc.setNatureIds(new String[0]);
+		desc.setBuildSpec(new ICommand[0]);
 
-				final ClonkProjectNature nature = ClonkProjectNature.get(oc);
-				nature.forceIndexRecreation().built(Built.LeaveAlone);
-				final ProjectSettings settings = nature.settings();
-				settings.engineName = "OpenClonk";
-				settings.typing = Typing.INFERRED;
-				nature.saveSettings();
-				oc.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
-				oc.build(IncrementalProjectBuilder.FULL_BUILD, npm);
-			}
-			if (crFolder != null) {
-				
-			}
+		cr = ResourcesPlugin.getWorkspace().getRoot().getProject("ClonkRage");
+		if (cr.exists())
+			cr.delete(true, true, npm);
+		cr.create(desc, npm);
+		cr.open(npm);
+		final String[] packs = new String[] {
+			"Objects.c4d",
+			"System.c4g",
+			"Fantasy.c4d",
+			"FarWorlds.c4d",
+			"Graphics.c4g",
+			"Knights.c4d",
+			"Material.c4g",
+			"MetalMagic.c4d",
+			"Music.c4g",
+			"Sound.c4g",
+			"Western.c4d",
+		};
+		Arrays.stream(packs).forEach(p -> link(cr, crFolder, p, npm));
+		cr.refreshLocal(IResource.DEPTH_INFINITE, npm);
+
+		desc = cr.getDescription();
+		desc.setNatureIds(new String[] {Core.NATURE_ID});
+		final ICommand command = desc.newCommand();
+		command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
+		desc.setBuildSpec(new ICommand[] {command});
+		cr.setDescription(desc, npm);
+
+		final ClonkProjectNature nature = ClonkProjectNature.get(cr);
+		nature.forceIndexRecreation().built(Built.LeaveAlone);
+		final ProjectSettings settings = nature.settings();
+		settings.engineName = "OpenClonk";
+		settings.typing = Typing.INFERRED;
+		nature.saveSettings();
+		cr.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
+		cr.build(IncrementalProjectBuilder.FULL_BUILD, npm);
+		ClonkProjectNature.get(cr).index().allDefinitions((Definition def) -> System.out.println(def.name()));
+	}
+	private void link(final IProject cr, String crFolder, String name, NullProgressMonitor npm) {
+		final IFolder linkedFolder = cr.getFolder(name);
+		try {
+			linkedFolder.createLink(new URI(C4GroupFileSystem.SCHEME, C4GroupFileSystem.replaceSpecialChars(
+				new File(crFolder, name).getAbsolutePath()), null), 0, npm);
+		} catch (final URISyntaxException e) {
+			e.printStackTrace();
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
-		System.out.println("Set up workspace");
+	}
+	@Callable
+	public void setupOCProject(String ocRepo) throws CoreException {
+		final NullProgressMonitor npm = new NullProgressMonitor();
+		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription("OpenClonk");
+		desc.setLocation(new Path(ocRepo).append("planet"));
+		desc.setNatureIds(new String[0]);
+		desc.setBuildSpec(new ICommand[0]);
+
+		oc = ResourcesPlugin.getWorkspace().getRoot().getProject("OpenClonk");
+		if (oc.exists())
+			oc.delete(false, true, npm);
+		oc.create(desc, npm);
+		oc.open(npm);
+		oc.refreshLocal(IResource.DEPTH_INFINITE, npm);
+
+		desc = oc.getDescription();
+		desc.setNatureIds(new String[] {Core.NATURE_ID});
+		final ICommand command = desc.newCommand();
+		command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
+		desc.setBuildSpec(new ICommand[] {command});
+		oc.setDescription(desc, npm);
+
+		final ClonkProjectNature nature = ClonkProjectNature.get(oc);
+		nature.forceIndexRecreation().built(Built.LeaveAlone);
+		final ProjectSettings settings = nature.settings();
+		settings.engineName = "OpenClonk";
+		settings.typing = Typing.INFERRED;
+		nature.saveSettings();
+		oc.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
+		oc.build(IncrementalProjectBuilder.FULL_BUILD, npm);
 	}
 	@Callable
 	public void linkFolderAsProject(String path, String projectName, String engineName) throws CoreException {
@@ -295,24 +354,26 @@ public class CLI implements IApplication, AutoCloseable {
 		final IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
 		if (proj.exists())
 			proj.delete(false, true, npm);
-		
+
 		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
 		desc.setLocation(new Path(path));
 		desc.setNatureIds(new String[0]);
 		desc.setBuildSpec(new ICommand[0]);
-		
+
 		proj.create(desc, npm);
 		proj.open(npm);
 		proj.refreshLocal(IResource.DEPTH_INFINITE, npm);
-		
+
 		desc = proj.getDescription();
 		desc.setNatureIds(new String[] {Core.NATURE_ID});
 		final ICommand command = desc.newCommand();
 		command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
 		desc.setBuildSpec(new ICommand[] {command});
-		desc.setReferencedProjects(new IProject[] {oc});
+		final IProject baseProj = engineName.equals("OpenClonk") ? oc : cr;
+		if (baseProj != null)
+			desc.setReferencedProjects(new IProject[] {baseProj});
 		proj.setDescription(desc, npm);
-		
+
 		final ClonkProjectNature nature = ClonkProjectNature.get(proj);
 		nature.forceIndexRecreation().built(Built.LeaveAlone);
 		final ProjectSettings settings = nature.settings();
@@ -321,7 +382,7 @@ public class CLI implements IApplication, AutoCloseable {
 		nature.saveSettings();
 		proj.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 		proj.build(IncrementalProjectBuilder.FULL_BUILD, npm);
-		
+
 		ClonkProjectNature.get(proj).index().allDefinitions(new Sink<Definition>() {
 			@Override
 			public void receivedObject(Definition item) {
