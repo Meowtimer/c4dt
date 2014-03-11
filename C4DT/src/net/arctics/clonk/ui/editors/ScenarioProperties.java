@@ -179,7 +179,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				private Object nudgedElement;
 				@Override
 				protected void setValue(final Object element, final Object value) {
-					class DefFinder extends Sink<Definition> {
+					class DefFinder implements Sink<Definition> {
 						public Definition found;
 						@Override
 						public void receivedObject(final Definition item) {

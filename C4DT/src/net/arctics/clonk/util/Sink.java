@@ -1,26 +1,27 @@
 package net.arctics.clonk.util;
 
-public abstract class Sink<T> {
+@FunctionalInterface
+public interface Sink<T> {
 	public enum Decision {
 		PurgeItem,
 		Continue,
 		AbortIteration
 	}
-	private Decision decision;
-	public final Decision elutriate(final T item) {
+	static ThreadLocal<Decision> decision = new ThreadLocal<>();
+	public default Decision elutriate(final T item) {
 		if (item == null)
 			return Decision.PurgeItem;
 		else if (filter(item)) {
-			decision = Decision.Continue;
+			decision.set(Decision.Continue);
 			receivedObject(item);
-			return decision;
+			return decision.get();
 		}
 		else
 			return Decision.Continue;
 	}
-	public final void decision(final Decision decision) {
-		this.decision = decision;
+	public default void decision(final Decision decision) {
+		Sink.decision.set(decision);
 	}
 	public abstract void receivedObject(T item);
-	public boolean filter(final T item) { return true; }
+	public default boolean filter(final T item) { return true; }
 }

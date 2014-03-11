@@ -21,7 +21,7 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 
 	public interface TopLevelEntity {}
 
-	public static abstract class LoadedEntitiesSink<T extends IndexEntity> extends Sink<T> {
+	public static abstract class LoadedEntitiesSink<T extends IndexEntity> implements Sink<T> {
 		@Override
 		public boolean filter(final T item) { return item.loaded == Loaded.Yes; }
 	}

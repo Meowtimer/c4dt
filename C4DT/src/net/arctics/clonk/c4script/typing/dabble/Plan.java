@@ -37,7 +37,7 @@ import net.arctics.clonk.util.TaskExecution;
 @SuppressWarnings("serial")
 class Plan {
 
-	private final class CallerCalleeDependencyDetector extends Sink<ExecutorService> {
+	private final class CallerCalleeDependencyDetector implements Sink<ExecutorService> {
 		@Override
 		public void receivedObject(final ExecutorService item) {
 			for (final Input i : inference.input.values())
