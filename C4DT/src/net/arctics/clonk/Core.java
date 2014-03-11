@@ -117,7 +117,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		/**
 		 * Provider used by the plugin to provide text of documents
 		 */
-		static final TextFileDocumentProvider provider = runsHeadless() ? null : new TextFileDocumentProvider();
+		static final TextFileDocumentProvider provider = new TextFileDocumentProvider();
 	}
 
 	private String engineConfigurationFolder;
@@ -538,11 +538,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	@Override
 	public IPreferenceStore getPreferenceStore() {
-		try {
-			return super.getPreferenceStore();
-		} catch (final NullPointerException npe) {
-			return null;
-		}
+		return super.getPreferenceStore();
 	}
 
 }

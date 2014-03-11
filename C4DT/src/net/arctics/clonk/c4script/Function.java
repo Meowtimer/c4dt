@@ -35,6 +35,7 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.ReturnException;
 import net.arctics.clonk.c4script.ast.evaluate.Constant;
@@ -432,7 +433,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 						: typing != null && typing.parameterTypes.length > i ? typing.parameterTypes[i] : par.type();
 					if (options.engineCompatible && !par.isActualParm())
 						return null;
-					final String comment = par.userDescription() != null && options.parameterComments ? ("/* " + par.userDescription() + "*/ ") : "";
+					final String comment = par.userDescription() != null && options.parameterComments ? ("/* " + par.userDescription().trim() + " */ ") : "";
 					final boolean includeType =
 						options.engineCompatible ? (type != PrimitiveType.ANY && type != PrimitiveType.UNKNOWN) :
 						Function.this.typing() != net.arctics.clonk.c4script.typing.Typing.DYNAMIC;
@@ -694,8 +695,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (!oldStyle) {
 			output.append("("); //$NON-NLS-1$
 			typing();
-			printParametersString(output, new PrintParametersOptions(script().typings().get(this), true,
-				typing() != net.arctics.clonk.c4script.typing.Typing.STATIC, false));
+			printParametersString(output, new PrintParametersOptions(
+				script().typings().get(this), true,
+				typing() != net.arctics.clonk.c4script.typing.Typing.STATIC, true
+			));
 			output.append(")"); //$NON-NLS-1$
 		}
 		else
@@ -957,6 +960,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
+		Comment.printUserDescription(output, depth, userDescription(), true);
 		printHeader(output);
 		if (body != null) {
 			Conf.blockPrelude(output, depth);

@@ -70,9 +70,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		final ASTNode[] clonedElms = ArrayUtil.map(subElements(), ASTNode.class, new IConverter<ASTNode, ASTNode>() {
 			@Override
 			public ASTNode convert(final ASTNode from) {
-				if (from == null)
-					return null;
-				return from.clone();
+				return from != null ? from.clone() : null;
 			}
 		});
 		clone.setSubElements(clonedElms);

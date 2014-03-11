@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.Flags;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
@@ -40,6 +41,7 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
@@ -192,7 +194,8 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			reportProblems(parsers, scripts);
 			markers.deploy();
 
-			new SaveScriptsJob(proj, scripts).schedule();
+			if (!Core.runsHeadless())
+				new SaveScriptsJob(proj, scripts).schedule();
 
 			performRequestedTypingMigration(proj, parsers);
 			return scripts;
@@ -319,7 +322,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void refreshUI(final Map<Script, ScriptParser> newEnqueued) {
-		Display.getDefault().asyncExec(new UIRefresher(newEnqueued.keySet().toArray(new Script[newEnqueued.keySet().size()])));
+		if (Core.runsHeadless())
+			return;
+		try {
+			Display.getDefault().asyncExec(new UIRefresher(newEnqueued.keySet().toArray(new Script[newEnqueued.keySet().size()])));
+		} catch (final SWTException swt) {
+			// ignore
+		}
 	}
 
 	private void reportProblems(final ScriptParser[] parsers, final Script[] scripts) {
@@ -338,19 +347,21 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 			});
 		try {
-			Display.getDefault().asyncExec(new UIRefresher(scripts));
-			Display.getDefault().syncExec(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
-						if (ed != null)
-							ed.state().refreshAfterBuild(markers);
-					} catch (final Exception e) {
+			if (!Core.runsHeadless()) {
+				Display.getDefault().asyncExec(new UIRefresher(scripts));
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
+							if (ed != null)
+								ed.state().refreshAfterBuild(markers);
+						} catch (final Exception e) {
 
+						}
 					}
-				}
-			});
+				});
+			}
 		} finally {
 			for (final ProblemReportingStrategy strategy : strats)
 				strategy.steer(new Runnable() {

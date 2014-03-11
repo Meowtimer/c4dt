@@ -43,7 +43,7 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 		return Core.instance().getPreferenceStore().getInt(prefName);
 	}
 
-	public static String languagePref() { return value(PREFERRED_LANGID); }
+	public static String languagePref() { return Core.instance() != null && Core.instance().getPreferenceStore() != null ? value(PREFERRED_LANGID) : PREFERRED_LANGID_DEFAULT; }
 
 	@Override
 	public void initializeDefaultPreferences() {

@@ -10,10 +10,10 @@ import java.util.Map;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
-import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.TempScript;
 import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
@@ -28,7 +28,6 @@ import net.arctics.clonk.util.StringUtil;
  *
  */
 public class ProjectConversionConfiguration {
-	
 	public class CodeTransformation {
 		private final ASTNode template;
 		private final ASTNode transformation;
@@ -62,15 +61,14 @@ public class ProjectConversionConfiguration {
 			return String.format("%s => %s", template.printed(), transformation.printed());
 		}
 	}
-	
 	private final List<CodeTransformation> transformations = new ArrayList<CodeTransformation>();
 	private final Map<String, String> idMap = new HashMap<String, String>();
 	private final Engine sourceEngine;
-	
 	public ProjectConversionConfiguration(final Engine sourceEngine) {
 		this.sourceEngine = sourceEngine;
 	}
-	
+	public Map<String, String> idMap() { return idMap; }
+	public List<CodeTransformation> transformations() { return transformations; }
 	private void addTransformationFromStatement(ASTNode stmt) {
 		try {
 			stmt = SimpleStatement.unwrap(stmt);
@@ -87,7 +85,6 @@ public class ProjectConversionConfiguration {
 			e.printStackTrace();
 		}
 	}
-	
 	public void load(final List<URL> files) {
 		URL codeTransformations = null;
 		URL idMap = null;
@@ -101,7 +98,6 @@ public class ProjectConversionConfiguration {
 		if (idMap != null)
 			loadIDMap(idMap);
 	}
-	
 	private void loadIDMap(final URL idMap) {
 		final String text = StreamUtil.stringFromURL(idMap);
 		if (text != null)
@@ -111,7 +107,6 @@ public class ProjectConversionConfiguration {
 					this.idMap.put(mapping[0], mapping[1]);
 			}
 	}
-
 	private void loadCodeTransformations(final URL transformationsFile) {
 		try {
 			String text = StreamUtil.stringFromURL(transformationsFile);
@@ -135,13 +130,5 @@ public class ProjectConversionConfiguration {
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public Map<String, String> idMap() {
-		return idMap;
-	}
-	
-	public List<CodeTransformation> transformations() {
-		return transformations;
 	}
 }

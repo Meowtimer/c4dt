@@ -36,7 +36,6 @@ import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
 import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.util.StringUtil;
 
@@ -93,10 +92,11 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		@CommandFunction
 		public static String EnforceLocal(final IEvaluationContext context, final String name) {
-			if (context.self() instanceof CodeConverter.ICodeConverterContext)
-				return ((CodeConverter.ICodeConverterContext)context.self()).var(name);
-			else
-				return null;
+			throw new Error("No");
+			//if (context.self() instanceof CodeConverter.ICodeConverterContext)
+			//	return ((CodeConverter.ICodeConverterContext)context.self()).defineFunctionLocalVariable(name);
+			//else
+			//	return null;
 		}
 		@CommandFunction
 		public static CallDeclaration Call(final IEvaluationContext context, final String name, final ASTNode[] params) {

@@ -1349,14 +1349,31 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return decs.toArray(new ASTNode[decs.size()]);
 	}
 
+	private static Class<? extends ASTNode> categoryClass(ASTNode node) {
+		if (node instanceof Function)
+			return Function.class;
+		else if (node instanceof Variable)
+			return Variable.class;
+		else if (node instanceof Directive)
+			return Directive.class;
+		else
+			return node.getClass();
+	}
+	
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
-		for (final ASTNode se : subElements())
-			if (se != null) {
-				if (se instanceof Function)
-					output.append("\n\n");
+		ASTNode prev = null;
+		for (final ASTNode se : subElements()) {
+			if (se != null && !(se instanceof SynthesizedFunction)) {
+				if (prev != null) {
+					output.append('\n');
+					if (prev instanceof Function || categoryClass(prev) != categoryClass(se))
+						output.append('\n');
+				}
 				se.print(output, depth);
 			}
+			prev = se;
+		}
 	}
 
 	public static IFile findScriptFile(final IContainer container) {

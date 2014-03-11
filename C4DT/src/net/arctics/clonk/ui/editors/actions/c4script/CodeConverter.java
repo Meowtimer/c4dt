@@ -1,10 +1,8 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,15 +14,14 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.ITransformer;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.IHasCode;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SynthesizedFunction;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.FunctionBody;
-import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 
@@ -40,18 +37,34 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 
 public abstract class CodeConverter {
-
 	public interface ICodeConverterContext {
-		String var(String name);
+		String defineFunctionLocalVariable(ASTNode location, String name);
 	}
-
+	public static final class CodeConverterContext implements ICodeConverterContext, ITransformer {
+		private final Map<String, VarInitialization> addedVars = new HashMap<>(3);
+		@Override
+		public String defineFunctionLocalVariable(ASTNode location, final String name) {
+			final Function function = location.parent(Function.class);
+			if (function != null && function.findVariable(name) == null && addedVars.get(name) == null) {
+				final Variable var = new Variable(name, PrimitiveType.ANY);
+				addedVars.put(name, new VarInitialization(name, null, 0, 0, var, null));
+			}
+			return name;
+		}
+		public ASTNode postProcess(ASTNode converted) {
+			return converted.transformRecursively(this);
+		}
+		@Override
+		public Object transform(ASTNode previousExpression, Object previousTransformationResult, ASTNode expression) {
+			if (expression instanceof FunctionBody) {
+				// bla bla
+			}
+			return expression;
+		}
+	}
 	private ASTNode codeFor(final Declaration declaration) {
-		if (declaration instanceof IHasCode)
-			return ((IHasCode)declaration).code();
-		else
-			return declaration;
+		return declaration instanceof IHasCode ? ((IHasCode)declaration).code() : declaration;
 	}
-
 	public void runOnDocument(
 		final Script script,
 		final IDocument document
@@ -66,9 +79,7 @@ public abstract class CodeConverter {
 			Collections.sort(decs, new Comparator<Declaration>() {
 				@Override
 				public int compare(final Declaration a, final Declaration b) {
-					final ASTNode codeA = codeFor(a);
-					final ASTNode codeB = codeFor(b);
-					return codeB.absolute().getOffset()-codeA.absolute().getOffset();
+					return codeFor(b).absolute().getOffset()-codeFor(a).absolute().getOffset();
 				}
 			});
 			for (final Declaration d : decs)
@@ -98,13 +109,10 @@ public abstract class CodeConverter {
 			}
 		}
 	}
-
-	protected abstract ASTNode performConversion(ASTNode expression, Declaration declaration, CodeConverter.ICodeConverterContext cookie);
-
+	public abstract ASTNode performConversion(ASTNode node, Declaration declaration, CodeConverter.ICodeConverterContext context);
 	private static boolean superflousBetweenFuncHeaderAndBody(final char c) {
 		return c == '\t' || c == ' ' || c == '\n' || c == '\r';
 	}
-
 	private void convertCode(final IDocument document, final TextChange textChange, final Declaration codeOwner, final ASTNode code) throws BadLocationException, CloneNotSupportedException {
 		final IRegion region = code.absolute();
 		int oldStart = region.getOffset();
@@ -122,28 +130,7 @@ public abstract class CodeConverter {
 		final Function function = as(codeOwner, Function.class);
 		if (function != null)
 			Conf.blockPrelude(newStringWriter, 0);
-		final class CodeConverterContext implements ICodeConverterContext {
-			private final Map<String, VarInitialization> addedVars = new HashMap<>(3);
-			@Override
-			public String var(final String name) {
-				if (function != null && function.findVariable(name) == null && addedVars.get(name) == null) {
-					final Variable var = new Variable(name, PrimitiveType.ANY);
-					addedVars.put(name, new VarInitialization(name, null, 0, 0, var, null));
-				}
-				return name;
-			}
-			public ASTNode postProcess(ASTNode converted) {
-				if (converted instanceof FunctionBody && addedVars.size() > 0)
-					converted = new FunctionBody(function, concat(
-						new VarDeclarationStatement(
-							Arrays.asList(addedVars.values().toArray(new VarInitialization[addedVars.size()])), Scope.VAR),
-						converted.subElements()));
-				return converted;
-			}
-		}
-		final CodeConverterContext ctx = new CodeConverterContext();
-		ASTNode conv = performConversion(code, codeOwner, ctx);
-		conv = ctx.postProcess(conv);
+		final ASTNode conv = convert(codeOwner, code);
 		conv.print(newStringWriter, 0);
 		final String newString = newStringWriter.toString();
 		if (!oldString.equals(newString)) try {
@@ -154,5 +141,10 @@ public abstract class CodeConverter {
 			throw malformed;
 		}
 	}
-
+	public ASTNode convert(final Declaration codeOwner, final ASTNode code) {
+		final CodeConverterContext ctx = new CodeConverterContext();
+		ASTNode conv = performConversion(code, codeOwner, ctx);
+		conv = ctx.postProcess(conv);
+		return conv;
+	}
 }

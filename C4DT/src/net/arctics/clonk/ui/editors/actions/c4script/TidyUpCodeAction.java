@@ -40,7 +40,7 @@ public class TidyUpCodeAction extends ClonkTextEditorAction {
 	public static CodeConverter converter() {
 		return new CodeConverter() {
 			@Override
-			protected ASTNode performConversion(final ASTNode expression, final Declaration declaration, final ICodeConverterContext context) {
+			public ASTNode performConversion(final ASTNode expression, final Declaration declaration, final ICodeConverterContext context) {
 				try {
 					return new Tidy(declaration.script(), declaration.script().strictLevel()).tidyExhaustive(expression);
 				} catch (final CloneNotSupportedException e) {
