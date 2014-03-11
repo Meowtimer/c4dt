@@ -11,11 +11,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group.GroupType;
-import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
@@ -32,7 +29,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.text.IDocument;
 
 /**
  * Converts projects for one engine into projects for another engine.
@@ -176,16 +172,5 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	private final CodeConverter codeConverter;
 	private boolean skipResource(final IResource sourceResource) {
 		return sourceResource.getName().equals(".project");
-	}
-	private void convertFileContents(final IFile sourceFile, final IFile destinationFile) throws CoreException {
-		final Script sourceScript = Script.get(sourceFile, true);
-		if (sourceScript != null)
-			Core.instance().performActionsOnFileDocument(destinationFile, new IDocumentAction<Object>() {
-				@Override
-				public Object run(final IDocument document) {
-					codeConverter.runOnDocument(sourceScript, document);
-					return null;
-				}
-			}, true);
 	}
 }

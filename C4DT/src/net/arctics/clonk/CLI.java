@@ -8,9 +8,12 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Stack;
 
+import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectSettings;
+import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionInvocation;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.command.Command;
@@ -43,9 +46,30 @@ import org.eclipse.equinox.app.IApplicationContext;
  *
  */
 public class CLI implements IApplication, AutoCloseable {
-	{
-		Command.registerCommandsFromClass(Command.BASE, CLI.class);
+	private static class CLIFunction<T> extends Function {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		private final transient Method method;
+		@Override
+		public Object invoke(final IEvaluationContext context) {
+			try {
+				return method.invoke(context.self(), context.arguments());
+			} catch (final Exception e) {
+				System.err.println(e.getMessage());
+				return null;
+			}
+		}
+		public CLIFunction(final Script parent, final Method method) {
+			super(parent, FunctionScope.PUBLIC, method.getName());
+			this.method = method;
+		}
+		public static <C> void register(Script script, Class<C> cls) {
+			Arrays.asList(cls.getMethods())
+				.stream()
+				.filter(m -> m.getAnnotation(Callable.class) != null)
+				.forEach(m -> script.addDeclaration(new CLIFunction<C>(script, m)));
+		}
 	}
+	{ CLIFunction.register(Command.BASE, CLI.class); }
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface Callable {}
 	public static void main(final String[] args) throws Exception {
@@ -222,6 +246,7 @@ public class CLI implements IApplication, AutoCloseable {
 	public void help(String on) {
 		System.out.println("I dunno");
 	}
+	private IProject oc;
 	@Callable
 	public void setupWorkspace(String ocRepo, String crFolder) {
 		try {
@@ -233,11 +258,11 @@ public class CLI implements IApplication, AutoCloseable {
 				desc.setNatureIds(new String[0]);
 				desc.setBuildSpec(new ICommand[0]);
 				
-				final IProject oc = ResourcesPlugin.getWorkspace().getRoot().getProject("OpenClonk");
+				oc = ResourcesPlugin.getWorkspace().getRoot().getProject("OpenClonk");
 				if (oc.exists())
 					oc.delete(false, true, npm);
 				oc.create(desc, npm);
-				oc.open(null);
+				oc.open(npm);
 				oc.refreshLocal(IResource.DEPTH_INFINITE, npm);
 				
 				desc = oc.getDescription();
@@ -255,12 +280,6 @@ public class CLI implements IApplication, AutoCloseable {
 				nature.saveSettings();
 				oc.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 				oc.build(IncrementalProjectBuilder.FULL_BUILD, npm);
-				nature.index().allDefinitions(new Sink<Definition>() {
-					@Override
-					public void receivedObject(Definition item) {
-						System.out.println(item.name());
-					}
-				});
 			}
 			if (crFolder != null) {
 				
@@ -268,6 +287,47 @@ public class CLI implements IApplication, AutoCloseable {
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
+		System.out.println("Set up workspace");
+	}
+	@Callable
+	public void linkFolderAsProject(String path, String projectName, String engineName) throws CoreException {
+		final NullProgressMonitor npm = new NullProgressMonitor();
+		final IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+		if (proj.exists())
+			proj.delete(false, true, npm);
+		
+		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
+		desc.setLocation(new Path(path));
+		desc.setNatureIds(new String[0]);
+		desc.setBuildSpec(new ICommand[0]);
+		
+		proj.create(desc, npm);
+		proj.open(npm);
+		proj.refreshLocal(IResource.DEPTH_INFINITE, npm);
+		
+		desc = proj.getDescription();
+		desc.setNatureIds(new String[] {Core.NATURE_ID});
+		final ICommand command = desc.newCommand();
+		command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
+		desc.setBuildSpec(new ICommand[] {command});
+		desc.setReferencedProjects(new IProject[] {oc});
+		proj.setDescription(desc, npm);
+		
+		final ClonkProjectNature nature = ClonkProjectNature.get(proj);
+		nature.forceIndexRecreation().built(Built.LeaveAlone);
+		final ProjectSettings settings = nature.settings();
+		settings.engineName = engineName;
+		settings.typing = Typing.INFERRED;
+		nature.saveSettings();
+		proj.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
+		proj.build(IncrementalProjectBuilder.FULL_BUILD, npm);
+		
+		ClonkProjectNature.get(proj).index().allDefinitions(new Sink<Definition>() {
+			@Override
+			public void receivedObject(Definition item) {
+				System.out.println(item.name());
+			}
+		});
 	}
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
