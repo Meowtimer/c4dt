@@ -178,12 +178,7 @@ public abstract class Declaration extends ASTNode implements
 		}
 		// then add all the scripts, because everything might potentially be accessed from everything
 		for (final Index index : indexes)
-			index.allScripts(new Sink<Script>() {
-				@Override
-				public void receivedObject(final Script item) {
-					result.add(item);
-				}
-			});
+			index.allScripts(item -> result.add(item));
 		return result.toArray();
 	}
 

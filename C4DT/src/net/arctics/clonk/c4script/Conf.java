@@ -7,7 +7,6 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.ast.BraceStyleType;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -106,10 +105,7 @@ public abstract class Conf {
 	 * @param blockEnd End of block (")", "]", ...)
 	 */
 	public static void printNodeList(final ASTNodePrinter output, final ASTNode[] params, final int depth, String blockStart, String blockEnd) {
-		final Iterable<String> parmStrings = map(iterable(params), new IConverter<ASTNode, String>() {
-			@Override
-			public String convert(final ASTNode from) { return from.printed(depth+(braceStyle==BraceStyleType.NewLine?1:0)).trim(); }
-		});
+		final Iterable<String> parmStrings = map(iterable(params), from -> from.printed(depth+(braceStyle==BraceStyleType.NewLine?1:0)).trim());
 		int len = 0;
 		for (final String ps : parmStrings)
 			len += ps.length();

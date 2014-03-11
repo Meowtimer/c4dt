@@ -55,7 +55,6 @@ import net.arctics.clonk.index.serialization.replacements.EntityId;
 import net.arctics.clonk.index.serialization.replacements.EntityReference;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.ConvertingIterable;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Sink.Decision;
@@ -91,12 +90,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public final Object saveSynchronizer() {return saveSynchronizer;}
 	public final Object loadSynchronizer() {return loadSynchronizer;}
 
-	private transient static final IPredicate<Declaration> IS_GLOBAL = new IPredicate<Declaration>() {
-		@Override
-		public boolean test(final Declaration item) {
-			return item.isGlobal();
-		}
-	};
+	private transient static final IPredicate<Declaration> IS_GLOBAL = item -> item.isGlobal();
 
 	private final Map<Long, IndexEntity> entities = new HashMap<Long, IndexEntity>();
 	private final Map<ID, List<Definition>> definitions = new HashMap<ID, List<Definition>>();
@@ -677,12 +671,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return An {@link Iterable} to iterate over this presumably large subset of all the {@link Definition}s managed by the index.
 	 */
 	public Iterable<Definition> definitionsIgnoringRemoteDuplicates(final IResource pivot) {
-		return new ConvertingIterable<List<Definition>, Definition>(new IConverter<List<Definition>, Definition>() {
-			@Override
-			public Definition convert(final List<Definition> from) {
-				return Utilities.pickNearest(from, pivot, null);
-			}
-		}, definitions.values());
+		return new ConvertingIterable<List<Definition>, Definition>(from -> Utilities.pickNearest(from, pivot, null), definitions.values());
 	}
 
 	/**
@@ -1061,15 +1050,12 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	public List<CallDeclaration> callsTo(final String functionName) {
 		final List<CallDeclaration> result = new ArrayList<>(10);
-		allScripts(new Sink<Script>() {
-			@Override
-			public void receivedObject(final Script item) {
-				final Map<String, List<CallDeclaration>> calls = item.callMap();
-				if (calls != null) synchronized (calls) {
-					final List<CallDeclaration> list = calls.get(functionName);
-					if (list != null)
-						result.addAll(list);
-				}
+		allScripts(item -> {
+			final Map<String, List<CallDeclaration>> calls = item.callMap();
+			if (calls != null) synchronized (calls) {
+				final List<CallDeclaration> list = calls.get(functionName);
+				if (list != null)
+					result.addAll(list);
 			}
 		});
 		return result.size() > 0 ? result : null;

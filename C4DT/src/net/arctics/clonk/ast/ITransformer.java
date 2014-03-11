@@ -16,12 +16,7 @@ public interface ITransformer {
 	/**
 	 * {@link IPredicate} filtering out references to {@link #REMOVE}.
 	 */
-	static final IPredicate<ASTNode> FILTER_REMOVE = new IPredicate<ASTNode>() {
-		@Override
-		public boolean test(final ASTNode item) {
-			return item != ITransformer.REMOVE;
-		}
-	};
+	static final IPredicate<ASTNode> FILTER_REMOVE = item -> item != ITransformer.REMOVE;
 	/**
 	 * Transform the passed expression. For various purposes some context is supplied as well so the transformer can
 	 * see the last expression it was passed and what it transformed it to.

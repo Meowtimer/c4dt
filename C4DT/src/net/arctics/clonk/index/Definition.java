@@ -475,12 +475,7 @@ public class Definition extends Script implements IProplistDeclaration {
 				@Override
 				public void propertyChange(final PropertyChangeEvent event) {
 					if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
-						final Sink<Definition> sink = new Sink<Definition>() {
-							@Override
-							public void receivedObject(final Definition item) {
-								item.chooseLocalizedName();
-							}
-						};
+						final Sink<Definition> sink = item -> item.chooseLocalizedName();
 						for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
 							ClonkProjectNature.get(proj).index().allDefinitions(sink);
 					}

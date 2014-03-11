@@ -7,7 +7,6 @@ import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.ui.navigator.LinkC4GroupFileHandler;
 import net.arctics.clonk.ui.navigator.QuickImportHandler;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
 
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
@@ -46,12 +45,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			// link and import
 			for (final String group : page.getGroupsToBeLinked())
 				LinkC4GroupFileHandler.linkC4GroupFile(proj, new File(group));
-			QuickImportHandler.importFiles(getShell(), proj, ArrayUtil.map(page.getGroupsToBeImported(), File.class, new IConverter<String, File>() {
-				@Override
-				public File convert(final String from) {
-					return new File(from);
-				}
-			}));
+			QuickImportHandler.importFiles(getShell(), proj, ArrayUtil.map(page.getGroupsToBeImported(), File.class, from -> new File(from)));
 
 			return true;
 		} catch (final CoreException e) {

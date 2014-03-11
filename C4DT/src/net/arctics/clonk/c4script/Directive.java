@@ -19,7 +19,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.Utilities;
 
 public class Directive extends Declaration implements Serializable, IPlaceholderPatternMatchTarget {
@@ -27,12 +26,7 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public static final Directive[] CANONICALS = map
-		(DirectiveType.values(), Directive.class, new IConverter<DirectiveType, Directive>() {
-		@Override
-		public Directive convert(final DirectiveType from) {
-			return new Directive(from, "", 0);
-		};
-	});
+		(DirectiveType.values(), Directive.class, from -> new Directive(from, "", 0));
 
 	public enum DirectiveType {
 		STRICT,

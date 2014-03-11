@@ -126,12 +126,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		return null;
 	}
 
-	private static IConverter<String, Pattern> CASEINSENSITIVE_PATTERNS_FROM_STRINGS = new IConverter<String, Pattern>() {
-		@Override
-		public Pattern convert(final String from) {
-			return StringUtil.patternFromRegExOrWildcard(from);
-		}
-	};
+	private static IConverter<String, Pattern> CASEINSENSITIVE_PATTERNS_FROM_STRINGS = from -> StringUtil.patternFromRegExOrWildcard(from);
 
 	@Override
 	protected ItemsFilter createFilter() { return new Filter(); }

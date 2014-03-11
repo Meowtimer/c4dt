@@ -7,8 +7,6 @@ import java.util.Iterator;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
 public class FunctionType implements IRefinedPrimitiveType {
@@ -28,10 +26,7 @@ public class FunctionType implements IRefinedPrimitiveType {
 			return PrimitiveType.FUNCTION.typeName(false);
 		final StringBuilder builder = new StringBuilder();
 		builder.append(PrimitiveType.FUNCTION.typeName(false));
-		StringUtil.writeBlock(builder, "(", ")", ", ", map(this.prototype.parameters(), new IConverter<Variable, String>() {
-			@Override
-			public String convert(final Variable from) { return from.type().typeName(false); }
-		}));
+		StringUtil.writeBlock(builder, "(", ")", ", ", map(this.prototype.parameters(), from -> from.type().typeName(false)));
 		return builder.toString();
 	}
 }

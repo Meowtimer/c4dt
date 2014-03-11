@@ -222,7 +222,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		if (resource instanceof IFile) {
 			final String ln = resource.getName().toLowerCase();
 			final IFile file = (IFile) resource;
-			if (Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent())) 
+			if (Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent()))
 				return new SystemScript(builder.index(), file);
 			else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
 				return new MapScript(builder.index(), file);

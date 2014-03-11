@@ -44,7 +44,6 @@ import net.arctics.clonk.index.XMLDocImporter.ExtractedDeclarationDocumentation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.EntityHyperlink;
 import net.arctics.clonk.util.SelfcontainedStorage;
-import net.arctics.clonk.util.Sink;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -215,12 +214,7 @@ public class Command {
 				return;
 			}
 			System.out.println("===Objects==="); //$NON-NLS-1$
-			index.allDefinitions(new Sink<Definition>() {
-				@Override
-				public void receivedObject(final Definition item) {
-					System.out.println(item.toString());
-				}
-			});
+			index.allDefinitions(item -> System.out.println(item.toString()));
 			System.out.println("===Scripts==="); //$NON-NLS-1$
 			for (final Script script : index.scripts())
 				System.out.println(script.toString());
@@ -241,15 +235,12 @@ public class Command {
 			final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 			final Map<Integer, Declaration> m = new HashMap<>();
 			if (nature != null)
-				nature.index().allScripts(new Sink<Script>() {
-					@Override
-					public void receivedObject(final Script item) {
-						System.out.println(item.toString());
-						for (final Declaration d : item.subDeclarations(nature.index(), DeclMask.ALL)) {
-							if (m.containsKey(d.hashCode()))
-								System.out.println(String.format("\tconflict:%d", d.hashCode()));
-							m.put(d.hashCode(), d);
-						}
+				nature.index().allScripts(item -> {
+					System.out.println(item.toString());
+					for (final Declaration d : item.subDeclarations(nature.index(), DeclMask.ALL)) {
+						if (m.containsKey(d.hashCode()))
+							System.out.println(String.format("\tconflict:%d", d.hashCode()));
+						m.put(d.hashCode(), d);
 					}
 				});
 		}
@@ -352,12 +343,7 @@ public class Command {
 		public static void AllDefinitions(final Object context, final String proj, final String format) {
 			final ClonkProjectNature cpn = ClonkProjectNature.get(proj);
 			final List<String> defs = new LinkedList<>();
-			cpn.index().allDefinitions(new Sink<Definition>() {
-				@Override
-				public void receivedObject(final Definition item) {
-					defs.add(String.format(format, item.id().stringValue()));
-				}
-			});
+			cpn.index().allDefinitions((Definition item) -> defs.add(String.format(format, item.id().stringValue())));
 			System.out.println(blockString("", "", ";", defs));
 		}
 	}

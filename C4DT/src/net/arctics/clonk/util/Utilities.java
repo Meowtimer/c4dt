@@ -312,12 +312,7 @@ public abstract class Utilities {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static final IConverter<Object, Class> INSTANCE_TO_CLASS_CONVERTER = new IConverter<Object, Class>() {
-		@Override
-		public Class convert(final Object from) {
-			return from.getClass();
-		}
-	};
+	public static final IConverter<Object, Class> INSTANCE_TO_CLASS_CONVERTER = from -> from.getClass();
 
 	public static <A, B> B as(final A obj, final Class<B> type) {
 		return type.isInstance(obj) ? type.cast(obj) : null;

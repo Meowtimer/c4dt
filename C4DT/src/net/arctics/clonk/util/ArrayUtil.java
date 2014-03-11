@@ -352,12 +352,7 @@ public class ArrayUtil {
 	}
 
 	public static <T> Sink<? super T> collectionSink(final Collection<? super T> collection) {
-		return new Sink<T>() {
-			@Override
-			public void receivedObject(final T item) {
-				collection.add(item);
-			}
-		};
+		return item -> collection.add(item);
 	}
 
 }

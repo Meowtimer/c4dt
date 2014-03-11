@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.search;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
@@ -17,7 +16,6 @@ import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.c4script.ast.Statement.Attachment;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -81,58 +79,55 @@ public class ASTSearchQuery extends SearchQuery {
 
 	@Override
 	protected IStatus doRun(final IProgressMonitor monitor) throws OperationCanceledException {
-		TaskExecution.threadPool(new Sink<ExecutorService>() {
-			@Override
-			public void receivedObject(final ExecutorService pool) {
-				class ScriptSearcher implements Runnable, IASTVisitor<Structure> {
-					private final Structure script;
-					private final Map<String, Match> matches = new HashMap<String, Match>();
-					public ScriptSearcher(final Structure script) {
-						if (script instanceof IndexEntity)
-							((IndexEntity)script).requireLoaded();
-						this.script = script;
-					}
-					@Override
-					public void run() {
-						if (monitor.isCanceled())
-							return;
-						try {
-							script.traverse(this, script);
-							commitMatches();
-						} catch (final Exception e) {
-							e.printStackTrace();
-						}
-					}
-					private void commitMatches() {
-						for (final Match m : matches.values())
-							result.addMatch(m);
-						matches.clear();
-					}
-					@Override
-					public TraversalContinuation visitNode(final ASTNode expression, final Structure script) {
-						if (monitor.isCanceled())
-							return TraversalContinuation.Cancel;
-						final Map<String, Object> subst = template.match(expression);
-						if (subst != null) {
-							final IRegion r = expression.absolute();
-							addMatch(expression, script, r.getOffset(), r.getLength(), subst);
-							return TraversalContinuation.SkipSubElements;
-						} else {
-							if (expression instanceof Statement) {
-								final Statement stmt = (Statement) expression;
-								if (stmt.attachments() != null)
-									for (final Attachment a : stmt.attachments())
-										if (a instanceof ASTNode)
-											visitNode((ASTNode)a, script);
-							}
-							return TraversalContinuation.Continue;
-						}
+		TaskExecution.threadPool(pool -> {
+			class ScriptSearcher implements Runnable, IASTVisitor<Structure> {
+				private final Structure script;
+				private final Map<String, Match> matches = new HashMap<String, Match>();
+				public ScriptSearcher(final Structure script) {
+					if (script instanceof IndexEntity)
+						((IndexEntity)script).requireLoaded();
+					this.script = script;
+				}
+				@Override
+				public void run() {
+					if (monitor.isCanceled())
+						return;
+					try {
+						script.traverse(this, script);
+						commitMatches();
+					} catch (final Exception e) {
+						e.printStackTrace();
 					}
 				}
-				for (final Structure s : scope)
-					if (s.file() != null)
-						pool.execute(new ScriptSearcher(s));
+				private void commitMatches() {
+					for (final Match m : matches.values())
+						result.addMatch(m);
+					matches.clear();
+				}
+				@Override
+				public TraversalContinuation visitNode(final ASTNode expression, final Structure script) {
+					if (monitor.isCanceled())
+						return TraversalContinuation.Cancel;
+					final Map<String, Object> subst = template.match(expression);
+					if (subst != null) {
+						final IRegion r = expression.absolute();
+						addMatch(expression, script, r.getOffset(), r.getLength(), subst);
+						return TraversalContinuation.SkipSubElements;
+					} else {
+						if (expression instanceof Statement) {
+							final Statement stmt = (Statement) expression;
+							if (stmt.attachments() != null)
+								for (final Attachment a : stmt.attachments())
+									if (a instanceof ASTNode)
+										visitNode((ASTNode)a, script);
+						}
+						return TraversalContinuation.Continue;
+					}
+				}
 			}
+			for (final Structure s : scope)
+				if (s.file() != null)
+					pool.execute(new ScriptSearcher(s));
 		}, 20, scope.size());
 		return new Status(IStatus.OK, Core.PLUGIN_ID, 0, "C4Script Search Success", null);
 	}

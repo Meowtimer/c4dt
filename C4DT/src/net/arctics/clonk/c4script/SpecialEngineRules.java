@@ -94,7 +94,7 @@ public abstract class SpecialEngineRules {
 	protected Engine engine;
 
 	private final ASTNode RETURN_TRUE;
-	
+
 	public SpecialEngineRules(final Engine engine) {
 		super();
 		this.engine = engine;
@@ -683,15 +683,12 @@ public abstract class SpecialEngineRules {
 						return new EntityRegion(scenFunc, lit.identifierRegion());
 				} else {
 					final List<Declaration> decs = new LinkedList<Declaration>();
-					index.forAllRelevantIndexes(new Sink<Index>() {
-						@Override
-						public void receivedObject(final Index index) {
-							for (final Scenario s : index.scenarios()) {
-								final Function f = s.findLocalFunction(lit.literal(), true);
-								if (f != null)
-									decs.add(f);
-							}
-						};
+					index.forAllRelevantIndexes(ndx -> {
+						for (final Scenario s : ndx.scenarios()) {
+							final Function f = s.findLocalFunction(lit.literal(), true);
+							if (f != null)
+								decs.add(f);
+						}
 					});
 					if (decs.size() > 0)
 						return new EntityRegion(new HashSet<IIndexEntity>(decs), lit.identifierRegion());
@@ -907,23 +904,15 @@ public abstract class SpecialEngineRules {
 	private abstract class SearchCriteriaRuleBase extends SpecialFuncRule {
 		protected List<Declaration> functionsNamed(final Script script, final String name) {
 			final List<Declaration> matchingDecs = new LinkedList<Declaration>();
-			final Sink<Script> scriptSink = new Sink<Script>() {
-				@Override
-				public void receivedObject(final Script item) {
-					if (item.dictionary() != null && item.dictionary().contains(name)) {
-						item.requireLoaded();
-						final Function f = item.findFunction(name);
-						if (f != null)
-							matchingDecs.add(f);
-					}
+			final Sink<Script> scriptSink = item -> {
+				if (item.dictionary() != null && item.dictionary().contains(name)) {
+					item.requireLoaded();
+					final Function f = item.findFunction(name);
+					if (f != null)
+						matchingDecs.add(f);
 				}
 			};
-			script.index().forAllRelevantIndexes(new Sink<Index>() {
-				@Override
-				public void receivedObject(final Index index) {
-					index.allScripts(scriptSink);
-				}
-			});
+			script.index().forAllRelevantIndexes(index -> index.allScripts(scriptSink));
 			return matchingDecs;
 		}
 	}
@@ -1034,29 +1023,16 @@ public abstract class SpecialEngineRules {
 				}
 			};
 		else if (entry.key().equals("Animal"))
-			return new IPredicate<Definition>() {
-				@Override
-				public boolean test(final Definition item) {
-					return item.findFunction("IsAnimal") != null;
-				}
-			};
+			return item -> item.findFunction("IsAnimal") != null;
 		else if (entry.key().equals("Crew"))
-			return new IPredicate<Definition>() {
-				@Override
-				public boolean test(final Definition item) {
-					for (final Directive d : item.directives())
-						if (d.type() == DirectiveType.APPENDTO)
-							return false; // ignore definitions that append
-					return item.findFunction("IsClonk") != null;
-				}
+			return item -> {
+				for (final Directive d : item.directives())
+					if (d.type() == DirectiveType.APPENDTO)
+						return false; // ignore definitions that append
+				return item.findFunction("IsClonk") != null;
 			};
 		else
-			return new IPredicate<Definition>() {
-				@Override
-				public boolean test(final Definition item) {
-					return true;
-				}
-			};
+			return item -> true;
 	}
 
 	public void refreshIndex(final Index index) {}

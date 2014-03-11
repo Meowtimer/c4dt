@@ -8,11 +8,11 @@ import net.arctics.clonk.util.IPredicate;
 public abstract class IniUnitWithNamedSections extends IniUnit {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	public IniUnitWithNamedSections(final Object input) {
 		super(input);
 	}
-	
+
 	public String nameOfEntryToTakeSectionNameFrom(final IniSection section) {
 		return "Name"; //$NON-NLS-1$
 	}
@@ -27,17 +27,14 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 		}
 		return super.sectionToString(section);
 	}
-	
+
 	public IPredicate<IniSection> nameMatcherPredicate(final String value) {
-		return new IPredicate<IniSection>() {
-			@Override
-			public boolean test(final IniSection section) {
-				final IniItem entry = section.itemByKey(nameOfEntryToTakeSectionNameFrom(section)); 
-				return (entry instanceof IniEntry && ((IniEntry)entry).stringValue().equals(value));
-			}
+		return section -> {
+			final IniItem entry = section.itemByKey(nameOfEntryToTakeSectionNameFrom(section));
+			return (entry instanceof IniEntry && ((IniEntry)entry).stringValue().equals(value));
 		};
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(final T from) {
@@ -51,5 +48,5 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 		} else
 			return null;
 	};
-	
+
 }

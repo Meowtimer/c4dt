@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Flags;
@@ -28,7 +27,6 @@ import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.StructureTextEditor;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.UI;
 
@@ -295,20 +293,17 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void innerParseDeclarations(final Map<Script, ScriptParser> newEnqueued) {
-		TaskExecution.threadPool(new Sink<ExecutorService>() {
-			@Override
-			public void receivedObject(final ExecutorService pool) {
-				for (final Script script : newEnqueued.keySet())
-					pool.execute(new Runnable() {
-						@Override
-						public void run() {
-							if (monitor.isCanceled())
-								return;
-							performParseDeclarations(script);
-							monitor.worked(1);
-						}
-					});
-			}
+		TaskExecution.threadPool(pool -> {
+			for (final Script script : newEnqueued.keySet())
+				pool.execute(new Runnable() {
+					@Override
+					public void run() {
+						if (monitor.isCanceled())
+							return;
+						performParseDeclarations(script);
+						monitor.worked(1);
+					}
+				});
 		}, 20, newEnqueued.size());
 	}
 

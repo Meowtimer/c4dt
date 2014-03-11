@@ -12,7 +12,6 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.ui.navigator.WeakReferencingContentProvider;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.runtime.IAdaptable;
@@ -50,9 +49,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 
 	private void openForeignDeclarations() {
 		final IStructuredSelection sel = (IStructuredSelection)getTreeViewer().getSelection();
-		for (final IIndexEntity entity : map(sel.toArray(), IIndexEntity.class, new IConverter<Object, IIndexEntity>() {
-			@Override
-			public IIndexEntity convert(Object from) {
+		for (final IIndexEntity entity : map(sel.toArray(), IIndexEntity.class, from -> {
 				if (from instanceof IAdaptable)
 					from = ((IAdaptable)from).getAdapter(Declaration.class);
 				if (from instanceof IIndexEntity)
@@ -61,7 +58,6 @@ public class StructureOutlinePage extends ContentOutlinePage {
 					return ((Declaration)from).parent(IIndexEntity.class);
 				else
 					return null;
-			}
 		}))
 			if (entity != null) {
 				List<? extends IIndexEntity> entities;

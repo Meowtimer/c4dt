@@ -10,7 +10,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.typing.IType;
-import net.arctics.clonk.util.IPredicate;
 
 public class EngineFunction extends Function implements IReplacedWhenSaved {
 	private static class Ticket implements Serializable, IDeserializationResolvable {
@@ -41,10 +40,7 @@ public class EngineFunction extends Function implements IReplacedWhenSaved {
 	public Object[] occurenceScope(final Iterable<Index> indexes) {
 		return super.occurenceScope(iterable(filter(
 			map(ClonkProjectNature.allInWorkspace(), Index.class, ClonkProjectNature.SELECT_INDEX),
-			new IPredicate<Index>() {
-				@Override
-				public boolean test(final Index item) { return item.engine() == EngineFunction.this.engine(); }
-			})
+			item -> item.engine() == EngineFunction.this.engine())
 		));
 	}
 }

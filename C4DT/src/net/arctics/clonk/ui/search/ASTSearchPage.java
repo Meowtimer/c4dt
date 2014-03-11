@@ -22,7 +22,6 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IResource;
@@ -121,12 +120,8 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 			list.remove(0);
 		recentsCombo.setInput(list.toArray(new Recent[list.size()]));
 		final IPreferenceStore prefs = Core.instance().getPreferenceStore();
-		prefs.setValue(PREF_RECENTS, StringUtil.blockString("", "", "", map(list, new IConverter<Recent, String>() {
-			@Override
-			public String convert(final Recent recent) {
-				return recent.template + RECENTS_SEPARATOR + recent.replacement + RECENTS_SEPARATOR;
-			}
-		})));
+		prefs.setValue(PREF_RECENTS, StringUtil.blockString("", "", "", map(list,
+			rcnt -> rcnt.template + RECENTS_SEPARATOR + rcnt.replacement + RECENTS_SEPARATOR)));
 	}
 
 	private void readConfiguration() {
@@ -231,12 +226,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		};
 		switch (container.getSelectedScope()) {
 		case ISearchPageContainer.SELECTED_PROJECTS_SCOPE:
-			for (final ClonkProjectNature nature : map(iterable(container.getSelectedProjectNames()), new IConverter<String, ClonkProjectNature>() {
-				@Override
-				public ClonkProjectNature convert(final String from) {
-					return ClonkProjectNature.get(from);
-				}
-			}))
+			for (final ClonkProjectNature nature : map(iterable(container.getSelectedProjectNames()), from -> ClonkProjectNature.get(from)))
 				if (nature != null)
 					nature.index().allScripts(collectionSink(scope));
 			break;

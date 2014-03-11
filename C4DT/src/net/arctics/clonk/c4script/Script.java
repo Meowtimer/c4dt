@@ -61,7 +61,6 @@ import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.INode;
-import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
@@ -321,14 +320,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			String effectName = null;
 			for (int i = nextCamelBack(s, 0); i < s.length(); i = nextCamelBack(s, i)) {
 				final String sub = s.substring(0, i);
-				final List<EffectFunction> matching = filter(allEffectFunctions, new IPredicate<EffectFunction>() {
-					@Override
-					public boolean test(final EffectFunction item) {
-						try {
-							return item.name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length(), EffectFunction.FUNCTION_NAME_PREFIX.length()+sub.length()).equals(sub);
-						} catch (final StringIndexOutOfBoundsException e) {
-							return false;
-						}
+				final List<EffectFunction> matching = filter(allEffectFunctions, item -> {
+					try {
+						return item.name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length(), EffectFunction.FUNCTION_NAME_PREFIX.length()+sub.length()).equals(sub);
+					} catch (final StringIndexOutOfBoundsException e) {
+						return false;
 					}
 				});
 				if (matching.size() == 0)
@@ -1359,7 +1355,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		else
 			return node.getClass();
 	}
-	
+
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
 		ASTNode prev = null;

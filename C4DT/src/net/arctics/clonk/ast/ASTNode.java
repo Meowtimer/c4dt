@@ -14,7 +14,6 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPrintable;
 
 import org.eclipse.jface.text.IRegion;
@@ -67,12 +66,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	public ASTNode clone() {
 		ASTNode clone;
 		clone = (ASTNode) super.clone();
-		final ASTNode[] clonedElms = ArrayUtil.map(subElements(), ASTNode.class, new IConverter<ASTNode, ASTNode>() {
-			@Override
-			public ASTNode convert(final ASTNode from) {
-				return from != null ? from.clone() : null;
-			}
-		});
+		final ASTNode[] clonedElms = ArrayUtil.map(subElements(), ASTNode.class, from -> from != null ? from.clone() : null);
 		clone.setSubElements(clonedElms);
 		return clone;
 	}

@@ -29,7 +29,6 @@ import net.arctics.clonk.mapcreator.ClassicMapCreator;
 import net.arctics.clonk.mapcreator.MapCreator;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IPredicate;
 import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Sink;
@@ -448,12 +447,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					}
 				});
 			final OpenDefinitionDialog chooser = new OpenDefinitionDialog(defs);
-			chooser.setImageStore(new IConverter<Definition, Image>() {
-				@Override
-				public Image convert(final Definition from) {
-					return imageFor(from);
-				}
-			});
+			chooser.setImageStore(from -> imageFor(from));
 			chooser.setTitle(Messages.ScenarioProperties_AddDefinitionTitle);
 			chooser.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION); //$NON-NLS-1$
 			switch (chooser.open()) {

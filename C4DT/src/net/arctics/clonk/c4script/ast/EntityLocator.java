@@ -50,12 +50,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	 */
 	public Set<? extends IIndexEntity> potentialEntities() { return potentialEntities; }
 
-	private static IPredicate<IIndexEntity> IS_GLOBAL = new IPredicate<IIndexEntity>() {
-		@Override
-		public boolean test(final IIndexEntity item) {
-			return item instanceof Declaration && ((Declaration)item).isGlobal();
-		};
-	};
+	private static IPredicate<IIndexEntity> IS_GLOBAL = item -> item instanceof Declaration && ((Declaration)item).isGlobal();
 
 	/**
 	 * Initialize {@link EntityLocator} with an editor, a document and a region. After invoking the constructor, {@link #expressionRegion()}, {@link #entity()} etc will be if locating succeeded.
@@ -122,12 +117,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 			//	}
 
 			if (projectDeclarations != null)
-				projectDeclarations = filter(projectDeclarations, new IPredicate<IIndexEntity>() {
-					@Override
-					public boolean test(final IIndexEntity item) {
-						return access.declarationClass().isInstance(item);
-					}
-				});
+				projectDeclarations = filter(projectDeclarations, item -> access.declarationClass().isInstance(item));
 
 			final Function engineFunc = exprAtRegion.parent(Script.class).engine().findFunction(declarationName);
 			if (projectDeclarations != null || engineFunc != null) {

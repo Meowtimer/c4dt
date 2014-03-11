@@ -53,19 +53,8 @@ public class ClonkProjectNature implements IProjectNature {
 
 	private final Object lock = new Object();
 
-	public static final IConverter<ClonkProjectNature, Index> SELECT_INDEX = new IConverter<ClonkProjectNature, Index>() {
-		@Override
-		public Index convert(final ClonkProjectNature nature) {
-			return nature.index();
-		}
-	};
-
-	public static final IConverter<IProject, ClonkProjectNature> SELECT_NATURE = new IConverter<IProject, ClonkProjectNature>() {
-		@Override
-		public ClonkProjectNature convert(final IProject project) {
-			return get(project);
-		}
-	};
+	public static final IConverter<ClonkProjectNature, Index> SELECT_INDEX = nature -> nature.index();
+	public static final IConverter<IProject, ClonkProjectNature> SELECT_NATURE = project -> get(project);
 
 	public static ClonkProjectNature[] allInWorkspace() {
 		return map(clonkProjectsInWorkspace(), ClonkProjectNature.class, SELECT_NATURE);
@@ -358,7 +347,7 @@ public class ClonkProjectNature implements IProjectNature {
 		else
 			return null;
 	}
-	
+
 	private static final List<ProblemReportingStrategy> NULL_PROBLEM_REPORTERS = Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
 
 	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(final int requiredCapabilities) {

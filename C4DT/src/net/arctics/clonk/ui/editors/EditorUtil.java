@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.util.IPredicate;
 
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -43,11 +42,6 @@ public class EditorUtil {
 		return editors;
 	}
 	public static Iterable<IEditorPart> editorPartsToBeSaved() {
-		return filter(clonkTextEditors(false), new IPredicate<IEditorPart>() {
-			@Override
-			public boolean test(final IEditorPart item) {
-				return item.isDirty();
-			}
-		});
+		return filter(clonkTextEditors(false), item -> item.isDirty());
 	}
 }

@@ -22,6 +22,6 @@ public interface Sink<T> {
 	public default void decision(final Decision decision) {
 		Sink.decision.set(decision);
 	}
-	public abstract void receivedObject(T item);
+	public void receivedObject(T item);
 	public default boolean filter(final T item) { return true; }
 }
