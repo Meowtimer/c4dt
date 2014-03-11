@@ -672,7 +672,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final Declaration parameter;
 					final Set<String> requiredMethods = new HashSet<>();
 					@Override
-					public TraversalContinuation visitNode(final ASTNode node, final Void _) {
+					public TraversalContinuation visitNode(final ASTNode node, final Void v) {
 						final ASTNode pred = node.predecessor();
 						if (node instanceof CallDeclaration && pred != null) {
 							final Declaration dec = declarationOf(pred);

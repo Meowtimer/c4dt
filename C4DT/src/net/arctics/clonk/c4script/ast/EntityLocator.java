@@ -166,12 +166,12 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	public IIndexEntity entity() { return entity; }
 
 	@Override
-	public TraversalContinuation visitNode(final ASTNode expression, final Void _) {
+	public TraversalContinuation visitNode(final ASTNode expression, final Void v) {
 		if (expression instanceof ProplistDeclaration)
 			return TraversalContinuation.SkipSubElements;
 		expression.traverse(new IASTVisitor<Void>() {
 			@Override
-			public TraversalContinuation visitNode(final ASTNode expression, final Void _) {
+			public TraversalContinuation visitNode(final ASTNode expression, final Void v) {
 				if (expression instanceof ProplistDeclaration)
 					return TraversalContinuation.SkipSubElements;
 				final IRegion a = expression.absolute();
