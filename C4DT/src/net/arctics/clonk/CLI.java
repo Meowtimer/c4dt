@@ -27,7 +27,6 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Index.Built;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.ICommand;
@@ -382,13 +381,6 @@ public class CLI implements IApplication, AutoCloseable {
 		nature.saveSettings();
 		proj.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 		proj.build(IncrementalProjectBuilder.FULL_BUILD, npm);
-
-		ClonkProjectNature.get(proj).index().allDefinitions(new Sink<Definition>() {
-			@Override
-			public void receivedObject(Definition item) {
-				System.out.println(item.name());
-			}
-		});
 	}
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
