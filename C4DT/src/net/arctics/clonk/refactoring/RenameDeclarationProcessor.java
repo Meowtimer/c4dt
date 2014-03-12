@@ -21,7 +21,6 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ui.search.ReferencesSearchQuery;
 import net.arctics.clonk.ui.search.SearchMatch;
 import net.arctics.clonk.ui.search.SearchResult;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -75,20 +74,14 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 					elements.add(relatedFunc);
 		}
 		final Map<IFile, Object> reverseLookup = new HashMap<>();
-		final Set<IFile> files = new HashSet<IFile>(Arrays.asList(map(elements.toArray(), IFile.class, new IConverter<Object, IFile>() {
-			@Override
-			public IFile convert(final Object element) {
-				IFile file;
-				if (element instanceof IFile)
-					file = (IFile)element;
-				else if (element instanceof Declaration)
-					file = ((Declaration)element).file();
-				else
-					file = null;
-				if (file != null)
-					reverseLookup.put(file, element);
-				return file;
-			}
+		final Set<IFile> files = new HashSet<IFile>(Arrays.asList(map(elements.toArray(), IFile.class, element -> {
+			final IFile file =
+				element instanceof IFile ? (IFile)element :
+				element instanceof Declaration ? ((Declaration)element).file() :
+				null;
+			if (file != null)
+				reverseLookup.put(file, element);
+			return file;
 		})));
 		files.add(declaringFile);
 		final CompositeChange composite = new CompositeChange(String.format(Messages.RenamingProgress, decl.toString()));

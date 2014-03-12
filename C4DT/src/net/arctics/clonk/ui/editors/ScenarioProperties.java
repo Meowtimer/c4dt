@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
@@ -29,7 +30,6 @@ import net.arctics.clonk.mapcreator.ClassicMapCreator;
 import net.arctics.clonk.mapcreator.MapCreator;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
-import java.util.function.Predicate;
 import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
@@ -178,7 +178,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				private Object nudgedElement;
 				@Override
 				protected void setValue(final Object element, final Object value) {
-					class DefFinder implements Sink<Definition> {
+					class DefFinder extends Sink.Decisive<Definition> {
 						public Definition found;
 						@Override
 						public void receivedObject(final Definition item) {

@@ -50,12 +50,7 @@ public class CategoriesValue extends IniEntryValue {
 		}
 	}
 
-	private static final IConverter<Variable, String> NAME_MAPPER = new IConverter<Variable, String>() {
-		@Override
-		public String convert(final Variable from) {
-			return from.name();
-		}
-	};
+	private static final IConverter<Variable, String> NAME_MAPPER = from -> from.name();
 
 	private void tryConstantInput(final String input, final String[] parts, final Engine engine, final String constantsPrefix) throws IniParserException {
 		constants = new ArrayList<String>(4);

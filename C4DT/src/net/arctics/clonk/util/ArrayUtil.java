@@ -331,6 +331,7 @@ public class ArrayUtil {
 		return j;
 	}
 
+	@FunctionalInterface
 	public interface Folder<T, Y extends T> {
 		Y fold(T interim, T next, int index);
 	}

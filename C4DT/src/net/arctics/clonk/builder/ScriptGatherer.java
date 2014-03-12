@@ -42,7 +42,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 	public ScriptGatherer(final ClonkBuilder clonkBuilder) { builder = clonkBuilder; }
 
 	public void obsoleteCorrespondingScriptFromIndex(final IResource deleted, final Index index) {
-		index.allScripts(new Sink<Script>() {
+		index.allScripts(new Sink.Decisive<Script>() {
 			@Override
 			public void receivedObject(final Script item) {
 				if (item instanceof Definition) {

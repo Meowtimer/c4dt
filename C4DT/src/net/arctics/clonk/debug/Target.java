@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -132,24 +133,24 @@ public class Target extends DebugElement implements IDebugTarget {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends ILineReceivedListener> T requestLineReceivedListener(final ICreate<T> create) {
-		final Class<T> cls = create.cls();
-		for (final ILineReceivedListener listener : lineReceiveListeners)
-			if (listener.getClass() == cls)
-				return (T) listener;
-		final T result = create.create();
-		addLineReceiveListener(result);
-		return result;
+		final Class<? extends ILineReceivedListener> cls = create.cls();
+		final Optional<T> existing = lineReceiveListeners.stream()
+			.filter(listener -> listener.getClass() == cls)
+			.map(l -> (T)l)
+			.findFirst();
+		return existing.isPresent() ? existing.get() : addLineReceiveListener(create.create());
 	}
 
 	/**
 	 * Add a line received listener to the internal list.
 	 * @param listener The listener to add
 	 */
-	public void addLineReceiveListener(final ILineReceivedListener listener) {
+	public <T extends ILineReceivedListener> T addLineReceiveListener(final T listener) {
 		System.out.println("Adding " + listener.toString()); //$NON-NLS-1$
 		synchronized (lineReceiveListeners) {
 			lineReceiveListeners.add(0, listener);
 		}
+		return listener;
 	}
 
 	/**

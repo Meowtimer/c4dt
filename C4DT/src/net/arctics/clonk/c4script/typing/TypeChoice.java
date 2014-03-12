@@ -10,10 +10,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.util.ArrayUtil.Folder;
-import java.util.function.Predicate;
 import net.arctics.clonk.util.StringUtil;
 
 /**
@@ -98,13 +97,7 @@ public class TypeChoice implements IType {
 			return null;
 		else if (types.size() == 1)
 			return types.iterator().next();
-		else return foldl(types, new Folder<IType, TypeChoice>() {
-			@Override
-			public TypeChoice fold(final IType interim, final IType next, final int index) {
-				return new TypeChoice(interim, next);
-			}
-
-		}).removeDuplicates();
+		else return foldl(types, (interim, next, index) -> new TypeChoice(interim, next)).removeDuplicates();
 	}
 
 	protected TypeChoice(final IType left, final IType right) {
