@@ -37,7 +37,7 @@ public class EngineSettings extends SettingsBase {
 	@IniField(category=INTRINSIC)
 	public boolean supportsNonConstGlobalVarAssignment;
 	/**
-	 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a {@link Variable} object each {@link Definition} maintains as its 'proxy variable'.<br/>
+	 * HACK: In OC, object definition constants (Clonk, Firestone) actually are parsed as referring to a {@link ConcreteVariable} object each {@link Definition} maintains as its 'proxy variable'.<br/>
 	 * This toggle activates/deactivates this behavior.
 	 * */
 	@IniField(category=INTRINSIC)

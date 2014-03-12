@@ -41,7 +41,7 @@ public class ArrayExpression extends ASTNodeWithSubElementsArray {
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		final ArrayList<Object> elm = new ArrayList<Object>(elements.length);
 		for (final ASTNode e : elements)
-			elm.add(e != null ? e.evaluate(context) : null);
+			elm.add(e != null ? value(e.evaluate(context)) : null);
 		return elm;
 	}
 

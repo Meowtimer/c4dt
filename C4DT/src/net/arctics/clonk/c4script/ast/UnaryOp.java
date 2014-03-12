@@ -3,8 +3,10 @@ package net.arctics.clonk.c4script.ast;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Operator;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 
 public class UnaryOp extends OperatorExpression implements ITidyable {
 
@@ -112,6 +114,50 @@ public class UnaryOp extends OperatorExpression implements ITidyable {
 		catch (final ClassCastException e) {}
 		catch (final NullPointerException e) {}
 		return super.evaluateStatic(context);
+	}
+	
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		final Object ev = argument.evaluate(context);
+		final Object conv = operator().firstArgType().convert(ev);
+		switch (operator()) {
+		case Not:
+			return !(Boolean)conv;
+		case Subtract:
+			return -((Number)conv).longValue();
+		case Add:
+			return conv;
+		case Increment: {
+			final IVariable v = (IVariable)ev;
+			switch (placement) {
+			case Postfix:
+				v.set(((Number)v.get()).longValue() + 1);
+				return v.get();
+			case Prefix:
+				final Object res = v.get();
+				v.set(((Number)v.get()).longValue() + 1);
+				return res;
+			default:
+				return null;
+			}
+		}
+		case Decrement: {
+			final IVariable v = (IVariable)ev;
+			switch (placement) {
+			case Postfix:
+				v.set(((Number)v.get()).longValue() - 1);
+				return v.get();
+			case Prefix:
+				final Object res = v.get();
+				v.set(((Number)v.get()).longValue() - 1);
+				return res;
+			default:
+				return null;
+			}
+		}
+		default:
+			return null;
+		}
 	}
 
 }

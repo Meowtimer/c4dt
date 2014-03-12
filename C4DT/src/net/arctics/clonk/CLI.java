@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -22,6 +23,7 @@ import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.ExecutableScript;
+import net.arctics.clonk.command.SelfContainedScript;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
@@ -77,7 +79,7 @@ public class CLI implements IApplication, AutoCloseable {
 	public @interface Callable {}
 	public static void main(final String[] args) throws Exception {
 		try {
-			new CLI().run(args);
+			new CLI().mainImpl(args);
 			System.exit(0);
 		} catch (final Exception e) {
 			System.out.println(e.getMessage());
@@ -134,7 +136,7 @@ public class CLI implements IApplication, AutoCloseable {
 	 * and the rest of the arguments as <method> <parameters...>
 	 * @param args Arguments to interpret. Passed from {@link #main(String[])}
 	 */
-	public void run(String[] args) {
+	private void mainImpl(String[] args) {
 		if (args == null || args.length == 0)
 			args = Platform.getCommandLineArgs();
 		final int methodIndex = parseOptions(args);
@@ -207,7 +209,7 @@ public class CLI implements IApplication, AutoCloseable {
 			while (!done.done && input.hasNextLine()) {
 				final String command = input.nextLine();
 				try {
-					run(command.split("\\s"));
+					mainImpl(command.split("\\s"));
 				} catch (final Exception e) {
 					System.err.println(e.getMessage());
 				}
@@ -382,10 +384,32 @@ public class CLI implements IApplication, AutoCloseable {
 		proj.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 		proj.build(IncrementalProjectBuilder.FULL_BUILD, npm);
 	}
+	@Callable
+	public void run(String fileName) {
+		final File f = new File(fileName);
+		final Index ndx = new Index() {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+			@Override
+			public Engine engine() {
+				return Core.instance().loadEngine("OpenClonk");
+			}
+		};
+		final Script script = new SelfContainedScript(f.getName(), StreamUtil.stringFromFile(f), ndx) {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+			@Override
+			public boolean gatherIncludes(Index contextIndex, Script origin, Collection<Script> set, int options) {
+				set.add(Command.BASE);
+				return super.gatherIncludes(contextIndex, origin, set, options);
+			}
+		};
+		final Function main = script.findFunction("Main");
+		if (main != null)
+			main.invoke(main.new FunctionInvocation(new Object[0], null, this));
+	}
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
 		try {
-			run(null);
+			mainImpl(null);
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return 2;

@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,7 +98,7 @@ public class Command {
 			try {
 				final Object[] args = new Object[method.getParameterTypes().length];
 				args[0] = context;
-				System.arraycopy(context.arguments(), 0, args, 1, context.arguments().length);
+				System.arraycopy(Arrays.stream(context.arguments()).map(ASTNode::value).toArray(), 0, args, 1, context.arguments().length);
 				return method.invoke(context, args);
 			} catch (final Exception e) {
 				e.printStackTrace();
@@ -140,8 +141,8 @@ public class Command {
 		}
 
 		@CommandFunction
-		public static String Format(final Object context, final String format, final Object... args) {
-			return String.format(format, args);
+		public static String Format(final Object context, final String format, final List<?> args) {
+			return String.format(format, args.toArray());
 		}
 
 		@CommandFunction

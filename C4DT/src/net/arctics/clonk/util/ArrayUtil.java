@@ -165,6 +165,16 @@ public class ArrayUtil {
 				return index;
 		return -1;
 	}
+	
+	public static <T> int indexOfItemSatisfying(final Iterable<T> items, Predicate<T> pred) {
+		int i = 0;
+		for (final T item : items)
+			if (pred.test(item))
+				return i;
+			else
+				i++;
+		return -1;
+	}
 
 	@SuppressWarnings("unchecked")
 	public static <From, To> To[] map(final From[] elms, final Class<To> toClass, final IConverter<From, To> converter) {

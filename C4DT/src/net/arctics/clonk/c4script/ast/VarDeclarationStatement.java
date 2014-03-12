@@ -8,11 +8,14 @@ import java.util.List;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
+import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.util.ArrayUtil;
 
 import org.eclipse.jface.text.Region;
@@ -87,5 +90,14 @@ public class VarDeclarationStatement extends KeywordStatement {
 			}
 		}
 		return super.entityAt(offset, locator);
+	}
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		for (final VarInitialization in : varInitializations)
+			if (in.expression != null) {
+				final IVariable var = (IVariable)new AccessVar(in.name).evaluate(context);
+				var.set(in.expression.evaluate(context));
+			}
+		return null;
 	}
 }

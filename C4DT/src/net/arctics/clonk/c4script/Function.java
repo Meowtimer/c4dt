@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -38,6 +39,7 @@ import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.ReturnException;
+import net.arctics.clonk.c4script.ast.evaluate.ConcreteVariable;
 import net.arctics.clonk.c4script.ast.evaluate.Constant;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.typing.IType;
@@ -48,6 +50,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
@@ -279,26 +282,26 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		private final Object[] args;
 		private final IEvaluationContext up;
 		private final Object context;
-		private final Object[] locals;
+		private final ConcreteVariable[] locals;
 		public FunctionInvocation(final Object[] args, final IEvaluationContext up, final Object context) {
 			this.args = args;
 			this.up = up;
 			this.context = context;
-			this.locals = new Object[numLocals()];
+			this.locals = IntStream
+				.range(0, numLocals())
+				.mapToObj(x -> new ConcreteVariable())
+				.toArray(ConcreteVariable[]::new);
 		}
 		@Override
 		public IVariable variable(final AccessVar access, final Object obj) throws ControlFlowException {
 			final String aname = access.name();
 			if (access.predecessor() == null) {
-				int i = 0;
-				for (final Variable v : parameters) {
-					if (v.name().equals(aname))
-						return new Constant(args[i]);
-					i++;
-				}
-				final Variable l = local(aname);
-				if (l != null)
-					return new Constant(locals[i]);
+				final int i = ArrayUtil.indexOfItemSatisfying(parameters, p -> p.name().equals(aname));
+				if (i != -1)
+					return new Constant(args[i]);
+				final int l = locals != null ? ArrayUtil.indexOfItemSatisfying(Function.this.locals, loc -> loc.name().equals(aname)) : -1;
+				if (l != -1)
+					return locals[l];
 			} else {
 				final Object self = value(access.predecessor().evaluate(this));
 				if (self == null)
