@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
@@ -26,10 +25,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
@@ -72,70 +68,58 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 			if (selectedContainers.size() > 0) {
 				final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 				try {
-					progressDialog.run(false, true, new IRunnableWithProgress() {
-						@Override
-						public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-							// first count how much to do
-							{
-								counter = 0;
-								final IResourceVisitor countingVisitor = new IResourceVisitor() {
-									@Override
-									public boolean visit(final IResource resource) throws CoreException {
-										if (resource instanceof IFile && Script.get(resource, true) != null)
-											counter++;
-										return true;
-									}
-								};
-								for (final IContainer container : selectedContainers)
-									try {
-										container.accept(countingVisitor);
-									} catch (final CoreException e) {
-										e.printStackTrace();
-									}
-							}
-							runWithoutAutoBuild(() -> {
-								monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
-								for (final IContainer container : selectedContainers)
-									try {
-										container.accept(new IResourceVisitor() {
-											@Override
-											public boolean visit(final IResource resource) throws CoreException {
-												if (monitor.isCanceled())
-													return false;
-												if (resource instanceof IFile) {
-													final IFile file = (IFile) resource;
-													final Script script = Script.get(file, true);
-													if (script != null) {
-														final ScriptParser parser = new ScriptParser(file, script, null);
-														try {
-															parser.parse();
-														} catch (final ProblemException e1) {
-															e1.printStackTrace();
-														}
-														Core.instance().performActionsOnFileDocument(file, new IDocumentAction<Void>() {
-															@Override
-															public Void run(final IDocument document) {
-																if (document != null)
-																	TidyUpCodeAction.converter().runOnDocument(script, document);
-																return null;
-															}
-														}, true);
-														monitor.worked(1);
-													}
-												}
-												else if (resource instanceof IContainer)
-													if (monitor.isCanceled())
-														return false;
-												return true;
-											}
-										});
-										// TODO: do something with failedSaves
-									} catch (final CoreException e) {
-										e.printStackTrace();
-									}
-								monitor.done();
-							});
+					progressDialog.run(false, true, monitor -> {
+						// first count how much to do
+						{
+							counter = 0;
+							final IResourceVisitor countingVisitor = resource -> {
+								if (resource instanceof IFile && Script.get(resource, true) != null)
+									counter++;
+								return true;
+							};
+							for (final IContainer container : selectedContainers)
+								try {
+									container.accept(countingVisitor);
+								} catch (final CoreException e) {
+									e.printStackTrace();
+								}
 						}
+						runWithoutAutoBuild(() -> {
+							monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
+							for (final IContainer container : selectedContainers)
+								try {
+									container.accept(resource -> {
+										if (monitor.isCanceled())
+											return false;
+										if (resource instanceof IFile) {
+											final IFile file = (IFile) resource;
+											final Script script = Script.get(file, true);
+											if (script != null) {
+												final ScriptParser parser = new ScriptParser(file, script, null);
+												try {
+													parser.parse();
+												} catch (final ProblemException e1) {
+													e1.printStackTrace();
+												}
+												Core.instance().performActionsOnFileDocument(file, document -> {
+													if (document != null)
+														TidyUpCodeAction.converter().runOnDocument(script, document);
+													return null;
+												}, true);
+												monitor.worked(1);
+											}
+										}
+										else if (resource instanceof IContainer)
+											if (monitor.isCanceled())
+												return false;
+										return true;
+									});
+									// TODO: do something with failedSaves
+								} catch (final CoreException e) {
+									e.printStackTrace();
+								}
+							monitor.done();
+						});
 					});
 				} catch (final InvocationTargetException e) {
 					e.printStackTrace();

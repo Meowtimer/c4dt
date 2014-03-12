@@ -42,7 +42,7 @@ public class QuickExportHandler extends ClonkResourceHandler {
 					final ISelection selection = HandlerUtil.getCurrentSelection(event);
 					if (selection != null && selection instanceof TreeSelection) {
 						final TreeSelection tree = (TreeSelection) selection;
-						final Iterator it = tree.iterator();
+						final Iterator<?> it = tree.iterator();
 						while (it.hasNext()) {
 							final Object obj = it.next();
 							if (obj instanceof IProject)

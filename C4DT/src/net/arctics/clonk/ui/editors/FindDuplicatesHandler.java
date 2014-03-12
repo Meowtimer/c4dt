@@ -27,15 +27,12 @@ public class FindDuplicatesHandler extends AbstractHandler {
 			final IStructuredSelection ssel = (IStructuredSelection) selection;
 			final Iterator<?> it = ssel.iterator();
 			final Set<Script> scripts = new HashSet<Script>();
-			final IResourceVisitor visitor = new IResourceVisitor() {
-				@Override
-				public boolean visit(final IResource resource) throws CoreException {
-					final Script script = Script.get(resource, false);
-					if (script != null)
-						scripts.add(script);
-					return true;
-				}
-			}; 
+			final IResourceVisitor visitor = resource -> {
+				final Script script = Script.get(resource, false);
+				if (script != null)
+					scripts.add(script);
+				return true;
+			};
 			while (it.hasNext()) {
 				final Object obj = it.next();
 				if (obj instanceof IResource) {

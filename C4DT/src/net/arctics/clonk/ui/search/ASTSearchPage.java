@@ -37,9 +37,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.search.ui.IReplacePage;
 import org.eclipse.search.ui.ISearchPage;
@@ -167,15 +165,12 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		this.recentsCombo = new ComboViewer(recentsCombo);
 		final IContentProvider prov = new ArrayContentProvider();
 		this.recentsCombo.setContentProvider(prov);
-		this.recentsCombo.addSelectionChangedListener(new ISelectionChangedListener() {
-			@Override
-			public void selectionChanged(final SelectionChangedEvent event) {
-				final ISelection sel = event.getSelection();
-				if (!sel.isEmpty()) {
-					final Recent r = (Recent)((IStructuredSelection)sel).getFirstElement();
-					templateText.setText(r.template);
-					replacementText.setText(r.replacement);
-				}
+		this.recentsCombo.addSelectionChangedListener(event -> {
+			final ISelection sel = event.getSelection();
+			if (!sel.isEmpty()) {
+				final Recent r = (Recent)((IStructuredSelection)sel).getFirstElement();
+				templateText.setText(r.template);
+				replacementText.setText(r.replacement);
 			}
 		});
 
@@ -212,17 +207,14 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		final ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
 		final ISelection sel = selectionService.getSelection();
 		final Set<Structure> scope = new HashSet<Structure>();
-		final IResourceVisitor scopeVisitor = new IResourceVisitor() {
-			@Override
-			public boolean visit(final IResource resource) throws CoreException {
-				final Structure script = Script.get(resource, true);
-				if (script != null)
-					return scope.add(script);
-				final Structure pinned = Structure.pinned(resource, true, false);
-				if (pinned != null)
-					return scope.add(pinned);
-				return true;
-			}
+		final IResourceVisitor scopeVisitor = resource -> {
+			final Structure script = Script.get(resource, true);
+			if (script != null)
+				return scope.add(script);
+			final Structure pinned = Structure.pinned(resource, true, false);
+			if (pinned != null)
+				return scope.add(pinned);
+			return true;
 		};
 		switch (container.getSelectedScope()) {
 		case ISearchPageContainer.SELECTED_PROJECTS_SCOPE:

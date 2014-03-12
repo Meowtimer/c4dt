@@ -10,11 +10,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -60,17 +60,13 @@ import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
-import java.util.function.Predicate;
 import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
@@ -593,22 +589,19 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	private Function appendFunction(final Script script, final String name) {
 		Function f;
-		Core.instance().performActionsOnFileDocument(script.file(), new IDocumentAction<Void>() {
-			@Override
-			public Void run(final IDocument document) {
-				final String oldContents = document.get();
-				final StringBuilder builder = new StringBuilder(oldContents.length()+100);
-				builder.append(oldContents);
-				final boolean endsWithEmptyLine = oldContents.endsWith("\n");
-				if (!endsWithEmptyLine)
-					builder.append('\n');
+		Core.instance().performActionsOnFileDocument(script.file(), document -> {
+			final String oldContents = document.get();
+			final StringBuilder builder = new StringBuilder(oldContents.length()+100);
+			builder.append(oldContents);
+			final boolean endsWithEmptyLine = oldContents.endsWith("\n");
+			if (!endsWithEmptyLine)
 				builder.append('\n');
-				builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC, script));
-				if (endsWithEmptyLine)
-					builder.append('\n');
-				document.set(builder.toString());
-				return null;
-			}
+			builder.append('\n');
+			builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC, script));
+			if (endsWithEmptyLine)
+				builder.append('\n');
+			document.set(builder.toString());
+			return null;
 		}, true);
 		try {
 			new ScriptParser(script).parse();
@@ -637,33 +630,27 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					}
 				} :
 			super.configurationEntryDefinitionFilter(entry);
-		return basePredicate != null ? new Predicate<Definition>() {
-			@Override
-			public boolean test(final Definition item) {
-				if (item.id() != null && item.id().stringValue().startsWith("Library_"))
-					return false;
-				else
-					return basePredicate.test(item);
-			}
+		return basePredicate != null ? item -> {
+			if (item.id() != null && item.id().stringValue().startsWith("Library_"))
+				return false;
+			else
+				return basePredicate.test(item);
 		} : null;
 	}
 
 	private void readVariablesFromPlayerControlsFile(final Index index) {
 		try {
-			index.nature().getProject().accept(new IResourceVisitor() {
-				@Override
-				public boolean visit(final IResource resource) throws CoreException {
-					if (resource instanceof IContainer)
-						return true;
-					else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) { //$NON-NLS-1$
-						final PlayerControlsUnit unit = (PlayerControlsUnit) Structure.pinned(resource, true, true);
-						if (unit != null)
-							index.addStaticVariables(unit.controlVariables());
-						return true;
-					}
-					else
-						return false;
+			index.nature().getProject().accept(resource -> {
+				if (resource instanceof IContainer)
+					return true;
+				else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) { //$NON-NLS-1$
+					final PlayerControlsUnit unit = (PlayerControlsUnit) Structure.pinned(resource, true, true);
+					if (unit != null)
+						index.addStaticVariables(unit.controlVariables());
+					return true;
 				}
+				else
+					return false;
 			});
 		} catch (final CoreException e) {
 			e.printStackTrace();
