@@ -39,6 +39,7 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
@@ -192,8 +193,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			reportProblems(parsers, scripts);
 			markers.deploy();
 
-			if (!Core.runsHeadless())
-				new SaveScriptsJob(proj, scripts).schedule();
+			final SaveScriptsJob saveScripts = new SaveScriptsJob(proj, scripts);
+			if (Core.runsHeadless())
+				saveScripts.run(new NullProgressMonitor());
+			else
+				saveScripts.schedule();
 
 			performRequestedTypingMigration(proj, parsers);
 			return scripts;
