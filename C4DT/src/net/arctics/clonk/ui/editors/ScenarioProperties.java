@@ -178,17 +178,19 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 				private Object nudgedElement;
 				@Override
 				protected void setValue(final Object element, final Object value) {
-					class DefFinder extends Sink.Decisive<Definition> {
+					class DefFinder implements Sink<Definition> {
 						public Definition found;
 						@Override
-						public void receivedObject(final Definition item) {
+						public void receive(final Definition item) {
 							if (
 								(item.localizedName() != null && item.localizedName().equals(value)) ||
 								(item.id() != null && item.id().stringValue().equals(value))
-							) {
+							)
 								found = item;
-								decision(Decision.AbortIteration);
-							}
+						}
+						@Override
+						public Decision decide(Definition item) {
+							return found != null ? Decision.AbortIteration : Decision.Continue;
 						}
 					}
 					final DefFinder finder = new DefFinder();
@@ -435,7 +437,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 			for (final Index i : scenario.index().relevantIndexes())
 				i.allDefinitions(new Sink<Definition>() {
 					@Override
-					public void receivedObject(final Definition item) {
+					public void receive(final Definition item) {
 						defs.add(item);
 					}
 					@Override

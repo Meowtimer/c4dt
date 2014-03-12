@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -55,7 +56,6 @@ import net.arctics.clonk.index.serialization.replacements.EntityId;
 import net.arctics.clonk.index.serialization.replacements.EntityReference;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.ConvertingIterable;
-import java.util.function.Predicate;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Sink.Decision;
 import net.arctics.clonk.util.Utilities;
@@ -306,7 +306,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		final Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
 		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 			@Override
-			public void receivedObject(final Script item) {
+			public void receive(final Script item) {
 				addGlobalsFromScript(item, newAppendages);
 			}
 		});
@@ -314,22 +314,19 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			appendages = newAppendages;
 
 		final int[] counts = new int[3];
-		allScripts(new Sink<Script>() {
-			@Override
-			public void receivedObject(final Script item) {
-				if (item.loaded == Loaded.Yes)
-					counts[2]++;
-				if (item instanceof Definition)
-					counts[0]++;
-				else
-					counts[1]++;
-			}
+		allScripts(item -> {
+			if (item.loaded == Loaded.Yes)
+				counts[2]++;
+			if (item instanceof Definition)
+				counts[0]++;
+			else
+				counts[1]++;
 		});
 
 		if (postLoad)
 			allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 				@Override
-				public void receivedObject(final Script item) {
+				public void receive(final Script item) {
 					item.postLoad(Index.this, Index.this);
 				}
 			});
@@ -492,7 +489,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		entities.remove(script.entityId());
 		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 			@Override
-			public void receivedObject(final Script item) {
+			public void receive(final Script item) {
 				item.scriptRemovedFromIndex(script);
 			}
 		});
@@ -1021,9 +1018,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public void loadScriptsContainingDeclarationsNamed(final String name) {
 		allScripts(new Sink<Script>() {
 			@Override
-			public void receivedObject(final Script item) {
-				item.requireLoaded();
-			}
+			public void receive(final Script item) { item.requireLoaded(); }
 			@Override
 			public boolean filter(final Script s) {
 				return s.dictionary() != null && s.dictionary().contains(name);

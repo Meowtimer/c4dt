@@ -147,11 +147,11 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 					final Index index = (Index)d;
 					index.forAllRelevantIndexes(new Sink<Index>() {
 						@Override
-						public void receivedObject(final Index index) {
+						public void receive(final Index index) {
 							index.allScripts(new Sink<Script>() {
 								int declarationsBatchSize = 0;
 								@Override
-								public void receivedObject(final Script s) {
+								public void receive(final Script s) {
 									if (progressMonitor.isCanceled())
 										return;
 									if (s.dictionary() != null)

@@ -107,7 +107,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 		progressMonitor.beginTask(Messages.OpenDefinitionDialog_Searching, index.numUniqueIds());
 		index.allDefinitions(new Sink<Definition>() {
 			@Override
-			public void receivedObject(final Definition item) {
+			public void receive(final Definition item) {
 				contentProvider.add(item, itemsFilter);
 				progressMonitor.worked(1);
 			}

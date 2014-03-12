@@ -167,7 +167,7 @@ public abstract class Declaration extends ASTNode implements
 			for (final Index index : indexes)
 				index.allDefinitions(new Sink<Definition>() {
 					@Override
-					public void receivedObject(final Definition item) {
+					public void receive(final Definition item) {
 						result.add(item);
 					}
 					@Override

@@ -617,7 +617,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					if (baseDef != null)
 						ndx.allScripts(new Sink<Script>() {
 							@Override
-							public void receivedObject(final Script item) {
+							public void receive(final Script item) {
 								if (item != p.first() && item.doesInclude(ndx, baseDef)) {
 									final Function ovrld = item.findLocalFunction(base.name(), true);
 									if (ovrld != null)

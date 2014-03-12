@@ -39,7 +39,7 @@ class Plan {
 
 	private final class CallerCalleeDependencyDetector implements Sink<ExecutorService> {
 		@Override
-		public void receivedObject(final ExecutorService item) {
+		public void receive(final ExecutorService item) {
 			for (final Input i : inference.input.values())
 				for (final Visit v : i.visits.values())
 					item.execute(new Runnable() {

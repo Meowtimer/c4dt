@@ -159,7 +159,7 @@ public class ReferencesSearchQuery extends SearchQuery {
 		final Visitor visitor = new Visitor();
 		TaskExecution.threadPool(new Sink<ExecutorService>() {
 			@Override
-			public void receivedObject(final ExecutorService pool) {
+			public void receive(final ExecutorService pool) {
 				for (final Object scope : ReferencesSearchQuery.this.scope)
 					if (scope instanceof IContainer) try {
 						((IContainer)scope).accept(visitor);

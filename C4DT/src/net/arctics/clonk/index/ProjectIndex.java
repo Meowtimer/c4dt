@@ -76,7 +76,7 @@ public class ProjectIndex extends Index {
 			final List<Script> stuffToBeRemoved = new LinkedList<Script>();
 			allDefinitions(new Sink<Definition>() {
 				@Override
-				public void receivedObject(final Definition item) {
+				public void receive(final Definition item) {
 					stuffToBeRemoved.add(item);
 				}
 				@Override

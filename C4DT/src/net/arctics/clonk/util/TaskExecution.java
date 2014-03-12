@@ -19,7 +19,7 @@ public class TaskExecution {
 	public static void threadPool(final Sink<ExecutorService> action, final int timeoutMinutes, final Integer numWorkUnits) {
 		final ExecutorService pool = newPool(numWorkUnits);
 		try {
-			action.receivedObject(pool);
+			action.receive(pool);
 		} finally {
 			pool.shutdown();
 			try {
