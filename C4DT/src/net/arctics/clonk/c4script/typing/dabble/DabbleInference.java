@@ -837,18 +837,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Problem code,
 				final Object... args
 			) {
-				body.traverse(new IASTVisitor<Void>() {
-					@Override
-					public TraversalContinuation visitNode(final ASTNode node, final Void context) {
-						if (node instanceof VarInitialization) {
-							final VarInitialization vi = (VarInitialization) node;
-							if (vi.variable == variable) {
-								markers().warning(Visitor.this, code, vi, vi, 0, args);
-								return TraversalContinuation.Cancel;
-							}
+				body.traverse((node, context) -> {
+					if (node instanceof VarInitialization) {
+						final VarInitialization vi = (VarInitialization) node;
+						if (vi.variable == variable) {
+							markers().warning(Visitor.this, code, vi, vi, 0, args);
+							return TraversalContinuation.Cancel;
 						}
-						return TraversalContinuation.Continue;
 					}
+					return TraversalContinuation.Continue;
 				}, null);
 			}
 
@@ -2778,13 +2775,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new ConditionalStatementExpert<ForStatement>(ForStatement.class) {
-				IASTVisitor<List<VarInitialization>> variableGatherer = new IASTVisitor<List<VarInitialization>>() {
-					@Override
-					public TraversalContinuation visitNode(final ASTNode node, final List<VarInitialization> context) {
-						if (node instanceof VarInitialization && ((VarInitialization) node).variable != null)
-							context.add((VarInitialization) node);
-						return TraversalContinuation.Continue;
-					}
+				IASTVisitor<List<VarInitialization>> variableGatherer = (node, context) -> {
+					if (node instanceof VarInitialization && ((VarInitialization) node).variable != null)
+						context.add((VarInitialization) node);
+					return TraversalContinuation.Continue;
 				};
 				List<VarInitialization> gatherVariables(final ForStatement fs) {
 					final List<VarInitialization> result = new ArrayList<>(3);

@@ -532,25 +532,22 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			implements IASTVisitor<Pair<Script, Function>>
 		{
 			final Pair<Script, Function> entry = Pair.pair(structure(), function);
-			final IASTVisitor<Script> assignmentFollower = new IASTVisitor<Script>() {
-				@Override
-				public TraversalContinuation visitNode(final ASTNode node, final Script context) {
-					if (node instanceof AccessVar) {
-						final AccessVar av = (AccessVar) node;
-						final Variable v = as(av.declaration(), Variable.class);
-						if (v != null && v.scope() == Scope.LOCAL) {
-							final List<AccessVar> vr = context.varReferences().get(av.name());
-							if (vr != null)
-								for (final AccessVar o : vr)
-									if (o.declaration() == v) {
-										final Function f = o.parent(Function.class);
-										if (f != null)
-											follow(f, context);
-									}
-						}
+			final IASTVisitor<Script> assignmentFollower = (node, context) -> {
+				if (node instanceof AccessVar) {
+					final AccessVar av = (AccessVar) node;
+					final Variable v = as(av.declaration(), Variable.class);
+					if (v != null && v.scope() == Scope.LOCAL) {
+						final List<AccessVar> vr = context.varReferences().get(av.name());
+						if (vr != null)
+							for (final AccessVar o : vr)
+								if (o.declaration() == v) {
+									final Function f = o.parent(Function.class);
+									if (f != null)
+										follow(f, context);
+								}
 					}
-					return TraversalContinuation.Continue;
 				}
+				return TraversalContinuation.Continue;
 			};
 			Function.Typing typing = structure().typings().get(function);
 			CallDeclaration localCall;
@@ -713,14 +710,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				cachedScript = new WeakReference<Script>(result);
 				try {
 					reparse();
-					result.traverse(new IASTVisitor<Script>() {
-						@Override
-						public TraversalContinuation visitNode(final ASTNode node, final Script parser) {
-							final AccessDeclaration ad = as(node, AccessDeclaration.class);
-							if (ad != null && ad.declaration() != null)
-								ad.setDeclaration(ad.declaration().latestVersion());
-							return TraversalContinuation.Continue;
-						}
+					result.traverse((node, parser) -> {
+						final AccessDeclaration ad = as(node, AccessDeclaration.class);
+						if (ad != null && ad.declaration() != null)
+							ad.setDeclaration(ad.declaration().latestVersion());
+						return TraversalContinuation.Continue;
 					}, result);
 				} catch (final Exception e) {
 					e.printStackTrace();

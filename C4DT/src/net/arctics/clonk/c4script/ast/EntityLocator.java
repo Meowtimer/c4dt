@@ -8,13 +8,13 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
-import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
@@ -28,7 +28,6 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectResource;
-import java.util.function.Predicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -159,18 +158,15 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	public TraversalContinuation visitNode(final ASTNode expression, final Void v) {
 		if (expression instanceof ProplistDeclaration)
 			return TraversalContinuation.SkipSubElements;
-		expression.traverse(new IASTVisitor<Void>() {
-			@Override
-			public TraversalContinuation visitNode(final ASTNode expression, final Void v) {
-				if (expression instanceof ProplistDeclaration)
-					return TraversalContinuation.SkipSubElements;
-				final IRegion a = expression.absolute();
-				if (exprRegion.getOffset() >= a.getOffset() && exprRegion.getOffset() < a.getOffset()+a.getLength()) {
-					exprAtRegion = expression;
-					return TraversalContinuation.TraverseSubElements;
-				}
-				return TraversalContinuation.Continue;
+		expression.traverse((xpr, _v) -> {
+			if (xpr instanceof ProplistDeclaration)
+				return TraversalContinuation.SkipSubElements;
+			final IRegion a = xpr.absolute();
+			if (exprRegion.getOffset() >= a.getOffset() && exprRegion.getOffset() < a.getOffset()+a.getLength()) {
+				exprAtRegion = xpr;
+				return TraversalContinuation.TraverseSubElements;
 			}
+			return TraversalContinuation.Continue;
 		}, null);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
 	}

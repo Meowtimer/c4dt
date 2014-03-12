@@ -17,7 +17,6 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTPositionProvider;
-import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.MalformedDeclaration;
 import net.arctics.clonk.ast.Placeholder;
 import net.arctics.clonk.ast.Sequence;
@@ -234,7 +233,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		filterLocalTypeAnnotations();
 		script().setTypeAnnotations(typeAnnotations);
 	}
-	
+
 	private void filterLocalTypeAnnotations() {
 		if (typeAnnotations == null)
 			return;
@@ -494,15 +493,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		final InitializationFunction synth = new InitializationFunction(vi.variable);
 		final SourceLocation expressionLocation = absoluteSourceLocationFromExpr(vi.expression);
 		final int es = expressionLocation.start();
-		vi.expression.traverse(new IASTVisitor<Void>() {
-			@Override
-			public TraversalContinuation visitNode(final ASTNode node, final Void parser) {
-				node.setLocation(node.start()-es, node.end()-es);
-				final CallDeclaration cd = as(node, CallDeclaration.class);
-				if (cd != null)
-					cd.setParmsRegion(cd.parmsStart()-es, cd.parmsEnd()-es);
-				return TraversalContinuation.Continue;
-			}
+		vi.expression.traverse((node, parser) -> {
+			node.setLocation(node.start()-es, node.end()-es);
+			final CallDeclaration cd = as(node, CallDeclaration.class);
+			if (cd != null)
+				cd.setParmsRegion(cd.parmsStart()-es, cd.parmsEnd()-es);
+			return TraversalContinuation.Continue;
 		}, null);
 		synth.setBodyLocation(expressionLocation);
 		synth.storeBody(vi.expression, readStringAt(expressionLocation));
@@ -1003,7 +999,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			else if (readByte == ',')
 				parmExpected = true;
 			else
-				error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, (char)readByte);  
+				error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, (char)readByte);
 		} while(!reachedEOF());
 	}
 

@@ -89,17 +89,14 @@ public class StaticTypingUtil {
 			}
 
 			// cast expressions
-			script.traverse(new IASTVisitor<StringBuilder>() {
-				@Override
-				public TraversalContinuation visitNode(final ASTNode node, final StringBuilder context) {
-					if (node instanceof CastExpression) {
-						final IRegion absolute = node.absolute();
-						final IRegion exprAbsolute = ((CastExpression) node).expression().absolute();
-						final int preludeLen = exprAbsolute.getOffset()-absolute.getOffset();
-						builder.replace(absolute.getOffset(), exprAbsolute.getOffset(), multiply(" ", preludeLen));
-					}
-					return TraversalContinuation.Continue;
+			script.traverse((node, context) -> {
+				if (node instanceof CastExpression) {
+					final IRegion absolute = node.absolute();
+					final IRegion exprAbsolute = ((CastExpression) node).expression().absolute();
+					final int preludeLen = exprAbsolute.getOffset()-absolute.getOffset();
+					builder.replace(absolute.getOffset(), exprAbsolute.getOffset(), multiply(" ", preludeLen));
 				}
+				return TraversalContinuation.Continue;
 			}, builder);
 
 			return builder.toString();

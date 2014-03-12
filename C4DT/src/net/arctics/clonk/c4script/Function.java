@@ -83,15 +83,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		public final IType[] nodeTypes;
 		public void printNodeTypes(final Function containing) {
 			System.out.println("===================== This is " + containing.qualifiedName() + "=====================");
-			containing.traverse(new IASTVisitor<Typing>() {
-				@Override
-				public TraversalContinuation visitNode(final ASTNode node, final Typing context) {
-					if (node.localIdentifier() <= 0)
-						return TraversalContinuation.Continue;
-					System.out.println(String.format("%s: %s",
-						node.printed(), defaulting(context.nodeTypes[node.localIdentifier()], PrimitiveType.UNKNOWN)));
+			containing.traverse((node, context) -> {
+				if (node.localIdentifier() <= 0)
 					return TraversalContinuation.Continue;
-				}
+				System.out.println(String.format("%s: %s",
+					node.printed(), defaulting(context.nodeTypes[node.localIdentifier()], PrimitiveType.UNKNOWN)));
+				return TraversalContinuation.Continue;
 			}, this);
 		}
 	}
@@ -833,13 +830,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			v.forceType(PrimitiveType.UNKNOWN);
 	}
 
-	private static final IASTVisitor<Function> AST_ASSIGN_IDENTIFIER_VISITOR = new IASTVisitor<Function>() {
-		@Override
-		public TraversalContinuation visitNode(final ASTNode node, final Function context) {
-			if (node != null)
-				node.localIdentifier(context.totalNumASTNodes++);
-			return TraversalContinuation.Continue;
-		}
+	private static final IASTVisitor<Function> AST_ASSIGN_IDENTIFIER_VISITOR = (node, context) -> {
+		if (node != null)
+			node.localIdentifier(context.totalNumASTNodes++);
+		return TraversalContinuation.Continue;
 	};
 
 	public void storeBody(final ASTNode block, final String source) {

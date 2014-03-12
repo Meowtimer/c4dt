@@ -34,38 +34,35 @@ import org.eclipse.core.resources.IMarker;
  */
 public class Comment extends Statement implements Statement.Attachment, IPlaceholderPatternMatchTarget {
 
-	public static final IASTVisitor<Markers> TODO_EXTRACTOR = new IASTVisitor<Markers>() {
-		@Override
-		public TraversalContinuation visitNode(final ASTNode node_, final Markers markers) {
-			final Comment node = as(node_, Comment.class);
-			if (node == null)
-				return TraversalContinuation.Continue;
-			final Script script = node.parent(Script.class);
-			if (script == null || script.file() == null)
-				return TraversalContinuation.Continue;
-			final String s = node.text();
-			int markerPriority;
-			int searchStart = 0;
-			do {
-				markerPriority = IMarker.PRIORITY_LOW;
-				int todoIndex = s.indexOf("TODO", searchStart); //$NON-NLS-1$
-				if (todoIndex != -1)
-					markerPriority = IMarker.PRIORITY_NORMAL;
-				else {
-					todoIndex = s.indexOf("FIXME", searchStart); //$NON-NLS-1$
-					if (todoIndex != -1)
-						markerPriority = IMarker.PRIORITY_HIGH;
-				}
-				if (todoIndex != -1) {
-					int lineEnd = s.indexOf('\n', todoIndex);
-					if (lineEnd == -1)
-						lineEnd = s.length();
-					searchStart = lineEnd;
-					markers.todo(script.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
-				}
-			} while (markerPriority > IMarker.PRIORITY_LOW);
+	public static final IASTVisitor<Markers> TODO_EXTRACTOR = (node_, markers) -> {
+		final Comment node = as(node_, Comment.class);
+		if (node == null)
 			return TraversalContinuation.Continue;
-		}
+		final Script script = node.parent(Script.class);
+		if (script == null || script.file() == null)
+			return TraversalContinuation.Continue;
+		final String s = node.text();
+		int markerPriority;
+		int searchStart = 0;
+		do {
+			markerPriority = IMarker.PRIORITY_LOW;
+			int todoIndex = s.indexOf("TODO", searchStart); //$NON-NLS-1$
+			if (todoIndex != -1)
+				markerPriority = IMarker.PRIORITY_NORMAL;
+			else {
+				todoIndex = s.indexOf("FIXME", searchStart); //$NON-NLS-1$
+				if (todoIndex != -1)
+					markerPriority = IMarker.PRIORITY_HIGH;
+			}
+			if (todoIndex != -1) {
+				int lineEnd = s.indexOf('\n', todoIndex);
+				if (lineEnd == -1)
+					lineEnd = s.length();
+				searchStart = lineEnd;
+				markers.todo(script.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
+			}
+		} while (markerPriority > IMarker.PRIORITY_LOW);
+		return TraversalContinuation.Continue;
 	};
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -310,10 +307,10 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 
 	@Override
 	public String patternMatchingText() { return text(); }
-	
+
 	@Override
 	public Comment clone() { return (Comment)super.clone(); }
-	
+
 	public static void printUserDescription(ASTNodePrinter output, int depth, String desc, boolean lineBreak) {
 		if (desc != null) {
 			if (!lineBreak)
@@ -324,5 +321,5 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 				output.append('\n');
 		}
 	}
-	
+
 }
