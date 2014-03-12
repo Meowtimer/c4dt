@@ -1,5 +1,4 @@
 package net.arctics.clonk.ui.navigator;
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -7,28 +6,13 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 public abstract class ClonkResourceHandler extends AbstractHandler implements IWorkbenchWindowActionDelegate {
-	
-	public ClonkResourceHandler() {
-		super();
-		//UI.getProjectExplorer().getCommonViewer().addSelectionChangedListener(this);
-	}
-	
+	public ClonkResourceHandler() { super(); }
 	@Override
-	public void dispose() {
-	}
-
+	public void dispose() {}
 	@Override
-	public void init(final IWorkbenchWindow window) {
-	}
-
+	public void init(final IWorkbenchWindow window) {}
 	@Override
-	public void run(final IAction action) {
-	}
-
+	public void run(final IAction action) {}
 	@Override
-	public void selectionChanged(final IAction action, final ISelection selection) {
-		// TODO Auto-generated method stub
-		
-	}
-
+	public void selectionChanged(final IAction action, final ISelection selection) {}
 }
