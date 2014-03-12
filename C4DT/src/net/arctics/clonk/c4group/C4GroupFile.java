@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.c4group.C4Group.StreamReadCallback;
 import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.filesystem.IFileInfo;
@@ -33,9 +32,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
  *
  */
 public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
-	
+
 	private static class EntryCache {
-		
+
 		private static class CachedEntry {
 			public File file;
 			public long creationTime;
@@ -48,9 +47,9 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 				return file.lastModified() != creationTime;
 			}
 		}
-		
+
 		private final Map<C4GroupFile, CachedEntry> files = new HashMap<C4GroupFile, CachedEntry>();
-		
+
 		public File getCachedFile(final C4GroupFile groupEntry) throws IOException, CoreException {
 			CachedEntry e = files.get(groupEntry);
 			if (e == null || e.modified()) {
@@ -71,7 +70,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 			return e.file;
 		}
 	}
-	
+
 	private static final EntryCache CACHE = new EntryCache();
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -137,12 +136,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	public ByteArrayInputStream getContents() throws CoreException {
 		if (contents == null)
 			try {
-				parentGroup().readFromStream(this, parentGroup().baseOffset() + header.offset(), new StreamReadCallback() {
-					@Override
-					public void readStream(final InputStream stream) {
-						fetchContents(stream);
-					}
-				});
+				parentGroup().readFromStream(this, parentGroup().baseOffset() + header.offset(), stream -> fetchContents(stream));
 				try {
 					return new ByteArrayInputStream(getContentsAsArray());
 				} finally {
@@ -366,7 +360,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	public InputStream openInputStream(final int options, final IProgressMonitor monitor) throws CoreException {
 		return getContents();
 	}
-	
+
 	@Override
 	public File toLocalFile(final int options, final IProgressMonitor monitor) throws CoreException {
 		try {

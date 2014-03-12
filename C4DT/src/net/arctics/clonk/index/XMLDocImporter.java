@@ -39,9 +39,7 @@ import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 public class XMLDocImporter {
 
@@ -197,13 +195,10 @@ public class XMLDocImporter {
 				DocumentBuilder builder;
 				try {
 					builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-					builder.setEntityResolver(new EntityResolver() {
-						@Override
-						public InputSource resolveEntity(final String publicId, final String systemId) throws SAXException, IOException {
-							if (systemId.endsWith("clonk.dtd")) //$NON-NLS-1$
-								return new InputSource(new FileReader(repositoryPath + "/docs/clonk.dtd"));
-							return null;
-						}
+					builder.setEntityResolver((publicId, systemId) -> {
+						if (systemId.endsWith("clonk.dtd")) //$NON-NLS-1$
+							return new InputSource(new FileReader(repositoryPath + "/docs/clonk.dtd"));
+						return null;
 					});
 				} catch (final Exception e) {
 					e.printStackTrace();

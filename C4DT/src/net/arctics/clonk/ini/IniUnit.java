@@ -12,9 +12,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -38,7 +38,6 @@ import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasChildren;
-import java.util.function.Predicate;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
@@ -48,7 +47,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.content.IContentType;
-import org.eclipse.jface.text.IDocument;
 
 /**
  * Reads Windows ini style configuration files
@@ -95,14 +93,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	public void save(final boolean discardEmptySections) {
 		if (file() != null)
-			Core.instance().performActionsOnFileDocument(file(), new IDocumentAction<Void>() {
-				@Override
-				public Void run(final IDocument document) {
-					final StringWriter writer = new StringWriter();
-					save(new AppendableBackedExprWriter(writer), discardEmptySections);
-					document.set(writer.toString());
-					return null;
-				}
+			Core.instance().performActionsOnFileDocument(file(), document -> {
+				final StringWriter writer = new StringWriter();
+				save(new AppendableBackedExprWriter(writer), discardEmptySections);
+				document.set(writer.toString());
+				return null;
 			}, true);
 		else
 			throw new IllegalStateException(String.format("%s has no associated file", toString()));
@@ -370,20 +365,17 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public static void register() {
-		Structure.registerStructureFactory(new IStructureFactory() {
-			@Override
-			public Structure create(final IResource resource, final boolean duringBuild) {
-				if (resource instanceof IFile)
-					try {
-						final IniUnit unit = createAdequateIniUnit((IFile) resource);
-						if (unit != null)
-							new IniUnitParser(unit).parse(duringBuild);
-						return unit;
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
-				return null;
-			}
+		Structure.registerStructureFactory((resource, duringBuild) -> {
+			if (resource instanceof IFile)
+				try {
+					final IniUnit unit = createAdequateIniUnit((IFile) resource);
+					if (unit != null)
+						new IniUnitParser(unit).parse(duringBuild);
+					return unit;
+				} catch (final Exception e) {
+					e.printStackTrace();
+				}
+			return null;
 		});
 	}
 

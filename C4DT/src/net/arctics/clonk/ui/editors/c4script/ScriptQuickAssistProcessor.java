@@ -12,7 +12,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -71,7 +70,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
@@ -259,14 +257,11 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
 							Messages.ClonkQuickAssistProcessor_SpecifyValue,
 							String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.name()), accessDec.name(),
-							new IInputValidator() {
-								@Override
-								public String isValid(final String newText) {
-									if (!validIdentifierPattern.matcher(newText).matches())
-										return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
-									else
-										return null;
-								}
+							newText -> {
+								if (!validIdentifierPattern.matcher(newText).matches())
+									return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
+								else
+									return null;
 							}
 						);
 						if (s != null)
@@ -304,14 +299,11 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		}
 
 		public void runOnMarker(final IMarker marker) {
-			Core.instance().performActionsOnFileDocument((IFile)marker.getResource(), new IDocumentAction<Object>() {
-				@Override
-				public Object run(final IDocument document) {
-					replacementOffset = marker.getAttribute(IMarker.CHAR_START, replacementOffset);
-					replacementLength = marker.getAttribute(IMarker.CHAR_END, replacementOffset+replacementLength)-replacementOffset;
-					apply(document);
-					return null;
-				}
+			Core.instance().performActionsOnFileDocument((IFile)marker.getResource(), document -> {
+				replacementOffset = marker.getAttribute(IMarker.CHAR_START, replacementOffset);
+				replacementLength = marker.getAttribute(IMarker.CHAR_END, replacementOffset+replacementLength)-replacementOffset;
+				apply(document);
+				return null;
 			}, true);
 		}
 
@@ -427,12 +419,9 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		if (document != null)
 			internalCollectProposals(marker, position, proposals, document, script);
 		else
-			Core.instance().performActionsOnFileDocument(script.source(), new IDocumentAction<Void>() {
-				@Override
-				public Void run(final IDocument connectedDocument) {
-					internalCollectProposals(marker, position, proposals, connectedDocument, script);
-					return null;
-				}
+			Core.instance().performActionsOnFileDocument(script.source(), connectedDocument -> {
+				internalCollectProposals(marker, position, proposals, connectedDocument, script);
+				return null;
 			}, false);
 	}
 

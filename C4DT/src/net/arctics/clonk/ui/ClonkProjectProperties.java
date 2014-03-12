@@ -1,7 +1,6 @@
 package net.arctics.clonk.ui;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -32,8 +31,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -45,11 +42,11 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 
 	private static final String ENGINENAME_PROPERTY = "engineName"; //$NON-NLS-1$
 	private static final String DISABLED_ERRORS_PROPERTY = "disabledErrors"; //$NON-NLS-1$
-	
+
 	public ClonkProjectProperties() {
 		super(GRID);
 	}
-	
+
 	private final class DisabledErrorsFieldEditor extends FieldEditor implements ICheckStateListener, ICheckStateProvider {
 		HashSet<Problem> disabledErrorCodes = new HashSet<Problem>();
 		private CheckboxTableViewer tableViewer;
@@ -87,12 +84,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		private Table getTable(final Composite parent) {
 			if (table == null) {
 				filterBox = new Text(parent, SWT.SEARCH | SWT.CANCEL);
-				filterBox.addModifyListener(new ModifyListener() {
-					@Override
-					public void modifyText(final ModifyEvent e) {
-						tableViewer.refresh();
-					}
-				});
+				filterBox.addModifyListener(e -> tableViewer.refresh());
 				final ViewerFilter filter = new ViewerFilter() {
 					@Override
 					public boolean select(final Viewer viewer, final Object parentElement, final Object element) {
@@ -112,12 +104,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 					public Problem[] getElements(final Object inputElement) {
 						if (inputElement == Problem.class) {
 							final Problem[] elms = Problem.values().clone();
-							Arrays.sort(elms, new Comparator<Problem>() {
-								@Override
-								public int compare(final Problem o1, final Problem o2) {
-									return o1.messageWithFormatArgumentDescriptions().compareTo(o2.messageWithFormatArgumentDescriptions());
-								}
-							});
+							Arrays.sort(elms, (o1, o2) -> o1.messageWithFormatArgumentDescriptions().compareTo(o2.messageWithFormatArgumentDescriptions()));
 							return elms;
 						}
 						return null;
@@ -193,12 +180,12 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			values.put(name, value);
 			commit(name, value);
 		}
-		
+
 		@Override
 		public void setValue(final String name, final boolean value) {
 			setValue(name, String.valueOf(value));
 		}
-		
+
 		@Override
 		public boolean getBoolean(final String name) {
 			return Boolean.parseBoolean(values.get(name));
@@ -223,25 +210,25 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		private ProjectSettings getSettings() {
 			return ClonkProjectNature.get(getProject()).settings();
 		}
-		
+
 		public AdapterStore() throws CoreException {
 			values.put(ENGINENAME_PROPERTY, getSettings().engineName());
 			values.put(DISABLED_ERRORS_PROPERTY, getSettings().disabledErrorsString());
 		}
 	}
-	
-	private IAdaptable element;	
+
+	private IAdaptable element;
 	private AdapterStore adapterStore;
-	
+
 	private IProject getProject() {
 		return (IProject) element.getAdapter(IProject.class);
 	}
-	
+
 	@Override
 	public IPreferenceStore getPreferenceStore() {
 		return adapterStore;
 	}
-	
+
 	@Override
 	protected void createFieldEditors() {
 		addField(new ComboFieldEditor(ENGINENAME_PROPERTY, Messages.ClonkProjectProperties_SpecifiedEngine, ClonkPreferencePage.engineComboValues(true), getFieldEditorParent()));
@@ -262,10 +249,10 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public boolean performOk() {
-		if (super.performOk()) { 
+		if (super.performOk()) {
 			ClonkProjectNature.get(getProject()).saveSettings();
 			return true;
 		} else

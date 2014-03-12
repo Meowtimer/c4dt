@@ -10,7 +10,6 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
@@ -78,17 +77,14 @@ public abstract class Conf {
 
 	static {
 		if (Core.instance() != null && !Core.runsHeadless()) {
-			final IPropertyChangeListener listener = new IPropertyChangeListener() {
-				@Override
-				public void propertyChange(final PropertyChangeEvent event) {
-					final String[] relevantPrefValues = {
-						AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
-						ClonkPreferences.JAVA_STYLE_BLOCKS
-					};
-					for (final String pref : relevantPrefValues)
-						if (event.getProperty().equals(pref))
-							configureByEditorPreferences();
-				}
+			final IPropertyChangeListener listener = event -> {
+				final String[] relevantPrefValues = {
+					AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
+					ClonkPreferences.JAVA_STYLE_BLOCKS
+				};
+				for (final String pref : relevantPrefValues)
+					if (event.getProperty().equals(pref))
+						configureByEditorPreferences();
 			};
 			EditorsUI.getPreferenceStore().addPropertyChangeListener(listener);
 			Core.instance().getPreferenceStore().addPropertyChangeListener(listener);

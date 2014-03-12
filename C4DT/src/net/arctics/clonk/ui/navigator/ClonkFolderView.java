@@ -3,8 +3,6 @@ package net.arctics.clonk.ui.navigator;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -13,7 +11,6 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
-import net.arctics.clonk.c4group.C4Group.StreamReadCallback;
 import net.arctics.clonk.c4group.C4GroupEntryHeader;
 import net.arctics.clonk.c4group.C4GroupFile;
 import net.arctics.clonk.c4group.C4GroupHeaderFilterBase;
@@ -88,15 +85,12 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		public Object[] getChildren(final Object parentElement) {
 			try {
 				final File folder = (File) parentElement;
-				return folder.listFiles(new FilenameFilter() {
-					@Override
-					public boolean accept(final File dir, final String name) {
-						if (name.startsWith(".")) //$NON-NLS-1$
-							return false;
-						if (Util.isMac() && name.endsWith(".app")) //$NON-NLS-1$
-							return false;
-						return (currentEngine().groupTypeForFileName(name) != GroupType.OtherGroup || new File(dir, name).isDirectory());
-					}
+				return folder.listFiles((dir, name) -> {
+					if (name.startsWith(".")) //$NON-NLS-1$
+						return false;
+					if (Util.isMac() && name.endsWith(".app")) //$NON-NLS-1$
+						return false;
+					return (currentEngine().groupTypeForFileName(name) != GroupType.OtherGroup || new File(dir, name).isDirectory());
 				});
 			} catch (final Exception e) {
 				return new Object[0];
@@ -380,14 +374,11 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 								}
 							}
 						};
-						group.readFromStream(group, 0, new StreamReadCallback() {
-							@Override
-							public void readStream(final InputStream stream) {
-								try {
-									group.readIntoMemory(true, headerFilter, stream);
-								} catch (final Exception e) {
-									e.printStackTrace();
-								}
+						group.readFromStream(group, 0, stream -> {
+							try {
+								group.readIntoMemory(true, headerFilter, stream);
+							} catch (final Exception e) {
+								e.printStackTrace();
 							}
 						});
 					} catch (final Exception e) {

@@ -6,11 +6,9 @@ import static java.lang.System.out;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +27,6 @@ import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.PathUtil;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IProject;
@@ -47,8 +44,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -155,15 +150,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		registerStructureClasses();
 
 		// react to active engine being changed
-		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
-			@Override
-			public void propertyChange(final PropertyChangeEvent event) {
-				if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
-					setActiveEngineByName(ClonkPreferences.value(ClonkPreferences.ACTIVE_ENGINE));
-				else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID))
-					for (final Engine e : loadedEngines())
-						e.loadDeclarations();
-			}
+		getPreferenceStore().addPropertyChangeListener(event -> {
+			if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
+				setActiveEngineByName(ClonkPreferences.value(ClonkPreferences.ACTIVE_ENGINE));
+			else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID))
+				for (final Engine e : loadedEngines())
+					e.loadDeclarations();
 		});
 	}
 
@@ -204,12 +196,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 
 	public Iterable<Engine> loadedEngines() {
-		return new Iterable<Engine>() {
-			@Override
-			public Iterator<Engine> iterator() {
-				return new ReadOnlyIterator<Engine>(loadedEngines.values().iterator());
-			}
-		};
+		return () -> new ReadOnlyIterator<Engine>(loadedEngines.values().iterator());
 	}
 
 	public void reloadEngines() {
@@ -443,12 +430,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	private void rememberCurrentVersion() {
 		final File currentVersionMarker = new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE);
 		try {
-			StreamUtil.writeToFile(currentVersionMarker, new StreamWriteRunnable() {
-				@Override
-				public void run(final File file, final OutputStream stream, final OutputStreamWriter writer) throws IOException {
-					writer.append(getBundle().getVersion().toString());
-				}
-			});
+			StreamUtil.writeToFile(currentVersionMarker, (file, stream, writer) -> writer.append(getBundle().getVersion().toString()));
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}

@@ -115,27 +115,24 @@ public class StringTbl extends Structure implements ITreeNode {
 	}
 
 	public static void register() {
-		registerStructureFactory(new IStructureFactory() {
-			private final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$
-			@Override
-			public Structure create(final IResource resource, final boolean duringBuild) {
-				if (resource instanceof IFile && stringTblFileMatcher.reset(resource.getName()).matches()) {
-					final IFile file = (IFile) resource;
-					final StringTbl tbl = new StringTbl();
-					tbl.setFile(file);
-					String fileContents;
-					try {
-						fileContents = StreamUtil.stringFromFileDocument(file);
-					} catch (final Exception e) {
-						e.printStackTrace();
-						return null;
-					}
-					final StringReader reader = new StringReader(fileContents);
-					tbl.read(reader);
-					return tbl;
+		final Matcher stringTblFileMatcher = PATTERN.matcher(""); //$NON-NLS-1$
+		registerStructureFactory((resource, duringBuild) -> {
+			if (resource instanceof IFile && stringTblFileMatcher.reset(resource.getName()).matches()) {
+				final IFile file = (IFile) resource;
+				final StringTbl tbl = new StringTbl();
+				tbl.setFile(file);
+				String fileContents;
+				try {
+					fileContents = StreamUtil.stringFromFileDocument(file);
+				} catch (final Exception e) {
+					e.printStackTrace();
+					return null;
 				}
-				return null;
+				final StringReader reader = new StringReader(fileContents);
+				tbl.read(reader);
+				return tbl;
 			}
+			return null;
 		});
 	}
 

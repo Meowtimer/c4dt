@@ -405,11 +405,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			return super.occurenceScope(indexes);
 	}
 
-	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = new IVariableFactory() {
-		@Override
-		public Variable newVariable(final String varName, final Scope scope) {
-			return new Variable(varName, scope);
-		}
-	};
+	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = (varName, scope) -> new Variable(varName, scope);
 
 }

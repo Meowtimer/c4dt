@@ -2,8 +2,6 @@ package net.arctics.clonk.debug;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,7 +19,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -261,12 +258,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 				if (c == nature.getProject()) {
 					final File dest = new File(tempFolder, StringUtil.blockString("", "", File.separator, breadcrump));
 					try {
-						StreamUtil.writeToFile(dest, new StreamWriteRunnable() {
-							@Override
-							public void run(final File file, final OutputStream stream, final OutputStreamWriter writer) throws IOException {
-								writer.write(purged);
-							}
-						});
+						StreamUtil.writeToFile(dest, (file, stream, writer) -> writer.write(purged));
 					} catch (final IOException e) {
 						e.printStackTrace();
 					}

@@ -1,7 +1,6 @@
 package net.arctics.clonk.landscapescript;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.index.Engine;
 
@@ -22,17 +21,14 @@ public class LandscapeScript extends Overlay {
 		this.file = file;
 	}
 	public static void register() {
-		registerStructureFactory(new IStructureFactory() {
-			@Override
-			public Structure create(final IResource resource, final boolean duringBuild) {
-				if (resource instanceof IFile && resource.getName().equalsIgnoreCase("Landscape.txt")) { //$NON-NLS-1$
-					final LandscapeScript script = new LandscapeScript((IFile) resource);
-					final LandscapeScriptParser parser = new LandscapeScriptParser(script);
-					parser.parse();
-					return script;
-				}
-				return null;
+		registerStructureFactory((resource, duringBuild) -> {
+			if (resource instanceof IFile && resource.getName().equalsIgnoreCase("Landscape.txt")) { //$NON-NLS-1$
+				final LandscapeScript script = new LandscapeScript((IFile) resource);
+				final LandscapeScriptParser parser = new LandscapeScriptParser(script);
+				parser.parse();
+				return script;
 			}
+			return null;
 		});
 	}
 	@Override

@@ -10,7 +10,6 @@ import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IConverter;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IProject;
@@ -105,12 +104,9 @@ public class OpenDefinitionDialog extends EntityChooser {
 		final Index index
 	) {
 		progressMonitor.beginTask(Messages.OpenDefinitionDialog_Searching, index.numUniqueIds());
-		index.allDefinitions(new Sink<Definition>() {
-			@Override
-			public void receive(final Definition item) {
-				contentProvider.add(item, itemsFilter);
-				progressMonitor.worked(1);
-			}
+		index.allDefinitions(item -> {
+			contentProvider.add(item, itemsFilter);
+			progressMonitor.worked(1);
 		});
 		for (final Scenario s : index.scenarios())
 			contentProvider.add(s, itemsFilter);
@@ -135,12 +131,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Comparator getItemsComparator() {
-		return new Comparator() {
-			@Override
-			public int compare(final Object arg0, final Object arg1) {
-				return arg0.toString().compareTo(arg1.toString());
-			}
-		};
+		return (arg0, arg1) -> arg0.toString().compareTo(arg1.toString());
 	}
 
 	@Override

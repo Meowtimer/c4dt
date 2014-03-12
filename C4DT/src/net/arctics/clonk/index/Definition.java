@@ -43,8 +43,6 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 
 /**
  * A Clonk object definition.
@@ -471,14 +469,11 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	static {
 		if (!Core.runsHeadless())
-			Core.instance().getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
-				@Override
-				public void propertyChange(final PropertyChangeEvent event) {
-					if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
-						final Sink<Definition> sink = item -> item.chooseLocalizedName();
-						for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
-							ClonkProjectNature.get(proj).index().allDefinitions(sink);
-					}
+			Core.instance().getPreferenceStore().addPropertyChangeListener(event -> {
+				if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
+					final Sink<Definition> sink = item -> item.chooseLocalizedName();
+					for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+						ClonkProjectNature.get(proj).index().allDefinitions(sink);
 				}
 			});
 	}

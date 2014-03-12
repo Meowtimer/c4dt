@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileSystem;
 import org.eclipse.core.runtime.Path;
@@ -19,7 +18,7 @@ import org.eclipse.core.runtime.Path;
  *
  */
 public class C4GroupFileSystem extends FileSystem {
-	
+
 	/**
 	 * The scheme identifier of this file system.
 	 */
@@ -56,7 +55,7 @@ public class C4GroupFileSystem extends FileSystem {
 
 	/**
 	 * Map to keep track of created C4Groups. {@link WeakReference}s are used as values so that the {@link C4Group} object can be purged if nothing apart
-	 * from the file system is holding on to it. 
+	 * from the file system is holding on to it.
 	 */
 	private final Map<File, WeakReference<C4Group>> rootGroups = new HashMap<File, WeakReference<C4Group>>();
 
@@ -80,7 +79,7 @@ public class C4GroupFileSystem extends FileSystem {
 
 	/**
 	 * Return the singleton instance of this file system. There still needs to be a corresponding configuration entry for the file system in the plugin.xml file
-	 * or else this method will return null since the singleton was never created.  
+	 * or else this method will return null since the singleton was never created.
 	 * @return The singleton
 	 */
 	public static C4GroupFileSystem instance() {
@@ -133,12 +132,10 @@ public class C4GroupFileSystem extends FileSystem {
 						group = C4Group.openFile(groupFile);
 						try {
 							group.readIntoMemory(true, new C4GroupHeaderFilterBase() {
-
 								@Override
 								public boolean accepts(final C4GroupEntryHeader header, final C4Group context) {
 									return true;
 								}
-
 								@Override
 								public int flagsForEntry(final C4GroupFile entry) {
 									for (final String s : EXTENSIONS_TO_ALWAYS_LOAD)

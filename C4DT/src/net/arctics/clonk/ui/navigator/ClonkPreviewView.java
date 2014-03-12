@@ -38,8 +38,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -49,8 +47,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IPageLayout;
@@ -104,20 +100,17 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	private final class ImageCanvas extends Canvas {
 		private ImageCanvas(final Composite parent, final int style) {
 			super(parent, style);
-			this.addPaintListener(new PaintListener() {
-				@Override
-				public void paintControl(final PaintEvent e) {
-					if (image != null) {
-						int hgt = getBounds().height;
-						float ratio = (float)hgt/(float)image.getBounds().height;
-						int wdt = (int) (image.getBounds().width*ratio);
-						if (wdt > getBounds().width) {
-							wdt = getBounds().width;
-							ratio = (float)wdt/(float)image.getBounds().width;
-							hgt = (int) (image.getBounds().height*ratio);
-						}
-						e.gc.drawImage(image, 0, 0, image.getBounds().width, image.getBounds().height, (getBounds().width-wdt)/2, (getBounds().height-hgt)/2, wdt, hgt);
+			this.addPaintListener(e -> {
+				if (image != null) {
+					int hgt = getBounds().height;
+					float ratio = (float)hgt/(float)image.getBounds().height;
+					int wdt = (int) (image.getBounds().width*ratio);
+					if (wdt > getBounds().width) {
+						wdt = getBounds().width;
+						ratio = (float)wdt/(float)image.getBounds().width;
+						hgt = (int) (image.getBounds().height*ratio);
 					}
+					e.gc.drawImage(image, 0, 0, image.getBounds().width, image.getBounds().height, (getBounds().width-wdt)/2, (getBounds().height-hgt)/2, wdt, hgt);
 				}
 			});
 		}
@@ -168,12 +161,9 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 			new FormAttachment(40, 0),
 			null
 		));
-		sash.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(final Event event) {
-				sashData.top = new FormAttachment(0, event.y);
-				parent.layout();
-			}
+		sash.addListener(SWT.Selection, event -> {
+			sashData.top = new FormAttachment(0, event.y);
+			parent.layout();
 		});
 
 		browser.setLayoutData(createFormData(

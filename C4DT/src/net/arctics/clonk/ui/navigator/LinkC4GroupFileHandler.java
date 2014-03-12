@@ -1,7 +1,6 @@
 package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 
 import net.arctics.clonk.c4group.C4GroupFileSystem;
@@ -11,9 +10,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
@@ -39,14 +36,11 @@ public class LinkC4GroupFileHandler extends AbstractHandler {
 		final IFolder linkedFolder = proj.getFolder(f.getName());
 		final ProgressMonitorDialog dialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 		try {
-			dialog.run(false, false, new IRunnableWithProgress() {
-				@Override
-				public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						linkedFolder.createLink(new URI(C4GroupFileSystem.SCHEME, C4GroupFileSystem.replaceSpecialChars(f.getAbsolutePath()), null), 0, dialog.getProgressMonitor());
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
+			dialog.run(false, false, monitor -> {
+				try {
+					linkedFolder.createLink(new URI(C4GroupFileSystem.SCHEME, C4GroupFileSystem.replaceSpecialChars(f.getAbsolutePath()), null), 0, dialog.getProgressMonitor());
+				} catch (final Exception e) {
+					e.printStackTrace();
 				}
 			});
 		} catch (final Exception e) {

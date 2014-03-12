@@ -76,16 +76,13 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		final String containerName = page.getContainerName();
 		final String fileName = page.getFileName();
 		templateReplacements = initTemplateReplacements();
-		final IRunnableWithProgress op = new IRunnableWithProgress() {
-			@Override
-			public void run(final IProgressMonitor monitor) throws InvocationTargetException {
-				try {
-					doFinish(containerName, fileName, monitor);
-				} catch (final CoreException e) {
-					throw new InvocationTargetException(e);
-				} finally {
-					monitor.done();
-				}
+		final IRunnableWithProgress op = monitor -> {
+			try {
+				doFinish(containerName, fileName, monitor);
+			} catch (final CoreException e) {
+				throw new InvocationTargetException(e);
+			} finally {
+				monitor.done();
 			}
 		};
 		try {

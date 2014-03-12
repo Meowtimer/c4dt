@@ -30,12 +30,12 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.CommonNavigator;
 
 public class ColorTagging extends ContributionItem {
-	
+
 	public static final QualifiedName COLOR_TAG = new QualifiedName(Core.PLUGIN_ID, "colorTag"); //$NON-NLS-1$
 	public static final QualifiedName COLOR_RGB = new QualifiedName(Core.PLUGIN_ID, "colorRGB"); //$NON-NLS-1$
-	
+
 	private static final Map<String, RGB> existingTags = new HashMap<String, RGB>();
-	
+
 	public static Map<String, RGB> tags() {
 		return existingTags;
 	}
@@ -55,7 +55,7 @@ public class ColorTagging extends ContributionItem {
 			return null;
 		}
 	}
-	
+
 	public ColorTagging() {
 		super();
 	}
@@ -63,11 +63,11 @@ public class ColorTagging extends ContributionItem {
 	public ColorTagging(final String id) {
 		super(id);
 	}
-	
+
 	@Override
 	public void fill(final Menu menu, final int index) {
 		final SelectionListener menuItemListener = new SelectionListener() {
-			
+
 			@Override
 			public void widgetSelected(final SelectionEvent e) {
 				@SuppressWarnings("unchecked")
@@ -104,7 +104,7 @@ public class ColorTagging extends ContributionItem {
 				for (final Object obj : sel.toArray())
 					if (obj instanceof IContainer && ClonkProjectNature.get((IContainer)obj) != null && ((IContainer) obj).getParent() instanceof IProject)
 						clonkProjectFolders.add((IContainer)obj);
-				
+
 				if (tagInfo != null) {
 					final String rgbString = StringConverter.asString(tagInfo.getValue());
 					final Set<IProject> projects = new HashSet<IProject>();
@@ -121,10 +121,9 @@ public class ColorTagging extends ContributionItem {
 						UI.refreshAllProjectExplorers(p);
 				}
 			}
-			
+
 			@Override
-			public void widgetDefaultSelected(final SelectionEvent e) {
-			}
+			public void widgetDefaultSelected(final SelectionEvent e) {}
 		};
 		// predefined/existing colors
 		for (final Map.Entry<String, RGB> defaultColor : existingTags.entrySet()) {
@@ -143,7 +142,6 @@ public class ColorTagging extends ContributionItem {
 		m = new MenuItem(menu, SWT.RADIO);
 		m.setText(Messages.ColorTagging_RemoveTag);
 		m.addSelectionListener(new SelectionListener() {
-			
 			@Override
 			public void widgetSelected(final SelectionEvent e) {
 				final CommonNavigator projectExplorer = UI.projectExplorer(PlatformUI.getWorkbench().getActiveWorkbenchWindow());
@@ -161,9 +159,8 @@ public class ColorTagging extends ContributionItem {
 						projects.add(r.getProject());
 					}
 				for (final IProject p : projects)
-					UI.refreshAllProjectExplorers(p);				
+					UI.refreshAllProjectExplorers(p);
 			}
-			
 			@Override
 			public void widgetDefaultSelected(final SelectionEvent e) {}
 		});

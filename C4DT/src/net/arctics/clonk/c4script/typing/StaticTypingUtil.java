@@ -6,8 +6,6 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -24,7 +22,6 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.CastExpression;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.StreamUtil.StreamWriteRunnable;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 
@@ -142,12 +139,7 @@ public class StaticTypingUtil {
 				final String erased = eraseTypeAnnotations(originalFile);
 				if (erased != null)
 					try {
-						StreamUtil.writeToFile(destinationFile, new StreamWriteRunnable() {
-							@Override
-							public void run(final File file, final OutputStream stream, final OutputStreamWriter writer) throws IOException {
-								writer.write(erased);
-							}
-						});
+						StreamUtil.writeToFile(destinationFile, (file, stream, writer) -> writer.write(erased));
 					} catch (final IOException e1) {
 						e1.printStackTrace();
 					}

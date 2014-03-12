@@ -140,36 +140,31 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 			for (final IIndexEntity d : entities)
 				if (d instanceof Index) {
 					final Index index = (Index)d;
-					index.forAllRelevantIndexes(new Sink<Index>() {
+					index.forAllRelevantIndexes(ndx -> ndx.allScripts(new Sink<Script>() {
+						int declarationsBatchSize = 0;
 						@Override
-						public void receive(final Index index) {
-							index.allScripts(new Sink<Script>() {
-								int declarationsBatchSize = 0;
-								@Override
-								public void receive(final Script s) {
-									if (progressMonitor.isCanceled())
-										return;
-									if (s.dictionary() != null)
-										for (final String str : s.dictionary())
-											for (final Pattern ps : patternStrings) {
-												final Matcher matcher = ps.matcher(str);
-												if (matcher.lookingAt()) {
-													s.requireLoaded();
-													for (final Declaration d : s.subDeclarations(s.index(), DeclMask.ALL))
-														if (!(d instanceof Directive) && d.matchedBy(matcher)) {
-															contentProvider.add(d, itemsFilter);
-															if (++declarationsBatchSize == 5) {
-																Display.getDefault().asyncExec(refreshListRunnable);
-																declarationsBatchSize = 0;
-															}
-														}
-													return;
+						public void receive(final Script s) {
+							if (progressMonitor.isCanceled())
+								return;
+							if (s.dictionary() != null)
+								for (final String str : s.dictionary())
+									for (final Pattern ps : patternStrings) {
+										final Matcher matcher = ps.matcher(str);
+										if (matcher.lookingAt()) {
+											s.requireLoaded();
+											for (final Declaration d : s.subDeclarations(s.index(), DeclMask.ALL))
+												if (!(d instanceof Directive) && d.matchedBy(matcher)) {
+													contentProvider.add(d, itemsFilter);
+													if (++declarationsBatchSize == 5) {
+														Display.getDefault().asyncExec(refreshListRunnable);
+														declarationsBatchSize = 0;
+													}
 												}
-											}
-								}
-							});
+											return;
+										}
+									}
 						}
-					});
+					}));
 				}
 				else if (d instanceof Engine)
 					for (final Declaration engineDeclaration : ((Engine)d).subDeclarations(null, DeclMask.ALL))
@@ -194,12 +189,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Comparator getItemsComparator() {
-		return new Comparator() {
-			@Override
-			public int compare(final Object a, final Object b) {
-				return a.toString().compareTo(b.toString());
-			}
-		};
+		return (a, b) -> a.toString().compareTo(b.toString());
 	}
 
 	@Override

@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.LineBreakpoint;
 
@@ -18,22 +17,19 @@ public class Breakpoint extends LineBreakpoint {
 	public Breakpoint() {
 		super();
 	}
-	
+
 	public Breakpoint(final IResource resource, final int lineNumber) throws CoreException {
-		final IWorkspaceRunnable markerAttribs = new IWorkspaceRunnable() {
-			@Override
-			public void run(final IProgressMonitor monitor) throws CoreException {
-				final IMarker marker = resource.createMarker(Core.id("breakpointMarker")); //$NON-NLS-1$
-				marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
-				marker.setAttribute(IBreakpoint.ENABLED, true);
-				marker.setAttribute(IBreakpoint.ID, getModelIdentifier());
-				marker.setAttribute(IMarker.MESSAGE, String.format(Messages.ClonkDebugLineBreakpoint_BreakpointMessage, resource.getProjectRelativePath(), lineNumber));
-				setMarker(marker);
-			}
+		final IWorkspaceRunnable markerAttribs = monitor -> {
+			final IMarker marker = resource.createMarker(Core.id("breakpointMarker")); //$NON-NLS-1$
+			marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+			marker.setAttribute(IBreakpoint.ENABLED, true);
+			marker.setAttribute(IBreakpoint.ID, getModelIdentifier());
+			marker.setAttribute(IMarker.MESSAGE, String.format(Messages.ClonkDebugLineBreakpoint_BreakpointMessage, resource.getProjectRelativePath(), lineNumber));
+			setMarker(marker);
 		};
 		run(getMarkerRule(resource), markerAttribs);
 	}
-	
+
 	@Override
 	public String getModelIdentifier() {
 		return ClonkDebugModelPresentation.ID;

@@ -63,7 +63,6 @@ import net.arctics.clonk.ui.editors.ScriptCommentScanner;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 import net.arctics.clonk.util.Pair;
-import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
@@ -83,8 +82,6 @@ import org.eclipse.jface.text.DefaultTextDoubleClickStrategy;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IInformationControl;
-import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
@@ -102,7 +99,6 @@ import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
@@ -129,12 +125,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			enableAutoActivation(true);
 			setAutoActivationDelay(0);
 			enableColoredLabels(true);
-			setInformationControlCreator(new IInformationControlCreator() {
-				@Override
-				public IInformationControl createInformationControl(final Shell parent) {
-					final DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_PressTabOrClick);
-					return def;
-				}
+			setInformationControlCreator(parent -> {
+				final DefaultInformationControl def = new DefaultInformationControl(parent,Messages.C4ScriptSourceViewerConfiguration_PressTabOrClick);
+				return def;
 			});
 			//setSorter(processor);
 			addCompletionListener(processor);
@@ -597,14 +590,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					final Function base = p.second().baseFunction();
 					final Script baseDef = as(base.script(), Definition.class);
 					if (baseDef != null)
-						ndx.allScripts(new Sink<Script>() {
-							@Override
-							public void receive(final Script item) {
-								if (item != p.first() && item.doesInclude(ndx, baseDef)) {
-									final Function ovrld = item.findLocalFunction(base.name(), true);
-									if (ovrld != null)
-										result.add(new Pair<Script, Function>(item, ovrld));
-								}
+						ndx.allScripts(item -> {
+							if (item != p.first() && item.doesInclude(ndx, baseDef)) {
+								final Function ovrld = item.findLocalFunction(base.name(), true);
+								if (ovrld != null)
+									result.add(new Pair<Script, Function>(item, ovrld));
 							}
 						});
 				}

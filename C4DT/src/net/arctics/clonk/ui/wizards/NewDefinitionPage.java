@@ -4,8 +4,6 @@ import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Text;
 
 public class NewDefinitionPage extends NewClonkFolderWizardPage {
@@ -15,7 +13,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 
 	/**
 	 * Constructor for SampleNewWizardPage.
-	 * 
+	 *
 	 * @param pageName
 	 */
 	public NewDefinitionPage(final ISelection selection) {
@@ -24,19 +22,16 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		setDescription(Messages.NewC4ObjectPage_Description);
 		this.selection = selection;
 	}
-	
+
 	@Override
 	protected GroupType groupType() { return GroupType.DefinitionGroup; }
-	
+
 	@Override
 	protected void fields() {
 		c4idText = addTextField(Messages.NewC4ObjectPage_ID);
-		c4idText.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(final ModifyEvent e) {
-				if (folderText != null)
-					folderText.setText(c4idText.getText());
-			}
+		c4idText.addModifyListener(e -> {
+			if (folderText != null)
+				folderText.setText(c4idText.getText());
 		});
 		descriptionText = addTextField(Messages.NewC4ObjectPage_DescriptionLabel);
 		super.fields();
@@ -45,7 +40,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 	/**
 	 * Ensures that both text fields are set.
 	 */
-	
+
 //	public static boolean isValidC4ID(String c4id) {
 //		if (c4id == null) return false;
 //		//if (c4id.length() != 4) return false;
@@ -69,7 +64,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 			}*/
 		updateStatus(null);
 	}
-	
+
 	@Override
 	protected void initialize() {
 		super.initialize();
@@ -78,11 +73,11 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		descriptionText.setText(Messages.NewC4ObjectPage_DescriptionDefault);
 		setFolderExtension(ClonkProjectNature.engineFromResource(project).settings().groupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
 	}
-	
+
 	public String objectID() {
 		return c4idText.getText();
 	}
-	
+
 	public String objectDescription() {
 		return descriptionText.getText();
 	}

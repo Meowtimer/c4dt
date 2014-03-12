@@ -1,20 +1,17 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.refactoring.RenameDeclarationProcessor;
-import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.EditorUtil;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.refactoring.ClonkRenameRefactoringWizard;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ltk.core.refactoring.participants.RenameRefactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.ui.IEditorPart;
@@ -62,12 +59,9 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 		if (anyModified) {
 			final ProgressMonitorDialog progressMonitor = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 			try {
-				progressMonitor.run(false, false, new IRunnableWithProgress() {
-					@Override
-					public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						for (final IEditorPart part : EditorUtil.editorPartsToBeSaved())
-							part.doSave(monitor);
-					}
+				progressMonitor.run(false, false, monitor -> {
+					for (final IEditorPart part : EditorUtil.editorPartsToBeSaved())
+						part.doSave(monitor);
 				});
 			} catch (final Exception e) {
 				e.printStackTrace();
