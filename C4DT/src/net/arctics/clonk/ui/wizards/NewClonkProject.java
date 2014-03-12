@@ -38,7 +38,7 @@ public class NewClonkProject extends Wizard implements INewWizard {
 			proj.open(null);
 
 			final ClonkProjectNature nature = ClonkProjectNature.get(proj);
-			nature.settings().setEngineName(page.getEngine(false) != null ? page.getEngine(false).name() : "");
+			nature.settings().setEngineName(page.engine(false) != null ? page.engine(false).name() : "");
 			nature.saveSettings();
 
 

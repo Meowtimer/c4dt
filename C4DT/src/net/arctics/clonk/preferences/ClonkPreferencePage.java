@@ -20,7 +20,7 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 		super(GRID);
 		setPreferenceStore(Core.instance().getPreferenceStore());
 	}
-	
+
 	@Override
 	public void createFieldEditors() {
 		addField(
@@ -49,14 +49,14 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
 	public static String[][] engineComboValues(final boolean includeDefault) {
 		if (Beans.isDesignTime())
 			return new String[][] {
-					new String[] {
-							"OpenClonk", //$NON-NLS-1$
-							"OpenClonk" //$NON-NLS-1$
-					},
-					new String[] {
-							"ClonkRage", //$NON-NLS-1$
-							"ClonkRage" //$NON-NLS-1$
-					}
+				new String[] {
+					"OpenClonk", //$NON-NLS-1$
+					"OpenClonk" //$NON-NLS-1$
+				},
+				new String[] {
+					"ClonkRage", //$NON-NLS-1$
+					"ClonkRage" //$NON-NLS-1$
+				}
 			};
 		final List<String> engines = Core.instance().namesOfAvailableEngines();
 		final String[][] engineChoices = new String[engines.size() + (includeDefault ? 1 : 0)][2];
@@ -86,7 +86,6 @@ public class ClonkPreferencePage extends FieldEditorPreferencePage implements IW
     }
 
 	@Override
-	public void init(final IWorkbench workbench) {
-	}
+	public void init(final IWorkbench workbench) {}
 
 }

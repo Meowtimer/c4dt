@@ -95,7 +95,7 @@ public class NewClonkProjectWizardCreationPage extends WizardNewProjectCreationP
 	}
 	
 	@Override
-	public Engine getEngine(final boolean fallbackToDefault) {
+	public Engine engine(final boolean fallbackToDefault) {
 		engineEditor.store();
 		Engine engine = Core.instance().loadEngine(dummyPrefStore.getString(ClonkPreferences.ACTIVE_ENGINE));
 		if (fallbackToDefault && engine == null)
