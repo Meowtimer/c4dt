@@ -55,7 +55,7 @@ import net.arctics.clonk.index.serialization.replacements.EntityId;
 import net.arctics.clonk.index.serialization.replacements.EntityReference;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.ConvertingIterable;
-import net.arctics.clonk.util.IPredicate;
+import java.util.function.Predicate;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Sink.Decision;
 import net.arctics.clonk.util.Utilities;
@@ -90,7 +90,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public final Object saveSynchronizer() {return saveSynchronizer;}
 	public final Object loadSynchronizer() {return loadSynchronizer;}
 
-	private transient static final IPredicate<Declaration> IS_GLOBAL = item -> item.isGlobal();
+	private transient static final Predicate<Declaration> IS_GLOBAL = item -> item.isGlobal();
 
 	private final Map<Long, IndexEntity> entities = new HashMap<Long, IndexEntity>();
 	private final Map<ID, List<Definition>> definitions = new HashMap<ID, List<Definition>>();

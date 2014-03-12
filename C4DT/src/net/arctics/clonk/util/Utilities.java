@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Script;
@@ -119,7 +120,7 @@ public abstract class Utilities {
 	 * @param filter A filter to exclude some of the items contained in the list
 	 * @return The item 'nearest' to resource
 	 */
-	public static <T extends IHasRelatedResource> T pickNearest(final List<? extends T> fromList, final IResource resource, final IPredicate<T> filter) {
+	public static <T extends IHasRelatedResource> T pickNearest(final List<? extends T> fromList, final IResource resource, final Predicate<T> filter) {
 		int bestDist = Integer.MAX_VALUE;
 		T best = null;
 		if (fromList != null) {
@@ -186,7 +187,7 @@ public abstract class Utilities {
 			return value;
 	}
 
-	public static <T> T itemMatching(final IPredicate<T> predicate, final List<T> sectionsList) {
+	public static <T> T itemMatching(final Predicate<T> predicate, final List<T> sectionsList) {
 		for (final T item : sectionsList)
 			if (predicate.test(item))
 				return item;
@@ -304,7 +305,7 @@ public abstract class Utilities {
 	 * @param predicate predicate
 	 * @return see above
 	 */
-	public static <T> boolean any(final Iterable<? extends T> items, final IPredicate<T> predicate) {
+	public static <T> boolean any(final Iterable<? extends T> items, final Predicate<T> predicate) {
 		for (final T item : items)
 			if (predicate.test(item))
 				return true;

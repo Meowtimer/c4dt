@@ -1,7 +1,13 @@
 package net.arctics.clonk.ui.editors;
 
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.rules.*;
+import org.eclipse.jface.text.rules.EndOfLineRule;
+import org.eclipse.jface.text.rules.IPredicateRule;
+import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.MultiLineRule;
+import org.eclipse.jface.text.rules.RuleBasedPartitionScanner;
+import org.eclipse.jface.text.rules.SingleLineRule;
+import org.eclipse.jface.text.rules.Token;
 
 public class CStylePartitionScanner extends RuleBasedPartitionScanner {
 	public final static String COMMENT = "__c4s_comment"; //$NON-NLS-1$
@@ -9,7 +15,7 @@ public class CStylePartitionScanner extends RuleBasedPartitionScanner {
 	public final static String CODEBODY = "__c4s_codebody"; //$NON-NLS-1$
 	public final static String STRING = "__c4s_string"; //$NON-NLS-1$
 	public final static String JAVADOC_COMMENT = "__c4s_javadoccomment";
-	
+
 	public final static String[] PARTITIONS = {
 		COMMENT, MULTI_LINE_COMMENT, JAVADOC_COMMENT, STRING, CODEBODY,
 		IDocument.DEFAULT_CONTENT_TYPE
@@ -29,11 +35,11 @@ public class CStylePartitionScanner extends RuleBasedPartitionScanner {
 		};
 		setPredicateRules(rules);
 	}
-	
+
 	public String getContentType() {
 		return super.fContentType;
 	}
-	
+
 	public int getPartitionOffset() {
 		return super.fPartitionOffset;
 	}

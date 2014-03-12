@@ -30,7 +30,7 @@ import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visit;
-import net.arctics.clonk.util.IPredicate;
+import java.util.function.Predicate;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 
@@ -161,7 +161,7 @@ class Plan {
 		}
 	}
 
-	private static class DependencyTester extends HashSet<Visit> implements IPredicate<Visit> {
+	private static class DependencyTester extends HashSet<Visit> implements Predicate<Visit> {
 		final Visit dependency;
 		public DependencyTester(final Visit dependency) { this.dependency = dependency; }
 		@Override

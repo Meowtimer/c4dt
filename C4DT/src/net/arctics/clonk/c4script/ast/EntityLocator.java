@@ -28,7 +28,7 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectResource;
-import net.arctics.clonk.util.IPredicate;
+import java.util.function.Predicate;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -50,7 +50,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	 */
 	public Set<? extends IIndexEntity> potentialEntities() { return potentialEntities; }
 
-	private static IPredicate<IIndexEntity> IS_GLOBAL = item -> item instanceof Declaration && ((Declaration)item).isGlobal();
+	private static Predicate<IIndexEntity> IS_GLOBAL = item -> item instanceof Declaration && ((Declaration)item).isGlobal();
 
 	/**
 	 * Initialize {@link EntityLocator} with an editor, a document and a region. After invoking the constructor, {@link #expressionRegion()}, {@link #entity()} etc will be if locating succeeded.

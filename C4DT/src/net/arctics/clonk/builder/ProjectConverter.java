@@ -36,7 +36,7 @@ import org.eclipse.core.runtime.Path;
  *
  */
 public class ProjectConverter implements IResourceVisitor, Runnable {
-	
+
 	class DefinitionConversion implements Runnable {
 		final IFolder origin;
 		final IFolder target;
@@ -87,7 +87,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			}
 		}
 	}
-	
+
 	private final ClonkProjectNature sourceProject, destinationProject;
 	private final ProjectConversionConfiguration configuration;
 	private Engine sourceEngine() { return sourceProject.index().engine(); }

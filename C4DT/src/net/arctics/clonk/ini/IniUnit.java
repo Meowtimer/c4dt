@@ -38,7 +38,7 @@ import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasChildren;
-import net.arctics.clonk.util.IPredicate;
+import java.util.function.Predicate;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Utilities;
 
@@ -255,7 +255,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return s;
 	}
 
-	public IniSection sectionMatching(final IPredicate<IniSection> predicate) {
+	public IniSection sectionMatching(final Predicate<IniSection> predicate) {
 		return Utilities.itemMatching(predicate, sectionsList);
 	}
 

@@ -3,7 +3,7 @@ package net.arctics.clonk.ini;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.stringtbl.StringTbl;
-import net.arctics.clonk.util.IPredicate;
+import java.util.function.Predicate;
 
 public abstract class IniUnitWithNamedSections extends IniUnit {
 
@@ -28,7 +28,7 @@ public abstract class IniUnitWithNamedSections extends IniUnit {
 		return super.sectionToString(section);
 	}
 
-	public IPredicate<IniSection> nameMatcherPredicate(final String value) {
+	public Predicate<IniSection> nameMatcherPredicate(final String value) {
 		return section -> {
 			final IniItem entry = section.itemByKey(nameOfEntryToTakeSectionNameFrom(section));
 			return (entry instanceof IniEntry && ((IniEntry)entry).stringValue().equals(value));

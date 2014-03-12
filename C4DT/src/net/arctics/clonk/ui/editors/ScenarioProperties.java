@@ -29,7 +29,7 @@ import net.arctics.clonk.mapcreator.ClassicMapCreator;
 import net.arctics.clonk.mapcreator.MapCreator;
 import net.arctics.clonk.ui.OpenDefinitionDialog;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
-import net.arctics.clonk.util.IPredicate;
+import java.util.function.Predicate;
 import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.UI;
@@ -135,7 +135,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		private final IDArray array;
 		private Table table;
 		private TableViewer viewer;
-		private final IPredicate<Definition> definitionFilter;
+		private final Predicate<Definition> definitionFilter;
 
 		private void createControl(final Composite parent, final String label) {
 			final Label l = new Label(parent, SWT.NULL);

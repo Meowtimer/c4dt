@@ -13,7 +13,7 @@ import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.util.ArrayUtil.Folder;
-import net.arctics.clonk.util.IPredicate;
+import java.util.function.Predicate;
 import net.arctics.clonk.util.StringUtil;
 
 /**
@@ -72,7 +72,7 @@ public class TypeChoice implements IType {
 	}
 
 	protected IType removeDuplicates() {
-		return remove(this, new IPredicate<IType>() {
+		return remove(this, new Predicate<IType>() {
 			private final List<IType> flattened = flatten();
 			private final boolean[] mask = new boolean[flattened.size()];
 			@Override
@@ -154,7 +154,7 @@ public class TypeChoice implements IType {
 			types.add(right);
 	}
 
-	public static IType remove(final IType type, final IPredicate<? super IType> predicate) {
+	public static IType remove(final IType type, final Predicate<? super IType> predicate) {
 		if (predicate.test(type))
 			return null;
 		else if (type instanceof TypeChoice) {

@@ -60,7 +60,7 @@ import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IPredicate;
+import java.util.function.Predicate;
 import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.UI;
@@ -618,10 +618,10 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	}
 
 	@Override
-	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
-		final IPredicate<Definition> basePredicate =
+	public Predicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
+		final Predicate<Definition> basePredicate =
 			entry.key().equals("Vegetation") ?
-				new IPredicate<Definition>() {
+				new Predicate<Definition>() {
 					final Definition plant = entry.index().anyDefinitionWithID(ID.get("Library_Plant"));
 					@Override
 					public boolean test(final Definition item) {
@@ -629,7 +629,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					}
 				} :
 			entry.key().equals("Goals") ?
-				new IPredicate<Definition>() {
+				new Predicate<Definition>() {
 					final Definition goal = entry.index().anyDefinitionWithID(ID.get("Library_Goal"));
 					@Override
 					public boolean test(final Definition item) {
@@ -637,7 +637,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					}
 				} :
 			super.configurationEntryDefinitionFilter(entry);
-		return basePredicate != null ? new IPredicate<Definition>() {
+		return basePredicate != null ? new Predicate<Definition>() {
 			@Override
 			public boolean test(final Definition item) {
 				if (item.id() != null && item.id().stringValue().startsWith("Library_"))

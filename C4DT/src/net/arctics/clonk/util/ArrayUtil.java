@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import net.arctics.clonk.util.Sink.Decision;
 
@@ -90,7 +91,7 @@ public class ArrayUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T[] filter(final T[] array, final IPredicate<T> filter) {
+	public static <T> T[] filter(final T[] array, final Predicate<T> filter) {
 		try {
 			final List<T> list = filter(iterable(array), filter);
 			return list.toArray((T[]) Array.newInstance(array.getClass().getComponentType(), list.size()));
@@ -100,7 +101,7 @@ public class ArrayUtil {
 		}
 	}
 
-	public static <T> List<T> filter(final Iterable<? extends T> iterable, final IPredicate<T> filter) {
+	public static <T> List<T> filter(final Iterable<? extends T> iterable, final Predicate<T> filter) {
 		final List<T> result = new LinkedList<T>();
 		for (final T elm : iterable)
 			if (filter.test(elm))

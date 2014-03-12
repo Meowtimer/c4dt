@@ -20,19 +20,16 @@ public class ExpressionLocator<T> implements IASTVisitor<T> {
 	public ExpressionLocator(final int pos) { this(new Region(pos, 0)); }
 	public ASTNode expressionAtRegion() { return exprAtRegion; }
 	@Override
-	public TraversalContinuation visitNode(final ASTNode expression, final Object context) {
-		expression.traverse(new IASTVisitor<Object>() {
-			@Override
-			public TraversalContinuation visitNode(final ASTNode expression, final Object context) {
-				if (exprRegion.getOffset() >= expression.start() && exprRegion.getOffset() <= expression.end()) {
-					if (topLevelInRegion == null)
-						topLevelInRegion = expression;
-					exprAtRegion = expression;
-					return TraversalContinuation.TraverseSubElements;
-				}
-				return TraversalContinuation.Continue;
+	public TraversalContinuation visitNode(final ASTNode expression, final Object _context) {
+		expression.traverse((xpr, context) -> {
+			if (exprRegion.getOffset() >= xpr.start() && exprRegion.getOffset() <= xpr.end()) {
+				if (topLevelInRegion == null)
+					topLevelInRegion = xpr;
+				exprAtRegion = xpr;
+				return TraversalContinuation.TraverseSubElements;
 			}
-		}, context);
+			return TraversalContinuation.Continue;
+		}, _context);
 		return exprAtRegion != null ? TraversalContinuation.Cancel : TraversalContinuation.Continue;
 	}
 }

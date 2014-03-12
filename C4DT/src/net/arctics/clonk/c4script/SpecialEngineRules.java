@@ -72,7 +72,7 @@ import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IPredicate;
+import java.util.function.Predicate;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
@@ -1012,9 +1012,9 @@ public abstract class SpecialEngineRules {
 		// do nothing
 	}
 
-	public IPredicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
+	public Predicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
 		if (entry instanceof IniEntry && entry.definition() != null && entry.definition().categoryFilter() != null)
-			return new IPredicate<Definition>() {
+			return new Predicate<Definition>() {
 				final String filter = entry.definition().categoryFilter();
 				@Override
 				public boolean test(final Definition item) {

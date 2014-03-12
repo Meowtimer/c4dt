@@ -643,19 +643,16 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 	 * @return The transformed expression
 	 */
 	public ASTNode transform(final Map<String, Object> substitutions, final Object cookie) {
-		return transformRecursively(new ITransformer() {
-			@Override
-			public Object transform(final ASTNode prev, final Object prevT, final ASTNode expression) {
-				if (expression instanceof Placeholder) {
-					final MatchingPlaceholder mp = as(expression, MatchingPlaceholder.class);
-					final Object substitution = substitutions.get(((Placeholder)expression).entryName());
-					if (substitution != null)
-						return mp != null ? mp.transformSubstitution(substitution, cookie) : substitution;
-					else
-						return REMOVE;
-				}
-				return expression;
+		return transformRecursively((prev, prevT, expression) -> {
+			if (expression instanceof Placeholder) {
+				final MatchingPlaceholder mp = as(expression, MatchingPlaceholder.class);
+				final Object substitution = substitutions.get(((Placeholder)expression).entryName());
+				if (substitution != null)
+					return mp != null ? mp.transformSubstitution(substitution, cookie) : substitution;
+				else
+					return ITransformer.REMOVE;
 			}
+			return expression;
 		});
 	}
 
