@@ -272,16 +272,13 @@ public abstract class Utilities {
 	}
 
 	public static void errorMessage(final String message, final String title) {
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				final MessageDialog messageDialog = new MessageDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-					title == null ? Messages.Utilities_InternalError : title, null,
-					message, MessageDialog.ERROR,
-					new String[] { Messages.Utilities_InternalErrorButton }, 1
-				);
-				messageDialog.open();
-			}
+		Display.getDefault().asyncExec(() -> {
+			final MessageDialog messageDialog = new MessageDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+				title == null ? Messages.Utilities_InternalError : title, null,
+				message, MessageDialog.ERROR,
+				new String[] { Messages.Utilities_InternalErrorButton }, 1
+			);
+			messageDialog.open();
 		});
 	}
 

@@ -1,31 +1,44 @@
 package net.arctics.clonk.ui.wizards;
 
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.UI;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.INewWizard;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.operation.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.CoreException;
-import java.io.*;
+import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.UI;
 
-import org.eclipse.ui.*;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.INewWizard;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.IWorkbenchWizard;
 
 /**
  * Base class for wizards creating all kinds of Clonk folders
@@ -35,7 +48,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 	protected PageClass page;
 	protected ISelection selection;
 	private Map<String, String> templateReplacements;
-	
+
 	private IWorkbenchWindow workbenchWindow;
 
 	/**
@@ -52,7 +65,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		result.put("$$Author$$", ClonkPreferences.value(ClonkPreferences.AUTHOR));
 		return result;
 	}
-	
+
 	/**
 	 * This method is called when 'Finish' button is pressed in
 	 * the wizard. We will create an operation and run it
@@ -86,7 +99,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		}
 		return true;
 	}
-	
+
 	/**
 	 * The worker method. It will find the container, create the
 	 * file if missing or just replace its contents, and open
@@ -123,17 +136,14 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 						stream.close();
 					}
 				}
-			Display.getDefault().asyncExec(new Runnable() {
-				@Override
-				public void run() {
-					UI.projectExplorer(workbenchWindow).selectReveal(new StructuredSelection(newFolder));
-				}
-			});
+			Display.getDefault().asyncExec(
+				() -> UI.projectExplorer(workbenchWindow).selectReveal(new StructuredSelection(newFolder))
+			);
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	protected Iterable<URL> getTemplateFiles() {
 		try {
 			final ClonkProjectNature nature = ClonkProjectNature.get((IResource)((IStructuredSelection) selection).getFirstElement());
@@ -142,11 +152,11 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 			return null;
 		}
 	}
-	
+
 	protected Map<String, String> getTemplateReplacements() {
 		return templateReplacements;
 	}
-	
+
 	protected InputStream getTemplateStream(final URL template, final String fileName) throws IOException {
 		final InputStream result = template.openStream();
 		if (fileName.endsWith(".txt") || fileName.endsWith(".c")) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -168,7 +178,7 @@ public abstract class NewClonkFolderWizard<PageClass extends NewClonkFolderWizar
 		}
 		return result;
 	}
-	
+
 	protected void throwCoreException(final String message) throws CoreException {
 		final IStatus status =
 			new Status(IStatus.ERROR, Core.PLUGIN_ID, IStatus.OK, message, null);

@@ -70,13 +70,13 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		+ "_CreateLinkInCurrentProj"; //$NON-NLS-1$
 	public static final String PREF_PROJECT_TO_CREATE_LINK_IN = ClonkFolderView.class.getSimpleName()
 		+ "_ProjectToCreateLinkIn"; //$NON-NLS-1$
-	
+
 	private static ClonkFolderView instance;
-	
+
 	public static ClonkFolderView instance() {
 		return instance;
 	}
-	
+
 	public ClonkFolderView() {
 		super();
 		instance = this;
@@ -95,7 +95,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 							return false;
 						if (Util.isMac() && name.endsWith(".app")) //$NON-NLS-1$
 							return false;
-						return (currentEngine().groupTypeForFileName(name) != GroupType.OtherGroup || new File(dir, name).isDirectory()); 
+						return (currentEngine().groupTypeForFileName(name) != GroupType.OtherGroup || new File(dir, name).isDirectory());
 					}
 				});
 			} catch (final Exception e) {
@@ -240,7 +240,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		refreshMenuItem.setText(Messages.ClonkFolderView_Refresh0);
 		lookForID = new MenuItem(treeMenu, SWT.PUSH);
 		lookForID.setText(Messages.ClonkFolderView_LookForIDMenuText);
-		
+
 		for (final MenuItem item : new MenuItem[] {linkMenuItem, importMenuItem, refreshMenuItem, lookForID})
 			item.addSelectionListener(this);
 		folderTree.getTree().setMenu(treeMenu);
@@ -348,7 +348,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 	private void lookForID() {
 		final InputDialog inputDialog = new InputDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-    		"Look for ID", Messages.ClonkFolderView_LookForIDPromptCaption, "CLNK", null); //$NON-NLS-1$ 
+    		"Look for ID", Messages.ClonkFolderView_LookForIDPromptCaption, "CLNK", null); //$NON-NLS-1$
 		if (inputDialog.open() != Window.OK)
 			return;
 
@@ -358,7 +358,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 			@Override
 			protected IStatus run(final IProgressMonitor monitor) {
 				final List<File> containing = new ArrayList<File>();
-				
+
 				for (final Object f : selection) {
 					final File sel = (File)f;
 					if (sel.isDirectory())
@@ -394,13 +394,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 						e.printStackTrace();
 					}
 				}
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						folderTree.setSelection(new StructuredSelection(containing));
-					}
-					
-				});
+				Display.getDefault().asyncExec(() -> folderTree.setSelection(new StructuredSelection(containing)));
 				return Status.OK_STATUS;
 			}
 		}.schedule();

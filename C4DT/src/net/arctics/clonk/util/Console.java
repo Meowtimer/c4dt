@@ -27,19 +27,16 @@ public abstract class Console {
 		return console;
 	}
 	public static void display() {
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				final IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				final String id = IConsoleConstants.ID_CONSOLE_VIEW;
+		Display.getDefault().asyncExec(() -> {
+			final IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			final String id = IConsoleConstants.ID_CONSOLE_VIEW;
 
-				// show console
-				try {
-					final IConsoleView view = (IConsoleView) page.showView(id);
-					view.display(clonkConsole());
-				} catch (final PartInitException e) {
-					e.printStackTrace();
-				}
+			// show console
+			try {
+				final IConsoleView view = (IConsoleView) page.showView(id);
+				view.display(clonkConsole());
+			} catch (final PartInitException e) {
+				e.printStackTrace();
 			}
 		});
 	}

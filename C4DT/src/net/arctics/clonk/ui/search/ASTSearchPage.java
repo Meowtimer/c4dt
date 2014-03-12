@@ -297,39 +297,33 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		if (status.matches(IStatus.CANCEL))
 			return false;
 
-		Display.getCurrent().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				final ISearchResultViewPart view = NewSearchUI.activateSearchResultView();
-				if (view != null) {
-					final SearchResultPage page = as(view.getActivePage(), SearchResultPage.class);
-					if (page != null) {
-						final SearchResult result = (SearchResult)page.getInput();
-						runWithoutAutoBuild(new Runnable() {
-							@Override
-							public void run() {
-								for (final Object element : result.getElements()) {
-									final Structure struct = as(element, Structure.class);
-									if (struct == null)
-										continue;
-									final Match[] matches = result.getMatches(element);
-									final List<ASTNode> replacements = new LinkedList<ASTNode>();
-									for (final Match m : matches)
-										if (m instanceof ASTSearchQuery.Match) {
-											final ASTSearchQuery.Match qm = (ASTSearchQuery.Match) m;
-											final ASTNode replacement = query.replacement();
-											ASTNode repl = replacement.transform(qm.subst(), null);
-											if (repl == replacement)
-												repl = repl.clone();
-											repl.setLocation(qm.getOffset(), qm.getOffset()+qm.getLength());
-											repl.setParent(qm.node().parent());
-											replacements.add(repl);
-										}
-									struct.saveNodes(replacements, false);
+		Display.getCurrent().asyncExec(() -> {
+			final ISearchResultViewPart view = NewSearchUI.activateSearchResultView();
+			if (view != null) {
+				final SearchResultPage page = as(view.getActivePage(), SearchResultPage.class);
+				if (page != null) {
+					final SearchResult result = (SearchResult)page.getInput();
+					runWithoutAutoBuild(() -> {
+						for (final Object element : result.getElements()) {
+							final Structure struct = as(element, Structure.class);
+							if (struct == null)
+								continue;
+							final Match[] matches = result.getMatches(element);
+							final List<ASTNode> replacements = new LinkedList<ASTNode>();
+							for (final Match m : matches)
+								if (m instanceof ASTSearchQuery.Match) {
+									final ASTSearchQuery.Match qm = (ASTSearchQuery.Match) m;
+									final ASTNode replacement = query.replacement();
+									ASTNode repl = replacement.transform(qm.subst(), null);
+									if (repl == replacement)
+										repl = repl.clone();
+									repl.setLocation(qm.getOffset(), qm.getOffset()+qm.getLength());
+									repl.setParent(qm.node().parent());
+									replacements.add(repl);
 								}
-							}
-						});
-					}
+							struct.saveNodes(replacements, false);
+						}
+					});
 				}
 			}
 		});

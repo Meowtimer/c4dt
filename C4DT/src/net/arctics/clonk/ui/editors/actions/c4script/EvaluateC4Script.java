@@ -46,13 +46,10 @@ public class EvaluateC4Script extends ClonkTextEditorAction {
 					final Function main = script.findFunction("Main");
 					final Object r = main.invoke(main.new FunctionInvocation(new Object[0], null, this));
 					final String evaluated = defaulting(r, "<No result>").toString();
-					Display.getDefault().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-								"Evaluation", evaluated);
-						}
-					});
+					Display.getDefault().asyncExec(() -> MessageDialog.openInformation(
+						PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+						"Evaluation", evaluated)
+					);
 				}
 			};
 			thread.run();

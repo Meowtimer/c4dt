@@ -285,12 +285,7 @@ public enum UI {
 			additionalFormatArguments[0] = exception.getMessage();
 		}
 		final String msg = String.format(message, additionalFormatArguments);
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				message(msg, MessageDialog.ERROR);
-			}
-		});
+		Display.getDefault().asyncExec(() -> message(msg, MessageDialog.ERROR));
 	}
 
 	public static IProject[] selectClonkProjects(final boolean multiSelect, final IProject... initialSelection) {

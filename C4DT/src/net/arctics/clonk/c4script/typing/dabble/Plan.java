@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Predicate;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTVisitor;
@@ -30,7 +31,6 @@ import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.effect.EffectFunction;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference.Input.Visit;
-import java.util.function.Predicate;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.TaskExecution;
 
@@ -42,33 +42,15 @@ class Plan {
 		public void receive(final ExecutorService item) {
 			for (final Input i : inference.input.values())
 				for (final Visit v : i.visits.values())
-					item.execute(new Runnable() {
-						@Override
-						public void run() {
-							final Function fn = v.function();
-							if (fn instanceof EffectFunction) {
-								final EffectFunction efn = (EffectFunction) fn;
-								final List<CallDeclaration> addEffectCalls = inference.index().callsTo("AddEffect");
-								if (addEffectCalls != null)
-									for (final CallDeclaration call : addEffectCalls) {
-										final ASTNode[] p = call.params();
-										if (p.length > 0 && p[0] instanceof StringLiteral && ((StringLiteral)p[0]).literal().equals(efn.effect().name())) {
-											final Function caller = call.parent(Function.class);
-											final List<Visit> callerVisits = visits.get(caller.name());
-											if (callerVisits != null)
-												for (final Visit callerVisit : callerVisits)
-													if (callerVisit.function == caller)
-														addEdge(callerVisit, v);
-										}
-									}
-							}
-							final int numParameters = fn.numParameters();
-							if (i.shouldTypeFromCalls(fn)) {
-								final List<CallDeclaration> calls = inference.index().callsTo(fn.name());
-								if (calls != null)
-									for (final CallDeclaration call : calls) {
-										if (call.params().length != numParameters)
-											continue;
+					item.execute(() -> {
+						final Function fn = v.function();
+						if (fn instanceof EffectFunction) {
+							final EffectFunction efn = (EffectFunction) fn;
+							final List<CallDeclaration> addEffectCalls = inference.index().callsTo("AddEffect");
+							if (addEffectCalls != null)
+								for (final CallDeclaration call : addEffectCalls) {
+									final ASTNode[] p = call.params();
+									if (p.length > 0 && p[0] instanceof StringLiteral && ((StringLiteral)p[0]).literal().equals(efn.effect().name())) {
 										final Function caller = call.parent(Function.class);
 										final List<Visit> callerVisits = visits.get(caller.name());
 										if (callerVisits != null)
@@ -76,8 +58,23 @@ class Plan {
 												if (callerVisit.function == caller)
 													addEdge(callerVisit, v);
 									}
-							}
-						};
+								}
+						}
+						final int numParameters = fn.numParameters();
+						if (i.shouldTypeFromCalls(fn)) {
+							final List<CallDeclaration> calls = inference.index().callsTo(fn.name());
+							if (calls != null)
+								for (final CallDeclaration call : calls) {
+									if (call.params().length != numParameters)
+										continue;
+									final Function caller = call.parent(Function.class);
+									final List<Visit> callerVisits = visits.get(caller.name());
+									if (callerVisits != null)
+										for (final Visit callerVisit : callerVisits)
+											if (callerVisit.function == caller)
+												addEdge(callerVisit, v);
+								}
+						}
 					});
 		}
 	}

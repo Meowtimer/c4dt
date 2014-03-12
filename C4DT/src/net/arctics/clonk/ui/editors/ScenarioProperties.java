@@ -725,10 +725,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 					slider(options, "Landscape", "Random", Messages.ScenarioProperties_Random), //$NON-NLS-1$ //$NON-NLS-2$
 					slider(options, "Landscape", "LiquidLevel", Messages.ScenarioProperties_LiquidLevel) //$NON-NLS-1$ //$NON-NLS-2$
 				};
-				final Runnable r = new Runnable() {
-					@Override
-					public void run() { drawMapPreviewFailsafe(); }
-				};
+				final Runnable r = this::drawMapPreviewFailsafe;
 				for (final EntrySlider s : sliders)
 					s.setUpdateRunnable(r);
 			}

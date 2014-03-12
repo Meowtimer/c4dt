@@ -308,12 +308,9 @@ public class C4ScriptEditor extends StructureTextEditor {
 			return;
 		if (state != null)
 			state.cancelReparsingTimer();
-		state.reparseWithDocumentContents(new Runnable() {
-			@Override
-			public void run() {
-				refreshOutline();
-				handleCursorPositionChanged();
-			}
+		state.reparseWithDocumentContents(() -> {
+			refreshOutline();
+			handleCursorPositionChanged();
 		});
 	}
 

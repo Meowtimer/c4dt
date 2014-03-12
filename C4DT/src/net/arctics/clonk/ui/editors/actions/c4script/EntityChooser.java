@@ -135,12 +135,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	protected void fillContentProvider(final AbstractContentProvider contentProvider, final ItemsFilter itemsFilter, final IProgressMonitor progressMonitor) throws CoreException {
 		// load scripts that have matching declaration names in their dictionaries
 		final Pattern[] patternStrings = ((Filter)itemsFilter).getPatterns();
-		final Runnable refreshListRunnable = new Runnable() {
-			@Override
-			public void run() {
-				refresh();
-			}
-		};
+		final Runnable refreshListRunnable = this::refresh;
 		if (entities != null)
 			for (final IIndexEntity d : entities)
 				if (d instanceof Index) {

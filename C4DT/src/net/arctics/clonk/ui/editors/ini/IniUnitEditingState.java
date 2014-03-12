@@ -204,12 +204,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 						foundClient = true;
 						ensureIniUnitUpToDate();
 					}
-					Display.getDefault().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							ed.updateFoldingStructure();
-						}
-					});
+					Display.getDefault().asyncExec(ed::updateFoldingStructure);
 				}
 			}
 		}, 700);

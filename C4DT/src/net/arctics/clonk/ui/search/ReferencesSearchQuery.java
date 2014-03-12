@@ -168,13 +168,10 @@ public class ReferencesSearchQuery extends SearchQuery {
 					}
 					else if (scope instanceof Script) {
 						final Script script = (Script) scope;
-						pool.execute(new Runnable() {
-							@Override
-							public void run() {
-								try {
-									visitor.searchScript((IResource) script.source(), script);
-								} catch (final Exception e) {}
-							}
+						pool.execute(() -> {
+							try {
+								visitor.searchScript((IResource) script.source(), script);
+							} catch (final Exception e) {}
 						});
 					}
 					else if (scope instanceof Function) {

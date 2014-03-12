@@ -8,10 +8,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.c4script.ScriptParser;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
@@ -93,7 +93,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 										e.printStackTrace();
 									}
 							}
-							runWithoutAutoBuild(new Runnable() { @Override public void run() {
+							runWithoutAutoBuild(() -> {
 								monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter);
 								for (final IContainer container : selectedContainers)
 									try {
@@ -134,7 +134,7 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 										e.printStackTrace();
 									}
 								monitor.done();
-							}});
+							});
 						}
 					});
 				} catch (final InvocationTargetException e) {

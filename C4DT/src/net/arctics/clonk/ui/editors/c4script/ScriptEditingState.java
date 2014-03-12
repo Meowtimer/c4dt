@@ -325,13 +325,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	private Runnable refreshEditorsRunnable() {
-		return new Runnable() {
-			@Override
-			public void run() {
-				for (final C4ScriptEditor ed : editors) {
-					ed.refreshOutline();
-					try { ed.handleCursorPositionChanged(); } catch (final Exception e) {}
-				}
+		return () -> {
+			for (final C4ScriptEditor ed : editors) {
+				ed.refreshOutline();
+				try { ed.handleCursorPositionChanged(); } catch (final Exception e) {}
 			}
 		};
 	}
@@ -359,14 +356,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private void reportProblems(final Markers markers) {
 		for (final ProblemReportingStrategy s : problemReportingStrategies())
-			s.steer(new Runnable() {
-				@Override
-				public void run() {
-					s.initialize(markers, new NullProgressMonitor(), new Script[] {structure()});
-					s.run();
-					s.apply();
-					s.run2();
-				}
+			s.steer(() -> {
+				s.initialize(markers, new NullProgressMonitor(), new Script[] {structure()});
+				s.run();
+				s.apply();
+				s.run2();
 			});
 	}
 
@@ -389,13 +383,10 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					return;
 				try {
 					try {
-						reparseWithDocumentContents(new Runnable() {
-							@Override
-							public void run() {
-								for (final C4ScriptEditor ed : editors) {
-									ed.refreshOutline();
-									ed.handleCursorPositionChanged();
-								}
+						reparseWithDocumentContents(() -> {
+							for (final C4ScriptEditor ed : editors) {
+								ed.refreshOutline();
+								ed.handleCursorPositionChanged();
 							}
 						});
 					} finally {
@@ -499,22 +490,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 		structure().deriveInformation();
 		for (final ProblemReportingStrategy strategy : problemReportingStrategies())
-			strategy.steer(new Runnable() {
-				@Override
-				public void run() {
-					// visit the function
-					strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
-					strategy.captureMarkers();
-					strategy.run();
-					strategy.apply();
-					// visit called functions
-					//try {
-					//	reportProblemsOnCalledFunctions(function, markers, strategy);
-					//} catch (final Exception e) {
-					//	e.printStackTrace();
-					//}
-					strategy.run2();
-				}
+			strategy.steer(() -> {
+				// visit the function
+				strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
+				strategy.captureMarkers();
+				strategy.run();
+				strategy.apply();
+				strategy.run2();
 			});
 		return markers;
 	}
@@ -636,14 +618,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 		final DepthCallsCollector collector = new DepthCallsCollector();
 		if (!collector.isEmpty())
-			strategy.steer(new Runnable() {
-				@Override
-				public void run() {
-					strategy.initialize(markers, new NullProgressMonitor(), collector.expandedFunctionSet());
-					strategy.captureMarkers();
-					strategy.run();
-					strategy.apply();
-				}
+			strategy.steer(() -> {
+				strategy.initialize(markers, new NullProgressMonitor(), collector.expandedFunctionSet());
+				strategy.captureMarkers();
+				strategy.run();
+				strategy.apply();
 			});
 	}
 
@@ -747,15 +726,12 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			final boolean change = fparser.update();
 			if (change || (observer != null && typingContextVisitInAnyCase))
 				for (final ProblemReportingStrategy s : problemReportingStrategies())
-					s.steer(new Runnable() {
-						@Override
-						public void run() {
-							s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
-							s.setObserver(observer);
-							s.run();
-							s.apply();
-							s.run2();
-						}
+					s.steer(() -> {
+						s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
+						s.setObserver(observer);
+						s.run();
+						s.apply();
+						s.run2();
 					});
 			return fparser;
 		}
@@ -857,12 +833,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
-		Display.getCurrent().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				for (final C4ScriptEditor ed : editors)
-					ed.showParameters();
-			}
+		Display.getCurrent().asyncExec(() -> {
+			for (final C4ScriptEditor ed : editors)
+				ed.showParameters();
 		});
 		super.completionProposalApplied(proposal);
 	}

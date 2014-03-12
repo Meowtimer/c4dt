@@ -28,13 +28,13 @@ final class DynamicTypingMigrationJob extends TypingMigrationJob {
 	@Override
 	protected IStatus run(final IProgressMonitor monitor) {
 		monitor.beginTask("Dynamic Typing Migration", parsers.length);
-		runWithoutAutoBuild(new Runnable() { @Override public void run() {
+		runWithoutAutoBuild(() -> {
 			for (final ScriptParser parser : parsers) {
 				if (parser != null && parser.script() != null && parser.script().file() != null)
 					removeTypeAnnotations(parser);
 				monitor.worked(1);
 			}
-		}});
+		});
 		settings.concludeTypingMigration();
 		nature.saveSettings();
 		return Status.OK_STATUS;

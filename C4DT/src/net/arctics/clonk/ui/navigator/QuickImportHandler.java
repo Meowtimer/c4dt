@@ -24,7 +24,7 @@ public class QuickImportHandler extends ClonkResourceHandler {
 
 	@Override
 	public void addHandlerListener(final IHandlerListener handlerListener) {}
-	
+
 	public static File[] selectFiles(final String title, final IContainer container, final boolean noMulti) {
 		final FileDialog fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SHEET+SWT.OPEN+(noMulti?0:SWT.MULTI));
 		fileDialog.setFilterPath(ClonkProjectNature.engineFromResource(container).settings().gamePath);
@@ -38,26 +38,23 @@ public class QuickImportHandler extends ClonkResourceHandler {
 
 	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				final ISelection selection = HandlerUtil.getCurrentSelection(event);
-				if (selection == null || selection.isEmpty() || !(selection instanceof IStructuredSelection))
-					return;
-				final IStructuredSelection ssel = (IStructuredSelection) selection;
-				if (!(ssel.getFirstElement() instanceof IContainer))
-					return;
-				final IContainer container = (IContainer) ssel.getFirstElement();
-				
-				File[] files;
-				files = selectFiles(Messages.QuickImportAction_SelectFiles, container, false);
-				if (files != null)
-					importFiles(HandlerUtil.getActiveShell(event), container, files);
-			}
+		Display.getDefault().asyncExec(() -> {
+			final ISelection selection = HandlerUtil.getCurrentSelection(event);
+			if (selection == null || selection.isEmpty() || !(selection instanceof IStructuredSelection))
+				return;
+			final IStructuredSelection ssel = (IStructuredSelection) selection;
+			if (!(ssel.getFirstElement() instanceof IContainer))
+				return;
+			final IContainer container = (IContainer) ssel.getFirstElement();
+
+			File[] files;
+			files = selectFiles(Messages.QuickImportAction_SelectFiles, container, false);
+			if (files != null)
+				importFiles(HandlerUtil.getActiveShell(event), container, files);
 		});
 		return null;
 	}
-	
+
 	public static void importFiles(final Shell shell, final IContainer container, final File... files) {
 		final C4GroupImporter importer = new C4GroupImporter(files, container);
 		final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(shell);
@@ -70,5 +67,5 @@ public class QuickImportHandler extends ClonkResourceHandler {
 
 	@Override
 	public void removeHandlerListener(final IHandlerListener handlerListener) {}
-	
+
 }

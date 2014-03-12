@@ -212,18 +212,15 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	private void performCleanBuild() {
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				final IProgressMonitor monitor = new NullProgressMonitor();
-				try {
-					project.build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
-				} catch (final CoreException e) {
-					e.printStackTrace();
-				}
-				if (Core.instance().versionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0)
-					settings().guessValues(ClonkProjectNature.this);
+		Display.getDefault().asyncExec(() -> {
+			final IProgressMonitor monitor = new NullProgressMonitor();
+			try {
+				project.build(IncrementalProjectBuilder.CLEAN_BUILD, monitor);
+			} catch (final CoreException e) {
+				e.printStackTrace();
 			}
+			if (Core.instance().versionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0)
+				settings().guessValues(ClonkProjectNature.this);
 		});
 	}
 

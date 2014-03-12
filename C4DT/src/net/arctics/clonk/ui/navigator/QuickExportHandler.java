@@ -27,59 +27,55 @@ public class QuickExportHandler extends ClonkResourceHandler {
 
 	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			@SuppressWarnings("rawtypes")
-			public void run() {
-				try {
-					final List<IContainer> selectedContainers = new ArrayList<IContainer>();
+		Display.getDefault().asyncExec(() -> {
+			try {
+				final List<IContainer> selectedContainers = new ArrayList<IContainer>();
 
-					final IWorkbenchPart part = HandlerUtil.getActivePart(event);
-					if (part instanceof EditorPart && ((EditorPart)part).getEditorInput() instanceof FileEditorInput) {
-						final IFile file = ((FileEditorInput)((EditorPart)part).getEditorInput()).getFile();
-						IContainer r; 
-						for (r = file.getParent(); r != null && !(r.getParent() instanceof IProject); r = r.getParent());
-						if (r != null)
-							selectedContainers.add(r);
-					} else {
-						final ISelection selection = HandlerUtil.getCurrentSelection(event);
-						if (selection != null && selection instanceof TreeSelection) {
-							final TreeSelection tree = (TreeSelection) selection;
-							final Iterator it = tree.iterator();
-							while (it.hasNext()) {
-								final Object obj = it.next();
-								if (obj instanceof IProject)
-									try {
-										final IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
-										for(int i = 0; i < selectedResources.length;i++)
-											if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith(".")) //$NON-NLS-1$
-												selectedContainers.add((IContainer) selectedResources[i]);
-									}
-									catch (final CoreException ex) {
-										ex.printStackTrace();
-									}
-								else if (obj instanceof IFolder)
-									selectedContainers.add((IContainer) obj);
-								else if (obj instanceof IFile) {
-									final IFile file = (IFile)obj;
-									IContainer r;
-									for (r = file.getParent(); r != null && !(r.getParent() instanceof IProject); r = r.getParent());
-									if (r != null)
-										selectedContainers.add(r);
+				final IWorkbenchPart part = HandlerUtil.getActivePart(event);
+				if (part instanceof EditorPart && ((EditorPart)part).getEditorInput() instanceof FileEditorInput) {
+					final IFile file = ((FileEditorInput)((EditorPart)part).getEditorInput()).getFile();
+					IContainer r;
+					for (r = file.getParent(); r != null && !(r.getParent() instanceof IProject); r = r.getParent());
+					if (r != null)
+						selectedContainers.add(r);
+				} else {
+					final ISelection selection = HandlerUtil.getCurrentSelection(event);
+					if (selection != null && selection instanceof TreeSelection) {
+						final TreeSelection tree = (TreeSelection) selection;
+						final Iterator it = tree.iterator();
+						while (it.hasNext()) {
+							final Object obj = it.next();
+							if (obj instanceof IProject)
+								try {
+									final IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
+									for(int i = 0; i < selectedResources.length;i++)
+										if (selectedResources[i] instanceof IContainer && !selectedResources[i].getName().startsWith(".")) //$NON-NLS-1$
+											selectedContainers.add((IContainer) selectedResources[i]);
 								}
+								catch (final CoreException ex) {
+									ex.printStackTrace();
+								}
+							else if (obj instanceof IFolder)
+								selectedContainers.add((IContainer) obj);
+							else if (obj instanceof IFile) {
+								final IFile file = (IFile)obj;
+								IContainer r;
+								for (r = file.getParent(); r != null && !(r.getParent() instanceof IProject); r = r.getParent());
+								if (r != null)
+									selectedContainers.add(r);
 							}
 						}
 					}
-					if (selectedContainers.size() > 0) {
-						final C4GroupExporter exporter = new C4GroupExporter(selectedContainers.toArray(new IContainer[selectedContainers.size()]), null);
-						if (exporter.selectDestPaths()) {
-							final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(HandlerUtil.getActiveWorkbenchWindow(event).getShell());
-							progressDialog.run(false, true, exporter);
-						}
-					}
-				} catch (final Exception e) {
-					e.printStackTrace();
 				}
+				if (selectedContainers.size() > 0) {
+					final C4GroupExporter exporter = new C4GroupExporter(selectedContainers.toArray(new IContainer[selectedContainers.size()]), null);
+					if (exporter.selectDestPaths()) {
+						final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(HandlerUtil.getActiveWorkbenchWindow(event).getShell());
+						progressDialog.run(false, true, exporter);
+					}
+				}
+			} catch (final Exception e) {
+				e.printStackTrace();
 			}
 		});
 		return null;

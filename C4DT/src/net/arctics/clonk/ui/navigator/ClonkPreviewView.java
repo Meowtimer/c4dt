@@ -70,11 +70,11 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 
 	public static final String ID = Core.id("views.ClonkPreviewView"); //$NON-NLS-1$
 	private static final float LANDSCAPE_PREVIEW_SCALE = 0.5f;
-	
+
 	private final class PreviewUpdaterJob extends Job {
-		
+
 		private WeakReference<ISelection> selection;
-		
+
 		public synchronized void setSelection(final ISelection selection) {
 			this.selection = new WeakReference<ISelection>(selection);
 		}
@@ -122,7 +122,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 			});
 		}
 	}
-	
+
 	private Canvas canvas;
 	private Browser browser;
 	private Sash sash;
@@ -133,7 +133,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 
 	public ClonkPreviewView() {
 	}
-	
+
 	private static FormData createFormData(final FormAttachment left, final FormAttachment right, final FormAttachment top, final FormAttachment bottom) {
 		final FormData result = new FormData();
 		result.left   = left;
@@ -142,25 +142,25 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 		result.bottom = bottom;
 		return result;
 	}
-	
+
 	@Override
 	public void createPartControl(final Composite parent) {
 		parent.setLayout(new FormLayout());
-		
+
 		canvas = new ImageCanvas(parent, SWT.NO_SCROLL);
 		canvas.addControlListener(this);
 		canvasSize = canvas.getSize();
 		sash = new Sash(parent, SWT.HORIZONTAL);
 		browser = new Browser(parent, SWT.NONE);
 		defInfo = new Text(parent, SWT.NONE);
-		
+
 		canvas.setLayoutData(createFormData(
 			new FormAttachment(0, 0),
 			new FormAttachment(100, 0),
 			new FormAttachment(0, 0),
 			new FormAttachment(sash, 0)
 		));
-		
+
 		final FormData sashData;
 		sash.setLayoutData(sashData = createFormData(
 			new FormAttachment(0, 0),
@@ -175,21 +175,21 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 				parent.layout();
 			}
 		});
-		
+
 		browser.setLayoutData(createFormData(
 			new FormAttachment(0, 0),
 			new FormAttachment(100, 0),
 			new FormAttachment(sash, 0),
 			new FormAttachment(100, -defInfo.computeSize(SWT.DEFAULT, SWT.DEFAULT).y)
 		));
-		
+
 		defInfo.setLayoutData(createFormData(
 			new FormAttachment(0, 0),
 			new FormAttachment(100, 0),
 			new FormAttachment(browser, 0),
 			new FormAttachment(100, 0)
 		));
-		
+
 		parent.layout();
 		synchronizedSelectionChanged(getSelectionOfInterest());
 	}
@@ -197,20 +197,20 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	public ISelection getSelectionOfInterest() {
 		return UI.projectExplorerSelection(getSite());
 	}
-	
+
 	@Override
 	public void init(final IViewSite site) throws PartInitException {
 		super.init(site);
 		final ISelectionService selService = site.getWorkbenchWindow().getSelectionService();
 		selService.addSelectionListener(IPageLayout.ID_PROJECT_EXPLORER, this);
 	}
-	
+
 	@Override
 	public void setFocus() {
 	}
-	
+
 	private File tempLandscapeRenderFile = null;
-	
+
 	private static String getMaterialsFolderPath(final Engine engine, final IFile resource) {
 		final String materialFolderBaseName = "Material."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
 		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
@@ -218,7 +218,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 			if (matsRes != null)
 				return ClonkLaunchConfigurationDelegate.resFilePath(matsRes);
 		}
-		return engine.settings().gamePath+"/"+materialFolderBaseName; 
+		return engine.settings().gamePath+"/"+materialFolderBaseName;
 	}
 
 	private synchronized void synchronizedSelectionChanged(final ISelection selection) {
@@ -291,7 +291,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 			}
 			else if (sel instanceof IContainer && ((IContainer)sel).getProject().isOpen()) {
 				final IContainer container = (IContainer) sel;
-				
+
 				final Definition obj = Definition.at(container);
 				if (obj != null)
 					newDefText = obj.infoTextIncludingIDAndName();
@@ -327,15 +327,12 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 		image = newImage;
 		final String finalNewHtml = newHtml;
 		final String finalNewDefText = newDefText;
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				canvas.redraw();
-				if (!browser.getText().equals(finalNewHtml))
-					browser.setText(finalNewHtml);
-				if (!defInfo.getText().equals(finalNewDefText))
-					defInfo.setText(finalNewDefText);	
-			}
+		Display.getDefault().asyncExec(() -> {
+			canvas.redraw();
+			if (!browser.getText().equals(finalNewHtml))
+				browser.setText(finalNewHtml);
+			if (!defInfo.getText().equals(finalNewDefText))
+				defInfo.setText(finalNewDefText);
 		});
 	}
 
@@ -347,14 +344,14 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 		rtfKit.read( input, doc, 0 );
 		input.close();
 
-		final HTMLEditorKit htmlKit = new HTMLEditorKit();       
+		final HTMLEditorKit htmlKit = new HTMLEditorKit();
 		final StringWriter output = new StringWriter();
 		htmlKit.write(output, doc, 0, doc.getLength());
 
 		return output.toString();
 	}
 
-	
+
 	@Override
 	public void dispose() {
 		if (image != null) {
@@ -367,11 +364,11 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	}
 
 	private final PreviewUpdaterJob previewUpdaterJob = new PreviewUpdaterJob(Messages.ClonkPreviewView_Updater);
-	
+
 	private void scheduleJob(final ISelection selection) {
 		previewUpdaterJob.reschedule(300, selection);
 	}
-	
+
 	@Override
 	public void selectionChanged(final IWorkbenchPart part, final ISelection selection) {
 		scheduleJob(selection);
@@ -388,7 +385,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 			scheduleJob(getSelectionOfInterest());
 		}
 	}
-	
+
 	public void schedulePreviewUpdaterJob() {
 		scheduleJob(getSelectionOfInterest());
 	}

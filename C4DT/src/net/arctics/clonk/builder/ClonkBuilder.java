@@ -232,27 +232,21 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		if (buildKind == FULL_BUILD)
 			if (settings.migrationTyping != null) switch (settings.migrationTyping) {
 			case STATIC:
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-							String.format("Scripts in '%s' will now be migrated to static typing. This cannot be undone. Continue?", proj.getName()),
-							"Migration to Static Typing"
-						))
-							migrateToStaticTyping(parsers, settings);
-					}
+				Display.getDefault().asyncExec(() -> {
+					if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+						String.format("Scripts in '%s' will now be migrated to static typing. This cannot be undone. Continue?", proj.getName()),
+						"Migration to Static Typing"
+					))
+						migrateToStaticTyping(parsers, settings);
 				});
 				break;
 			case DYNAMIC: case INFERRED:
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-							String.format("Scripts in '%s' will now be migrated to dynamic typing. This cannot be undone. Continue?", proj.getName()),
-							"Migration to Dynamic Typing"
-						))
-							migrateToDynamicTyping(parsers, settings);
-					}
+				Display.getDefault().asyncExec(() -> {
+					if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+						String.format("Scripts in '%s' will now be migrated to dynamic typing. This cannot be undone. Continue?", proj.getName()),
+						"Migration to Dynamic Typing"
+					))
+						migrateToDynamicTyping(parsers, settings);
 				});
 				break;
 			default:
@@ -299,14 +293,11 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private void innerParseDeclarations(final Map<Script, ScriptParser> newEnqueued) {
 		TaskExecution.threadPool(pool -> {
 			for (final Script script : newEnqueued.keySet())
-				pool.execute(new Runnable() {
-					@Override
-					public void run() {
-						if (monitor.isCanceled())
-							return;
-						performParseDeclarations(script);
-						monitor.worked(1);
-					}
+				pool.execute(() -> {
+					if (monitor.isCanceled())
+						return;
+					performParseDeclarations(script);
+					monitor.worked(1);
 				});
 		}, 20, newEnqueued.size());
 	}
@@ -337,38 +328,25 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
 		final List<ProblemReportingStrategy> strats = index.nature().problemReportingStrategies();
 		for (final ProblemReportingStrategy strategy : strats)
-			strategy.steer(new Runnable() {
-				@Override
-				public void run() {
-					strategy.initialize(markers, monitor(), scripts);
-					strategy.run();
-					strategy.apply();
-				}
+			strategy.steer(() -> {
+				strategy.initialize(markers, monitor(), scripts);
+				strategy.run();
+				strategy.apply();
 			});
 		try {
 			if (!Core.runsHeadless()) {
 				Display.getDefault().asyncExec(new UIRefresher(scripts));
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
-							if (ed != null)
-								ed.state().refreshAfterBuild(markers);
-						} catch (final Exception e) {
-
-						}
-					}
+				Display.getDefault().syncExec(() -> {
+					try {
+						final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
+						if (ed != null)
+							ed.state().refreshAfterBuild(markers);
+					} catch (final Exception e) {}
 				});
 			}
 		} finally {
 			for (final ProblemReportingStrategy strategy : strats)
-				strategy.steer(new Runnable() {
-					@Override
-					public void run() {
-						strategy.run2();
-					}
-				});
+				strategy.steer(strategy::run2);
 			markers.deploy();
 		}
 	}
