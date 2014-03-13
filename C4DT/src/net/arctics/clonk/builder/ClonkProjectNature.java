@@ -4,8 +4,6 @@ import static net.arctics.clonk.util.ArrayUtil.map;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -164,14 +162,11 @@ public class ClonkProjectNature implements IProjectNature {
 	public void saveSettings() {
 		try {
 			settings();
-			StreamUtil.writeToFile(settingsFilePath().toFile(), new StreamUtil.StreamWriteRunnable() {
-				@Override
-				public void run(final File file, final OutputStream stream, final OutputStreamWriter writer) throws IOException {
-					try {
-						CustomIniUnit.save(new AppendableBackedExprWriter(writer), settings, null);
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
+			StreamUtil.writeToFile(settingsFilePath().toFile(), (file, stream, writer) -> {
+				try {
+					CustomIniUnit.save(new AppendableBackedExprWriter(writer), settings, null);
+				} catch (final Exception e) {
+					e.printStackTrace();
 				}
 			});
 		} catch (final IOException e) {

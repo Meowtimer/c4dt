@@ -63,7 +63,6 @@ public class OpenDefinitionDialog extends EntityChooser {
 
 	public OpenDefinitionDialog() {
 		this(UI.projectExplorerSelection(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart().getSite()));
-
 	}
 
 	/**

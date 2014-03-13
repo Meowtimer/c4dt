@@ -15,12 +15,10 @@ import java.net.URL;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IDocument;
 
 public class StreamUtil {
 
@@ -110,12 +108,7 @@ public class StreamUtil {
 
 	public static String stringFromStorage(final IStorage storage) {
 		if (storage instanceof IFile)
-			return Core.instance().performActionsOnFileDocument(storage, new IDocumentAction<String>() {
-				@Override
-				public String run(final IDocument document) {
-					return document.get();
-				}
-			}, false);
+			return Core.instance().performActionsOnFileDocument(storage, document -> document.get(), false);
 		else
 			try (InputStream s = storage.getContents()) {
 				return stringFromInputStream(s);
@@ -126,14 +119,10 @@ public class StreamUtil {
 	}
 
 	public static String stringFromFileDocument(final IFile file) {
-		return Core.instance().performActionsOnFileDocument(file, new IDocumentAction<String>() {
-			@Override
-			public String run(final IDocument document) {
-				return document.get();
-			}
-		}, false);
+		return Core.instance().performActionsOnFileDocument(file, document -> document.get(), false);
 	}
 
+	@FunctionalInterface
 	public interface StreamWriteRunnable {
 		void run(File file, OutputStream stream, OutputStreamWriter writer) throws IOException;
 	}

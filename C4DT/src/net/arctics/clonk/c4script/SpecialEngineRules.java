@@ -18,18 +18,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
-import net.arctics.clonk.ast.IASTPositionProvider;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
@@ -67,12 +66,10 @@ import net.arctics.clonk.ini.ParticleUnit;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.ini.SignedInteger;
 import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.parser.IMarkerListener;
-import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.parser.IMarkerListener.Decision;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.c4script.ScriptCompletionProcessor;
 import net.arctics.clonk.util.ArrayUtil;
-import java.util.function.Predicate;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
@@ -365,12 +362,7 @@ public abstract class SpecialEngineRules {
 
 	public void putFuncRule(final SpecialFuncRule rule, final Field fieldReference) {
 		putRule(rule, fieldReference);
-		putFuncRule(rule, new FunctionsByRole() {
-			@Override
-			public String[] functions(final int role) {
-				return SpecialRule.getFunctionsAppliedTo(fieldReference, role);
-			}
-		});
+		putFuncRule(rule, role -> SpecialRule.getFunctionsAppliedTo(fieldReference, role));
 	}
 
 	private void putRule(final SpecialFuncRule rule, final Field field) {
@@ -397,12 +389,7 @@ public abstract class SpecialEngineRules {
 		final Field field  = fieldWithValue(rule);
 		if (field != null)
 			putRule(rule, field);
-		putFuncRule(rule, new FunctionsByRole() {
-			@Override
-			public String[] functions(final int role) {
-				return functions;
-			}
-		});
+		putFuncRule(rule, role -> functions);
 	}
 
 	public SpecialFuncRule funcRuleFor(final String function, final int role) {
@@ -572,26 +559,19 @@ public abstract class SpecialEngineRules {
 			final Object scriptExpr = arguments[0].evaluateStatic(script);
 			if (scriptExpr instanceof String)
 				try {
-					new Standalone(iterable(processor.script())).parse((String)scriptExpr, node.parent(Function.class), null, new IMarkerListener() {
-						@Override
-						public Decision markerEncountered(
-							final Markers markers, final IASTPositionProvider positionProvider,
-							final Problem code, final ASTNode node,
-							final int markerStart, final int markerEnd, final int flags, final int severity, final Object... args
-						) {
-							switch (code) {
-							// ignore complaining about missing ';' - some genuine errors might slip through but who cares
-							case NotFinished:
-							// also ignore undeclared identifier error - local variables and whatnot, checking for all of this is also overkill
-							case UndeclaredIdentifier:
-								return Decision.DropCharges;
-							default:
-								if (markers.errorEnabled(code))
-									try {
-										markers.marker(positionProvider, code, node, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
-									} catch (final ProblemException e1) {}
-								return Decision.PassThrough;
-							}
+					new Standalone(iterable(processor.script())).parse((String)scriptExpr, node.parent(Function.class), null, (markers, positionProvider, code, _node, markerStart, markerEnd, flags, severity, args) -> {
+						switch (code) {
+						// ignore complaining about missing ';' - some genuine errors might slip through but who cares
+						case NotFinished:
+						// also ignore undeclared identifier error - local variables and whatnot, checking for all of this is also overkill
+						case UndeclaredIdentifier:
+							return Decision.DropCharges;
+						default:
+							if (markers.errorEnabled(code))
+								try {
+									markers.marker(positionProvider, code, _node, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
+								} catch (final ProblemException e1) {}
+							return Decision.PassThrough;
 						}
 					}, null);
 				} catch (final ProblemException e) {
