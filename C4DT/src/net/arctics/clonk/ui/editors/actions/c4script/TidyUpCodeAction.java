@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.builder.CodeConverter;
 import net.arctics.clonk.c4script.ast.Tidy;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;

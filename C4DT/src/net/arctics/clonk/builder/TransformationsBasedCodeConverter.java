@@ -10,7 +10,6 @@ import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.Tidy;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.index.ProjectConversionConfiguration.CodeTransformation;
-import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
 
 public final class TransformationsBasedCodeConverter extends CodeConverter {
 	private final ProjectConversionConfiguration configuration;

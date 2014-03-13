@@ -17,7 +17,6 @@ import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
-import net.arctics.clonk.ui.editors.actions.c4script.CodeConverter;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;

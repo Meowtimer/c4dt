@@ -1,4 +1,4 @@
-package net.arctics.clonk.ui.editors.actions.c4script;
+package net.arctics.clonk.builder;
 
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -24,6 +24,7 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.VarInitialization;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.ui.editors.actions.c4script.Messages;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
