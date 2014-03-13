@@ -194,8 +194,10 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			markers.deploy();
 
 			final SaveScriptsJob saveScripts = new SaveScriptsJob(proj, scripts);
-			if (Core.runsHeadless())
+			if (Core.runsHeadless()) {
 				saveScripts.run(new NullProgressMonitor());
+				nature.saveIndex();
+			}
 			else
 				saveScripts.schedule();
 

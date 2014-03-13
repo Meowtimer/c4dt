@@ -10,7 +10,6 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -924,7 +923,6 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public void setSubElements(final ASTNode[] nodes) {
 		if (nodes[0] instanceof TypeAnnotation)
 			setTypeAnnotation((TypeAnnotation) nodes[0]);
-		super.setSubElements(Arrays.copyOfRange(nodes, 1, nodes.length-1));
 		storeBody(nodes[nodes.length-1], "");
 	}
 	@Override

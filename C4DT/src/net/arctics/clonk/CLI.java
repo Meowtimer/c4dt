@@ -13,6 +13,7 @@ import java.util.Stack;
 
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.builder.ProjectConverter;
 import net.arctics.clonk.builder.ProjectSettings;
 import net.arctics.clonk.c4group.C4GroupFileSystem;
 import net.arctics.clonk.c4script.Function;
@@ -24,7 +25,6 @@ import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.command.SelfContainedScript;
-import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Index.Built;
@@ -51,6 +51,8 @@ import org.eclipse.equinox.app.IApplicationContext;
  *
  */
 public class CLI implements IApplication, AutoCloseable {
+	private static final String CLONK_RAGE = "ClonkRage";
+	private static final String OPEN_CLONK = "OpenClonk";
 	private static class CLIFunction<T> extends Function {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final transient Method method;
@@ -159,10 +161,19 @@ public class CLI implements IApplication, AutoCloseable {
 				}
 		throw new IllegalArgumentException(String.format("Invalid command: '%s'", methodName));
 	}
+	private void restore() {
+		oc = existingProj(OPEN_CLONK);
+		cr = existingProj(CLONK_RAGE);
+	}
+	public IProject existingProj(String projName) {
+		final IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
+		return proj.exists() ? proj : null;
+	}
 	private void initialize() {
 		if (engine == null || engineConfigurationRoot == null)
 			throw new IllegalArgumentException("--engine and --engineConfigurationRoot command required");
 		Core.headlessInitialize(engineConfigurationRoot, engine);
+		restore();
 	}
 	private class DoneToken implements AutoCloseable {
 		public DoneToken() { doneTokens.push(this); }
@@ -265,11 +276,11 @@ public class CLI implements IApplication, AutoCloseable {
 	@Callable
 	public void setupCRProject(String crFolder) throws CoreException {
 		final NullProgressMonitor npm = new NullProgressMonitor();
-		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription("OpenClonk");
+		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(OPEN_CLONK);
 		desc.setNatureIds(new String[0]);
 		desc.setBuildSpec(new ICommand[0]);
 
-		cr = ResourcesPlugin.getWorkspace().getRoot().getProject("ClonkRage");
+		cr = ResourcesPlugin.getWorkspace().getRoot().getProject(CLONK_RAGE);
 		if (cr.exists())
 			cr.delete(true, true, npm);
 		cr.create(desc, npm);
@@ -300,12 +311,11 @@ public class CLI implements IApplication, AutoCloseable {
 		final ClonkProjectNature nature = ClonkProjectNature.get(cr);
 		nature.forceIndexRecreation().built(Built.LeaveAlone);
 		final ProjectSettings settings = nature.settings();
-		settings.engineName = "OpenClonk";
+		settings.engineName = OPEN_CLONK;
 		settings.typing = Typing.INFERRED;
 		nature.saveSettings();
 		cr.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 		cr.build(IncrementalProjectBuilder.FULL_BUILD, npm);
-		ClonkProjectNature.get(cr).index().allDefinitions((Definition def) -> System.out.println(def.name()));
 	}
 	private void link(final IProject cr, String crFolder, String name, NullProgressMonitor npm) {
 		final IFolder linkedFolder = cr.getFolder(name);
@@ -321,12 +331,12 @@ public class CLI implements IApplication, AutoCloseable {
 	@Callable
 	public void setupOCProject(String ocRepo) throws CoreException {
 		final NullProgressMonitor npm = new NullProgressMonitor();
-		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription("OpenClonk");
+		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(OPEN_CLONK);
 		desc.setLocation(new Path(ocRepo).append("planet"));
 		desc.setNatureIds(new String[0]);
 		desc.setBuildSpec(new ICommand[0]);
 
-		oc = ResourcesPlugin.getWorkspace().getRoot().getProject("OpenClonk");
+		oc = ResourcesPlugin.getWorkspace().getRoot().getProject(OPEN_CLONK);
 		if (oc.exists())
 			oc.delete(false, true, npm);
 		oc.create(desc, npm);
@@ -343,7 +353,7 @@ public class CLI implements IApplication, AutoCloseable {
 		final ClonkProjectNature nature = ClonkProjectNature.get(oc);
 		nature.forceIndexRecreation().built(Built.LeaveAlone);
 		final ProjectSettings settings = nature.settings();
-		settings.engineName = "OpenClonk";
+		settings.engineName = OPEN_CLONK;
 		settings.typing = Typing.INFERRED;
 		nature.saveSettings();
 		oc.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
@@ -370,7 +380,7 @@ public class CLI implements IApplication, AutoCloseable {
 		final ICommand command = desc.newCommand();
 		command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
 		desc.setBuildSpec(new ICommand[] {command});
-		final IProject baseProj = engineName.equals("OpenClonk") ? oc : cr;
+		final IProject baseProj = engineName.equals(OPEN_CLONK) ? oc : cr;
 		if (baseProj != null)
 			desc.setReferencedProjects(new IProject[] {baseProj});
 		proj.setDescription(desc, npm);
@@ -391,7 +401,7 @@ public class CLI implements IApplication, AutoCloseable {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public Engine engine() {
-				return Core.instance().loadEngine("OpenClonk");
+				return Core.instance().loadEngine(OPEN_CLONK);
 			}
 		};
 		final Script script = new SelfContainedScript(f.getName(), StreamUtil.stringFromFile(f), ndx) {
@@ -405,6 +415,14 @@ public class CLI implements IApplication, AutoCloseable {
 		final Function main = script.findFunction("Main");
 		if (main != null)
 			main.invoke(main.new FunctionInvocation(new Object[0], null, this));
+	}
+	@Callable
+	public void convertProject(final String source, final String dest) {
+		final ProjectConverter converter = new ProjectConverter(
+			ResourcesPlugin.getWorkspace().getRoot().getProject(source),
+			ResourcesPlugin.getWorkspace().getRoot().getProject(dest)
+		);
+		converter.convert(new NullProgressMonitor());
 	}
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {

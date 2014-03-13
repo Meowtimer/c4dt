@@ -8,6 +8,7 @@ import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,7 +28,6 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 /**
@@ -47,29 +47,28 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			this.target = target;
 			this.definition = definition;
 		}
+		class FileConversion {
+			final Structure original;
+			final IFile target;
+			Structure converted;
+			public FileConversion(Structure original, IFile target) {
+				super();
+				this.original = original;
+				this.target = target;
+			}
+			void convert() {
+				converted = as(codeConverter.convert(original, original), Structure.class);
+			}
+			void write() throws CoreException {
+				final String convString = converted.printed();
+				target.setContents(new ByteArrayInputStream(convString.getBytes()), true, true, null);
+			}
+		}
 		@Override
 		public void run() {
 			try {
-				final NullProgressMonitor npm = new NullProgressMonitor();
-				class FileConversion {
-					final Structure original;
-					final IFile target;
-					Structure converted;
-					public FileConversion(Structure original, IFile target) {
-						super();
-						this.original = original;
-						this.target = target;
-					}
-					void convert() {
-						converted = as(codeConverter.convert(original, original), Structure.class);
-					}
-					void write() throws CoreException {
-						final String convString = converted.printed();
-						target.setContents(new ByteArrayInputStream(convString.getBytes()), true, true, npm);
-					}
-				}
 				final List<FileConversion> conversions = new ArrayList<>();
-				for (final IResource res : origin.members(IResource.FILE)) {
+				Arrays.stream(origin.members(IResource.FILE)).filter(r -> r instanceof IFile).forEach(res -> {
 					final IFile file = (IFile)res;
 					final Structure struct = Structure.pinned(file, false, false);
 					if (struct != null) {
@@ -77,7 +76,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 						if (target.exists())
 							conversions.add(new FileConversion(struct, target));
 					}
-				}
+				});
 				for (final FileConversion c : conversions)
 					c.convert();
 				for (final FileConversion c : conversions)
