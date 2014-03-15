@@ -5,9 +5,12 @@ import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.index.Index;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -25,7 +28,8 @@ class SaveScriptsJob extends Job {
 	}
 	@Override
 	protected IStatus run(final IProgressMonitor monitor) {
-		monitor.beginTask(ClonkBuilder.buildTask(Messages.ClonkBuilder_SavingScriptIndexFiles, project), scriptsToSave.size()+3);
+		final List<Index> indices = scriptsToSave.stream().map(s -> s.index()).distinct().collect(Collectors.toList());
+		monitor.beginTask(ClonkBuilder.buildTask(Messages.ClonkBuilder_SavingScriptIndexFiles, project), scriptsToSave.size()+3+indices.size());
 		try {
 			for (final Iterator<Script> it = scriptsToSave.iterator(); it.hasNext();) {
 				final Script s = it.next();
@@ -46,6 +50,13 @@ class SaveScriptsJob extends Job {
 				System.out.println("Keep SaveScriptsJob running");
 				schedule(1500);
 			}
+			indices.forEach(index -> {
+				for (int attempt = 0; attempt < 3; attempt++)
+					try {
+						index.saveShallow();
+						monitor.worked(1);
+					} catch (final Exception e) {}
+			});
 			monitor.worked(3);
 			return Status.OK_STATUS;
 		} finally {
