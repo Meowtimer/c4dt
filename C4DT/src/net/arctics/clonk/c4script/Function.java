@@ -302,7 +302,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				if (l != -1)
 					return locals[l];
 			} else {
-				final Object self = value(access.predecessor().evaluate(this));
+				final Object self = evaluateVariable(access.predecessor().evaluate(this));
 				if (self == null)
 					throw new IllegalStateException(format("%s yields null result",
 						access.predecessor().parent(Sequence.class).subSequenceIncluding(access.predecessor()).printed()));

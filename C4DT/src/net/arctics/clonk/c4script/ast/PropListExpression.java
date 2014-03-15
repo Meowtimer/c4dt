@@ -8,6 +8,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.IEvaluationContext;
@@ -110,6 +111,15 @@ public class PropListExpression extends ASTNode {
 		final Map<String, Object> map = new HashMap<String, Object>(components.size());
 		for (final Variable component : components)
 			map.put(component.name(), component.initializationExpression().evaluateStatic(context));
+		return map;
+	}
+	
+	@Override
+	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
+		final Collection<Variable> components = components();
+		final Map<String, Object> map = new HashMap<String, Object>(components.size());
+		for (final Variable component : components)
+			map.put(component.name(), evaluateVariable(component.initializationExpression().evaluate(context)));
 		return map;
 	}
 

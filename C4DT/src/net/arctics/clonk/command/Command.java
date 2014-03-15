@@ -98,7 +98,7 @@ public class Command {
 			try {
 				final Object[] args = new Object[method.getParameterTypes().length];
 				args[0] = context;
-				System.arraycopy(Arrays.stream(context.arguments()).map(ASTNode::value).toArray(), 0, args, 1, context.arguments().length);
+				System.arraycopy(Arrays.stream(context.arguments()).map(ASTNode::evaluateVariable).toArray(), 0, args, 1, context.arguments().length);
 				return method.invoke(context, args);
 			} catch (final Exception e) {
 				e.printStackTrace();

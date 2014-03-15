@@ -419,7 +419,7 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		return null;
 	}
 
-	public static Object value(Object obj) {
+	public static Object evaluateVariable(Object obj) {
 		if (obj instanceof IVariable)
 			obj = ((IVariable)obj).get();
 		if (obj instanceof Integer)

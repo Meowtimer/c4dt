@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.builder.CodeConverter;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
@@ -91,12 +92,11 @@ public class MatchingPlaceholder extends Placeholder {
 			return String.format("\"%s\"", text);
 		}
 		@CommandFunction
-		public static String EnforceLocal(final IEvaluationContext context, final String name) {
-			throw new Error("No");
-			//if (context.self() instanceof CodeConverter.ICodeConverterContext)
-			//	return ((CodeConverter.ICodeConverterContext)context.self()).defineFunctionLocalVariable(name);
-			//else
-			//	return null;
+		public static String EnforceLocal(final IEvaluationContext context, ASTNode node, final String name) {
+			if (context.self() instanceof CodeConverter.ICodeConverterContext)
+				return ((CodeConverter.ICodeConverterContext)context.self()).defineFunctionLocalVariable(node, name);
+			else
+				return null;
 		}
 		@CommandFunction
 		public static CallDeclaration Call(final IEvaluationContext context, final String name, final ASTNode[] params) {

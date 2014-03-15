@@ -176,11 +176,11 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 	}
 
 	private Object evaluateOn(Object leftSide, Object rightSide) {
-		rightSide = value(rightSide);
+		rightSide = evaluateVariable(rightSide);
 		switch (operator()) {
 		case Assign: {
         	final IVariable lv = (IVariable)leftSide;
-        	lv.set(value(rightSide));
+        	lv.set(evaluateVariable(rightSide));
         	return lv.get();
 		}
 		case AssignAdd: {
@@ -226,7 +226,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
         default:
         	break;
 		}
-		leftSide = value(leftSide);
+		leftSide = evaluateVariable(leftSide);
         switch (operator()) {
         case Add:
         	if (leftSide instanceof String || rightSide instanceof String)
@@ -265,18 +265,18 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
-		Object leftEv = value(leftSide().evaluate(context));
+		Object leftEv = evaluateVariable(leftSide().evaluate(context));
 		switch (operator()) {
 		case Or:
 			if (eq(Boolean.TRUE, leftEv))
 				return true;
-			if (eq(Boolean.TRUE, value(rightSide().evaluate(context))))
+			if (eq(Boolean.TRUE, evaluateVariable(rightSide().evaluate(context))))
 				return true;
 			return false;
 		case And:
 			if (!eq(Boolean.TRUE, leftEv))
 				return false;
-			if (!eq(Boolean.TRUE, value(rightSide().evaluate(context))))
+			if (!eq(Boolean.TRUE, evaluateVariable(rightSide().evaluate(context))))
 				return false;
 			return true;
 		default:

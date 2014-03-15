@@ -20,7 +20,7 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
-		throw new ReturnException(value(returnExpr.evaluate(context)));
+		throw new ReturnException(evaluateVariable(returnExpr.evaluate(context)));
 	}
 
 	public ReturnStatement(final ASTNode returnExpr) {

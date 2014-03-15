@@ -27,6 +27,8 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 		this.name = k;
 		value = v;
 	}
+	public Object value() { return value; }
+	public void value(Object val) { value = val; }
 	@Override
 	public String key() { return name; }
 	@Override
