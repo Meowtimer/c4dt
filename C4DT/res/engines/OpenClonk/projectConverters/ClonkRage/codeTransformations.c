@@ -104,8 +104,8 @@ Chain(
 );
 
 // for Var() calls declare var<number> vars
-$call:Call,/Var/,?value.params.length==0$ => $call!EnforceLocal("var0")$;
-Var($number:Integer$) => $number!EnforceLocal("var"+value.literal)$;
+$call:Call,/Var/,?value.params.length==0$ => $call!EnforceLocal("var0", value)$;
+Var($number:Integer$) => $number!EnforceLocal("var"+value.literal, value)$;
 
 // Message direct call
 Message($msg$, $:Integer,/0/$ | $:Whitespace$, $params...$) => Message($msg$, $params$);
@@ -148,14 +148,14 @@ GetDesc($$, $def$) => $def$.Description;
 GetDesc() => this.Description;
 
 $call:Call,/FindConstructionSite/$($id$, $x:Integer$, $y:Integer$) =>
-	(xy = $call!{EnforceLocal("xy");return value.name;}$(
+	(xy = $call!{EnforceLocal("xy", value);return value.name;}$(
 		$id$,
-		$x!EnforceLocal("var"+value.literal)$,
-		$y!EnforceLocal("var"+value.literal)$
+		$x!EnforceLocal("var"+value.literal, value)$,
+		$y!EnforceLocal("var"+value.literal, value)$
 	)) &&
 	(
-		($x!EnforceLocal("var"+value.literal)$ = xy[0]) ||
-		($y!EnforceLocal("var"+value.literal)$ = xy[1]) ||
+		($x!EnforceLocal("var"+value.literal, value)$ = xy[0]) ||
+		($y!EnforceLocal("var"+value.literal, value)$ = xy[1]) ||
 		true
 	);
 

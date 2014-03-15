@@ -1,5 +1,7 @@
 package net.arctics.clonk.index;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
@@ -62,12 +64,12 @@ public class ProjectConversionConfiguration {
 		}
 	}
 	private final List<CodeTransformation> transformations = new ArrayList<CodeTransformation>();
-	private final Map<String, String> idMap = new HashMap<String, String>();
+	private final Map<ID, ID> idMap = new HashMap<ID, ID>();
 	private final Engine sourceEngine;
 	public ProjectConversionConfiguration(final Engine sourceEngine) {
 		this.sourceEngine = sourceEngine;
 	}
-	public Map<String, String> idMap() { return idMap; }
+	public Map<ID, ID> idMap() { return idMap; }
 	public List<CodeTransformation> transformations() { return transformations; }
 	private void addTransformationFromStatement(ASTNode stmt) {
 		try {
@@ -104,7 +106,7 @@ public class ProjectConversionConfiguration {
 			for (final String line : StringUtil.lines(new StringReader(text))) {
 				final String[] mapping = line.split("=");
 				if (mapping.length == 2)
-					this.idMap.put(mapping[0], mapping[1]);
+					this.idMap.put(ID.get(mapping[0]), ID.get(mapping[1]));
 			}
 	}
 	private void loadCodeTransformations(final URL transformationsFile) {
@@ -130,5 +132,12 @@ public class ProjectConversionConfiguration {
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
+	}
+	public void apply(Map<String, Object> conf) {
+		final Map<?, ?> idMap = as(conf.getOrDefault("idMap", null), Map.class);
+		if (idMap != null)
+			idMap.forEach(
+				(key, value) -> this.idMap.put(ID.get(key.toString()), ID.get(value.toString()))
+			);
 	}
 }

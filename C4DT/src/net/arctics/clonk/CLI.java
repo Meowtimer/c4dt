@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -417,11 +418,13 @@ public class CLI implements IApplication, AutoCloseable {
 			main.invoke(main.new FunctionInvocation(new Object[0], null, this));
 	}
 	@Callable
-	public void convertProject(final String source, final String dest) {
+	public void convertProject(final String source, final String dest, Map<String, Object> conf) {
 		final ProjectConverter converter = new ProjectConverter(
 			ResourcesPlugin.getWorkspace().getRoot().getProject(source),
 			ResourcesPlugin.getWorkspace().getRoot().getProject(dest)
 		);
+		if (conf != null)
+			converter.configuration().apply(conf);
 		converter.convert(new NullProgressMonitor());
 	}
 	@Override

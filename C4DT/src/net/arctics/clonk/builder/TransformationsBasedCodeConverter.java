@@ -8,6 +8,7 @@ import net.arctics.clonk.ast.ITransformer;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.Tidy;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.index.ProjectConversionConfiguration.CodeTransformation;
 
@@ -26,9 +27,9 @@ public final class TransformationsBasedCodeConverter extends CodeConverter {
 				if (expression == null)
 					return null;
 				if (expression instanceof IDLiteral || (expression instanceof AccessVar && (((AccessVar)expression).proxiedDefinition()) != null)) {
-					final String mapped = configuration.idMap().get(expression.toString());
+					final ID mapped = configuration.idMap().get(expression.toString());
 					if (mapped != null)
-						return new AccessVar(mapped);
+						return new AccessVar(mapped.stringValue());
 				}
 				expression = expression.transformSubElements(this);
 				for (final ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
