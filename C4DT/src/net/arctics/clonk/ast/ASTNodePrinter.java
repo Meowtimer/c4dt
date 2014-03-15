@@ -44,4 +44,7 @@ public interface ASTNodePrinter extends Appendable {
 	/** Append a single character. **/
 	@Override
 	Appendable append(char c);
+	
+	/** Append a line break */
+	default void lb() { append('\n'); }
 }

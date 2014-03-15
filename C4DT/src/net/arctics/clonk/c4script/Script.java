@@ -1368,13 +1368,20 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
+		
+		if (sourceComment != null) {
+			new Comment(sourceComment, true, false).print(output, depth);
+			output.lb();
+			output.lb();
+		}
+		
 		ASTNode prev = null;
 		for (final ASTNode se : subElements()) {
 			if (se != null && !(se instanceof SynthesizedFunction)) {
 				if (prev != null) {
-					output.append('\n');
+					output.lb();
 					if (prev instanceof Function || categoryClass(prev) != categoryClass(se))
-						output.append('\n');
+						output.lb();
 				}
 				se.print(output, depth);
 			}
