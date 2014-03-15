@@ -1,13 +1,12 @@
 package net.arctics.clonk.ini;
 
-import static net.arctics.clonk.util.Utilities.as;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.ASTNodeWrap;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
@@ -107,8 +106,8 @@ public abstract class ArrayValue<KeyType, ValueType> extends IniEntryValue imple
 	public ASTNode[] subElements() {
 		final ASTNode[] nodes = new ASTNode[components.size()*2];
 		for (int i = 0, j = 0; j < components.size(); i += 2, j++) {
-			nodes[i]   = as(components.get(j).key(), ASTNode.class);
-			nodes[i+1] = as(components.get(j).value(), ASTNode.class);
+			nodes[i]   = ASTNodeWrap.wrap(components.get(j).key());
+			nodes[i+1] = ASTNodeWrap.wrap(components.get(j).value());
 		}
 		return nodes;
 	}
@@ -117,6 +116,6 @@ public abstract class ArrayValue<KeyType, ValueType> extends IniEntryValue imple
 	public void setSubElements(ASTNode[] elms) {
 		components.clear();
 		for (int i = 0; i+1 < elms.length; i += 2)
-			components.add(new KeyValuePair<KeyType, ValueType>((KeyType)components.get(i), (ValueType)components.get(i+1)));
+			components.add(new KeyValuePair<KeyType, ValueType>((KeyType)ASTNodeWrap.unwrap(elms[i]), (ValueType)ASTNodeWrap.unwrap(elms[i+1])));
 	}
 }

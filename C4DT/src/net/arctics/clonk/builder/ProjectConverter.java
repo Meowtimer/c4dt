@@ -17,6 +17,7 @@ import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
+import net.arctics.clonk.landscapescript.LandscapeScript;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -58,9 +59,13 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			void convert() {
 				converted = as(codeConverter.convert(original, original), Structure.class);
 			}
-			void write() throws CoreException {
+			void write() {
 				final String convString = converted.printed();
-				target.setContents(new ByteArrayInputStream(convString.getBytes()), true, true, null);
+				try {
+					target.setContents(new ByteArrayInputStream(convString.getBytes()), true, true, null);
+				} catch (final CoreException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		@Override
@@ -71,15 +76,15 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					final IFile file = (IFile)res;
 					final Structure struct = Structure.pinned(file, false, false);
 					if (struct != null) {
+						if (struct instanceof LandscapeScript)
+							return; // can't handle that
 						final IFile target = this.target.getFile(file.getName());
 						if (target.exists())
 							conversions.add(new FileConversion(struct, target));
 					}
 				});
-				for (final FileConversion c : conversions)
-					c.convert();
-				for (final FileConversion c : conversions)
-					c.write();
+				conversions.forEach(FileConversion::convert);
+				conversions.forEach(FileConversion::write);
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}

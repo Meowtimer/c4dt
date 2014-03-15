@@ -50,5 +50,7 @@ public class NameValueAssignment extends Declaration implements IHasKeyAndValue<
 	@Override
 	public String infoText(final IIndexEntity context) { return key() + "=" + stringValue(); } //$NON-NLS-1$
 	@Override
-	public ASTNode[] subElements() { return new ASTNode[] {as(value, ASTNode.class)}; }
+	public ASTNode[] subElements() { return new ASTNode[] { ASTNodeWrap.wrap(value) }; }
+	@Override
+	public void setSubElements(ASTNode[] elms) { value = ASTNodeWrap.unwrap(elms[0]); }
 }

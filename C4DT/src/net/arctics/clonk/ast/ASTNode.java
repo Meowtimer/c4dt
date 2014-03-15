@@ -684,5 +684,4 @@ public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Se
 		if (section != null)
 			((ASTNode)section).shift(localInsertionOffset, amount);
 	}
-
 }

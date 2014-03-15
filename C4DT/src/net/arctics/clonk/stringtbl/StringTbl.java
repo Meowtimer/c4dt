@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.NameValueAssignment;
@@ -207,6 +208,14 @@ public class StringTbl extends Structure implements ITreeNode {
 		r.singleDeclarationRegionUsed = moreThanOneSubstitution ? null : reg;
 		r.anySubstitutionsApplied = substitutionsApplied;
 		return r;
+	}
+	
+	@Override
+	public void doPrint(ASTNodePrinter output, int depth) {
+		map.forEach((key, value) -> {
+			output.append(String.format("%s=%s", key, value.stringValue()));
+			output.append("\n");
+		});
 	}
 
 }
