@@ -112,4 +112,11 @@ public abstract class ArrayValue<KeyType, ValueType> extends IniEntryValue imple
 		}
 		return nodes;
 	}
+	@SuppressWarnings("unchecked")
+	@Override
+	public void setSubElements(ASTNode[] elms) {
+		components.clear();
+		for (int i = 0; i+1 < elms.length; i += 2)
+			components.add(new KeyValuePair<KeyType, ValueType>((KeyType)components.get(i), (ValueType)components.get(i+1)));
+	}
 }

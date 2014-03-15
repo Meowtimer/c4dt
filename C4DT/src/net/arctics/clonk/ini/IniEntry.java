@@ -75,4 +75,6 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 	}
 	@Override
 	public ASTNode[] subElements() { return new ASTNode[] {as(value(), ASTNode.class)}; }
+	@Override
+	public void setSubElements(ASTNode[] elms) { this.value = elms[0]; }
 }

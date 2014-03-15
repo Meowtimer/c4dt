@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -572,5 +573,13 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	@Override
 	public ASTNode[] subElements() { return sections(); }
+	@Override
+	public void setSubElements(ASTNode[] elms) {
+		clear();
+		Arrays.stream(elms)
+			.filter(e -> e instanceof Declaration)
+			.map(e -> (Declaration)e)
+			.forEach(this::addDeclaration);
+	}
 
 }

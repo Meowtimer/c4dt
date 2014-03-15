@@ -2,6 +2,7 @@ package net.arctics.clonk.ini;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -74,6 +75,14 @@ public class IniSection
 	public Iterator<IniItem> iterator() { return new ReadOnlyIterator<IniItem>(this.map.values().iterator()); }
 	@Override
 	public ASTNode[] subElements() { return list.toArray(new ASTNode[list.size()]); }
+	@Override
+	public void setSubElements(ASTNode[] elms) {
+		list.clear();
+		Arrays.stream(elms)
+			.filter(e -> e instanceof Declaration)
+			.map(e -> (Declaration)e)
+			.forEach(i -> this.addDeclaration(i));
+	}
 	@Override
 	public int absoluteOffset() { return sectionOffset()+start; }
 

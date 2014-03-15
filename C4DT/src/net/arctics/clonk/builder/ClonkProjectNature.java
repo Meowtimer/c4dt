@@ -202,6 +202,7 @@ public class ClonkProjectNature implements IProjectNature {
 			}
 			index = loadedIndex != null ? loadedIndex : new ProjectIndex(getProject(), indexFolder());
 		} catch (final Exception e) {
+			System.out.println(String.format("Loading index for %s failed - performing clean build", this.getProject().getName()));
 			performCleanBuild();
 		}
 	}

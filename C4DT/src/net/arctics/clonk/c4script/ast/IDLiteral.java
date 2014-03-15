@@ -20,7 +20,10 @@ public final class IDLiteral extends Literal<ID> {
 	public void doPrint(final ASTNodePrinter output, final int depth) { output.append(idValue().stringValue()); }
 	@Override
 	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) { return new EntityRegion(definition(), region(0)); }
-	public Definition definition() { return parent(Script.class).nearestDefinitionWithId(idValue()); }
+	public Definition definition() {
+		final Script script = parent(Script.class);
+		return script != null && idValue() != null ? script.nearestDefinitionWithId(idValue()) : null;
+	}
 	@Override
 	public boolean allowsSequenceSuccessor(final ASTNode successor) { return true; }
 }
