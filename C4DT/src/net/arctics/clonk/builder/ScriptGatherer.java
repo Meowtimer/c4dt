@@ -13,6 +13,7 @@ import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.LocalizedScript;
 import net.arctics.clonk.c4script.MapScript;
+import net.arctics.clonk.c4script.ObjectsScript;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.index.Definition;
@@ -228,6 +229,8 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				return new SystemScript(builder.index(), file);
 			else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
 				return new MapScript(builder.index(), file);
+			else if (ln.equals("objects.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
+				return new ObjectsScript(builder.index(), file);
 			else if (LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.at(resource.getParent()) != null)
 				return new LocalizedScript(builder.index(), file);
 		}
