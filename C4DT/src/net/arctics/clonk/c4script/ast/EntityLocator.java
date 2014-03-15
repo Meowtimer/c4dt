@@ -180,7 +180,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 			final Function f = expr.parent(Function.class);
 			final Script s = f.script();
 			final Function.Typing typing = s.typings().get(f);
-			return ((Variable)entity).infoText(defaulting(typing.nodeTypes[expr.localIdentifier()], PrimitiveType.UNKNOWN));
+			return ((Variable)entity).infoText(defaulting(typing != null ? typing.nodeTypes[expr.localIdentifier()] : null, PrimitiveType.UNKNOWN));
 		} else if (entity instanceof Function && expr instanceof AccessDeclaration) {
 			final ASTNode pred = expr.predecessor();
 			final IType contextTy = pred == null ? expr.parent(Script.class) : TypeUtil.inferredType(pred);
