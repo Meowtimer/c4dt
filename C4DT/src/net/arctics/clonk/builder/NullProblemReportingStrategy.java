@@ -29,7 +29,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.IRegion;
 
 @Capabilities(capabilities=Capabilities.ISSUES|Capabilities.TYPING)
-final class NullProblemReportingStrategy extends ProblemReportingStrategy {
+public final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 	private final class NullReporter implements ProblemReporter {
 		private final Function f;
 		public NullReporter(Function f) { this.f = f; }
