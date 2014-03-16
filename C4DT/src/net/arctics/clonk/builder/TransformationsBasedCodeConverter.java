@@ -26,8 +26,14 @@ public final class TransformationsBasedCodeConverter extends CodeConverter {
 			public Object transform(final ASTNode prev, final Object prevT, ASTNode expression) {
 				if (expression == null)
 					return null;
-				if (expression instanceof IDLiteral || (expression instanceof AccessVar && (((AccessVar)expression).proxiedDefinition()) != null)) {
-					final ID mapped = configuration.idMap().get(expression.toString());
+				if (expression instanceof IDLiteral) {
+					final IDLiteral lit = (IDLiteral) expression;
+					final ID mapped = configuration.idMap().get(lit.literal());
+					if (mapped != null)
+						return new IDLiteral(mapped);
+				}
+				else if (expression instanceof AccessVar && (((AccessVar)expression).proxiedDefinition()) != null) {
+					final ID mapped = configuration.idMap().get(ID.get(expression.toString()));
 					if (mapped != null)
 						return new AccessVar(mapped.stringValue());
 				}

@@ -16,6 +16,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ID;
@@ -107,7 +108,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 						final IniSection sec = defCoreUnit.sectionWithName("DefCore", false);
 						final IniEntry entry = sec != null ? as(sec.map().getOrDefault("id", null), IniEntry.class) : null;
 						if (entry != null)
-							entry.value(mapped.stringValue());
+							entry.value(new IDLiteral(mapped));
 					}
 				}
 				

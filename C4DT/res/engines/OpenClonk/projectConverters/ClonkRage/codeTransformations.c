@@ -1,4 +1,4 @@
-$id:ID,?value.parent(Function) != nil && value.definition == nil$ => DefinitionByIDText($id!String(value.literal.stringValue)$);
+$id:IDLiteral,?value.parent(Function) != nil && value.definition == nil$ => DefinitionByIDText($id!String(value.literal.stringValue)$);
 
 // replace ObjectSetAction with direct SetAction call
 ObjectSetAction($obj$, $action$, $params...$) => $obj$->SetAction($action$, $params...$);
