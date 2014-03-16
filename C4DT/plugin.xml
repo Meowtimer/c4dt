@@ -807,7 +807,7 @@
 		</consoleLineTracker>
 	</extension>
 	
-	<extension id="net.arctics.clonk.cli.CLI" point="org.eclipse.core.runtime.applications">
+	<extension id="net.arctics.clonk.CLI" point="org.eclipse.core.runtime.applications">
 		<application cardinality="singleton-global" thread="main" visible="true">
 			<run class="net.arctics.clonk.CLI"/>
 		</application>

@@ -140,27 +140,30 @@ public class CLI implements IApplication, AutoCloseable {
 	 * @param args Arguments to interpret. Passed from {@link #main(String[])}
 	 */
 	private void mainImpl(String[] args) {
-		if (args == null || args.length == 0)
-			args = Platform.getCommandLineArgs();
 		final int methodIndex = parseOptions(args);
 		if (methodIndex == args.length)
 			throw new IllegalArgumentException("Missing command");
 		final String methodName = args[methodIndex];
-		for (final Method method : getClass().getMethods())
-			if (method.getName().equals(methodName) && method.getAnnotation(Callable.class) != null)
-				try {
-					initialize();
-					method.invoke(this, ArrayUtil.concat(
+		final Method method = Arrays.stream(getClass().getMethods())
+			.filter(m -> m.getName().equals(methodName) && m.getAnnotation(Callable.class) != null)
+			.findFirst().orElse(null);
+		if (method != null)
+			try {
+				initialize();
+				method.invoke(this,
+					ArrayUtil.concat(
 						(Object[])Arrays.copyOfRange(args, methodIndex+1, args.length),
-						new Object[method.getParameterTypes().length-(args.length-(methodIndex+1))])
-					);
-					return;
-				} catch (final IllegalArgumentException e) {
-					throw e;
-				} catch (final Exception e) {
-					e.printStackTrace();
-				}
-		throw new IllegalArgumentException(String.format("Invalid command: '%s'", methodName));
+						new Object[method.getParameterTypes().length-(args.length-(methodIndex+1))]
+					)
+				);
+				return;
+			} catch (final IllegalArgumentException e) {
+				throw e;
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
+		else
+			throw new IllegalArgumentException(String.format("Invalid command: '%s'", methodName));
 	}
 	private void restore() {
 		oc = existingProj(OPEN_CLONK);
@@ -430,7 +433,7 @@ public class CLI implements IApplication, AutoCloseable {
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
 		try {
-			mainImpl(null);
+			mainImpl(Platform.getApplicationArgs());
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return 2;
