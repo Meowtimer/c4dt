@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Flags;
@@ -95,11 +96,23 @@ public class Command {
 		private final transient Method method;
 		@Override
 		public Object invoke(final IEvaluationContext context) {
+			final Object[] args = new Object[method.getParameterTypes().length];
+			args[0] = context;
+			final Object[] evaluatedArgs = Arrays.stream(context.arguments()).map(ASTNode::evaluateVariable).toArray();
+			System.arraycopy(evaluatedArgs, 0, args, 1, context.arguments().length);
 			try {
-				final Object[] args = new Object[method.getParameterTypes().length];
-				args[0] = context;
-				System.arraycopy(Arrays.stream(context.arguments()).map(ASTNode::evaluateVariable).toArray(), 0, args, 1, context.arguments().length);
 				return method.invoke(context, args);
+			} catch (final IllegalArgumentException iae) {
+				System.out.println(String.format("Passed: %s; Expected: %s",
+					Arrays.stream(args)
+						.map(a -> a != null ? a.getClass().getSimpleName() : "null")
+						.collect(Collectors.joining(", ")),
+					Arrays.stream(method.getParameterTypes())
+						.map(t -> t.getSimpleName())
+						.collect(Collectors.joining(", "))
+				));
+				iae.printStackTrace();
+				return null;
 			} catch (final Exception e) {
 				e.printStackTrace();
 				return null;
