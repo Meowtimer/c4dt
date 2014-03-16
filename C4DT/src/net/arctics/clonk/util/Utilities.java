@@ -319,6 +319,10 @@ public abstract class Utilities {
 	public static <A> A defaulting(final A firstChoice, final A defaultChoice) {
 		return firstChoice != null ? firstChoice : defaultChoice;
 	}
+	
+	public static <A> A defaulting(final A firstChoice, final java.util.function.Supplier<? extends A> defaultChoice) {
+		return firstChoice != null ? firstChoice : defaultChoice.get();
+	}
 
 	public static <A> A or(final A a, final A b) {
 		if (a != null)
