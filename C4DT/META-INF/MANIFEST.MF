@@ -5,11 +5,8 @@ Bundle-SymbolicName: net.arctics.clonk;singleton:=true
 Bundle-Version: 1.9.0.qualifier
 Bundle-Activator: net.arctics.clonk.Core
 Bundle-Localization: res/plugin
-Require-Bundle: org.eclipse.core.databinding;bundle-version="[1.2,2.0)",
- org.eclipse.core.expressions;bundle-version="[3.4.100,4.5.0)",
- org.eclipse.core.resources;bundle-version="[3.5.0,4.5.0)",
+Require-Bundle: org.eclipse.core.expressions;bundle-version="[3.4.100,4.5.0)",
  org.eclipse.core.runtime;bundle-version="[3.5.0,4.5.0)",
- org.eclipse.debug.core;bundle-version="[3.5.0,4.5.0)",
  org.eclipse.debug.ui;bundle-version="[3.5.0,4.5.0)",
  org.eclipse.jface.text;bundle-version="[3.5.0,4.5.0)",
  org.eclipse.ltk.core.refactoring;bundle-version="[3.5.0,4.5.0)",
@@ -18,21 +15,15 @@ Require-Bundle: org.eclipse.core.databinding;bundle-version="[1.2,2.0)",
  org.eclipse.ui;bundle-version="[3.5.0,4.5.0)",
  org.eclipse.ui.console;bundle-version="[3.4.0,4.5.0)",
  org.eclipse.ui.editors;bundle-version="[3.5.0,4.5.0)",
- org.eclipse.ui.forms;bundle-version="[3.4.0,4.5.0)",
  org.eclipse.ui.ide;bundle-version="[3.5.0,4.5.0)",
  org.eclipse.ui.navigator;bundle-version="[3.4.0,4.5.0)",
- org.eclipse.ui.views;bundle-version="[3.4.0,4.5.0)",
- org.eclipse.swt;bundle-version="[3.4.0,4.5.0)",
- org.eclipse.jface
+ org.eclipse.ui.views;bundle-version="[3.4.0,4.5.0)"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: org.eclipse.core.filesystem,
  org.eclipse.core.filesystem.provider,
- org.eclipse.search.internal.ui.text,
  org.eclipse.search.ui,
- org.eclipse.search.ui.text,
- org.eclipse.ui.forms.widgets,
- org.eclipse.ui.texteditor.spelling
+ org.eclipse.search.ui.text
 Export-Package: net.arctics.clonk,
  net.arctics.clonk.ast,
  net.arctics.clonk.builder,
