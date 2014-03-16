@@ -5,8 +5,6 @@ func Main() {
 	//linkFolderAsProject("/Users/madeen/Desktop/HorrorWorkspace.oc", "Horror.oc", "OpenClonk");
 	linkFolderAsProject("/Users/madeen/Desktop/ClonkRage.oc", "ClonkRage.oc", "OpenClonk");
 	convertProject("ClonkRage", "ClonkRage.oc", {
-		idMap: mapIDToName("ClonkRage", {
-			CLNK: "RageClonk"
-		}
+		idMap: mapIDToName("ClonkRage", {})
 	});
 }
