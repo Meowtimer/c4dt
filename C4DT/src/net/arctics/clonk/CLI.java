@@ -62,7 +62,7 @@ public class CLI implements IApplication, AutoCloseable {
 			try {
 				return method.invoke(context.self(), context.arguments());
 			} catch (final Exception e) {
-				System.err.println(e.getMessage());
+				e.printStackTrace();
 				return null;
 			}
 		}
