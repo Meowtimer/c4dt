@@ -35,6 +35,7 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.ReturnException;
@@ -841,7 +842,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	};
 
 	public void storeBody(final ASTNode block, final String source) {
-		body = (FunctionBody)block;
+		body = FunctionBody.fromBlock((Block)block);
 		blockSourceHash = source.hashCode();
 		if (bodyLocation != null)
 			body.setLocation(0, bodyLocation.getLength());

@@ -42,4 +42,10 @@ public class FunctionBody extends BunchOfStatements {
 		else
 			return super.absolute();
 	}
+	public static FunctionBody fromBlock(Block block) {
+		if (block instanceof FunctionBody)
+			return (FunctionBody)block;
+		else
+			return new FunctionBody(null, block.statements());
+	}
 }
