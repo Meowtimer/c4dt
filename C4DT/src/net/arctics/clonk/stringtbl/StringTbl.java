@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -212,7 +213,9 @@ public class StringTbl extends Structure implements ITreeNode {
 	
 	@Override
 	public void doPrint(ASTNodePrinter output, int depth) {
-		map.forEach((key, value) -> {
+		final TreeSet<String> keys = new TreeSet<String>(map.keySet());
+		keys.forEach(key -> {
+			final NameValueAssignment value = map.get(key);
 			output.append(String.format("%s=%s", key, value.stringValue()));
 			output.append("\n");
 		});
