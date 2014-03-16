@@ -336,7 +336,7 @@ public class MatchingPlaceholder extends Placeholder {
 
 		if (code != null)
 			for (int i = 0; i < n.length; i++) try {
-				n[i] = code.invoke(code.new FunctionInvocation(new Object[] {n[i], this}, code.script(), context));
+				n[i] = code.invoke(code.new Invocation(new Object[] {n[i], this}, code.script(), context));
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
@@ -393,7 +393,7 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		if (code != null)
 			try {
-				final Object codeResult = code.invoke(code.new FunctionInvocation(new Object[] {element}, code.script(), this));
+				final Object codeResult = code.invoke(code.new Invocation(new Object[] {element}, code.script(), this));
 				if (!eq(Boolean.TRUE, codeResult))
 					return false;
 			} catch (final Exception e) {

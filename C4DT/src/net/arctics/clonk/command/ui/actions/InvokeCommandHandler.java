@@ -49,7 +49,7 @@ public class InvokeCommandHandler extends AbstractHandler {
 		    switch (inputDialog.open()) {
 		    case Window.OK:
 		    	final ExecutableScript script = Command.executableScriptFromCommand(inputDialog.getValue());
-		    	script.main().invoke(script.main().new FunctionInvocation(new Object[0], null, null));
+		    	script.main().invoke(script.main().new Invocation(new Object[0], null, null));
 		    }
 	    return null;
     }

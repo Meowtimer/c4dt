@@ -295,7 +295,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 			}
 	    if (declaration instanceof Function) {
 	    	final Function f = (Function)declaration;
-			return f.invoke(f.new FunctionInvocation(args, context, self));
+			return f.invoke(f.new Invocation(args, context, self));
 	    }
 	    if (self == null)
 	    	return null;

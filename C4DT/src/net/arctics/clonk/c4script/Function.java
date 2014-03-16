@@ -277,12 +277,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public String returnDescription() { return returnDescription; }
 	public void setReturnDescription(final String returnDescription) { this.returnDescription = returnDescription; }
 
-	public final class FunctionInvocation implements IEvaluationContext {
+	public final class Invocation implements IEvaluationContext {
 		private final Object[] args;
 		private final IEvaluationContext up;
 		private final Object context;
 		private final ConcreteVariable[] locals;
-		public FunctionInvocation(final Object[] args, final IEvaluationContext up, final Object context) {
+		public Invocation(final Object[] args, final IEvaluationContext up, final Object context) {
 			this.args = args;
 			this.up = up;
 			this.context = context;

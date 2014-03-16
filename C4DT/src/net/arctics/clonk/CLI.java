@@ -18,7 +18,7 @@ import net.arctics.clonk.builder.ProjectConverter;
 import net.arctics.clonk.builder.ProjectSettings;
 import net.arctics.clonk.c4group.C4GroupFileSystem;
 import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.Function.FunctionInvocation;
+import net.arctics.clonk.c4script.Function.Invocation;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.typing.Typing;
@@ -192,7 +192,7 @@ public class CLI implements IApplication, AutoCloseable {
 	}
 	private final Stack<DoneToken> doneTokens = new Stack<>();
 	@CommandFunction
-	public static void exit(FunctionInvocation context) {
+	public static void exit(Invocation context) {
 		((CLI)context.self()).exit();
 	}
 	@Callable
@@ -209,7 +209,7 @@ public class CLI implements IApplication, AutoCloseable {
 				final String command = input.nextLine();
 				final ExecutableScript script = Command.executableScriptFromCommand(command);
 				if (script != null) try {
-					final Object result = script.main().invoke(script.main().new FunctionInvocation(new Object[0], null, this));
+					final Object result = script.main().invoke(script.main().new Invocation(new Object[0], null, this));
 					if (result != null)
 						System.out.println(result.toString());
 				} catch (final Exception e) {
@@ -418,7 +418,7 @@ public class CLI implements IApplication, AutoCloseable {
 		};
 		final Function main = script.findFunction("Main");
 		if (main != null)
-			main.invoke(main.new FunctionInvocation(new Object[0], null, this));
+			main.invoke(main.new Invocation(new Object[0], null, this));
 	}
 	@Callable
 	public void convertProject(final String source, final String dest, Map<String, Object> conf) {
