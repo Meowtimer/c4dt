@@ -27,6 +27,7 @@ import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.landscapescript.LandscapeScript;
 import net.arctics.clonk.util.StringUtil;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -193,7 +194,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			final IFolder container = destinationProject.getProject().getFolder(path);
 			if (!container.exists())
 				container.create(true, true, monitor);
-			final Definition def = Definition.at(container);
+			final Definition def = Definition.at((IContainer) origin);
 			if (def != null)
 				definitions.add(new DefinitionConversion((IFolder) origin, container, def));
 			return true;

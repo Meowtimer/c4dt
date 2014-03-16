@@ -1,5 +1,7 @@
 package net.arctics.clonk.builder;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.util.Map;
 
 import net.arctics.clonk.ast.ASTNode;
@@ -21,7 +23,7 @@ public final class TransformationsBasedCodeConverter extends CodeConverter {
 	public ASTNode performConversion(final ASTNode expression, final Declaration declaration, final ICodeConverterContext context) {
 		if (configuration == null)
 			return expression;
-		ASTNode node = (ASTNode)(new ITransformer() {
+		final ITransformer transformer = new ITransformer() {
 			@Override
 			public Object transform(final ASTNode prev, final Object prevT, ASTNode expression) {
 				if (expression == null)
@@ -52,7 +54,8 @@ public final class TransformationsBasedCodeConverter extends CodeConverter {
 				}
 				return expression;
 			}
-		}).transform(null, null, expression);
+		};
+		ASTNode node = as(transformer.transform(null, null, expression), ASTNode.class);
 		if (node != null)
 			try {
 				node = new Tidy(declaration.topLevelStructure(), 2).tidyExhaustive(node);

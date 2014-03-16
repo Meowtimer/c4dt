@@ -8,9 +8,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -26,7 +29,9 @@ import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.ExecutableScript;
 import net.arctics.clonk.command.SelfContainedScript;
+import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Index.Built;
 import net.arctics.clonk.util.ArrayUtil;
@@ -61,7 +66,19 @@ public class CLI implements IApplication, AutoCloseable {
 		public Object invoke(final IEvaluationContext context) {
 			try {
 				return method.invoke(context.self(), context.arguments());
-			} catch (final Exception e) {
+			} catch (final IllegalArgumentException iae) {
+				System.out.println(String.format("Function: %s; Passed: %s; Expected: %s",
+					method.getName(),
+					Arrays.stream(context.arguments())
+						.map(a -> a != null ? a.getClass().getSimpleName() : "null")
+						.collect(Collectors.joining(", ")),
+					Arrays.stream(method.getParameterTypes())
+						.map(t -> t.getSimpleName())
+						.collect(Collectors.joining(", "))
+				));
+				return null;
+			}
+			catch (final Exception e) {
 				e.printStackTrace();
 				return null;
 			}
@@ -280,7 +297,7 @@ public class CLI implements IApplication, AutoCloseable {
 	@Callable
 	public void setupCRProject(String crFolder) throws CoreException {
 		final NullProgressMonitor npm = new NullProgressMonitor();
-		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(OPEN_CLONK);
+		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(CLONK_RAGE);
 		desc.setNatureIds(new String[0]);
 		desc.setBuildSpec(new ICommand[0]);
 
@@ -291,16 +308,16 @@ public class CLI implements IApplication, AutoCloseable {
 		cr.open(npm);
 		final String[] packs = new String[] {
 			"Objects.c4d",
-			"System.c4g",
-			"Fantasy.c4d",
-			"FarWorlds.c4d",
-			"Graphics.c4g",
-			"Knights.c4d",
-			"Material.c4g",
-			"MetalMagic.c4d",
-			"Music.c4g",
-			"Sound.c4g",
-			"Western.c4d",
+			"System.c4g"
+			//"Fantasy.c4d",
+			//"FarWorlds.c4d",
+			//"Graphics.c4g",
+			//"Knights.c4d",
+			//"Material.c4g",
+			//"MetalMagic.c4d",
+			//"Music.c4g",
+			//"Sound.c4g",
+			//"Western.c4d",
 		};
 		Arrays.stream(packs).forEach(p -> link(cr, crFolder, p, npm));
 		cr.refreshLocal(IResource.DEPTH_INFINITE, npm);
@@ -315,7 +332,7 @@ public class CLI implements IApplication, AutoCloseable {
 		final ClonkProjectNature nature = ClonkProjectNature.get(cr);
 		nature.forceIndexRecreation().built(Built.LeaveAlone);
 		final ProjectSettings settings = nature.settings();
-		settings.engineName = OPEN_CLONK;
+		settings.engineName = CLONK_RAGE;
 		settings.typing = Typing.INFERRED;
 		nature.saveSettings();
 		cr.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
@@ -439,6 +456,55 @@ public class CLI implements IApplication, AutoCloseable {
 			return 2;
 		}
 		return EXIT_OK;
+	}
+	private static String toCamelCase(String str) {
+		final StringBuffer result = new StringBuffer(str.length());
+		final String strl = str.toLowerCase();
+		boolean cap = true;
+		for (int i = 0; i < strl.length(); i++) {
+			final char c = strl.charAt(i);
+			if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_') {
+				if (cap) {
+					result.append(strl.substring(i, i+1).toUpperCase());
+					cap = false;
+				} else
+					result.append(c);
+			} else
+				cap = true;
+		}
+		return result.toString();
+	}
+	private static <T, R> R getFromOrNull(T thing, java.util.function.Function<T, R> fun) {
+		return thing != null ? fun.apply(thing) : null;
+	}
+	@Callable
+	public Map<ID, ID> mapIDToName(String projectName, Map<?, ?> override) {
+		final ClonkProjectNature cpn = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
+		final Map<ID, ID> result =
+			override != null ? override.entrySet().stream().collect(Collectors.toMap(
+				e -> ID.get(e.getKey().toString()),
+				e -> ID.get(e.getValue().toString()))) :
+			new HashMap<>();
+		final Map<ID, ID> reverse = new HashMap<>();
+		result.forEach((key, value) -> reverse.put(value, key));
+		cpn.index().allDefinitions((Definition def) -> {
+			if (!result.containsKey(def.id())) {
+				final String englishName =
+					def.localizedNames() != null ? def.localizedNames().get("US") :
+					getFromOrNull(def.defCore().entryInSection("DefCore", "Name"), e -> e.stringValue());
+				if (englishName != null) {
+					final String camel = toCamelCase(englishName);
+					final ID mapped = IntStream
+						.iterate(1, x -> x + 1)
+						.mapToObj(x -> x == 1 ? ID.get(camel) : ID.get(camel+x))
+						.filter(id -> !reverse.containsKey(id))
+						.findFirst().orElse(null);
+					result.put(def.id(), mapped);
+					reverse.put(mapped, def.id());
+				}
+			}
+		});
+		return result;
 	}
 	@Override
 	public void stop() {}
