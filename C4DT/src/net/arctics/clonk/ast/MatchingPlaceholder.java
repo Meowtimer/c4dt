@@ -92,7 +92,7 @@ public class MatchingPlaceholder extends Placeholder {
 			return String.format("\"%s\"", text);
 		}
 		@CommandFunction
-		public static String EnforceLocal(final IEvaluationContext context, ASTNode node, final String name) {
+		public static String EnforceLocal(final IEvaluationContext context, final String name, ASTNode node) {
 			if (context.self() instanceof CodeConverter.ICodeConverterContext)
 				return ((CodeConverter.ICodeConverterContext)context.self()).defineFunctionLocalVariable(node, name);
 			else
