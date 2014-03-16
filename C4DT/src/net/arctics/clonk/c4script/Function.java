@@ -298,7 +298,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				final int i = ArrayUtil.indexOfItemSatisfying(parameters, p -> p.name().equals(aname));
 				if (i != -1)
 					return new Constant(args[i]);
-				final int l = locals != null ? ArrayUtil.indexOfItemSatisfying(Function.this.locals, loc -> loc.name().equals(aname)) : -1;
+				final int l = Function.this.locals != null
+					? ArrayUtil.indexOfItemSatisfying(Function.this.locals, loc -> loc.name().equals(aname))
+					: -1;
 				if (l != -1)
 					return locals[l];
 			} else {
