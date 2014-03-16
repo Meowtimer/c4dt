@@ -39,7 +39,6 @@ public final class TransformationsBasedCodeConverter extends CodeConverter {
 					if (mapped != null)
 						return new AccessVar(mapped.stringValue());
 				}
-				expression = expression.transformSubElements(this);
 				for (final ProjectConversionConfiguration.CodeTransformation ct : configuration.transformations()) {
 					boolean success = false;
 					for (CodeTransformation c = ct; c != null; c = c.chain()) {
@@ -50,9 +49,9 @@ public final class TransformationsBasedCodeConverter extends CodeConverter {
 						}
 					}
 					if (success)
-						break;
+						return expression;
 				}
-				return expression;
+				return expression.transformSubElements(this);
 			}
 		};
 		ASTNode node = as(transformer.transform(null, null, expression), ASTNode.class);

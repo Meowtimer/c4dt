@@ -80,12 +80,13 @@ Chain(
 	FindObject($left...$, Find_ActionTarget(0), $right...$) => FindObject($left$, $right$)
 );
 
-// Local*() calls get converted into local<number> local accesses, but that is quite unoptimal
 Chain(
+	$x$->LocalN($name$)          => LocalN($name$, $x$),
 	LocalN($name$)               => LocalN($name$, this),
 	LocalN($name:String$, $obj$) => $obj$.$name!Var(value.literal)$,
 	LocalN($name$, $obj$)        => $obj$[$name$]
 );
+// Local*() calls get converted into local<number> local accesses, but that is quite unoptimal
 Chain(
 	Local()                          => Local(0),
 	Local($number$)                  => Local($number$, this),
