@@ -103,7 +103,8 @@ public class Command {
 			try {
 				return method.invoke(context, args);
 			} catch (final IllegalArgumentException iae) {
-				System.out.println(String.format("Passed: %s; Expected: %s",
+				System.out.println(String.format("Function: %s; Passed: %s; Expected: %s",
+					method.getName(),
 					Arrays.stream(args)
 						.map(a -> a != null ? a.getClass().getSimpleName() : "null")
 						.collect(Collectors.joining(", ")),
