@@ -14,6 +14,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Herbert;
 import net.arctics.clonk.util.IPrintable;
 
 import org.eclipse.jface.text.IRegion;
@@ -22,7 +23,7 @@ import org.eclipse.jface.text.Region;
 /**
  * Base class for making expression trees
  */
-public class ASTNode extends SourceLocation implements Cloneable, IPrintable, Serializable {
+public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNode>, IPrintable, Serializable {
 
 	public ASTNode() {}
 	protected ASTNode(final int start, final int end) { super(start, end); }

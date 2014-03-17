@@ -319,7 +319,7 @@ public abstract class Utilities {
 	public static <A> A defaulting(final A firstChoice, final A defaultChoice) {
 		return firstChoice != null ? firstChoice : defaultChoice;
 	}
-	
+
 	public static <A> A defaulting(final A firstChoice, final java.util.function.Supplier<? extends A> defaultChoice) {
 		return firstChoice != null ? firstChoice : defaultChoice.get();
 	}
@@ -380,6 +380,11 @@ public abstract class Utilities {
 	/** Helper for throwing CoreException objects */
 	public static void abort(final int severity, final String message) throws CoreException {
 		throw new CoreException(new Status(severity, Core.PLUGIN_ID, message));
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends Herbert<? super T>> T clone(T item) {
+		return (T)item.clone();
 	}
 
 }
