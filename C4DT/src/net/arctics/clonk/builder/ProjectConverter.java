@@ -13,7 +13,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
+import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.ast.IDLiteral;
@@ -22,7 +24,6 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.ini.IniEntry;
-import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.landscapescript.LandscapeScript;
 import net.arctics.clonk.util.StringUtil;
@@ -45,22 +46,15 @@ import org.eclipse.core.runtime.Path;
  */
 public class ProjectConverter implements IResourceVisitor, Runnable {
 
-	class DefinitionConversion implements Runnable {
-		final IFolder origin;
-		final IFolder target;
-		final Definition definition;
-		public ID mapID() {
-			final ID mapped = configuration.idMap().getOrDefault(definition.id(), null);
-			if (mapped != null)
-				return mapped;
-			else
-				return definition.id();
-		}
-		public DefinitionConversion(IFolder origin, IFolder target, Definition definition) {
+	class DeclarationConversion implements Runnable {
+		final IResource origin;
+		final IResource target;
+		final Declaration declaration;
+		public DeclarationConversion(IResource origin, IResource target, Declaration declaration) {
 			super();
 			this.origin = origin;
 			this.target = target;
-			this.definition = definition;
+			this.declaration = declaration;
 		}
 		class FileConversion {
 			final Structure original;
@@ -71,8 +65,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				this.original = original;
 				this.target = target;
 			}
-			void convert() {
+			FileConversion convert() {
 				converted = as(codeConverter.convert(original, original), Structure.class);
+				return this;
 			}
 			void write() {
 				final String convString = converted.printed();
@@ -86,34 +81,48 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		@Override
 		public void run() {
 			try {
-				final Map<IFile, FileConversion> conversions = new HashMap<>();
-				Arrays.stream(origin.members(IResource.FILE)).filter(r -> r instanceof IFile).forEach(res -> {
-					final IFile file = (IFile)res;
-					final Structure struct = Structure.pinned(file, false, false);
-					if (struct != null) {
-						if (struct instanceof LandscapeScript)
-							return; // can't handle that
-						final IFile target = this.target.getFile(file.getName());
-						if (target.exists())
-							conversions.put(file, new FileConversion(struct, target));
+				final IFolder originFolder = as(origin, IFolder.class);
+				final IFolder targetFolder = as(target, IFolder.class);
+				if (originFolder != null && targetFolder != null) {
+					final Map<IFile, FileConversion> sub = new HashMap<>();
+					Arrays.stream(originFolder.members(IResource.FILE)).filter(r -> r instanceof IFile).forEach(res -> {
+						final IFile file = (IFile)res;
+						final Structure struct = Structure.pinned(file, false, false);
+						if (struct != null) {
+							if (struct instanceof LandscapeScript)
+								return; // can't handle that
+							final IFile target = targetFolder.getFile(file.getName());
+							if (target.exists())
+								sub.put(file, new FileConversion(struct, target));
+						}
+					});
+
+					sub.values().forEach(FileConversion::convert);
+
+					final Definition definition = as(declaration, Definition.class);
+					if (definition != null && originFolder != null) {
+						final Supplier<ID> mapID = () -> {
+							final ID mapped = configuration.idMap().getOrDefault(definition.id(), null);
+							if (mapped != null)
+								return mapped;
+							else
+								return definition.id();
+						};
+						final ID mapped = mapID.get();
+						if (mapped != definition.id()) {
+							final FileConversion defCore = sub.get(findMemberCaseInsensitively(originFolder, "DefCore.txt"));
+							final IniUnit defCoreUnit = defCore != null ? as(defCore.converted, IniUnit.class) : null;
+							if (defCoreUnit != null) {
+								final IniEntry entry = defCoreUnit.entryInSection("DefCore", "id");
+								if (entry != null)
+									entry.value(new IDLiteral(mapped));
+							}
+						}
 					}
-				});
-				
-				conversions.values().forEach(FileConversion::convert);
-				
-				final ID mapped = mapID();
-				if (mapped != definition.id()) {
-					final FileConversion defCore = conversions.get(findMemberCaseInsensitively(origin, "DefCore.txt"));
-					final IniUnit defCoreUnit = defCore != null && defCore.converted instanceof IniUnit ? (IniUnit)defCore.converted : null;
-					if (defCoreUnit != null) {
-						final IniSection sec = defCoreUnit.sectionWithName("DefCore", false);
-						final IniEntry entry = sec != null ? as(sec.map().getOrDefault("id", null), IniEntry.class) : null;
-						if (entry != null)
-							entry.value(new IDLiteral(mapped));
-					}
-				}
-				
-				conversions.values().forEach(FileConversion::write);
+
+					sub.values().forEach(FileConversion::write);
+				} else if (target instanceof IFile && declaration instanceof Structure)
+					new FileConversion((Structure) declaration, (IFile)target).convert().write();
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
@@ -125,7 +134,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	private Engine sourceEngine() { return sourceProject.index().engine(); }
 	private Engine destinationEngine() { return destinationProject.index().engine(); }
 	private IProgressMonitor monitor;
-	private final List<DefinitionConversion> definitions = new LinkedList<>();
+	private final List<DeclarationConversion> conversions = new LinkedList<>();
 	public ProjectConversionConfiguration configuration() { return configuration; }
 	/**
 	 * Create a new converter by specifying source and destination.
@@ -154,7 +163,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public void run() {
 		try {
 			sourceProject.getProject().accept(this);
-			definitions.forEach(DefinitionConversion::run);
+			conversions.forEach(DeclarationConversion::run);
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
@@ -178,13 +187,17 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		final IPath path = convertPath(origin.getProjectRelativePath());
 		if (origin instanceof IFile) {
 			final IFile sourceFile = (IFile) origin;
-			final IFile file = destinationProject.getProject().getFile(path);
+			final IFile targetFile = destinationProject.getProject().getFile(path);
 			try (InputStream contents = sourceFile.getContents()) {
-				if (file.exists())
-					file.setContents(contents, true, true, monitor);
+				if (targetFile.exists())
+					targetFile.setContents(contents, true, true, monitor);
 				else
-					file.create(contents, true, monitor);
-				//convertFileContents(sourceFile, file);
+					targetFile.create(contents, true, monitor);
+				if (sourceFile.getParent() == null || Definition.at(sourceFile.getParent()) == null) {
+					final Structure struct = Structure.pinned(targetFile, true, false);
+					if (struct != null)
+						conversions.add(new DeclarationConversion(sourceFile, targetFile, struct));
+				}
 			} catch (final Exception e) {
 				out.println(format("Failed to convert contents of %s: %s", origin.getFullPath(), e.getMessage()));
 				e.printStackTrace();
@@ -196,7 +209,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				container.create(true, true, monitor);
 			final Definition def = Definition.at((IContainer) origin);
 			if (def != null)
-				definitions.add(new DefinitionConversion((IFolder) origin, container, def));
+				conversions.add(new DeclarationConversion(origin, container, def));
 			return true;
 		} else
 			return false;
