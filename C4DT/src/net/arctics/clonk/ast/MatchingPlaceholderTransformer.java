@@ -6,6 +6,7 @@ import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.CallExpr;
 import net.arctics.clonk.c4script.ast.CombinedMatchingPlaceholder;
 import net.arctics.clonk.c4script.ast.Parenthesized;
+import net.arctics.clonk.c4script.ast.SimpleStatement;
 
 /**
  * {@link ITransformer} to transform a regularly parsed expression tree
@@ -46,6 +47,8 @@ enum MatchingPlaceholderTransformer implements ITransformer {
 				}
 			} else if (expression instanceof Parenthesized && ((Parenthesized)expression).innerExpression() instanceof MatchingPlaceholder)
 				return ((Parenthesized)expression).innerExpression();
+			else if (expression instanceof SimpleStatement && ((SimpleStatement)expression).expression() instanceof MatchingPlaceholder)
+				return ((SimpleStatement)expression).expression();
 		return null;
 	}
 	@Override

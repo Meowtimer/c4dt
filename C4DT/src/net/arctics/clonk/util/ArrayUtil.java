@@ -11,7 +11,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 import net.arctics.clonk.util.Sink.Decision;
 
@@ -129,29 +131,24 @@ public class ArrayUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <T> Iterable<T> iterable(final T... items) {
-		return new Iterable<T>() {
+		return () -> new Iterator<T>() {
+			private int index = -1;
 			@Override
-			public Iterator<T> iterator() {
-				return new Iterator<T>() {
-					private int index = -1;
-					@Override
-					public boolean hasNext() {
-						for (int i = index+1; i < items.length; i++)
-							if (items[i] != null)
-								return true;
-						return false;
-					}
-					@Override
-					public T next() {
-						for (index++; index < items.length; index++)
-							if (items[index] != null)
-								return items[index];
-						return null;
-					}
-					@Override
-					public void remove() {}
-				};
+			public boolean hasNext() {
+				for (int i = index+1; i < items.length; i++)
+					if (items[i] != null)
+						return true;
+				return false;
 			}
+			@Override
+			public T next() {
+				for (index++; index < items.length; index++)
+					if (items[index] != null)
+						return items[index];
+				return null;
+			}
+			@Override
+			public void remove() {}
 		};
 	}
 
@@ -165,7 +162,7 @@ public class ArrayUtil {
 				return index;
 		return -1;
 	}
-	
+
 	public static <T> int indexOfItemSatisfying(final Iterable<T> items, Predicate<T> pred) {
 		int i = 0;
 		for (final T item : items)
@@ -365,6 +362,12 @@ public class ArrayUtil {
 
 	public static <T> Sink<? super T> collectionSink(final Collection<? super T> collection) {
 		return item -> collection.add(item);
+	}
+
+	public static <T> boolean same(T[] a, T[] b, BiFunction<T, T, Boolean> comp) {
+		return
+			a.length == b.length &&
+			IntStream.range(0, a.length).allMatch(x -> comp.apply(a[x], b[x]));
 	}
 
 }

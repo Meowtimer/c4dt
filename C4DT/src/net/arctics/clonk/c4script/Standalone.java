@@ -112,10 +112,7 @@ public class Standalone {
 			@Override
 			protected ASTNode parseTupleElement() throws ProblemException {
 				final Statement s = parseStatement();
-				if (s instanceof SimpleStatement)
-					return ((SimpleStatement)s).expression();
-				else
-					return s;
+				return s instanceof SimpleStatement ? ((SimpleStatement)s).expression() : s;
 			}
 		};
 		tempParser.markers().setListener(markerListener);

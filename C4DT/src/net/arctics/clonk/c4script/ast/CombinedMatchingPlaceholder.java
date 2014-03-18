@@ -28,7 +28,9 @@ public class CombinedMatchingPlaceholder extends MatchingPlaceholder {
 
 	@Override
 	public Multiplicity multiplicity() {
-		return Multiplicity.values()[Math.min(left.multiplicity().ordinal(), right.multiplicity().ordinal())];
+		final Integer absl = left.multiplicity().absolute();
+		final Integer absr = right.multiplicity().absolute();
+		return makeMultiplicity(Math.min(absl, absr));
 	}
 
 	@Override

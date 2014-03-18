@@ -2,9 +2,11 @@ package net.arctics.clonk.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.MatchingPlaceholder.Multiplicity;
@@ -28,7 +30,7 @@ import net.arctics.clonk.util.ArrayUtil;
  */
 public class ASTNodeMatcher extends ASTComparisonDelegate {
 	public ASTNodeMatcher(final ASTNode top) { super(top); }
-	public Map<String, Object> result;
+	public Map<MatchingPlaceholder, Object> result;
 	@Override
 	public boolean acceptClassDifference() {
 		return
@@ -39,9 +41,9 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			(left instanceof AccessVar && right instanceof AccessVar);
 	}
 	@Override
-	public boolean consume(final ASTNode consumer, final ASTNode extra) {
+	public boolean consume(final ASTNode consumer, ASTNode[] preceding, final ASTNode extra) {
 		final MatchingPlaceholder mp = as(consumer, MatchingPlaceholder.class);
-		if (mp != null && mp.multiplicity() != Multiplicity.One)
+		if (mp != null && mp.multiplicity().acceptable(preceding.length+1))
 			if (mp.satisfiedBy(extra)) {
 				final ASTNode[] mpSubElements = mp.subElements();
 				if (mpSubElements.length > 0) {
@@ -56,20 +58,39 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		return false;
 	}
 	@Override
+	public boolean lookAhead(Object curLeft, ASTNode nextLeft, ASTNode right) {
+		final MatchingPlaceholder mc = as(curLeft, MatchingPlaceholder.class);
+		final MatchingPlaceholder mn = as(nextLeft, MatchingPlaceholder.class);
+		final boolean _do =
+			(mc == null || mc.multiplicity().absolute() == null) &&
+			(mn == null || !mn.simple());
+		return _do ? super.lookAhead(curLeft, nextLeft, right) : false;
+	}
+	@Override
+	protected boolean consistent() {
+		return result.entrySet().stream().filter(e -> e.getKey().proto() == null)
+			.allMatch(e ->
+				e.getKey().consistent(e.getValue()) &&
+				result.entrySet().stream()
+					.filter(s -> s.getKey().proto() == e.getKey())
+					.allMatch(s -> same(s.getValue(), e.getValue()))
+		);
+	}
+	private boolean same(Object a, Object b) {
+		return a.getClass() == b.getClass() &&
+			a instanceof Object[] ? ArrayUtil.same((Object[])a, (Object[])b, this::same) :
+			eq(a, b);
+	}
+	@Override
 	public boolean applyLeftToRightMapping(final ASTNode[] leftSubElements, final ASTNode[][] leftToRightMapping) {
 		for (int i = 0; i < leftSubElements.length; i++) {
 			final ASTNode left = leftSubElements[i];
 			final ASTNode[] mapping = leftToRightMapping[i];
-			if (left instanceof MatchingPlaceholder) {
-				final MatchingPlaceholder mp = (MatchingPlaceholder)left;
-				switch (mp.multiplicity()) {
-				case AtLeastOne:
+			final MatchingPlaceholder mp = as(left, MatchingPlaceholder.class);
+			if (mp != null) {
+				if (mp.multiplicity() == Multiplicity.AtLeastOne)
 					if (mapping == null || mapping.length < 1)
 						return false;
-					break;
-				default:
-					break;
-				}
 				if (mapping != null)
 					addToResult(mp, mapping);
 			}
@@ -78,25 +99,20 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	}
 	private void addToResult(final MatchingPlaceholder mp, final ASTNode extra[]) {
 		if (result == null)
-			result = new HashMap<String, Object>();
-		Object existing = result.get(mp.entryName());
-		if (existing instanceof ASTNode)
-			existing = concat((ASTNode)existing, extra);
-		else if (existing instanceof ASTNode[])
-			existing = ArrayUtil.concat((ASTNode[])existing, extra);
-		else
-			existing = extra;
-		result.put(mp.entryName(), existing);
+			result = new HashMap<MatchingPlaceholder, Object>();
+		final Object existing = result.get(mp);
+		final Object mut =
+			existing instanceof ASTNode ? concat((ASTNode)existing, extra) :
+			existing instanceof ASTNode[] ? ArrayUtil.concat((ASTNode[])existing, extra) :
+			extra;
+		result.put(mp, mut);
 	}
 	@Override
 	public boolean acceptLeftExtraElement(final ASTNode leftNode) {
-		if (leftNode instanceof MatchingPlaceholder)
-			switch (((MatchingPlaceholder) leftNode).multiplicity()) {
-			case AtLeastOne: case Multiple:
-				return true;
-			default:
-				return false;
-			}
+		if (leftNode instanceof MatchingPlaceholder) {
+			final Multiplicity m = ((MatchingPlaceholder)leftNode).multiplicity();
+			return m != Multiplicity.One;
+		}
 		else
 			return false;
 	}
@@ -116,7 +132,22 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			node = SimpleStatement.unwrap(node);
 			node.setParent(orig.parent());
 		}
-		return node.transformRecursively(MatchingPlaceholderTransformer.INSTANCE);
+		final ASTNode transformed = node.transformRecursively(MatchingPlaceholderTransformer.INSTANCE);
+		final Map<String, MatchingPlaceholder> mps = new HashMap<>();
+		transformed.traverse((n, c) -> {
+			final MatchingPlaceholder mp = as(n, MatchingPlaceholder.class);
+			if (mp != null && !mp.entryName().equals("")) {
+				final MatchingPlaceholder x = mps.get(mp.entryName());
+				if (x != null) {
+					if (!mp.simple())
+						throw new IllegalArgumentException(String.format("%s is a repeat occurence - needs to be simple", mp.printed()));
+					mp.proto(x);
+				} else
+					mps.put(mp.entryName(), mp);
+			}
+			return TraversalContinuation.Continue;
+		}, null);
+		return transformed;
 	}
 	/**
 	 * Parse a node from a C4Script source string and return the result of calling {@link #prepareForMatching(ASTNode)} with that node.
@@ -132,4 +163,10 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			return null;
 		}
 	}
+	public Map<String, Object> result() {
+		return result.entrySet().stream()
+			.filter(e -> e.getKey().proto() == null)
+			.collect(Collectors.toMap(e -> e.getKey().entryName(), e -> e.getValue()));
+	}
+
 }

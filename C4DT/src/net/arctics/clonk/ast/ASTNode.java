@@ -297,7 +297,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	}
 
 	/**
-	 * Traverses this expression by calling expressionDetected on the supplied {@link IASTVisitor} for the root expression and its sub elements.
+	 * Traverses this expression by calling {@link IASTVisitor#visitNode(ASTNode, Object)} on the supplied {@link IASTVisitor} for the root expression and its sub elements.
 	 * @param listener the expression listener
 	 * @param context Context object
 	 * @return flow control for the calling function
@@ -606,7 +606,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	public Map<String, Object> match(final ASTNode other) {
 		final ASTNodeMatcher delegate = new ASTNodeMatcher(other);
 		if (delegate.equal(this, other))
-			return delegate.result != null ? delegate.result : Collections.<String, Object>emptyMap();
+			return delegate.result != null ? delegate.result() : Collections.<String, Object>emptyMap();
 		else
 			return null;
 	}

@@ -178,10 +178,22 @@ public class MatchingPlaceholder extends Placeholder {
 		Accumulative
 	}
 
-	public enum Multiplicity {
-		One,
-		AtLeastOne,
-		Multiple
+	public interface Multiplicity {
+		boolean acceptable(int multiplicity);
+		Multiplicity One = m -> m == 1;
+		Multiplicity AtLeastOne = m -> m >= 1;
+		Multiplicity Multiple = m -> true;
+		default Integer absolute() { return this == One ? 1 : null; }
+		default String printed() {
+			if (this == One)
+				return "#1";
+			else if (this == AtLeastOne)
+				return "+";
+			else if (this == Multiple)
+				return "...";
+			else
+				return "???";
+		}
 	}
 
 	private Class<? extends ASTNode> requiredClass;
@@ -193,12 +205,25 @@ public class MatchingPlaceholder extends Placeholder {
 	private String property;
 	private EnumSet<Flag> flags;
 	private boolean negated;
+	private MatchingPlaceholder proto;
 
 	public boolean flagSet(final Flag flag) { return flags != null && flags.contains(flag); }
 	public Pattern stringRepresentationPattern() { return stringRepresentationPattern; }
 	public Class<? extends ASTNode> requiredClass() { return requiredClass; }
 	public Multiplicity multiplicity() { return multiplicity; }
 	public String property() { return property; }
+	public MatchingPlaceholder proto() { return proto; }
+	public void proto(MatchingPlaceholder value) {
+		proto = value;
+		if (value != null) {
+			this.requiredClass = value.requiredClass;
+			this.stringRepresentationPattern = value.stringRepresentationPattern;
+			this.associatedDeclarationNamePattern = value.associatedDeclarationNamePattern;
+			this.code = value.code;
+			this.negated = value.negated;
+			this.subElements = value.subElements;
+		}
+	}
 
 	@Override
 	public ASTNode[] subElements() {
@@ -241,6 +266,17 @@ public class MatchingPlaceholder extends Placeholder {
 			case 8230: // ellipsis unicode, OSX likes to substitute this for three dots
 				multiplicity = Multiplicity.Multiple;
 				break;
+			case '#':
+			{
+				start = scanner.tell(); end = start;
+				while (!scanner.reachedEOF() && Character.isDigit(scanner.peek())) {
+					scanner.read();
+					end++;
+				}
+				final int req_num = Integer.parseInt(scanner.readStringAt(start, end));
+				multiplicity = makeMultiplicity(req_num);
+				break;
+			}
 			case '!': case '?':
 				String codeString = scanner.readString(scanner.bufferSize()-scanner.tell());
 				if (!codeString.startsWith("{"))
@@ -301,6 +337,18 @@ public class MatchingPlaceholder extends Placeholder {
 			}
 		}
 		this.entryName = entry;
+	}
+	protected static Multiplicity makeMultiplicity(final int req_num) {
+		return req_num == 1 ? Multiplicity.One : new Multiplicity() {
+			@Override
+			public Integer absolute() { return req_num; }
+			@Override
+			public boolean acceptable(int num) {
+				return num <= req_num;
+			}
+			@Override
+			public String printed() { return "#"+req_num; }
+		};
 	}
 	private boolean setRequiredClass(final String className) throws ProblemException {
 		final Class<? extends ASTNode> cls = Transformations.findClass(className);
@@ -433,16 +481,7 @@ public class MatchingPlaceholder extends Placeholder {
 		if (code != null)
 			attribs.add('!'+code.body().subElements()[0].subElements()[0].toString());
 		if (multiplicity != Multiplicity.One)
-			switch (multiplicity) {
-			case Multiple:
-				attribs.add("...");
-				break;
-			case AtLeastOne:
-				attribs.add("+");
-				break;
-			default:
-				break;
-			}
+			attribs.add(multiplicity.printed());
 		if (attribs.size() > 0) {
 			output.append(":");
 			if (negated)
@@ -466,4 +505,31 @@ public class MatchingPlaceholder extends Placeholder {
 		return this; // so meta
 	}
 
+	public boolean simple() {
+		return
+			requiredClass == null &&
+			stringRepresentationPattern == null &&
+			associatedDeclarationNamePattern == null &&
+			code == null &&
+			!negated &&
+			(subElements == null || subElements.length == 0) &&
+			proto == null;
+	}
+	public boolean consistent(Object value) {
+		final int mult = value instanceof Object[] ? ((Object[])value).length : 1;
+		return multiplicity().absolute() == null || multiplicity().absolute() == mult;
+	}
+	@Override
+	protected boolean equalAttributes(ASTNode other_) {
+		final MatchingPlaceholder other = as(other_, MatchingPlaceholder.class);
+		return
+			other != null &&
+			eq(this.associatedDeclarationNamePattern, other.associatedDeclarationNamePattern) &&
+			eq(this.code, other.code) &&
+			eq(this.negated, other.negated) &&
+			eq(this.proto, other.proto) &&
+			eq(this.requiredClass, other.requiredClass) &&
+			eq(this.stringRepresentationPattern, other.stringRepresentationPattern) &&
+			eq(this.subElements, other.subElements);
+	}
 }

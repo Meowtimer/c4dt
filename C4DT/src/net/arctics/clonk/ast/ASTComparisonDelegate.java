@@ -1,6 +1,7 @@
 package net.arctics.clonk.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.concat;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 /**
  * A delegate consulted when comparing AST trees. Its job is deciding whether differences should be ignored or not
@@ -18,10 +19,11 @@ public class ASTComparisonDelegate {
 	/**
 	 * Called if some difference was found and an attempt is made to make a previous left node consume a right node
 	 * @param consumer The left node to consume.
+	 * @param preceding TODO
 	 * @param consumee The right node to be consumed.
 	 * @return True if consumption was successful, false if not.
 	 */
-	public boolean consume(final ASTNode consumer, final ASTNode consumee) {
+	public boolean consume(final ASTNode consumer, ASTNode[] preceding, final ASTNode consumee) {
 		return false;
 	}
 
@@ -44,18 +46,26 @@ public class ASTComparisonDelegate {
 
 	public boolean applyLeftToRightMapping(final ASTNode[] leftSubElements, final ASTNode[][] leftToRightMapping) { return true; }
 
+	protected boolean consistent() { return true; }
+
 	public boolean equal(final ASTNode left, final ASTNode right) {
 		if (
 			(left == null && right == null) ||
 			(left != null && left.compare(right, this)) ||
 			acceptSubElementDifference(left, right)
 		) {
-			if (rightTop == right)
+			if (rightTop == right) {
 				applyLeftToRightMapping(new ASTNode[] {left}, new ASTNode[][] {{right}});
-			return true;
+				return consistent();
+			} else
+				return true;
 		} else
 			return false;
 	}
+
+	public boolean lookAhead(Object curLeft, final ASTNode nextLeft, final ASTNode right) { return equal(nextLeft, right); }
+
+	private static final ASTNode[] NO_NODES = new ASTNode[0];
 
 	public ASTNode[][] compareSubElements(final ASTNode[] mine, final ASTNode[] others) {
 		final ASTNode[][] leftToRightMapping = new ASTNode[mine.length][];
@@ -68,8 +78,8 @@ public class ASTComparisonDelegate {
 
 			if (equal(left, right))
 				leftToRightMapping[l] = new ASTNode[] { right };
-			else if  (consume(left, right)) {
-				if (nextLeft != null && equal(nextLeft, right)) {
+			else if (consume(left, defaulting(leftToRightMapping[l], NO_NODES), right)) {
+				if (nextLeft != null && lookAhead(left, nextLeft, right)) {
 					// look ahead if the next left one is equal to the current right one
 					leftToRightMapping[l+1] = new ASTNode[] { right };
 					l++;
@@ -81,7 +91,7 @@ public class ASTComparisonDelegate {
 			}
 			else if (acceptLeftExtraElement(left)) {
 				if (leftToRightMapping[l] == null)
-					leftToRightMapping[l] = new ASTNode[0];
+					leftToRightMapping[l] = NO_NODES;
 				r--;
 			}
 			else if (acceptRightExtraElement(right))
@@ -102,7 +112,7 @@ public class ASTComparisonDelegate {
 			final ASTNode lastLeft = mine.length > 0 ? mine[mine.length-1] : null;
 			if (lastLeft != null)
 				for (; r < others.length; r++)
-					if (consume(lastLeft, others[r]))
+					if (consume(lastLeft, defaulting(leftToRightMapping[mine.length-1], NO_NODES), others[r]))
 						leftToRightMapping[mine.length-1] = concat(leftToRightMapping[mine.length-1], others[r]);
 					else
 						break;
