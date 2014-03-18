@@ -541,7 +541,7 @@ global func bool SetVisibility(int dwVisibility, object pObj);
 global func bool ChangeDef(id idNewDef, object pObj);
 global func bool CheckEnergyNeedChain(object pObj);
 global func bool DoCon(int iChange, object pObj);
-global func bool DoDamage(int iChange, object pTarget, int iDmgType, int iCausedBy);
+global func bool DoDamage(int iChange, object pObj, int iDmgType, int iCausedBy);
 global func bool DoEnergy(int iChange, object pObj, bool fExakt, int iEngType, int iCausedBy);
 global func bool DoMagicEnergy(int iChange, object pObj, bool fAllowPartial);
 global func bool EnergyCheck(int iEnergy, object pObj);

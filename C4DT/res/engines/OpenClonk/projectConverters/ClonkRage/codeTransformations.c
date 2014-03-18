@@ -3,18 +3,6 @@ $id:IDLiteral,?value.parent(Function) != nil && value.definition == nil$ => Defi
 // replace ObjectSetAction with direct SetAction call
 ObjectSetAction($obj$, $action$, $params...$) => $obj$->SetAction($action$, $params...$);
 
-// convert (Set|Get)(X|Y)Dir calls to direct calls
-
-SetXDir($dir$, $:Integer,/0/$ | $:Whitespace$, $rest...$) => SetXDir($dir$, $rest$);
-SetYDir($dir$, $:Integer,/0/$ | $:Whitespace$, $rest...$) => SetXDir($dir$, $rest$);
-SetXDir($dir$, $target$, $rest...$) => $target$->SetXDir($dir$, $rest$);
-SetYDir($dir$, $target$, $rest...$) => $target$->SetXDir($dir$, $rest$);
-
-GetXDir($:Integer,/0/$ | $:Whitespace$, $rest...$) => GetXDir($rest$);
-GetYDir($:Integer,/0/$ | $:Whitespace$, $rest...$) => GetYDir($rest$);
-GetXDir($target$, $rest+$) => $target$->GetXDir($rest$);
-GetYDir($target$, $rest+$) => $target$->GetYDir($rest$);
-
 // convert all indirect calls with string parameter for the function name into direct calls
 $:Call,/DefinitionCall|ObjectCall|PrivateCall|ProtectedCall|DefinitionCall/$($target$, $func:String$, $params...$)
 	=> $target$->$func!Call(value.literal, placeholder.subElements)$($params$);

@@ -144,8 +144,8 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public ProjectConverter(final IProject sourceProject, final IProject destinationProject) {
 		this.sourceProject = ClonkProjectNature.get(sourceProject);
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
-		this.configuration = destinationEngine().projectConversionConfigurationForEngine(sourceEngine());
-		this.codeConverter = new TransformationsBasedCodeConverter(configuration);
+		this.configuration = destinationEngine().loadProjectConversionConfiguration(sourceEngine());
+		this.codeConverter = configuration;
 		assert(sourceEngine() != destinationEngine());
 	}
 	private IPath convertPath(final IPath path) {
@@ -194,7 +194,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				else
 					targetFile.create(contents, true, monitor);
 				if (sourceFile.getParent() == null || Definition.at(sourceFile.getParent()) == null) {
-					final Structure struct = Structure.pinned(targetFile, true, false);
+					final Structure struct = Structure.pinned(sourceFile, true, false);
 					if (struct != null)
 						conversions.add(new DeclarationConversion(sourceFile, targetFile, struct));
 				}

@@ -122,9 +122,8 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		return params;
 	}
 	@Override
-	public void setSubElements(final ASTNode[] elms) {
-		params = elms;
-	}
+	public void setSubElements(final ASTNode[] elms) { params = elms; }
+	public void setParams(final ASTNode... params) { this.params = params; }
 	protected BinaryOp applyOperatorTo(final Tidy tidy, final ASTNode[] parms, final Operator operator) throws CloneNotSupportedException {
 		BinaryOp op = new BinaryOp(operator);
 		final BinaryOp result = op;

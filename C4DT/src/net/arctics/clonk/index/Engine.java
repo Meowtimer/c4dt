@@ -57,7 +57,6 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.graphics.Image;
@@ -528,7 +527,6 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		createSpecialRules();
 		loadDeclarations();
 		loadDeclarationsConfiguration();
-		loadProjectConversionConfigurations();
 
 		index = new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -542,44 +540,19 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			specialRules.contribute(this);
 	}
 
-	private final Map<String, ProjectConversionConfiguration> projectConversionConfigurations = new HashMap<String, ProjectConversionConfiguration>();
-
-	private void loadProjectConversionConfigurations() {
+	public ProjectConversionConfiguration loadProjectConversionConfiguration(Engine sourceEngine) {
 		try {
-			projectConversionConfigurations.clear();
+			final List<URL> projectConverterFiles = new ArrayList<URL>();
 			for (int i = storageLocations.length - 1; i >= 0; i--) {
 				final IStorageLocation location = storageLocations[i];
-				final List<URL> projectConverterFiles = new ArrayList<URL>();
-				location.collectURLsOfContainer("projectConverters", true, projectConverterFiles); //$NON-NLS-1$
-				if (projectConverterFiles.size() > 0) {
-					final Map<String, List<URL>> buckets = new HashMap<String, List<URL>>();
-					for (final URL url : projectConverterFiles) {
-						final Path path = new Path(url.getPath());
-						final String engineName = path.segment(path.segmentCount() - 2);
-						if (engineName.equals("projectConverters")) //$NON-NLS-1$
-							continue; // bogus file next to engine-specific folders
-						List<URL> bucket = buckets.get(engineName);
-						if (bucket == null) {
-							bucket = new ArrayList<URL>();
-							buckets.put(engineName, bucket);
-						}
-						bucket.add(url);
-					}
-					for (final Map.Entry<String, List<URL>> bucket : buckets.entrySet()) {
-						final ProjectConversionConfiguration conf = new ProjectConversionConfiguration(this);
-						conf.load(bucket.getValue());
-						projectConversionConfigurations.put(bucket.getKey(), conf);
-					}
-				}
+				location.collectURLsOfContainer(String.format("projectConverters/%s", sourceEngine.name()), true, projectConverterFiles); //$NON-NLS-1$
 			}
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public ProjectConversionConfiguration projectConversionConfigurationForEngine(final Engine engine) {
-		loadProjectConversionConfigurations();
-		return projectConversionConfigurations.get(engine.name());
+			if (projectConverterFiles.size() > 0) {
+				final ProjectConversionConfiguration conf = new ProjectConversionConfiguration(sourceEngine, this, projectConverterFiles);
+				return conf;
+			}
+			return null;
+		} catch (final Exception e) { e.printStackTrace(); return null; }
 	}
 
 	public void writeEngineScript(final Writer writer) throws IOException {
