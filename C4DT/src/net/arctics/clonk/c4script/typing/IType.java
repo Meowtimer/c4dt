@@ -19,4 +19,6 @@ public interface IType extends Iterable<IType>, Serializable {
 	 * @return The static type equivalent
 	 */
 	IType simpleType();
+	/** Return a non-special typename. Default is to return #typeName(boolean) with false. */
+	default String typeName() { return typeName(false); }
 }

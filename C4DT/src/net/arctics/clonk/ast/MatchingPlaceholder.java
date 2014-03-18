@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -30,6 +31,7 @@ import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.ast.evaluate.Constant;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
+import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.SelfContainedScript;
@@ -92,11 +94,21 @@ public class MatchingPlaceholder extends Placeholder {
 			return String.format("\"%s\"", text);
 		}
 		@CommandFunction
-		public static String EnforceLocal(final IEvaluationContext context, final String name, ASTNode node) {
-			if (context.self() instanceof CodeConverter.ICodeConverterContext)
-				return ((CodeConverter.ICodeConverterContext)context.self()).defineFunctionLocalVariable(node, name);
-			else
+		public static void FunctionUsesVarArray(final IEvaluationContext context, final String name, ASTNode node) {
+			final Function fn = node.parent(Function.class);
+			if (fn != null && context.self() instanceof CodeConverter.ICodeConverterContext)
+				((CodeConverter.ICodeConverterContext)context.self()).functionUsesVarArray(fn);
+		}
+		@CommandFunction
+		public static IType Type(final IEvaluationContext context, final ASTNode node) {
+			final Function fn = node.parent(Function.class);
+			if (fn == null)
 				return null;
+			final Script script = fn.parent(Script.class);
+			if (script == null)
+				return null;
+			final IType ty = script.typings().get(node);
+			return ty;
 		}
 		@CommandFunction
 		public static CallDeclaration Call(final IEvaluationContext context, final String name, final ASTNode[] params) {
@@ -319,46 +331,38 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	public Object transformSubstitution(final Object substitution, final Object context) {
-		if (!(substitution instanceof Object[]))
+		Object[] n = as(substitution, Object[].class);
+		if (n == null)
 			return null;
-		final Object[] s = (Object[]) substitution;
-		final Object[] n = new Object[s.length];
-		System.arraycopy(s, 0, n, 0, s.length);
 
-		if (property() != null)
-			for (int i = 0; i < s.length; i++)
+		if (property != null)
+			n = Arrays.stream(n).map(v -> {
 				try {
-					n[i] = n[i] == null ? null : n[i].getClass().getMethod(property()).invoke(s[i]);
+					return v == null ? null : v.getClass().getMethod(property).invoke(v);
 				} catch (final Exception e) {
-					System.out.println(format("Failed to get %s on %s of type %s",
-						property(), n[i], n[i].getClass()));
+					System.out.println(format("Failed to get %s on %s of type %s", property, v, v.getClass()));
+					return v;
 				}
+			}).toArray(l -> new Object[l]);
 
 		if (code != null)
-			for (int i = 0; i < n.length; i++) try {
-				n[i] = code.invoke(code.new Invocation(new Object[] {n[i], this}, code.script(), context));
-			} catch (final Exception e) {
-				e.printStackTrace();
-			}
+			n = Arrays.stream(n).map(v -> {
+				try {
+					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), context));
+				} catch (final Exception e) {
+					e.printStackTrace();
+					return v;
+				}
+			}).toArray(l -> new Object[l]);
 
-		final ASTNode[] r = new ASTNode[n.length];
-		for (int i = 0; i < s.length; i++) {
-			final Object item = n[i];
-			ASTNode node;
-			if (item instanceof ASTNode)
-				node = (ASTNode)item;
-			else if (item instanceof String) {
-				if (subElements().length > 0)
-					node = new CallDeclaration((String)item, subElements());
-				else
-					node = new AccessVar((String)item);
-			} else if (item instanceof Long)
-				node = new IntegerLiteral((long)item);
-			else
-				node = new GarbageStatement(defaulting(item, "<null>").toString(), 0);
-			r[i] = node;
-		}
-		return r;
+		return Arrays.stream(n).map(item ->
+			item instanceof ASTNode ? (ASTNode)item :
+			item instanceof String ?
+				subElements().length > 0 ? new CallDeclaration((String)item, subElements()) :
+				new AccessVar((String)item) :
+			item instanceof Long ? new IntegerLiteral((long)item) :
+			new GarbageStatement(defaulting(item, "<null>").toString(), 0)
+		).toArray(l -> new ASTNode[l]);
 	}
 
 	public boolean satisfiedBy(final ASTNode element) {

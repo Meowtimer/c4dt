@@ -27,6 +27,7 @@ import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.TempScript;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.ArrayElementExpression;
 import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
@@ -147,8 +148,6 @@ public class ProjectConversionConfiguration extends CodeConverter {
 	}
 	private Map<String, ObjParConversion> prepareObjParConversions() {
 		return sourceEngine.functions().stream().map(sf -> {
-			if (sf.name().equals("GetMass"))
-				System.out.println("wat");
 			final int objNdx = indexOfItemSatisfying(sf.parameters(), p -> p.name().equals("pObj"));
 			final int idNdx = indexOfItemSatisfying(sf.parameters(), p -> p.name().equals("idDef"));
 			final int diff = (objNdx != -1 ? - 1 : 0) - (idNdx != -1 ? 1 : 0);
@@ -220,12 +219,22 @@ public class ProjectConversionConfiguration extends CodeConverter {
 				}
 				expression = expression.transformSubElements(this);
 				boolean success = false;
-				if (expression instanceof CallDeclaration) {
-					final CallDeclaration cd = (CallDeclaration) expression;
+				final CallDeclaration cd = as(expression, CallDeclaration.class);
+				if (cd != null && !(cd.predecessor() instanceof MemberOperator)) {
 					final ObjParConversion conv = objParConversions().getOrDefault(cd.name(), null);
-					if (conv != null)
+					if (conv != null) {
 						expression = conv.convertCall(cd);
-					success = true;
+						success = true;
+					}
+				}
+				if (cd != null && cd.name().equals("Var")) {
+					final Function fn = expression.parent(Function.class);
+					if (fn != null) {
+						context.functionUsesVarArray(fn);
+						final ASTNode ndx = cd.params().length > 0 ? cd.params()[0] : IntegerLiteral.ZERO;
+						expression = new Sequence(new AccessVar(ICodeConverterContext.VAR_ARRAY_NAME), new ArrayElementExpression(ndx));
+						success = true;
+					}
 				}
 				if (!success)
 					for (final ProjectConversionConfiguration.CodeTransformation ct : transformations()) {

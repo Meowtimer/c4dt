@@ -3,11 +3,10 @@ package net.arctics.clonk.builder;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -21,10 +20,13 @@ import net.arctics.clonk.c4script.IHasCode;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SynthesizedFunction;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.ast.ArrayExpression;
 import net.arctics.clonk.c4script.ast.FunctionBody;
+import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.ast.VarInitialization;
-import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.ui.editors.actions.c4script.Messages;
+import net.arctics.clonk.util.ArrayUtil;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -39,18 +41,14 @@ import org.eclipse.text.edits.ReplaceEdit;
 
 public abstract class CodeConverter {
 	public interface ICodeConverterContext {
-		String defineFunctionLocalVariable(ASTNode location, String name);
+		final String VAR_ARRAY_NAME = "__vars";
+		void functionUsesVarArray(Function function);
 	}
 	public static final class CodeConverterContext implements ICodeConverterContext, ITransformer {
-		private final Map<String, VarInitialization> addedVars = new HashMap<>(3);
+		private final HashSet<String> functionsUsingVarArray = new HashSet<>();
 		@Override
-		public String defineFunctionLocalVariable(ASTNode location, final String name) {
-			final Function function = location.parent(Function.class);
-			if (function != null && function.findVariable(name) == null && addedVars.get(name) == null) {
-				final Variable var = new Variable(name, PrimitiveType.ANY);
-				addedVars.put(name, new VarInitialization(name, null, 0, 0, var, null));
-			}
-			return name;
+		public void functionUsesVarArray(Function function) {
+			functionsUsingVarArray.add(function.name());
 		}
 		public ASTNode postProcess(ASTNode converted) {
 			return converted.transformRecursively(this);
@@ -58,9 +56,16 @@ public abstract class CodeConverter {
 		@Override
 		public Object transform(ASTNode previousExpression, Object previousTransformationResult, ASTNode expression) {
 			if (expression instanceof FunctionBody) {
-				// bla bla
+				final FunctionBody bod = (FunctionBody) expression;
+				if (functionsUsingVarArray.contains(bod.owner().name()))
+					return new FunctionBody(bod.owner(), ArrayUtil.concat(varArrayPrelude(), bod.statements()));
 			}
 			return expression;
+		}
+		private ASTNode varArrayPrelude() {
+			return new VarDeclarationStatement(
+				Arrays.asList(new VarInitialization(VAR_ARRAY_NAME, new ArrayExpression(), -1, -1, null, null)), Scope.VAR
+			);
 		}
 	}
 	private ASTNode codeFor(final Declaration declaration) {
@@ -77,12 +82,7 @@ public abstract class CodeConverter {
 			for (final Declaration d : script.subDeclarations(script.index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|DeclMask.STATIC_VARIABLES))
 				if (!(d instanceof Variable && d.parentDeclaration() instanceof Function) && codeFor(d) != null)
 					decs.add(d);
-			Collections.sort(decs, new Comparator<Declaration>() {
-				@Override
-				public int compare(final Declaration a, final Declaration b) {
-					return codeFor(b).absolute().getOffset()-codeFor(a).absolute().getOffset();
-				}
-			});
+			Collections.sort(decs, (a, b) -> codeFor(b).absolute().getOffset()-codeFor(a).absolute().getOffset());
 			for (final Declaration d : decs)
 				try {
 					if (d instanceof SynthesizedFunction)
