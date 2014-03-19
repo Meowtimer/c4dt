@@ -27,6 +27,7 @@ import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.landscapescript.LandscapeScript;
 import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.TaskExecution;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -163,7 +164,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public void run() {
 		try {
 			sourceProject.getProject().accept(this);
-			conversions.forEach(DeclarationConversion::run);
+			TaskExecution.threadPool(conversions, 20);
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
