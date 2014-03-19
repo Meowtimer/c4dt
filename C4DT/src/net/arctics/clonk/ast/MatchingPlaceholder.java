@@ -394,14 +394,11 @@ public class MatchingPlaceholder extends Placeholder {
 			}).toArray(l -> new Object[l]);
 
 		if (code != null)
-			n = Arrays.stream(n).map(v -> {
-				try {
-					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), context));
-				} catch (final Exception e) {
-					e.printStackTrace();
-					return v;
-				}
-			}).toArray(l -> new Object[l]);
+			try {
+				n = (Object[]) code.invoke(code.new Invocation(new Object[] {n, this}, code.script(), context));
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
 
 		return Arrays.stream(n).map(item ->
 			item instanceof ASTNode ? (ASTNode)item :
@@ -507,6 +504,7 @@ public class MatchingPlaceholder extends Placeholder {
 
 	public boolean simple() {
 		return
+			multiplicity == Multiplicity.One &&
 			requiredClass == null &&
 			stringRepresentationPattern == null &&
 			associatedDeclarationNamePattern == null &&
@@ -524,6 +522,7 @@ public class MatchingPlaceholder extends Placeholder {
 		final MatchingPlaceholder other = as(other_, MatchingPlaceholder.class);
 		return
 			other != null &&
+			super.equalAttributes(other) &&
 			eq(this.associatedDeclarationNamePattern, other.associatedDeclarationNamePattern) &&
 			eq(this.code, other.code) &&
 			eq(this.negated, other.negated) &&
