@@ -13,7 +13,6 @@ import net.arctics.clonk.c4script.Keywords;
 
 public class IfStatement extends ConditionalStatement {
 
-
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode elseExpr;
 
