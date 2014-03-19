@@ -510,7 +510,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	/**
 	 * Compare element with other element. Return true if there are no differences, false otherwise.
 	 * @param other The other expression
-	 * @param delegate Listener that gets notified when changes are found.
+	 * @param delegate Delegate specifying details of what is extracted from the comparison.
 	 * @return Whether elements are equal or not.
 	 */
 	public final boolean compare(final ASTNode other, final ASTComparisonDelegate delegate) {
@@ -531,10 +531,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 			final ASTNode[] others = other.subElements();
 			final ASTNode[][] leftToRightMapping = delegate.compareSubElements(mine, others);
 
-			if (leftToRightMapping != null)
-				return delegate.applyLeftToRightMapping(mine, leftToRightMapping);
-			else
-				return false;
+			return leftToRightMapping != null ? delegate.applyLeftToRightMapping(mine, leftToRightMapping) : false;
 		} finally {
 			delegate.left = oldLeft;
 			delegate.right = oldRight;
@@ -545,10 +542,8 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 
 	@Override
 	public boolean equals(final Object other) {
-		if (other != null && other.getClass() == this.getClass())
-			return compare((ASTNode) other, new ASTComparisonDelegate((ASTNode)other));
-		else
-			return false;
+		return other != null && other.getClass() == this.getClass()
+			? compare((ASTNode) other, new ASTComparisonDelegate((ASTNode)other)) : false;
 	}
 
 	public ASTNode sequenceTilMe() {
