@@ -31,7 +31,7 @@ enum MatchingPlaceholderTransformer implements ITransformer {
 			else if (expression instanceof BinaryOp) {
 				final BinaryOp bop = (BinaryOp) expression;
 				switch (bop.operator()) {
-				case And: case Or: case BitAnd: case BitOr:
+				case BitAnd: case BitOr:
 					final MatchingPlaceholder mpl = as(bop.leftSide(), MatchingPlaceholder.class);
 					final MatchingPlaceholder mpr = as(bop.rightSide(), MatchingPlaceholder.class);
 					if (mpl != null && mpr != null)
