@@ -18,7 +18,7 @@ public enum Operator {
 	Power(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "**", 14), //$NON-NLS-1$
 	Divide(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "/", 13, "Div"), //$NON-NLS-1$ //$NON-NLS-2$
 	Multiply(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "*", 13, "Mul", 4), //$NON-NLS-1$ //$NON-NLS-2$
-	Modulo(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "%", 13), //$NON-NLS-1$
+	Modulo(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "%", 13, "Mod"), //$NON-NLS-1$
 	Subtract(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "-", 12, "Sub"), //$NON-NLS-1$ //$NON-NLS-2$
 	Add(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "+", 12, "Sum", 4), //$NON-NLS-1$ //$NON-NLS-2$
 	Smaller(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.BOOL, "<", 10, "LessThan"), //$NON-NLS-1$ //$NON-NLS-2$

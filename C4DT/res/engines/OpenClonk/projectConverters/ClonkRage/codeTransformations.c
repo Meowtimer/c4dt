@@ -142,10 +142,6 @@ GetDesc($obj$) => $obj$.Description;
 GetDesc($$, $def$) => $def$.Description;
 GetDesc() => this.Description;
 
-Mod($a, $b) => $a % $b;
-And($a, $b) => $a && $b;
-Or($a, $b) => $a || $b;
-
 $call:Call,/FindConstructionSite/$($id$, $x:Integer$, $y:Integer$) =>
 	(xy = $call!{
 		EnforceLocal("xy", value);
