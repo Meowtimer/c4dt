@@ -21,11 +21,6 @@ Chain(
 // FindObject is the new FindObject2
 FindObject2($params...$) => FindObject($params...$);
 
-Transform(
-	while ($x$ = FindObject($parms...$, $x$)) $bod$,
-	for ($x$ in FindObjects($parms$)) $bod$
-);
-
 // chained transformations to digest the old CR FindObject into the modular Find_* calls
 Chain(
 	
@@ -34,8 +29,6 @@ Chain(
 		=> FindObject($id$, $rest$, Find_Owner($owner$)),
 
 	// digest parameters right-to-left
-
-	FindObject(0,0,0,0,0,0,"Push",this(),0,pClonk))
 
 	// NoContainer() gets turned into Find_NoContainer()
 	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, NoContainer(), $parms...$)
@@ -61,17 +54,26 @@ Chain(
 	FindObject($id$, $x:~Whitespace$, $y:~Whitespace$, $w:~Whitespace$, $h:~Whitespace$, $parms...$)
 		=> FindObject($id$, Find_InRect($x$, $y$, $w$, $h$), $parms...$),
 	
-	// passed 0 or whitespace for id? remove
-	FindObject($?value.is(Whitespace)||(value.is(Integer)&&value.literal==0)$, $parms...$) => FindObject($parms$),
 	// id
 	FindObject($id$, $parms...$)
 		=> FindObject(Find_ID($id$), $parms...$),
 
 	// remove useless calls caused by converting 0 passings
-	FindObject(Find_ID(0), $rest...$) => FindObject($rest$),
-	FindObject($left...$, Find_Action(0), $right...$) => FindObject($left$, $right$),
-	FindObject($left...$, Find_ActionTarget(0), $right...$) => FindObject($left$, $right$),
-	FindObject($left...$, Find_InRect(0, 0, 0, 0), $right...$) => FindObject($left$, $right$)
+	FindObject(Find_ID($?value.is(Whitespace)||(value.is(Integer)&&value.literal==0)$), $rest...$)
+		=> FindObject($rest$),
+	FindObject($left...$, Find_Action(0), $right...$) 
+		=> FindObject($left$, $right$),
+	FindObject($left...$, Find_ActionTarget(0), $right...$) 
+		=> FindObject($left$, $right$),
+	FindObject($left...$, Find_InRect(0, 0, 0, 0), $right...$) 
+		=> FindObject($left$, $right$),
+	FindObject($left...$, Find_OCF(0), $right...$) 
+		=> FindObject($left$, $right$)
+);
+
+Transform(
+	while ($x$ = FindObject($params:Call,/Find_.*/,...$, $x$)) $body$;,
+	for ($x$ in FindObjects($params$)) $body$;
 );
 	
 $obj:Var,?Type(value).simpleType.typeName != "int"$ = 0
