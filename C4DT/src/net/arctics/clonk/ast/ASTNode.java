@@ -524,7 +524,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 
 			if ((other == null || other.getClass() != this.getClass()) && !delegate.acceptClassDifference())
 				return false;
-			if (delegate.considerDifferent() || !(equalAttributes(other) || delegate.acceptAttributeDifference()))
+			if (!(equalAttributes(other) || delegate.acceptAttributeDifference()))
 				return false;
 
 			final ASTNode[] mine = this.subElements();

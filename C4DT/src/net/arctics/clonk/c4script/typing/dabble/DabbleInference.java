@@ -1900,7 +1900,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// i'm an assignment operator and i can't modify my left side :C
 					if (op.modifiesArgument() && !visitor.expert(left).isModifiable(left, visitor))
 						visitor.markers().error(visitor, Problem.ExpressionNotModifiable, node, left, Markers.NO_THROW);
-					// obsolete operators in #strict 2impor
+					// obsolete operators in #strict 2 import
 					if ((op == Operator.StringEqual || op == Operator.ne) && (visitor.input().strictLevel >= 2))
 						visitor.markers().warning(visitor, Problem.ObsoleteOperator, node, node, 0, op.operatorName());
 					// wrong parameter types

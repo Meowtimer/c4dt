@@ -2,6 +2,7 @@ package net.arctics.clonk.util;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -368,6 +369,14 @@ public class ArrayUtil {
 		return
 			a.length == b.length &&
 			IntStream.range(0, a.length).allMatch(x -> comp.apply(a[x], b[x]));
+	}
+
+	@SuppressWarnings("unchecked")
+	@SafeVarargs
+	public static <T> T[] nonNulls(T... items) {
+		return Arrays.stream(items)
+			.filter(x -> x != null)
+			.toArray(l -> (T[])Array.newInstance(items.getClass().getComponentType(), l));
 	}
 
 }

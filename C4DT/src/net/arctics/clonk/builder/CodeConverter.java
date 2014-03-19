@@ -1,12 +1,17 @@
 package net.arctics.clonk.builder;
 
+import static net.arctics.clonk.util.ArrayUtil.nonNulls;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -43,12 +48,64 @@ public abstract class CodeConverter {
 	public interface ICodeConverterContext {
 		final String VAR_ARRAY_NAME = "__vars";
 		void functionUsesVarArray(Function function);
+		String defineFunctionVariable(String functionName, String variableName);
 	}
 	public static final class CodeConverterContext implements ICodeConverterContext, ITransformer {
-		private final HashSet<String> functionsUsingVarArray = new HashSet<>();
+		@SuppressWarnings("unused")
+		private final Declaration declaration;
+		private final Script script;
+		private class FunctionAddition {
+			public String functionName;
+			public boolean varArray;
+			public HashSet<String> extraVariables;
+			public String extraVariable(String baseName) {
+				if (extraVariables == null)
+					extraVariables = new HashSet<>();
+				final Function f = script != null ? script.findLocalFunction(functionName, false) : null;
+				final String mut = IntStream.iterate(0, x -> x + 1)
+					.mapToObj(x -> x == 0 ? baseName : baseName + x)
+					.filter(n -> (f == null || f.findVariable(n) == null) && !extraVariables.contains(n))
+					.findFirst().get();
+				extraVariables.add(mut);
+				return mut;
+			}
+			public FunctionAddition(String functionName) {
+				super();
+				this.functionName = functionName;
+			}
+			public ASTNode[] prelude(FunctionBody body) {
+				final ASTNode varArray = this.varArray ? new VarDeclarationStatement(
+					Arrays.asList(new VarInitialization(VAR_ARRAY_NAME, new ArrayExpression(), -1, -1, null, null)), Scope.VAR
+				) : null;
+				final ASTNode extraDecs = extraVariables != null && !extraVariables.isEmpty() ? new VarDeclarationStatement(
+					extraVariables.stream().map(n -> new VarInitialization(n, null, -1, -1, null, null)).collect(Collectors.toList()),
+					Scope.VAR
+				) : null;
+				return nonNulls(varArray, extraDecs);
+			}
+		}
+		public CodeConverterContext(Declaration declaration) {
+			super();
+			this.declaration = declaration;
+			this.script = as(declaration, Script.class);
+		}
+		private final Map<String, FunctionAddition> functionAdditions = new HashMap<>();
+		private FunctionAddition requestAdditions(String functionName) {
+			final FunctionAddition existing = functionAdditions.get(functionName);
+			if (existing == null) {
+				final FunctionAddition n = new FunctionAddition(functionName);
+				functionAdditions.put(functionName, n);
+				return n;
+			} else
+				return existing;
+		}
+		@Override
+		public String defineFunctionVariable(String functionName, String variableName) {
+			return requestAdditions(functionName).extraVariable(variableName);
+		}
 		@Override
 		public void functionUsesVarArray(Function function) {
-			functionsUsingVarArray.add(function.name());
+			requestAdditions(function.name()).varArray = true;
 		}
 		public ASTNode postProcess(ASTNode converted) {
 			return converted.transformRecursively(this);
@@ -57,15 +114,11 @@ public abstract class CodeConverter {
 		public Object transform(ASTNode previousExpression, Object previousTransformationResult, ASTNode expression) {
 			if (expression instanceof FunctionBody) {
 				final FunctionBody bod = (FunctionBody) expression;
-				if (functionsUsingVarArray.contains(bod.owner().name()))
-					return new FunctionBody(bod.owner(), ArrayUtil.concat(varArrayPrelude(), bod.statements()));
+				final FunctionAddition addition = functionAdditions.get(bod.owner().name());
+				if (addition != null)
+					return new FunctionBody(bod.owner(), ArrayUtil.concat(addition.prelude(bod), bod.statements()));
 			}
 			return expression;
-		}
-		private ASTNode varArrayPrelude() {
-			return new VarDeclarationStatement(
-				Arrays.asList(new VarInitialization(VAR_ARRAY_NAME, new ArrayExpression(), -1, -1, null, null)), Scope.VAR
-			);
 		}
 	}
 	private ASTNode codeFor(final Declaration declaration) {
@@ -143,7 +196,7 @@ public abstract class CodeConverter {
 		}
 	}
 	public ASTNode convert(final Declaration codeOwner, final ASTNode code) {
-		final CodeConverterContext ctx = new CodeConverterContext();
+		final CodeConverterContext ctx = new CodeConverterContext(codeOwner);
 		ASTNode conv = performConversion(code, codeOwner, ctx);
 		conv = ctx.postProcess(conv);
 		return conv;

@@ -42,6 +42,8 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			(left instanceof AccessVar && right instanceof AccessVar);
 	}
 	@Override
+	public boolean acceptAttributeDifference() { return left instanceof MatchingPlaceholder; }
+	@Override
 	public boolean consume(final ASTNode consumer, ASTNode[] preceding, final ASTNode extra) {
 		final MatchingPlaceholder mp = as(consumer, MatchingPlaceholder.class);
 		if (mp != null && mp.multiplicity().acceptable(preceding.length+1))
@@ -168,10 +170,15 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		}
 	}
 	public Map<String, Object> result() {
+		try {
 		return result != null ? result.entrySet().stream()
-			.filter(e -> e.getKey().proto() == null)
+			.filter(e -> e.getKey().proto() == null && !e.getKey().entryName().equals(""))
 			.collect(Collectors.toMap(e -> e.getKey().entryName(), e -> e.getValue()))
 			: Collections.emptyMap();
+		} catch (final Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }

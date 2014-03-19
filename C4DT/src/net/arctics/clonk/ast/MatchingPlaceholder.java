@@ -17,11 +17,12 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.builder.CodeConverter;
+import net.arctics.clonk.builder.CodeConverter.ICodeConverterContext;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.ArrayElementExpression;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.GarbageStatement;
@@ -94,10 +95,30 @@ public class MatchingPlaceholder extends Placeholder {
 			return String.format("\"%s\"", text);
 		}
 		@CommandFunction
-		public static void FunctionUsesVarArray(final IEvaluationContext context, final String name, ASTNode node) {
+		public static void FunctionUsesVarArray(final IEvaluationContext context, ASTNode node) {
 			final Function fn = node.parent(Function.class);
-			if (fn != null && context.self() instanceof CodeConverter.ICodeConverterContext)
-				((CodeConverter.ICodeConverterContext)context.self()).functionUsesVarArray(fn);
+			final ICodeConverterContext ctx = as(context.self(), ICodeConverterContext.class);
+			if (fn != null && ctx != null)
+				ctx.functionUsesVarArray(fn);
+		}
+		@CommandFunction
+		public static ASTNode VarArrayVar(final IEvaluationContext context, Number index, ASTNode node) {
+			final Function fn = node.parent(Function.class);
+			final ICodeConverterContext ctx = as(context.self(), ICodeConverterContext.class);
+			if (fn != null && ctx != null) {
+				ctx.functionUsesVarArray(fn);
+				return new Sequence(
+					new AccessVar(ICodeConverterContext.VAR_ARRAY_NAME),
+					new ArrayElementExpression(new IntegerLiteral(index.longValue()))
+				);
+			} else
+				return null;
+		}
+		@CommandFunction
+		public static String EnforceLocal(final IEvaluationContext context, final String name, ASTNode node) {
+			final Function fn = node.parent(Function.class);
+			final ICodeConverterContext ctx = as(context.self(), ICodeConverterContext.class);
+			return fn != null && ctx != null ? ctx.defineFunctionVariable(fn.name(), name) : null;
 		}
 		@CommandFunction
 		public static IType Type(final IEvaluationContext context, final ASTNode node) {
