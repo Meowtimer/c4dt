@@ -15,7 +15,7 @@ public class SignedInteger extends IniEntryValue implements IConvertibleToPrimit
 	public String toString() { return String.valueOf(number); }
 	@Override
 	public Object convertToPrimitive() { return number; }
-	public long getNumber() { return number; }
+	public long number() { return number; }
 	public void setNumber(final long number) throws IniParserException { this.number = number; }
 	@Override
 	public void setInput(String input, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {

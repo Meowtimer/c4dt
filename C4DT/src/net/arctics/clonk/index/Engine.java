@@ -41,7 +41,6 @@ import net.arctics.clonk.index.XMLDocImporter.ExtractedDeclarationDocumentation;
 import net.arctics.clonk.ini.CustomIniUnit;
 import net.arctics.clonk.ini.IniData;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
-import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -417,11 +416,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 					} catch (final ProblemException e) {
 						e.printStackTrace();
 					}
-					for (final IniSection section : unit.sections()) {
+					unit.sections().forEach(section -> {
 						final Declaration declaration = findDeclaration(section.name());
 						if (declaration != null)
 							section.commit(declaration, false);
-					}
+					});
 				} finally {
 					try {
 						stream.close();

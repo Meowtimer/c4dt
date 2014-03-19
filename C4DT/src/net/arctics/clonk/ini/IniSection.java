@@ -1,5 +1,7 @@
 package net.arctics.clonk.ini;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -9,6 +11,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
@@ -17,6 +21,10 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.c4script.ProplistDeclaration;
+import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.Markers;
@@ -29,15 +37,20 @@ import net.arctics.clonk.util.StringUtil;
 import org.eclipse.core.runtime.IPath;
 
 public class IniSection
-	extends Declaration
+	extends Structure
 	implements IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>, IniItem, IASTSection
 {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	private final Map<String, IniItem> map = new HashMap<>();
-	private final List<IniItem> list = new LinkedList<>();
+	protected final Map<String, IniItem> map = new HashMap<>();
+	protected final List<IniItem> list = new LinkedList<>();
 	private IniSectionDefinition definition;
 	private int indentation;
+
+	public void clear() {
+		map.clear();
+		list.clear();
+	}
 
 	public IniSectionDefinition definition() { return definition; }
 	public void setDefinition(final IniSectionDefinition sectionData) { this.definition = sectionData; }
@@ -157,18 +170,23 @@ public class IniSection
 			e.validate(markers);
 	}
 
-	public Iterable<IniSection> sections() {
-		// unable to make this work generically ;c
-		final List<IniSection> sections = new LinkedList<IniSection>();
-		for (final ITreeNode node : childCollection())
-			if (node instanceof IniSection)
-				sections.add((IniSection) node);
-		return sections;
+	public IniSection parentSection() {
+		return parentDeclaration() instanceof IniSection ? (IniSection) parentDeclaration() : null;
 	}
 
-	public IniSection parentSection() {
-		return parentDeclaration() instanceof IniSection ? (IniSection) parentDeclaration()
-				: null;
+	public Stream<IniSection> sections() {
+		return list.stream().map(i -> as(i, IniSection.class)).filter(s -> s != null);
+	}
+
+	public IniSection sectionAtOffset(final int offset) {
+		IniSection section = null;
+		for (final IniSection sec : sections().toArray(l -> new IniSection[l])) {
+			final int start = sec.start();
+			if (start > offset)
+				break;
+			section = sec;
+		}
+		return section != null ? section.sectionAtOffset(offset) : this;
 	}
 
 	@Override
@@ -236,5 +254,20 @@ public class IniSection
 					}
 				}
 			}
+	}
+	@Override
+	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
+		return as(map.get(declarationName), declarationClass);
+	}
+
+	@Override
+	public ASTNode proplistValue() {
+		return new PropListExpression(toProplist());
+	}
+
+	public ProplistDeclaration toProplist() {
+		return new ProplistDeclaration(list.stream().map(
+			i -> new Variable(i.key(), i.proplistValue())
+		).collect(Collectors.toList()));
 	}
 }

@@ -11,8 +11,9 @@ public class Boolean extends UnsignedInteger {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	@Override
 	public Object convertToPrimitive() {
-		return this.getNumber() != 0;
+		return this.number() != 0;
 	}
+	public boolean booleanValue() { return number() != 0; }
 	@Override
 	public void setInput(final String input, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		if (input.equals(Keywords.True))

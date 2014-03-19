@@ -9,6 +9,10 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.ASTNodeWrap;
 import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.NameValueAssignment;
+import net.arctics.clonk.c4script.ast.False;
+import net.arctics.clonk.c4script.ast.IntegerLiteral;
+import net.arctics.clonk.c4script.ast.StringLiteral;
+import net.arctics.clonk.c4script.ast.True;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.IHasChildren;
@@ -44,6 +48,7 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 	public boolean isTransient() { return value() instanceof IniEntryValue && ((IniEntryValue)value()).isEmpty(); }
 	@Override
 	public String stringValue() { return value.toString(); }
+	@Override
 	public Object value() { return value; }
 	@Override
 	public int absoluteOffset() { return sectionOffset()+start; }
@@ -76,4 +81,16 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 	public ASTNode[] subElements() { return new ASTNode[] {ASTNodeWrap.wrap(value)}; }
 	@Override
 	public void setSubElements(ASTNode[] elms) { this.value = ASTNodeWrap.unwrap(elms[0]); }
+	@Override
+	public ASTNode proplistValue() {
+		final Object val = value();
+		if (val instanceof SignedInteger)
+			return new IntegerLiteral(((SignedInteger)val).number());
+		else if (val instanceof String)
+			return new StringLiteral((String)val);
+		else if (val instanceof Boolean)
+			return ((Boolean)val).booleanValue() ? new True() : new False();
+		else
+			return ASTNodeWrap.wrap(val);
+	}
 }

@@ -8,9 +8,10 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.ID;
 
 public class DefCoreUnit extends IniUnit {
+	public static final String FILE_NAME = "DefCore.txt";
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	@Override
-	protected String configurationName() { return "DefCore.txt"; } //$NON-NLS-1$
+	protected String configurationName() { return FILE_NAME; } //$NON-NLS-1$
 	public DefCoreUnit(final Object input) { super(input); }
 	@Override
 	public boolean requiresScriptReparse() { return true; /* i guess */ }

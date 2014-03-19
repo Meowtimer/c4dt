@@ -19,7 +19,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 public class IniUnitParser extends CStyleScanner implements IASTPositionProvider {
-
 	private final IniUnit unit;
 	private final IFile file;
 	private final Markers markers = new Markers();
@@ -133,8 +132,8 @@ public class IniUnitParser extends CStyleScanner implements IASTPositionProvider
 			seek(0);
 			IniSection section;
 			while ((section = parseSection(modifyMarkers, null)) != null) {
-				unit.sectionsMap.put(section.name(), section);
-				unit.sectionsList.add(section);
+				unit.map.put(section.name(), section);
+				unit.list.add(section);
 			}
 		} finally {
 			unit.endParsing();

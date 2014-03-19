@@ -8,11 +8,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import net.arctics.clonk.Core;
@@ -52,7 +50,7 @@ import org.eclipse.core.runtime.content.IContentType;
 /**
  * Reads Windows ini style configuration files
  */
-public class IniUnit extends Structure implements Iterable<IniSection>, IHasChildren, ITreeNode, IniItem {
+public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniItem {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private static final String INFO_FORMAT = "%s - %s";
@@ -62,34 +60,27 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	 */
 	protected Object input;
 
-	/**
-	 * map to access sections by their name - only useful when sections have different names
-	 */
-	protected Map<String, IniSection> sectionsMap = new HashMap<String, IniSection>();
-
-	/**
-	 * list of all sections regardless of name (for ActMap and similar files)
-	 */
-	protected List<IniSection> sectionsList = new LinkedList<IniSection>();
-
 	public String defaultName() { return file().getParent().getName(); }
 
 	/**
 	 * Creates an IniReader that reads ini information from a project file
 	 * @param file the file
 	 */
-	public IniUnit(final Object input) { this.input = input; }
+	public IniUnit(final Object input) { super(null); this.input = input; }
 
 	public void save(final ASTNodePrinter writer, final boolean discardEmptySections) {
-		boolean started = false;
-		for (final IniSection section : sectionsList) {
-			if (started)
-				writer.append('\n');
-			if (!discardEmptySections || section.hasPersistentItems()) {
-				started = true;
-				section.print(writer, -1);
+		sections().forEach(new Consumer<IniSection>() {
+			boolean started = false;
+			@Override
+			public void accept(IniSection section) {
+				if (started)
+					writer.append('\n');
+				if (!discardEmptySections || section.hasPersistentItems()) {
+					started = true;
+					section.print(writer, -1);
+				}
 			}
-		}
+		});
 	}
 
 	public void save(final boolean discardEmptySections) {
@@ -191,7 +182,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public IniSection requestSection(final String name, final IniSectionDefinition sectionData) {
-		IniSection result = sectionsMap.get(name);
+		IniSection result = as(map.get(name), IniSection.class);
 		if (result == null) {
 			result = new IniSection(name);
 			result.setDefinition(sectionData);
@@ -199,11 +190,6 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		}
 		else
 			return result;
-	}
-
-	void clear() {
-		sectionsList.clear();
-		sectionsMap.clear();
 	}
 
 	protected IniSectionDefinition sectionDataFor(final IniSection section, final IniSection parentSection) {
@@ -235,13 +221,8 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 			return null;
 	}
 
-	@Override
-	public Iterator<IniSection> iterator() {
-		return sectionsList.iterator();
-	}
-
 	public IniSection sectionWithName(final String name, final boolean create) {
-		IniSection s = sectionsMap.get(name);
+		IniSection s = as(map.get(name), IniSection.class);
 		if (s == null && create) {
 			final IniSection section = new IniSection(new SourceLocation(-1, -1), name);
 			section.setParent(null != null ? null : this);
@@ -252,11 +233,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public IniSection sectionMatching(final Predicate<IniSection> predicate) {
-		return Utilities.itemMatching(predicate, sectionsList);
+		return sections().filter(predicate).findFirst().orElse(null);
 	}
 
 	public IniItem itemInSection(final String section, final String entry) {
-		final IniSection s = sectionsMap.get(section);
+		final IniSection s = as(map.get(section), IniSection.class);
 		return s != null ? s.itemByKey(entry) : null;
 	}
 
@@ -265,18 +246,9 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return item instanceof IniEntry ? (IniEntry)item : null;
 	}
 
-	public IniSection[] sections() {
-		return sectionsList.toArray(new IniSection[sectionsList.size()]);
-	}
-
-	@Override
-	public Object[] children() {
-		return sections();
-	}
-
 	@Override
 	public boolean hasChildren() {
-		return !sectionsMap.isEmpty();
+		return !map.isEmpty();
 	}
 
 	@Override
@@ -286,7 +258,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	@Override
 	public List<? extends IniItem> childCollection() {
-		return sectionsList;
+		return list;
 	}
 
 	@Override
@@ -318,20 +290,10 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return "["+section.name()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
-	public IniSection sectionAtOffset(final IniSection parent, final int offset) {
-		IniSection section = null;
-		for (final IniSection sec : parent == null ? ArrayUtil.iterable(this.sections()) : parent.sections()) {
-			final int start = sec.start();
-			if (start > offset)
-				break;
-			section = sec;
-		}
-		return section == null ? parent : sectionAtOffset(section, offset);
-	}
-
-	public IniSection sectionAtOffset(final int offset) {
-		final IniSection sec = sectionAtOffset(null, offset);
-		return sec;
+	@Override
+	public IniSection sectionAtOffset(int offset) {
+		final IniSection s = super.sectionAtOffset(offset);
+		return s == this ? null : s;
 	}
 
 	@Override
@@ -427,8 +389,10 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
-		for (final IniSection sec : this.sectionsList)
-			sec.validate(markers);
+		sections().forEach(sec -> {
+			try { sec.validate(markers); }
+			catch (final ProblemException prob) {}
+		});
 	}
 
 	@Override
@@ -446,10 +410,11 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 		return super.engine();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<? extends Declaration> subDeclarations(final Index contextIndex, final int mask) {
 		if ((mask & DeclMask.IMPLICIT) != 0)
-			return this.sectionsList;
+			return (List<? extends Declaration>) this.list;
 		else
 			return Collections.emptyList();
 	}
@@ -487,14 +452,10 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 
 	@Override
 	public <T extends Declaration> T addDeclaration(final T declaration) {
-		if (declaration instanceof IniSection) {
-			final IniSection section = (IniSection) declaration;
-			declaration.setParent(this);
-			sectionsMap.put(section.name(), section);
-			sectionsList.add(section);
-			return declaration;
-		}
-		return super.addDeclaration(declaration);
+		if (declaration instanceof IniSection)
+			return super.addDeclaration(declaration);
+		else
+			throw new IllegalArgumentException();
 	}
 
 	@Override
@@ -503,8 +464,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	public void commit(final Object object) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-		for (final IniSection section : this.sections())
-			section.commit(object, true);
+		this.sections().forEach(section -> section.commit(object, true));
 	}
 
 	public void parseAndCommitTo(final Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
@@ -572,7 +532,7 @@ public class IniUnit extends Structure implements Iterable<IniSection>, IHasChil
 	}
 
 	@Override
-	public ASTNode[] subElements() { return sections(); }
+	public ASTNode[] subElements() { return sections().toArray(l -> new ASTNode[l]); }
 	@Override
 	public void setSubElements(ASTNode[] elms) {
 		clear();
