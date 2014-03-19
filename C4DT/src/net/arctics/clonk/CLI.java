@@ -308,16 +308,17 @@ public class CLI implements IApplication, AutoCloseable {
 		cr.open(npm);
 		final String[] packs = new String[] {
 			"Objects.c4d",
-			"System.c4g"
+			"System.c4g",
+			"Worlds.c4f",
+			"Graphics.c4g",
+			"Material.c4g",
+			"Music.c4g",
+			"Sound.c4g"
 			//"Fantasy.c4d",
 			//"FarWorlds.c4d",
-			//"Graphics.c4g",
 			//"Knights.c4d",
-			//"Material.c4g",
 			//"MetalMagic.c4d",
-			//"Music.c4g",
-			//"Sound.c4g",
-			//"Western.c4d",
+			//"Western.c4d"
 		};
 		Arrays.stream(packs).forEach(p -> link(cr, crFolder, p, npm));
 		cr.refreshLocal(IResource.DEPTH_INFINITE, npm);
