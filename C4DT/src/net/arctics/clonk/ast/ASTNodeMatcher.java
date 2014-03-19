@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.eq;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,13 +63,13 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		final MatchingPlaceholder mc = as(curLeft, MatchingPlaceholder.class);
 		final MatchingPlaceholder mn = as(nextLeft, MatchingPlaceholder.class);
 		final boolean _do =
-			(mc == null || mc.multiplicity().absolute() == null) &&
-			(mn == null || !mn.simple());
+			(mc == null || (mc.multiplicity().absolute() == null && mc.simple())) &&
+			(mn == null || !mn.simpleAndMultiplicityOne());
 		return _do ? super.lookAhead(curLeft, nextLeft, right) : false;
 	}
 	@Override
 	protected boolean consistent() {
-		return result.entrySet().stream().filter(e -> e.getKey().proto() == null)
+		return result == null || result.entrySet().stream().filter(e -> e.getKey().proto() == null)
 			.allMatch(e ->
 				e.getKey().consistent(e.getValue()) &&
 				result.entrySet().stream()
@@ -126,20 +127,23 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	 * being the target of a {@link ASTNode#match(ASTNode)} call.
 	 * @return A version of this expression with {@link MatchingPlaceholder} inserted for {@link Placeholder}
 	 */
-	public static ASTNode prepareForMatching(ASTNode node) {
+	public static ASTNode parsePlaceholders(ASTNode node) {
 		if (node instanceof Unfinished) {
 			final ASTNode orig = node;
 			node = SimpleStatement.unwrap(node);
 			node.setParent(orig.parent());
 		}
-		final ASTNode transformed = node.transformRecursively(MatchingPlaceholderTransformer.INSTANCE);
+		return node.transformRecursively(MatchingPlaceholderTransformer.INSTANCE);
+	}
+	public static ASTNode prepareForMatching(final ASTNode node) {
+		final ASTNode transformed = parsePlaceholders(node);
 		final Map<String, MatchingPlaceholder> mps = new HashMap<>();
 		transformed.traverse((n, c) -> {
 			final MatchingPlaceholder mp = as(n, MatchingPlaceholder.class);
 			if (mp != null && !mp.entryName().equals("")) {
 				final MatchingPlaceholder x = mps.get(mp.entryName());
 				if (x != null) {
-					if (!mp.simple())
+					if (!mp.simpleAndMultiplicityOne())
 						throw new IllegalArgumentException(String.format("%s is a repeat occurence - needs to be simple", mp.printed()));
 					mp.proto(x);
 				} else
@@ -164,9 +168,10 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		}
 	}
 	public Map<String, Object> result() {
-		return result.entrySet().stream()
+		return result != null ? result.entrySet().stream()
 			.filter(e -> e.getKey().proto() == null)
-			.collect(Collectors.toMap(e -> e.getKey().entryName(), e -> e.getValue()));
+			.collect(Collectors.toMap(e -> e.getKey().entryName(), e -> e.getValue()))
+			: Collections.emptyMap();
 	}
 
 }

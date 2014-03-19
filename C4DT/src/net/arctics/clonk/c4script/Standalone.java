@@ -16,12 +16,25 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.IMarkerListener;
 
+import org.eclipse.core.resources.IFile;
+
 /**
  * Helper class to parse single standalone C4Script statements/expressions
  * @author madeen
  *
  */
 public class Standalone {
+
+	public static final class Parser extends ScriptParser {
+		public Parser(Object source, Script script, IFile scriptFile) { super(source, script, scriptFile); }
+		@Override
+		public int sectionOffset() { return 0; }
+		@Override
+		protected ASTNode parseTupleElement() throws ProblemException {
+			final Statement s = parseStatement();
+			return s instanceof SimpleStatement ? ((SimpleStatement)s).expression() : s;
+		}
+	}
 
 	/** {@link Engine} the statement/expression is considered to be compatible with. */
 	public final Engine engine;
@@ -106,15 +119,7 @@ public class Standalone {
 			function.setParent(tempScript);
 			function.setBodyLocation(new SourceLocation(0, source.length()));
 		}
-		final ScriptParser tempParser = new ScriptParser(source, function.script(), null) {
-			@Override
-			public int sectionOffset() { return 0; }
-			@Override
-			protected ASTNode parseTupleElement() throws ProblemException {
-				final Statement s = parseStatement();
-				return s instanceof SimpleStatement ? ((SimpleStatement)s).expression() : s;
-			}
-		};
+		final ScriptParser tempParser = new Parser(source, function.script(), null);
 		tempParser.markers().setListener(markerListener);
 		ASTNode result = tempParser.parseDeclaration();
 		if (result == null || result instanceof Variables) {

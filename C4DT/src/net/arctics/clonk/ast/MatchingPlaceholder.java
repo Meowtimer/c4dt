@@ -504,7 +504,6 @@ public class MatchingPlaceholder extends Placeholder {
 
 	public boolean simple() {
 		return
-			multiplicity == Multiplicity.One &&
 			requiredClass == null &&
 			stringRepresentationPattern == null &&
 			associatedDeclarationNamePattern == null &&
@@ -512,6 +511,9 @@ public class MatchingPlaceholder extends Placeholder {
 			!negated &&
 			(subElements == null || subElements.length == 0) &&
 			proto == null;
+	}
+	public boolean simpleAndMultiplicityOne() {
+		return multiplicity == Multiplicity.One && simple();
 	}
 	public boolean consistent(Object value) {
 		final int mult = value instanceof Object[] ? ((Object[])value).length : 1;

@@ -24,6 +24,7 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
+import net.arctics.clonk.c4script.Standalone;
 import net.arctics.clonk.c4script.TempScript;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
@@ -61,12 +62,22 @@ public class ProjectConversionConfiguration extends CodeConverter {
 		public ASTNode template() { return template; }
 		public ASTNode transformation() { return transformation; }
 		public CodeTransformation chain() { return chain; }
+		private ASTNode[] extract(final ASTNode stmt) {
+			final BinaryOp op = as(stmt, BinaryOp.class);
+			final CallDeclaration cd = as(stmt, CallDeclaration.class);
+			if (op != null && op.operator() == Operator.Transform)
+				return new ASTNode[] {op.leftSide(), op.rightSide()};
+			else if (cd != null && cd.name().equals("Transform") && cd.params().length == 2)
+				return new ASTNode[] {cd.params()[0], cd.params()[1]};
+			else
+				return null;
+		}
 		public CodeTransformation(final ASTNode stmt, final CodeTransformation chain) {
 			this.chain = chain;
-			if (stmt instanceof BinaryOp && ((BinaryOp)stmt).operator() == Operator.Transform) {
-				final BinaryOp op = (BinaryOp)stmt;
-				this.template = ASTNodeMatcher.prepareForMatching(op.leftSide());
-				this.transformation = ASTNodeMatcher.prepareForMatching(op.rightSide());
+			final ASTNode[] tt = extract(stmt);
+			if (tt != null) {
+				this.template = ASTNodeMatcher.prepareForMatching(tt[0]);
+				this.transformation = ASTNodeMatcher.parsePlaceholders(tt[1]);
 			} else
 				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", stmt.toString()));
 		}
@@ -133,15 +144,12 @@ public class ProjectConversionConfiguration extends CodeConverter {
 	private void addTransformationFromStatement(ASTNode stmt) {
 		try {
 			stmt = SimpleStatement.unwrap(stmt);
-			if (stmt instanceof CallDeclaration) {
-				final CallDeclaration call = (CallDeclaration) stmt;
-				if (call.name().equals("Chain"))
-					transformations.add(new CodeTransformation(call.params(), 0));
-				else
-					throw new IllegalArgumentException(String.format("Unknown call '%s'", call.name()));
-			}
-			else
-				transformations.add(new CodeTransformation(stmt, null));
+			final CallDeclaration call = as(stmt, CallDeclaration.class);
+			transformations.add(
+				call != null && call.name().equals("Chain")
+					? new CodeTransformation(call.params(), 0)
+					: new CodeTransformation(stmt, null)
+			);
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -179,7 +187,7 @@ public class ProjectConversionConfiguration extends CodeConverter {
 			builder.append("\n}");
 			text = builder.toString();
 			final Script script = new TempScript(text, targetEngine);
-			final ScriptParser parser = new ScriptParser(text, script, null);
+			final ScriptParser parser = new Standalone.Parser(text, script, null);
 			parser.parse();
 			final Function transformations = parser.script().findLocalFunction("Transformations", false);
 			if (transformations != null && transformations.body() != null)

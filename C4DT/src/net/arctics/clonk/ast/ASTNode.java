@@ -5,7 +5,6 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -605,10 +604,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 */
 	public Map<String, Object> match(final ASTNode other) {
 		final ASTNodeMatcher delegate = new ASTNodeMatcher(other);
-		if (delegate.equal(this, other))
-			return delegate.result != null ? delegate.result() : Collections.<String, Object>emptyMap();
-		else
-			return null;
+		return delegate.equal(this, other) ? delegate.result() : null;
 	}
 
 	/**
