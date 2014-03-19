@@ -8,15 +8,8 @@ $:Call,/DefinitionCall|ObjectCall|PrivateCall|ProtectedCall|DefinitionCall/$($ta
 $:Call,/DefinitionCall|ObjectCall|PrivateCall|ProtectedCall||DefinitionCall/$($target$, $func:~String$, $params...$)
 	=> $target$->Call($func$, $params$);
 
-// Add/SetCommand direct call
-Chain(
-	AddCommand($:Whitespace$|$:Integer,/0/$, $params...$) => SetCommand(this, $params$),
-	AddCommand($target$, $params...$) => $target$->SetCommand($params$)
-);
-Chain(
-	SetCommand($:Whitespace$|$:Integer,/0/$, $params...$) => SetCommand(this, $params$),
-	SetCommand($target$, $params...$) => $target$->SetCommand($params$)
-);
+// remove obnoxious first parameter from SetCommand when already direct-called
+$target$->$call:Call,/(Set|Add)Command/$($:Whitespace$|$:Nil$, $params...$) => $target$->$call!value.name$($params$);
 
 // FindObject is the new FindObject2
 FindObject2($params...$) => FindObject($params...$);
@@ -107,10 +100,6 @@ Chain(
 	SetLocal($number$, $value$, $obj$) => $obj$[Format("local%d", $number$)]
 );
 
-// Message direct call
-Message($msg$, $:Integer,/0/$ | $:Whitespace$, $params...$) => Message($msg$, $params$);
-Message($msg$, $obj$, $params...$) => $obj$->Message($msg$, $params...$);
-
 // EffectVar() calls turned into <effect>.var<number> accesses
 EffectVar($index:Integer$, $target$, $effect$) => $effect$.$index!Var("var"+value.literal)$;
 EffectVar($complex$, $target$, $effect$) => $effect$[Format("var%d", $complex$)];
@@ -121,8 +110,14 @@ SetVisibility($vis$, $target$) => $target$.Visibility = $vis$;
 $target$->SetVisibility($vis$) => $target$.Visibility = $vis$;
 $target$->GetVisibility() => $target$.Visibility;
 
-// it's always newgfx-time
+// its always newgfx-time
 IsNewgfx() => true;
+
+// remove conditionalness when condition always true
+$:If$(true, $body$, $else...$) => $body$;
+
+// Ex is the new non-Ex
+GameCall($parms...$) => GameCallEx($parms$);
 
 // ColorDw replaced by Color, I guess
 GetColorDw() => GetColor();
@@ -152,14 +147,17 @@ And($a, $b) => $a && $b;
 Or($a, $b) => $a || $b;
 
 $call:Call,/FindConstructionSite/$($id$, $x:Integer$, $y:Integer$) =>
-	(xy = $call!{EnforceLocal("xy", value);return value.name;}$(
+	(xy = $call!{
+		EnforceLocal("xy", value);
+		return value.name;
+	}$(
 		$id$,
-		$x!EnforceLocal("var"+value.literal, value)$,
-		$y!EnforceLocal("var"+value.literal, value)$
+		$x!VarArrayVar(value.literal, value)$,
+		$y!VarArrayVar(value.literal, value)$
 	)) &&
 	(
-		($x!EnforceLocal("var"+value.literal, value)$ = xy[0]) ||
-		($y!EnforceLocal("var"+value.literal, value)$ = xy[1]) ||
+		($x!VarArrayVar(value.literal, value)$ = xy[0]) ||
+		($y!VarArrayVar(value.literal, value)$ = xy[1]) ||
 		true
 	);
 
