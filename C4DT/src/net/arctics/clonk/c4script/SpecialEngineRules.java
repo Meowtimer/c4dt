@@ -649,7 +649,7 @@ public abstract class SpecialEngineRules {
 	/**
 	 * Add link to the function being indirectly called by GameCall
 	 */
-	@AppliedTo(functions={"GameCall"})
+	@AppliedTo(functions={"GameCall", "GameCallEx"})
 	public final SpecialFuncRule gameCallLinkRule = new SpecialFuncRule() {
 		@Override
 		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script, final int parameterIndex, final int offsetInExpression, final ASTNode parmExpression) {
