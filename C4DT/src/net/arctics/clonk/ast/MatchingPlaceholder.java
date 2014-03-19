@@ -21,6 +21,7 @@ import net.arctics.clonk.builder.CodeConverter.ICodeConverterContext;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.ArrayElementExpression;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
@@ -148,9 +149,12 @@ public class MatchingPlaceholder extends Placeholder {
 			return new MemberOperator(dot, tilde, id, 0);
 		}
 		@Override
-		public IVariable variable(final AccessVar access, final Object obj) {
-			final Class<? extends ASTNode> cls = findClass(access.name());
-			return new Constant(cls);
+		public IVariable variable(final AccessDeclaration access, final Object obj) {
+			if (obj == this.self()) {
+				final Class<? extends ASTNode> cls = findClass(access.name());
+				return new Constant(cls);
+			} else
+				return null;
 		}
 		private static Map<String, Class<?extends ASTNode>> classCache = new HashMap<>();
 		@SuppressWarnings("unchecked")

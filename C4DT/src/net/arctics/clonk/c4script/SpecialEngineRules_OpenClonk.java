@@ -26,6 +26,7 @@ import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.IDLiteral;
@@ -232,7 +233,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		@Override
 		public int codeFragmentOffset() { return function != null ? function.codeFragmentOffset() : 0; }
 		@Override
-		public IVariable variable(final AccessVar access, final Object obj) { return function != null ? function.variable(access, null) : null; }
+		public IVariable variable(final AccessDeclaration access, final Object obj) { return function != null ? function.variable(access, null) : null; }
 		@Override
 		public Function function() { return function; }
 		@Override

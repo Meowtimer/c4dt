@@ -11,7 +11,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.IEvaluationContext;
-import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
@@ -355,7 +355,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	@Override
 	public Object self() { return null; }
 	@Override
-	public IVariable variable(final AccessVar access, final Object obj) { return script().variable(access, null); }
+	public IVariable variable(final AccessDeclaration access, final Object obj) { return script().variable(access, null); }
 	@Override
 	public Object[] arguments() { return new Object[0]; }
 	@Override

@@ -973,7 +973,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			@Override
 			public Markers markers() { return preliminary || visit.doubleTake ? NULL_MARKERS : this; }
 			@Override
-			public IVariable variable(final AccessVar access, final Object obj) { return null; }
+			public IVariable variable(final AccessDeclaration access, final Object obj) { return null; }
 			@Override
 			public Object[] arguments() { return null; }
 			@Override

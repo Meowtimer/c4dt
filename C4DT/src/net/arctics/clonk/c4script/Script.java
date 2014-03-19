@@ -41,6 +41,7 @@ import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
@@ -1137,7 +1138,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public Object[] arguments() { return new Object[0]; }
 	@Override
-	public IVariable variable(final AccessVar access, final Object obj) {
+	public IVariable variable(final AccessDeclaration access, final Object obj) {
 		if (access.predecessor() == null) {
 			final Variable v = findLocalVariable(access.name(), true);
 			if (v != null)

@@ -7,6 +7,7 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -284,30 +285,46 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		final Object self = evaluateVariable(predecessor() != null ? predecessor().evaluate(context) : context.self());
-		final Object[] args = new Object[params().length];
-    	for (int i = 0; i < args.length; i++)
-			try {
-				args[i] = evaluateVariable(params()[i] != null ? params()[i].evaluate(context) : null);
-			} catch (final ControlFlowException e) {
-				args[i] = null;
-				e.printStackTrace();
-			}
-	    if (declaration instanceof Function) {
-	    	final Function f = (Function)declaration;
+		final Object[] args = Arrays.stream(params())
+			.map(par -> par != null ? evFailsafe(par, context) : null)
+			.toArray(l -> new Object[l]);
+		final Function f = as(declaration, Function.class);
+		if (f != null)
 			return f.invoke(f.new Invocation(args, context, self));
-	    }
-	    if (self == null)
-	    	return null;
-	    for (final Method m : self.getClass().getMethods())
-			if (m.getName().equals(declarationName))
+		else if (self != null) {
+			final Object varEv = context.variable(this, self);
+			if (varEv instanceof Class) {
+				final Class<?>[] argTypes = Arrays.stream(args).map(o -> o != null ? o.getClass() : null)
+					.toArray(l -> new Class[l]);
 				try {
-	    			return m.invoke(self, args);
-	    		} catch (final IllegalArgumentException a) {
-	    			// continue search
-	    		} catch (final IllegalAccessException | InvocationTargetException e) {
-					throw new ReturnException(e);
+					return ((Class<?>)varEv).getConstructor(argTypes).newInstance(args);
+				} catch (final Exception e) {
+					e.printStackTrace();
+					return null;
 				}
-	    return null;
+			}
+			else {
+				final Method meh = Arrays.stream(self.getClass().getMethods())
+					.filter(m -> m.getName().equals(declarationName))
+					.findFirst().orElse(null);
+				try {
+					return meh != null ? meh.invoke(self, args) : null;
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		} else
+			return null;
+	}
+
+	private static Object evFailsafe(ASTNode par, IEvaluationContext context) {
+		try {
+			return par.evaluate(context);
+		} catch (final Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override

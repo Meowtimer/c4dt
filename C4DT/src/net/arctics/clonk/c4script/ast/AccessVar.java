@@ -91,11 +91,9 @@ public class AccessVar extends AccessDeclaration {
 
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
-		if (context != null)
-			return context.variable(this,
-				predecessor() != null ? evaluateVariable(predecessor().evaluate(context)) : context.self());
-		else
-			return super.evaluate(context);
+		return context != null
+			? context.variable(this, predecessor() != null ? evaluateVariable(predecessor().evaluate(context)) : context.self())
+			: super.evaluate(context);
 	}
 
 	@Override

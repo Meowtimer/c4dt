@@ -34,7 +34,7 @@ import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4script.Variable.Scope;
-import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.FunctionBody;
@@ -293,7 +293,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				.toArray(ConcreteVariable[]::new);
 		}
 		@Override
-		public IVariable variable(final AccessVar access, final Object obj) throws ControlFlowException {
+		public IVariable variable(final AccessDeclaration access, final Object obj) throws ControlFlowException {
 			final String aname = access.name();
 			if (access.predecessor() == null) {
 				final int i = ArrayUtil.indexOfItemSatisfying(parameters, p -> p.name().equals(aname));
@@ -884,7 +884,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return null;
 	}
 	@Override
-	public IVariable variable(final AccessVar access, final Object obj) {
+	public IVariable variable(final AccessDeclaration access, final Object obj) {
 		if (access.predecessor() == null) {
 			final Variable v = findVariable(access.name());
 			if (v != null)
