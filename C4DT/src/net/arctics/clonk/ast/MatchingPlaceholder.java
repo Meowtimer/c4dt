@@ -394,11 +394,14 @@ public class MatchingPlaceholder extends Placeholder {
 			}).toArray(l -> new Object[l]);
 
 		if (code != null)
-			try {
-				n = (Object[]) code.invoke(code.new Invocation(new Object[] {n, this}, code.script(), context));
-			} catch (final Exception e) {
-				e.printStackTrace();
-			}
+			n = Arrays.stream(n).map(v -> {
+				try {
+					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), context));
+				} catch (final Exception e) {
+					e.printStackTrace();
+					return v;
+				}
+			}).toArray(l -> new Object[l]);
 
 		return Arrays.stream(n).map(item ->
 			item instanceof ASTNode ? (ASTNode)item :
