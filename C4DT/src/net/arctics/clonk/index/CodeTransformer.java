@@ -20,6 +20,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.ITransformer;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.builder.CodeConverter;
+import net.arctics.clonk.builder.ProjectConverter;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
@@ -40,15 +41,18 @@ import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Tidy;
 import net.arctics.clonk.c4script.ast.Whitespace;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.ini.DefinitionPack;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
+
+import org.eclipse.core.runtime.Path;
 
 /**
  * Helper class containing information about how to transform a Clonk project written for one engine to one consumable by another engine.
  * @author madeen
  *
  */
-public class ProjectConversionConfiguration extends CodeConverter {
+public class CodeTransformer extends CodeConverter {
 	public class CodeTransformation {
 		private final ASTNode template;
 		private final ASTNode transformation;
@@ -121,7 +125,7 @@ public class ProjectConversionConfiguration extends CodeConverter {
 		}
 	}
 	private final Map<String, ObjParConversion> objParConversions;
-	public ProjectConversionConfiguration(final Engine sourceEngine, final Engine targetEngine, List<URL> files) {
+	public CodeTransformer(final Engine sourceEngine, final Engine targetEngine, List<URL> files) {
 		this.sourceEngine = sourceEngine;
 		this.targetEngine = targetEngine;
 		final List<URL> files1 = files;
@@ -225,6 +229,10 @@ public class ProjectConversionConfiguration extends CodeConverter {
 					if (mapped != null)
 						return new AccessVar(mapped.stringValue());
 				}
+				else if (expression instanceof DefinitionPack) {
+					final DefinitionPack dp = (DefinitionPack) expression;
+					return new DefinitionPack(ProjectConverter.convertPath(sourceEngine, targetEngine, new Path(dp.value())).toPortableString());
+				}
 				expression = expression.transformSubElements(this);
 				boolean success = false;
 				final CallDeclaration cd = as(expression, CallDeclaration.class);
@@ -245,7 +253,7 @@ public class ProjectConversionConfiguration extends CodeConverter {
 					}
 				}
 				if (!success)
-					for (final ProjectConversionConfiguration.CodeTransformation ct : transformations()) {
+					for (final CodeTransformer.CodeTransformation ct : transformations()) {
 						for (CodeTransformation c = ct; c != null; c = c.chain()) {
 							final Map<String, Object> matched = c.template().match(expression);
 							if (matched != null) {

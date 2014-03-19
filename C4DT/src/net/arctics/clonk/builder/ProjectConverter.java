@@ -19,10 +19,10 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.ast.IDLiteral;
+import net.arctics.clonk.index.CodeTransformer;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ID;
-import net.arctics.clonk.index.ProjectConversionConfiguration;
 import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.landscapescript.LandscapeScript;
@@ -131,12 +131,12 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	}
 
 	private final ClonkProjectNature sourceProject, destinationProject;
-	private final ProjectConversionConfiguration configuration;
+	private final CodeTransformer configuration;
 	private Engine sourceEngine() { return sourceProject.index().engine(); }
-	private Engine destinationEngine() { return destinationProject.index().engine(); }
+	private Engine targetEngine() { return destinationProject.index().engine(); }
 	private IProgressMonitor monitor;
 	private final List<DeclarationConversion> conversions = new LinkedList<>();
-	public ProjectConversionConfiguration configuration() { return configuration; }
+	public CodeTransformer configuration() { return configuration; }
 	/**
 	 * Create a new converter by specifying source and destination.
 	 * @param sourceProject Source project
@@ -145,17 +145,17 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public ProjectConverter(final IProject sourceProject, final IProject destinationProject) {
 		this.sourceProject = ClonkProjectNature.get(sourceProject);
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
-		this.configuration = destinationEngine().loadProjectConversionConfiguration(sourceEngine());
+		this.configuration = targetEngine().loadCodeTransformer(sourceEngine());
 		this.codeConverter = configuration;
-		assert(sourceEngine() != destinationEngine());
+		assert(sourceEngine() != targetEngine());
 	}
-	private IPath convertPath(final IPath path) {
+	public static IPath convertPath(Engine sourceEngine, Engine targetEngine, final IPath path) {
 		IPath result = new Path("");
 		for (int i = 0; i < path.segmentCount(); i++) {
 			String segment = path.segment(i);
-			final GroupType groupType = sourceEngine().groupTypeForFileName(segment);
+			final GroupType groupType = sourceEngine.groupTypeForFileName(segment);
 			if (groupType != GroupType.OtherGroup)
-				segment = destinationEngine().groupName(StringUtil.rawFileName(segment), groupType);
+				segment = targetEngine.groupName(StringUtil.rawFileName(segment), groupType);
 			result = result.append(segment);
 		}
 		return result;
@@ -184,8 +184,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public boolean visit(final IResource origin) throws CoreException {
 		if (origin instanceof IProject || skipResource(origin))
 			return true;
-		//System.out.println(format("Copying %s", other.getFullPath()));
-		final IPath path = convertPath(origin.getProjectRelativePath());
+		final IPath path = convertPath(sourceEngine(), targetEngine(), origin.getProjectRelativePath());
 		if (origin instanceof IFile) {
 			final IFile sourceFile = (IFile) origin;
 			final IFile targetFile = destinationProject.getProject().getFile(path);

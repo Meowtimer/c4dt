@@ -540,7 +540,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			specialRules.contribute(this);
 	}
 
-	public ProjectConversionConfiguration loadProjectConversionConfiguration(Engine sourceEngine) {
+	public CodeTransformer loadCodeTransformer(Engine sourceEngine) {
 		try {
 			final List<URL> projectConverterFiles = new ArrayList<URL>();
 			for (int i = storageLocations.length - 1; i >= 0; i--) {
@@ -548,7 +548,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				location.collectURLsOfContainer(String.format("projectConverters/%s", sourceEngine.name()), true, projectConverterFiles); //$NON-NLS-1$
 			}
 			if (projectConverterFiles.size() > 0) {
-				final ProjectConversionConfiguration conf = new ProjectConversionConfiguration(sourceEngine, this, projectConverterFiles);
+				final CodeTransformer conf = new CodeTransformer(sourceEngine, this, projectConverterFiles);
 				return conf;
 			}
 			return null;

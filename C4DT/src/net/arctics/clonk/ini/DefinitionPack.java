@@ -11,10 +11,9 @@ import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 public class DefinitionPack extends IniEntryValue implements IPlaceholderPatternMatchTarget {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private String value;
-	public DefinitionPack(String value) {
-		super();
-		this.value = value;
-	}
+	public DefinitionPack() {}
+	public DefinitionPack(String value) { super(); this.value = value; }
+	public String value() { return value; }
 	@Override
 	public String toString() { return value; }
 	@Override
