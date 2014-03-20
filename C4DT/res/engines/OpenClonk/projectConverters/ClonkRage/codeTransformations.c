@@ -75,7 +75,7 @@ $obj:Var,?Type(value).simpleType.typeName != "int"$ = 0
 Chain(
 	$x$->LocalN($name$)
 		=> LocalN($name$, $x$),
-	LocalN($name?!name.predecessor.is(MemberOperator)$)
+	LocalN($name?value.predecessor == nil$)
 		=> LocalN($name$, this),
 	LocalN($name:String$, $obj$)
 		=> $obj$.$name!Var(value.literal)$,

@@ -133,6 +133,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 								final Variable actMapVar = ((Script)script.converted).addDeclaration(new Variable("ActMap", Scope.LOCAL));
 								actMapVar.setInitializationExpression(new PropListExpression(actMapUnit.toProplist()));
 								actMap.target.delete(true, null);
+								sub.remove(actMap.original.file());
 							}
 						}
 					}

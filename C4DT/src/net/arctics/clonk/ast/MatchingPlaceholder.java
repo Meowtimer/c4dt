@@ -150,7 +150,7 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		@Override
 		public IVariable variable(final AccessDeclaration access, final Object obj) {
-			if (obj == this.self()) {
+			if (obj instanceof MatchingPlaceholder) {
 				final Class<? extends ASTNode> cls = findClass(access.name());
 				return new Constant(cls);
 			} else
@@ -475,6 +475,7 @@ public class MatchingPlaceholder extends Placeholder {
 					return false;
 			} catch (final Exception e) {
 				//System.out.println(e.getMessage());
+				code.invoke(code.new Invocation(new Object[] {element}, code.script(), this));
 				return false;
 			}
 		return true;

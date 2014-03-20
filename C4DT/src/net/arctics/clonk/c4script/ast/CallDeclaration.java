@@ -6,7 +6,6 @@ import static net.arctics.clonk.util.ArrayUtil.set;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import net.arctics.clonk.Core;
@@ -302,25 +301,25 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 					e.printStackTrace();
 					return null;
 				}
-			}
-			else {
-				final Method meh = Arrays.stream(self.getClass().getMethods())
+			} else
+				return Arrays.stream(self.getClass().getMethods())
 					.filter(m -> m.getName().equals(declarationName))
-					.findFirst().orElse(null);
-				try {
-					return meh != null ? meh.invoke(self, args) : null;
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					e.printStackTrace();
-					return null;
-				}
-			}
+					.map(m -> {
+						try {
+							return m != null ? m.invoke(self, args) : null;
+						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+							return null;
+						}
+					})
+					.filter(r -> r != null)
+					.findFirst();
 		} else
 			return null;
 	}
 
 	private static Object evFailsafe(ASTNode par, IEvaluationContext context) {
 		try {
-			return par.evaluate(context);
+			return evaluateVariable(par.evaluate(context));
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
