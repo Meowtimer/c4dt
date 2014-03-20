@@ -2,6 +2,7 @@ package net.arctics.clonk.c4script.ast;
 
 import static net.arctics.clonk.c4script.Conf.alwaysConvertObjectCalls;
 import static net.arctics.clonk.c4script.Conf.printNodeList;
+import static net.arctics.clonk.util.ArrayUtil.indexOf;
 import static net.arctics.clonk.util.ArrayUtil.set;
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -262,16 +263,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		return name().equals(Keywords.Return) ? ControlFlow.Return : super.controlFlow();
 	}
 	@Override
-	public ASTNode[] params() {
-		return params;
-	}
+	public ASTNode[] params() { return params; }
 	@Override
-	public int indexOfParm(final ASTNode parm) {
-		for (int i = 0; i < params.length; i++)
-			if (params[i] == parm)
-				return i;
-		return -1;
-	}
+	public int indexOfParm(final ASTNode parm) { return indexOf(parm, params); }
 	public Variable parmDefinitionForParmExpression(final ASTNode parm) {
 		if (declaration instanceof Function) {
 			final Function f = (Function) declaration;
@@ -327,16 +321,10 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	}
 
 	@Override
-	public Class<? extends Declaration> declarationClass() {
-		return Function.class;
-	}
-
+	public Class<? extends Declaration> declarationClass() { return Function.class; }
 	public final Function function(final ProblemReporter context) {
 		return as(context.obtainDeclaration(this), Function.class);
 	}
-
-	public final Function function() {
-		return as(declaration, Function.class);
-	}
+	public final Function function() { return as(declaration, Function.class); }
 
 }
