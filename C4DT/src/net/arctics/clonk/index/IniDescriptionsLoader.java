@@ -38,15 +38,15 @@ public class IniDescriptionsLoader {
 					final IniSection functions = unit.sectionWithName("Functions", false); //$NON-NLS-1$
 					if (functions != null)
 						for (final Function f : engine.functions()) {
-							final IniSection sec = as(functions.itemByKey(f.name()), IniSection.class);
+							final IniSection sec = as(functions.item(f.name()), IniSection.class);
 							if (sec != null) {
-								final IniEntry de = as(sec.itemByKey("Description"), IniEntry.class);
+								final IniEntry de = as(sec.item("Description"), IniEntry.class);
 								if (de != null)
 									f.setUserDescription(de.value().toString());
 								for (final Variable p : f.parameters()) {
-									final IniSection ps = as(sec.itemByKey(p.name()), IniSection.class);
+									final IniSection ps = as(sec.item(p.name()), IniSection.class);
 									if (ps != null) {
-										final IniEntry dp = as(ps.itemByKey("Description"), IniEntry.class);
+										final IniEntry dp = as(ps.item("Description"), IniEntry.class);
 										if (dp != null)
 											if (dp.value() != null)
 												p.setUserDescription(dp.value().toString());
@@ -57,9 +57,9 @@ public class IniDescriptionsLoader {
 					final IniSection variables = unit.sectionWithName("Variables", false); //$NON-NLS-1$
 					if (variables != null)
 						for (final Variable v : engine.variables()) {
-							final IniSection sec = as(variables.itemByKey(v.name()), IniSection.class);
+							final IniSection sec = as(variables.item(v.name()), IniSection.class);
 							if (sec != null) {
-								final IniEntry de = as(sec.itemByKey("Description"), IniEntry.class);
+								final IniEntry de = as(sec.item("Description"), IniEntry.class);
 								if (de != null)
 									v.setUserDescription(de.value().toString());
 							}

@@ -18,11 +18,17 @@ import java.util.function.Supplier;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.IDLiteral;
+import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.index.CodeTransformer;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ID;
+import net.arctics.clonk.ini.ActMapUnit;
+import net.arctics.clonk.ini.DefCoreUnit;
 import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.landscapescript.LandscapeScript;
@@ -111,12 +117,22 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 						};
 						final ID mapped = mapID.get();
 						if (mapped != definition.id()) {
-							final FileConversion defCore = sub.get(findMemberCaseInsensitively(originFolder, "DefCore.txt"));
+							final FileConversion defCore = sub.get(findMemberCaseInsensitively(originFolder, DefCoreUnit.FILE_NAME));
 							final IniUnit defCoreUnit = defCore != null ? as(defCore.converted, IniUnit.class) : null;
 							if (defCoreUnit != null) {
 								final IniEntry entry = defCoreUnit.entryInSection("DefCore", "id");
 								if (entry != null)
 									entry.value(new IDLiteral(mapped));
+							}
+						}
+						final FileConversion actMap = sub.get(findMemberCaseInsensitively(originFolder, ActMapUnit.FILE_NAME));
+						final ActMapUnit actMapUnit = actMap != null ? as(actMap.converted, ActMapUnit.class) : null;
+						if (actMapUnit != null) {
+							final FileConversion script = sub.get(definition.file());
+							if (script != null && script.converted instanceof Script) {
+								final Variable actMapVar = ((Script)script.converted).addDeclaration(new Variable("ActMap", Scope.LOCAL));
+								actMapVar.setInitializationExpression(new PropListExpression(actMapUnit.toProplist()));
+								actMap.target.delete(true, null);
 							}
 						}
 					}

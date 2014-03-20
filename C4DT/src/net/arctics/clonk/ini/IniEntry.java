@@ -1,5 +1,6 @@
 package net.arctics.clonk.ini;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
@@ -9,6 +10,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.ASTNodeWrap;
 import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.NameValueAssignment;
+import net.arctics.clonk.c4script.ast.ArrayExpression;
 import net.arctics.clonk.c4script.ast.False;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.StringLiteral;
@@ -88,6 +90,12 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 			return new IntegerLiteral(((SignedInteger)val).number());
 		else if (val instanceof String)
 			return new StringLiteral((String)val);
+		else if (val instanceof NamedReference)
+			return new StringLiteral(((NamedReference)val).value());
+		else if (val instanceof IntegerArray) {
+			final ASTNode[] ints = Arrays.stream(((IntegerArray)val).values()).map(c -> new IntegerLiteral(c.summedValue())).toArray(l -> new ASTNode[l]);
+			return new ArrayExpression(ints);
+		}
 		else if (val instanceof Boolean)
 			return ((Boolean)val).booleanValue() ? new True() : new False();
 		else

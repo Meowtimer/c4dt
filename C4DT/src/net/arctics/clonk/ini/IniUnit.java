@@ -1,5 +1,6 @@
 package net.arctics.clonk.ini;
 
+import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.StringWriter;
@@ -35,6 +36,7 @@ import net.arctics.clonk.ini.IniData.IniDataBase;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
 import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.ITreeNode;
@@ -238,7 +240,7 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 
 	public IniItem itemInSection(final String section, final String entry) {
 		final IniSection s = as(map.get(section), IniSection.class);
-		return s != null ? s.itemByKey(entry) : null;
+		return s != null ? s.item(entry) : null;
 	}
 
 	public IniEntry entryInSection(final String section, final String entry) {
@@ -287,7 +289,13 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	}
 
 	public String sectionToString(final IniSection section) {
-		return "["+section.name()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
+		final IniItem nameEntry = section.item(nameEntryName(section));
+		if (nameEntry instanceof IniEntry) {
+			String val = ((IniEntry) nameEntry).stringValue();
+			val = StringTbl.evaluateEntries(this, val, true).evaluated;
+			return "["+val+"]"; //$NON-NLS-1$ //$NON-NLS-2$
+		} else
+			return "["+section.name()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	@Override
@@ -523,11 +531,11 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 			return null;
 		IniSection section = null;
 		for (int i = 0; i < p.length-1; i++) {
-			section = section != null ? as(section.itemByKey(p[i]), IniSection.class) : this.sectionWithName(p[i], false);
+			section = section != null ? as(section.item(p[i]), IniSection.class) : this.sectionWithName(p[i], false);
 			if (section == null)
 				return null;
 		}
-		final IniEntry entry = section != null ? as(section.itemByKey(p[p.length-1]), IniEntry.class) : null;
+		final IniEntry entry = section != null ? as(section.item(p[p.length-1]), IniEntry.class) : null;
 		return entry != null ? as(entry.value(), cls) : null;
 	}
 
@@ -536,10 +544,30 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	@Override
 	public void setSubElements(ASTNode[] elms) {
 		clear();
-		Arrays.stream(elms)
-			.filter(e -> e instanceof Declaration)
-			.map(e -> (Declaration)e)
-			.forEach(this::addDeclaration);
+		ofType(Arrays.stream(elms), Declaration.class).forEach(this::addDeclaration);
+	}
+
+	public String nameEntryName(final IniSection section) { return null; }
+
+	public Predicate<IniSection> nameMatcherPredicate(final String value) {
+		return section -> {
+			final IniItem entry = section.item(nameEntryName(section));
+			return (entry instanceof IniEntry && ((IniEntry)entry).stringValue().equals(value));
+		};
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Declaration> T latestVersionOf(final T from) {
+		if (from instanceof IniSection) {
+			final IniSection section = (IniSection) from;
+			final IniEntry entry = (IniEntry) section.item(nameEntryName(section.parentSection()));
+			if (entry != null)
+				return (T) sectionMatching(nameMatcherPredicate(entry.stringValue()));
+			else
+				return null;
+		} else
+			return null;
 	}
 
 }

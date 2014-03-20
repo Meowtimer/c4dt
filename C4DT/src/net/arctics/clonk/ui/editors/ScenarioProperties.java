@@ -563,7 +563,7 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 		}
 		private void setValue(final int index, final int value) {
 			final IniSection s = scenarioConfiguration.sectionWithName(section, true);
-			IniItem i = s.itemByKey(entry);
+			IniItem i = s.item(entry);
 			if (i == null) {
 				final int[] values = new int[4];
 				values[index] = value;
@@ -624,13 +624,13 @@ public class ScenarioProperties extends PropertyPage implements IWorkbenchProper
 	public DefinitionListEditor listEditorFor(final Composite parent, final String sectionName, final String entryName, final String friendlyName) {
 		IniEntry entry;
 		try {
-			entry = as(scenarioConfiguration.sectionWithName(sectionName, false).itemByKey(entryName), IniEntry.class);
+			entry = as(scenarioConfiguration.sectionWithName(sectionName, false).item(entryName), IniEntry.class);
 			if (entry == null)
 				throw new NullPointerException();
 		} catch (final NullPointerException itemCreation) {
 			try {
 				final IniSection section = scenarioConfiguration.sectionWithName(sectionName, true);
-				IniItem item = section.itemByKey(entryName);
+				IniItem item = section.item(entryName);
 				if (item == null)
 					item = section.addDeclaration(new IniEntry(-1, -1, entryName, new IDArray()));
 				entry = (IniEntry)item;

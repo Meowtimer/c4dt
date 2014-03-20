@@ -33,7 +33,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 				if (item instanceof IniSection) {
 					final IniSection section = (IniSection) item;
 					if (section.name().equals("ControlDef")) { //$NON-NLS-1$
-						final IniItem identifierEntry = section.itemByKey("Identifier"); //$NON-NLS-1$
+						final IniItem identifierEntry = section.item("Identifier"); //$NON-NLS-1$
 						if (identifierEntry instanceof IniEntry) {
 							final IniEntry e = (IniEntry) identifierEntry;
 							final String ident = e.stringValue();
@@ -48,7 +48,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 		super.endParsing();
 	}
 	@Override
-	public String nameOfEntryToTakeSectionNameFrom(final IniSection section) {
+	public String nameEntryName(final IniSection section) {
 		if (section != null && section.parentSection() != null) {
 			final IniSection psec = section.parentSection();
 			if (psec.name().equals("ControlDefs"))
@@ -58,7 +58,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 			else if (psec.name().equals("ControlSet"))
 				return "Control";
 		}
-		return super.nameOfEntryToTakeSectionNameFrom(section);
+		return super.nameEntryName(section);
 	}
 	@Override
 	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {

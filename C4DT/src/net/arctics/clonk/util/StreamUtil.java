@@ -1,5 +1,7 @@
 package net.arctics.clonk.util;
 
+import static net.arctics.clonk.util.Utilities.as;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -13,6 +15,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.net.URL;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 
@@ -156,5 +159,9 @@ public class StreamUtil {
 				return p.matcher(name).matches();
 			}
 		};
+	}
+
+	public static <T> Stream<T> ofType(Stream<? super T> stream, Class<T> cls) {
+		return stream.map(i -> as(i, cls)).filter(i -> i != null);
 	}
 }

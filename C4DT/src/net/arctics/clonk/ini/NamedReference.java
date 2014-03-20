@@ -10,6 +10,7 @@ public class NamedReference extends IniEntryValue {
 	public void setInput(final String value, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
 		this.value = value;
 	}
+	public String value() { return value; }
 	@Override
 	public String toString() { return value; }
 }

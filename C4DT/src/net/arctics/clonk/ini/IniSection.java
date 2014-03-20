@@ -41,21 +41,18 @@ public class IniSection
 	implements IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>, IniItem, IASTSection
 {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-
 	protected final Map<String, IniItem> map = new HashMap<>();
 	protected final List<IniItem> list = new LinkedList<>();
 	private IniSectionDefinition definition;
 	private int indentation;
-
 	public void clear() {
 		map.clear();
 		list.clear();
 	}
-
 	public IniSectionDefinition definition() { return definition; }
 	public void setDefinition(final IniSectionDefinition sectionData) { this.definition = sectionData; }
 	public Map<String, IniItem> map() { return map; }
-	public IniItem itemByKey(final String key) { return map.get(key); }
+	public IniItem item(final String key) { return key == null ? null : map.get(key); }
 	public List<IniItem> items() { return list; }
 	@Override
 	public String key() { return name(); }
@@ -266,8 +263,22 @@ public class IniSection
 	}
 
 	public ProplistDeclaration toProplist() {
-		return new ProplistDeclaration(list.stream().map(
-			i -> new Variable(i.key(), i.proplistValue())
+		final IniUnit unit = this instanceof IniUnit ? (IniUnit)this : parent(IniUnit.class);
+		Stream<IniItem> ls = list.stream();
+		if (unit != null) {
+			final String n = unit.nameEntryName(this);
+			final IniItem nameEntry = n != null ? this.item(n) : null;
+			if (nameEntry != null)
+				ls = ls.filter(i -> i != nameEntry);
+		}
+		return new ProplistDeclaration(
+			ls.map(i -> new Variable(proplistKey(unit, i), i.proplistValue())
 		).collect(Collectors.toList()));
+	}
+
+	private String proplistKey(IniUnit unit, IniItem i) {
+		final IniSection s = as(i, IniSection.class);
+		final IniEntry nameEntry = s != null && unit != null ? as(s.item(unit.nameEntryName(s)), IniEntry.class) : null;
+		return nameEntry != null ? nameEntry.value().toString() : i.key();
 	}
 }

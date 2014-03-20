@@ -181,7 +181,7 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 		for (final IniDataBase entry : section.definition().entries().values())
 			if (entry instanceof IniEntryDefinition) {
 				final IniEntryDefinition e = (IniEntryDefinition) entry;
-				if (!e.name().toLowerCase().contains(pl.prefix) || section.itemByKey(e.name()) != null)
+				if (!e.name().toLowerCase().contains(pl.prefix) || section.item(e.name()) != null)
 					continue;
 				pl.addProposal(new CompletionProposal(e.name(), pl.wordOffset, pl.prefix.length(), e.name().length(), null, e.name(), null, e.description()));
 			}
