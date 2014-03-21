@@ -285,7 +285,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		if (f != null)
 			return f.invoke(f.new Invocation(args, context, self));
 		else if (self != null) {
-			final Object varEv = context.variable(this, self);
+			final Object varEv = evaluateVariable(context.variable(this, self));
 			if (varEv instanceof Class) {
 				final Class<?>[] argTypes = Arrays.stream(args).map(o -> o != null ? o.getClass() : null)
 					.toArray(l -> new Class[l]);

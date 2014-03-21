@@ -306,7 +306,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 								if (m instanceof ASTSearchQuery.Match) {
 									final ASTSearchQuery.Match qm = (ASTSearchQuery.Match) m;
 									final ASTNode replacement = query.replacement();
-									ASTNode repl = replacement.transform(qm.subst(), null);
+									ASTNode repl = replacement.transform(qm.subst(), replacement);
 									if (repl == replacement)
 										repl = repl.clone();
 									repl.setLocation(qm.getOffset(), qm.getOffset()+qm.getLength());
