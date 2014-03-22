@@ -87,7 +87,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				this.target = target;
 			}
 			FileConversion convert() {
-				converted = as(codeConverter.convert(original, original), Structure.class);
+				converted = as(transformer.convert(original, original), Structure.class);
 				return this;
 			}
 			void write() {
@@ -123,7 +123,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					final Definition definition = as(declaration, Definition.class);
 					if (definition != null && originFolder != null) {
 						final Supplier<ID> mapID = () -> {
-							final ID mapped = configuration.idMap().getOrDefault(definition.id(), null);
+							final ID mapped = transformer.idMap().getOrDefault(definition.id(), null);
 							if (mapped != null)
 								return mapped;
 							else
@@ -162,12 +162,12 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	}
 
 	private final ClonkProjectNature sourceProject, destinationProject;
-	private final CodeTransformer configuration;
+	private final CodeTransformer transformer;
 	private Engine sourceEngine() { return sourceProject.index().engine(); }
 	private Engine targetEngine() { return destinationProject.index().engine(); }
 	private IProgressMonitor monitor;
 	private final List<DeclarationConversion> conversions = new LinkedList<>();
-	public CodeTransformer configuration() { return configuration; }
+	public CodeTransformer configuration() { return transformer; }
 	/**
 	 * Create a new converter by specifying source and destination.
 	 * @param sourceProject Source project
@@ -176,8 +176,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public ProjectConverter(final IProject sourceProject, final IProject destinationProject) {
 		this.sourceProject = ClonkProjectNature.get(sourceProject);
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
-		this.configuration = targetEngine().loadCodeTransformer(sourceEngine());
-		this.codeConverter = configuration;
+		this.transformer = targetEngine().loadCodeTransformer(sourceEngine());
 		assert(sourceEngine() != targetEngine());
 	}
 	public static IPath convertPath(Engine sourceEngine, Engine targetEngine, final IPath path) {
@@ -299,7 +298,6 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		} else
 			return false;
 	}
-	private final CodeConverter codeConverter;
 	private boolean skipResource(final IResource sourceResource) {
 		return sourceResource.getName().equals(".project");
 	}
