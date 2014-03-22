@@ -38,6 +38,8 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -471,6 +473,8 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public interface IDocumentAction<T> {
 		T run(IDocument document);
 	}
+	
+	private static IProgressMonitor NPM = new NullProgressMonitor();
 
 	public <T> T performActionsOnFileDocument(final IStorage file, final IDocumentAction<T> action, final boolean save) {
 		final TextFileDocumentProvider provider = TextFileDocumentProviderThing.provider;
@@ -487,7 +491,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				if (save)
 					try {
 						//textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
-						provider.saveDocument(null, file, document, true);
+						provider.saveDocument(NPM, file, document, true);
 					} catch (final CoreException e) {
 						out.println(format("Failed to save %s: %s", file.getFullPath(), e.getMessage()));
 					}
