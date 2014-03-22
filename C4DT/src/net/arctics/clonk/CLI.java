@@ -36,6 +36,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Index.Built;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFolder;
@@ -464,26 +465,6 @@ public class CLI implements IApplication, AutoCloseable {
 		}
 		return EXIT_OK;
 	}
-	private static String toCamelCase(String str) {
-		final StringBuffer result = new StringBuffer(str.length());
-		final String strl = str.toLowerCase();
-		boolean cap = true;
-		for (int i = 0; i < strl.length(); i++) {
-			final char c = strl.charAt(i);
-			if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_') {
-				if (cap) {
-					result.append(strl.substring(i, i+1).toUpperCase());
-					cap = false;
-				} else
-					result.append(c);
-			} else
-				cap = true;
-		}
-		return result.toString();
-	}
-	private static <T, R> R getFromOrNull(T thing, java.util.function.Function<T, R> fun) {
-		return thing != null ? fun.apply(thing) : null;
-	}
 	@Callable
 	public Map<ID, ID> mapIDToName(String projectName, Map<?, ?> override) {
 		final ClonkProjectNature cpn = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
@@ -496,15 +477,12 @@ public class CLI implements IApplication, AutoCloseable {
 		result.forEach((key, value) -> reverse.put(value, key));
 		cpn.index().allDefinitions((Definition def) -> {
 			if (!result.containsKey(def.id())) {
-				final String englishName =
-					def.localizedNames() != null ? def.localizedNames().get("US") :
-					getFromOrNull(def.defCore().entryInSection("DefCore", "Name"), e -> e.stringValue());
-				if (englishName != null) {
-					final String camel = toCamelCase(englishName);
+				final String defName = StringUtil.rawFileName(def.definitionFolder().getName());
+				if (defName != null) {
 					final ID mapped = IntStream
 						.iterate(1, x -> x + 1)
-						.mapToObj(x -> x == 1 ? ID.get(camel) : ID.get(camel+x))
-						.filter(id -> !reverse.containsKey(id))
+						.mapToObj(x -> x == 1 ? ID.get(defName) : ID.get(defName+x))
+						.filter(id -> !reverse.containsKey(id) || reverse.get(id).equals(id))
 						.findFirst().orElse(null);
 					result.put(def.id(), mapped);
 					reverse.put(mapped, def.id());
