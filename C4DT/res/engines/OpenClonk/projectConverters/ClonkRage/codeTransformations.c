@@ -173,3 +173,5 @@ $m:MemberOperator,/->[A-Z_0-9]{4}::/$ => $m!MemberOperator(false, false, nil)$;
 
 // replace #strict with comments, whatevs
 $x:Directive,/strict/$ => $x!"// Everything is superstrict"$;
+
+$fndesc:FunctionDescription$ => $fndesc!Comment(value.printed, false, false)$;
