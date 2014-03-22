@@ -296,7 +296,7 @@ public class CLI implements IApplication, AutoCloseable {
 	}
 	@Callable
 	public void setupCRProject(String _crFolder) throws CoreException {
-		final String crFolder = new File(workingDir, _crFolder).toString();
+		final String crFolder = resolvePath(new File(_crFolder)).toString();
 		final NullProgressMonitor npm = new NullProgressMonitor();
 		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(CLONK_RAGE);
 		desc.setNatureIds(new String[0]);
@@ -390,7 +390,7 @@ public class CLI implements IApplication, AutoCloseable {
 			proj.delete(false, true, npm);
 
 		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
-		desc.setLocation(new Path(new File(workingDir, path).toString()));
+		desc.setLocation(new Path(resolvePath(new File(path)).toString()));
 		desc.setNatureIds(new String[0]);
 		desc.setBuildSpec(new ICommand[0]);
 
@@ -418,6 +418,9 @@ public class CLI implements IApplication, AutoCloseable {
 		proj.build(IncrementalProjectBuilder.FULL_BUILD, npm);
 	}
 	private File workingDir = new File(".");
+	private File resolvePath(File path) {
+		return path.isAbsolute() ? path : new File(workingDir, path.toString());
+	}
 	@Callable
 	public void run(String fileName) {
 		final File f = new File(fileName);
