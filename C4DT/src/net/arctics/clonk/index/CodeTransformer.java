@@ -56,32 +56,48 @@ public class CodeTransformer extends CodeConverter {
 	public class CodeTransformation {
 		private final ASTNode template;
 		private final ASTNode transformation;
+		private final boolean exhaustive;
 		private final CodeTransformation chain;
-		public CodeTransformation(final ASTNode template, final ASTNode transformation, final CodeTransformation chain) {
+		public CodeTransformation(final ASTNode template, final ASTNode transformation, boolean exhaustive, final CodeTransformation chain) {
 			super();
 			this.template = template;
 			this.transformation = transformation;
+			this.exhaustive = exhaustive;
 			this.chain = chain;
 		}
 		public ASTNode template() { return template; }
 		public ASTNode transformation() { return transformation; }
 		public CodeTransformation chain() { return chain; }
-		private ASTNode[] extract(final ASTNode stmt) {
+		private class Extract {
+			public Extract(ASTNode left, ASTNode right, boolean exhaustive) {
+				super();
+				this.left = left;
+				this.right = right;
+				this.exhaustive = exhaustive;
+			}
+			public final ASTNode left;
+			public final ASTNode right;
+			public final boolean exhaustive;
+		}
+		private Extract extract(final ASTNode stmt) {
 			final BinaryOp op = as(stmt, BinaryOp.class);
 			final CallDeclaration cd = as(stmt, CallDeclaration.class);
 			if (op != null && op.operator() == Operator.Transform)
-				return new ASTNode[] {op.leftSide(), op.rightSide()};
+				return new Extract (op.leftSide(), op.rightSide(), false);
+			if (op != null && op.operator() == Operator.TransformExhaustive)
+				return new Extract (op.leftSide(), op.rightSide(), true);
 			else if (cd != null && cd.name().equals("Transform") && cd.params().length == 2)
-				return new ASTNode[] {cd.params()[0], cd.params()[1]};
+				return new Extract(cd.params()[0], cd.params()[1], false);
 			else
 				return null;
 		}
 		public CodeTransformation(final ASTNode stmt, final CodeTransformation chain) {
 			this.chain = chain;
-			final ASTNode[] tt = extract(stmt);
+			final Extract tt = extract(stmt);
 			if (tt != null) {
-				this.template = ASTNodeMatcher.prepareForMatching(tt[0]);
-				this.transformation = ASTNodeMatcher.parsePlaceholders(tt[1]);
+				this.template = ASTNodeMatcher.prepareForMatching(tt.left);
+				this.transformation = ASTNodeMatcher.parsePlaceholders(tt.right);
+				this.exhaustive = tt.exhaustive;
 			} else
 				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", stmt.toString()));
 		}
@@ -93,7 +109,25 @@ public class CodeTransformer extends CodeConverter {
 		}
 		@Override
 		public String toString() {
-			return String.format("%s => %s", template.printed(), transformation.printed());
+			return String.format("%s %s %s",
+				template.printed(),
+				(exhaustive ? Operator.TransformExhaustive : Operator.Transform).operatorName(),
+				transformation.printed()
+			);
+		}
+		public ASTNode transform(ASTNode expression, ICodeConverterContext context) {
+			ASTNode result = expression;
+			do {
+				final Map<String, Object> matched = template().match(result);
+				if (matched != null) {
+					result = transformation().transform(matched, context);
+					if (!exhaustive)
+						break;
+				}
+				else
+					break;
+			} while (true);
+			return result == expression ? null : result;
 		}
 	}
 	private final List<CodeTransformation> transformations = new ArrayList<CodeTransformation>();
@@ -255,9 +289,9 @@ public class CodeTransformer extends CodeConverter {
 				if (!success)
 					for (final CodeTransformer.CodeTransformation ct : transformations()) {
 						for (CodeTransformation c = ct; c != null; c = c.chain()) {
-							final Map<String, Object> matched = c.template().match(expression);
-							if (matched != null) {
-								expression = c.transformation().transform(matched, context);
+							final ASTNode transformed = c.transform(expression, context);
+							if (transformed != null) {
+								expression = transformed;
 								success = true;
 							}
 						}

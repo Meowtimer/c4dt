@@ -51,6 +51,7 @@ public enum Operator {
 	AssignAnd(PrimitiveType.BOOL, PrimitiveType.BOOL, PrimitiveType.BOOL, "&=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	AssignXOr(PrimitiveType.INT, PrimitiveType.INT, PrimitiveType.INT, "^=", 2, null, 1/*RETURNS_REF*/), //$NON-NLS-1$
 	Transform(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, "=>", 2, null),
+	TransformExhaustive(PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, PrimitiveType.UNKNOWN, "==>", 2, null),
 	Identical(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.BOOL, "!==", 9),
 	NotIdentical(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.BOOL, "===", 9);
 
