@@ -28,23 +28,23 @@ Chain(
 		=> FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, Find_NoContainer(), $parms...$),
 	
 	// other owner parameter gets turned into Find_Container($container$)
-	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, $container:~Whitespace$ & $container:~Call,/Find_NoContainer/$, $parms...$)
+	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, $container$ & $container:~Call,/Find_NoContainer/$, $parms...$)
 		=> FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, Find_Container($container$), $parms...$),
 	
 	// action target
-	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1:~Whitespace$, $parms...$)
+	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, $parms...$)
 		=> FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, Find_ActionTarget($actiontarget1$), $parms...$),
 	
 	// action
-	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action:~Whitespace$, $parms...$)
+	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $parms...$)
 		=> FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, Find_Action($action$), $parms...$),
 	
 	// ocf
-	FindObject($id$, $x$, $y$, $w$, $h$, $ocf:~Whitespace$, $parms...$)
+	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $parms...$)
 		=> FindObject($id$, $x$, $y$, $w$, $h$, Find_OCF($ocf$), $parms...$),
 	
 	// rect
-	FindObject($id$, $x:~Whitespace$, $y:~Whitespace$, $w:~Whitespace$, $h:~Whitespace$, $parms...$)
+	FindObject($id$, $x$, $y$, $w$, $h$, $parms...$)
 		=> FindObject($id$, Find_InRect($x$, $y$, $w$, $h$), $parms...$),
 	
 	// id
@@ -52,6 +52,12 @@ Chain(
 		=> FindObject(Find_ID($id$), $parms...$),
 
 	// remove useless calls caused by converting 0 passings
+	FindObject($left...$, $:Call$($:Whitespace,+$), $right...$)
+		==> FindObject($left$, $right$),
+	// shrink remaining whitespace arguments
+	FindObject($left...$, $:Whitespace$, $right...$)
+		==> FindObject($left$, $right$),
+	
 	FindObject(Find_ID($?value.is(Whitespace)||(value.is(Integer)&&value.literal==0)$), $rest...$)
 		=> FindObject($rest$),
 	FindObject($left...$, Find_Action(0), $right...$) 
