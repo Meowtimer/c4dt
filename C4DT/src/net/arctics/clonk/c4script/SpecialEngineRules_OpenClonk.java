@@ -580,10 +580,10 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			wholeFunc |= comp.reordering;
 			if (wholeFunc) {
 				createEnvironment.body().setStatements(statementsCopy.toArray(new Statement[statementsCopy.size()]));
-				scenario.saveNodes(Arrays.asList(createEnvironment.body()), true);
+				scenario.saveNodes(Arrays.asList(createEnvironment.body()));
 			}
 			else if (list.size() > 0)
-				scenario.saveNodes(list, true);
+				scenario.saveNodes(list);
 			break;
 		}
 	}

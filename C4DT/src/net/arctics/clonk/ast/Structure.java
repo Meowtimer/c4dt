@@ -245,7 +245,9 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	@Override
 	public int fragmentOffset() { return 0; }
 
-	public void saveNodes(final Collection<? extends ASTNode> expressions, final boolean absoluteLocations) {
+	public void saveNodes(final Collection<? extends ASTNode> expressions) {
+		if (expressions.isEmpty())
+			return;
 		Core.instance().performActionsOnFileDocument(file(), new IDocumentAction<Boolean>() {
 			@Override
 			public Boolean run(final IDocument document) {
@@ -254,13 +256,13 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 					Collections.sort(l, new Comparator<ASTNode>() {
 						@Override
 						public int compare(final ASTNode o1, final ASTNode o2) {
-							final IRegion r1 = absoluteLocations ? o1.absolute() : o1;
-							final IRegion r2 = absoluteLocations ? o2.absolute() : o2;
+							final IRegion r1 = o1.absolute();
+							final IRegion r2 = o2.absolute();
 							return r2.getOffset() - r1.getOffset();
 						}
 					});
 					for (final ASTNode e : l) {
-						final IRegion region = absoluteLocations ? e.absolute() : e;
+						final IRegion region = e.absolute();
 						int depth;
 						ASTNode n;
 						for (depth = 0, n = e; n != null && !(n instanceof Declaration || n instanceof FunctionBody); depth++, n = n.parent());

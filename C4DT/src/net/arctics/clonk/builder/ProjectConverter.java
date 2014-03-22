@@ -14,15 +14,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
+import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.IDLiteral;
+import net.arctics.clonk.c4script.ast.IntegerLiteral;
+import net.arctics.clonk.c4script.ast.Nil;
 import net.arctics.clonk.c4script.ast.PropListExpression;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.CodeTransformer;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -41,9 +49,11 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 /**
@@ -193,7 +203,46 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public void convert(final IProgressMonitor monitor) {
 		this.monitor = monitor;
 		runWithoutAutoBuild(this);
+		postProcess();
 	}
+	
+	public void postProcess() {
+		final NullProgressMonitor npm = new NullProgressMonitor();
+		try {
+			destinationProject.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
+			destinationProject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, npm);
+		} catch (final CoreException ce) {}
+		destinationProject.index().allScripts(s -> {
+			final List<ASTNode> nodes = new LinkedList<>();
+			s.traverse((node, ctx) -> {
+				if (node instanceof CallDeclaration)
+					if (fixSomeParameterTypes((CallDeclaration) node))
+						nodes.add(node);
+				return TraversalContinuation.Continue;
+			}, null);
+			s.saveNodes(nodes);
+		});
+	}
+	
+	private static boolean fixSomeParameterTypes(CallDeclaration node) {
+		final Function fn = node.function();
+		if (fn != null) {
+			final ASTNode[] converted = IntStream.range(0, node.params().length).mapToObj(x -> {
+				final Variable par = fn.parameter(x);
+				final ASTNode arg = node.params()[x];
+				if (arg != null && arg.equals(IntegerLiteral.ZERO) && par != null && par.type() != PrimitiveType.INT)
+					return new Nil();
+				else
+					return arg;
+			}).toArray(l -> new ASTNode[l]);
+			if (!Arrays.equals(node.params(), converted)) {
+				node.setParams(converted);
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * By letting this converter visit the source project the actual conversion is performed.
 	 */

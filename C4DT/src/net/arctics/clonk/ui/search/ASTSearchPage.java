@@ -313,7 +313,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 									repl.setParent(qm.node().parent());
 									replacements.add(repl);
 								}
-							struct.saveNodes(replacements, false);
+							struct.saveNodes(replacements);
 						}
 					});
 				}
