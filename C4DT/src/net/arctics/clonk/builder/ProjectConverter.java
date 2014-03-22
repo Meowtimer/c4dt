@@ -22,14 +22,18 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.IDLiteral;
+import net.arctics.clonk.c4script.ast.IfStatement;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.Nil;
 import net.arctics.clonk.c4script.ast.PropListExpression;
+import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.CodeTransformer;
 import net.arctics.clonk.index.Definition;
@@ -215,9 +219,11 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		destinationProject.index().allScripts(s -> {
 			final List<ASTNode> nodes = new LinkedList<>();
 			s.traverse((node, ctx) -> {
-				if (node instanceof CallDeclaration)
-					if (fixSomeParameterTypes((CallDeclaration) node))
-						nodes.add(node);
+				if (
+					(node instanceof CallDeclaration && fixSomeParameterTypes((CallDeclaration) node)) ||
+					(node instanceof IfStatement && fixIfEffect(s, (IfStatement) node))
+				)
+					nodes.add(node);
 				return TraversalContinuation.Continue;
 			}, null);
 			s.saveNodes(nodes);
@@ -241,6 +247,19 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			}
 		}
 		return false;
+	}
+	
+	private static boolean fixIfEffect(Script script, IfStatement check) {
+		final BinaryOp comp = as(check.condition(), BinaryOp.class);
+		if (comp != null && comp.operator() == Operator.SmallerEqual &&
+			script.typings().get(comp.leftSide()) instanceof Effect &&
+			IntegerLiteral.ZERO.equals(comp.rightSide())
+		) {
+			comp.operator(Operator.Equal);
+			comp.setRightSide(new Nil());
+			return true;
+		} else
+			return false;
 	}
 	
 	/**
