@@ -91,9 +91,8 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			final ASTNode[] mapping = leftToRightMapping[i];
 			final MatchingPlaceholder mp = as(left, MatchingPlaceholder.class);
 			if (mp != null) {
-				if (mp.multiplicity() == Multiplicity.AtLeastOne)
-					if (mapping == null || mapping.length < 1)
-						return false;
+				if (mp.multiplicity() == Multiplicity.AtLeastOne && (mapping == null || mapping.length == 0))
+					return false;
 				if (mapping != null)
 					addToResult(mp, mapping);
 			}
