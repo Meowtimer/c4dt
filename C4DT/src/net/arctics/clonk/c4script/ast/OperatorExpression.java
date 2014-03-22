@@ -8,16 +8,15 @@ import net.arctics.clonk.c4script.Operator;
 public class OperatorExpression extends ASTNode implements IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	private final Operator operator;
+	private Operator operator;
 
 	public OperatorExpression(final Operator operator) {
 		super();
 		this.operator = operator;
 	}
 
-	public Operator operator() {
-		return operator;
-	}
+	public Operator operator() { return operator; }
+	public void operator(Operator op) { operator = op; }
 
 	@Override
 	public boolean hasSideEffects() {
