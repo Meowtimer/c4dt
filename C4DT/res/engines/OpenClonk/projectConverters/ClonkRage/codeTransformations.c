@@ -28,7 +28,7 @@ Chain(
 		=> FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, Find_NoContainer(), $parms...$),
 	
 	// other owner parameter gets turned into Find_Container($container$)
-	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, $container$ & $container:~Call,/Find_NoContainer/$, $parms...$)
+	FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, $container:~Call,/Find_NoContainer/$, $parms...$)
 		=> FindObject($id$, $x$, $y$, $w$, $h$, $ocf$, $action$, $actiontarget1$, Find_Container($container$), $parms...$),
 	
 	// action target
@@ -52,7 +52,7 @@ Chain(
 		=> FindObject(Find_ID($id$), $parms...$),
 
 	// remove useless calls caused by converting 0 passings
-	FindObject($left...$, $:Call$($:Whitespace,+$), $right...$)
+	FindObject($left...$, $:Call$($+$[[$:Integer,/0/$|$:Whitespace$]]), $right...$)
 		==> FindObject($left$, $right$),
 	// shrink remaining whitespace arguments
 	FindObject($left...$, $:Whitespace$, $right...$)
