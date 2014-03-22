@@ -137,11 +137,11 @@ SetPlrColorDw($params...$) => SetPlrColor($params$);
 $:Call,/Cast(Int|C4ID|C4Object|Bool|Any)/$($data$) => $data$;
 
 // no magics in this world
-DoMagicEnergy($...$) => Log("Guenther killed the magics :c");
+DoMagicEnergy($...$) => NoOp("DoMagicEnergy");
 GetMagicEnergy($...$) => 0;
 
 // but we get free energy, yay
-EnergyCheck($...$) => true;
+EnergyCheck($...$) => NoOp("EnergyCheck");
 
 // GetDesc() is Description property, I guess
 GetDesc($obj$) => $obj$.Description;
