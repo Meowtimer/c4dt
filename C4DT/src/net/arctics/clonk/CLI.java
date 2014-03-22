@@ -295,7 +295,8 @@ public class CLI implements IApplication, AutoCloseable {
 		System.out.println("Set up workspace");
 	}
 	@Callable
-	public void setupCRProject(String crFolder) throws CoreException {
+	public void setupCRProject(String _crFolder) throws CoreException {
+		final String crFolder = new File(workingDir, _crFolder).toString();
 		final NullProgressMonitor npm = new NullProgressMonitor();
 		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(CLONK_RAGE);
 		desc.setNatureIds(new String[0]);
@@ -389,7 +390,7 @@ public class CLI implements IApplication, AutoCloseable {
 			proj.delete(false, true, npm);
 
 		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
-		desc.setLocation(new Path(path));
+		desc.setLocation(new Path(new File(workingDir, path).toString()));
 		desc.setNatureIds(new String[0]);
 		desc.setBuildSpec(new ICommand[0]);
 
@@ -416,9 +417,11 @@ public class CLI implements IApplication, AutoCloseable {
 		proj.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 		proj.build(IncrementalProjectBuilder.FULL_BUILD, npm);
 	}
+	private File workingDir = new File(".");
 	@Callable
 	public void run(String fileName) {
 		final File f = new File(fileName);
+		workingDir = f.getParentFile();
 		final Index ndx = new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
