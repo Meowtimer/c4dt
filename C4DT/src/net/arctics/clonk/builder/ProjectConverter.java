@@ -206,7 +206,20 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public void convert(final IProgressMonitor monitor) {
 		this.monitor = monitor;
 		runWithoutAutoBuild(this);
+		copyCompatibilityFiles();
 		postProcess();
+	}
+	
+	private void copyCompatibilityFiles() {
+		final NullProgressMonitor npm = new NullProgressMonitor();
+		transformer.compatibilityFiles().forEach((key, value) -> {
+			final Path path = new Path(key);
+			try {
+				destinationProject.getProject().getFile(path).create(new ByteArrayInputStream(value), true, npm);
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
+		});
 	}
 	
 	public void postProcess() {

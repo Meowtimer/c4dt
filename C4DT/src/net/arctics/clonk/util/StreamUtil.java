@@ -2,6 +2,7 @@ package net.arctics.clonk.util;
 
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -163,5 +164,18 @@ public class StreamUtil {
 
 	public static <T> Stream<T> ofType(Stream<? super T> stream, Class<T> cls) {
 		return stream.map(i -> as(i, cls)).filter(i -> i != null);
+	}
+
+	public static byte[] bytesFromURL(URL f) {
+		try (InputStream s = f.openStream()) {
+			final ByteArrayOutputStream out = new ByteArrayOutputStream();
+			int r;
+			final byte[] buf = new byte[1024];
+			while ((r = s.read(buf)) > 0)
+				out.write(buf, 0, r);
+			return out.toByteArray();
+		} catch (final IOException e) {
+			return null;
+		}
 	}
 }

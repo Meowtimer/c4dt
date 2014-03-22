@@ -1,6 +1,8 @@
 package net.arctics.clonk.index;
 
 import static net.arctics.clonk.util.ArrayUtil.indexOfItemSatisfying;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.StringReader;
@@ -10,8 +12,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -27,7 +29,6 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Standalone;
 import net.arctics.clonk.c4script.TempScript;
-import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.ArrayElementExpression;
 import net.arctics.clonk.c4script.ast.BinaryOp;
@@ -36,11 +37,9 @@ import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.MemberOperator;
-import net.arctics.clonk.c4script.ast.Nil;
 import net.arctics.clonk.c4script.ast.SimpleStatement;
 import net.arctics.clonk.c4script.ast.Tidy;
 import net.arctics.clonk.c4script.ast.Whitespace;
-import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.ini.DefinitionPack;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
@@ -133,6 +132,11 @@ public class CodeTransformer extends CodeConverter {
 	private final List<CodeTransformation> transformations = new ArrayList<CodeTransformation>();
 	private final Map<ID, ID> idMap = new HashMap<ID, ID>();
 	private final Engine sourceEngine, targetEngine;
+	private final Map<String, byte[]> compatibilityFiles = new HashMap<>();
+	public Map<ID, ID> idMap() { return idMap; }
+	public List<CodeTransformation> transformations() { return transformations; }
+	public Map<String, ObjParConversion> objParConversions() { return objParConversions; }
+	public Map<String, byte[]> compatibilityFiles() { return compatibilityFiles; }
 	public class ObjParConversion {
 		public final Function sourceFunction, targetFunction;
 		public final int objParIndex, defParIndex;
@@ -165,20 +169,32 @@ public class CodeTransformer extends CodeConverter {
 		final List<URL> files1 = files;
 		URL codeTransformations = null;
 		URL idMap = null;
-		for (final URL f : files1)
-			if (f.getFile().endsWith("codeTransformations.c"))
+		final BiFunction<String[], String, String[]> subSeqToRight = (segments, startIndicator) -> {
+			for (int i = segments.length - 1; i >= 0; i--)
+				if (segments[i].equals(startIndicator))
+					return Arrays.copyOfRange(segments, i+1, segments.length);
+			return null;
+		};
+		for (final URL f : files1) {
+			final String[] segments = f.getFile().split("/");
+			final String last = segments[segments.length-1];
+			String[] s;
+			if (last.equals("codeTransformations.c"))
 				codeTransformations = f;
-			else if (f.getFile().endsWith("idMap.txt"))
+			else if (last.equals("idMap.txt"))
 				idMap = f;
+			else if ((s = subSeqToRight.apply(segments, "compatibility")) != null && !s[s.length-1].startsWith(".")) {
+				final byte[] bytes = StreamUtil.bytesFromURL(f);
+				if (bytes != null)
+					compatibilityFiles.put(blockString("", "", "/", iterable(s)), bytes);
+			}
+		}
+		objParConversions = prepareObjParConversions();
 		if (codeTransformations != null)
 			loadCodeTransformations(codeTransformations);
 		if (idMap != null)
 			loadIDMap(idMap);
-		objParConversions = prepareObjParConversions();
 	}
-	public Map<ID, ID> idMap() { return idMap; }
-	public List<CodeTransformation> transformations() { return transformations; }
-	public Map<String, ObjParConversion> objParConversions() { return objParConversions; }
 	private void addTransformationFromStatement(ASTNode stmt) {
 		try {
 			stmt = SimpleStatement.unwrap(stmt);
@@ -298,8 +314,6 @@ public class CodeTransformer extends CodeConverter {
 						if (success)
 							break;
 					}
-				if (expression instanceof CallDeclaration)
-					expression = fixSomeParameterTypes((CallDeclaration)expression);
 				return expression;
 			}
 		};
@@ -308,20 +322,6 @@ public class CodeTransformer extends CodeConverter {
 			try {
 				node = new Tidy(declaration.topLevelStructure(), 2).tidyExhaustive(node);
 			} catch (final CloneNotSupportedException e) {}
-		return node;
-	}
-	private CallDeclaration fixSomeParameterTypes(CallDeclaration node) {
-		final Function fn = node.function();
-		if (fn != null) {
-			final ASTNode[] converted = IntStream.range(0, node.params().length).mapToObj(x -> {
-				final Variable par = fn.parameter(x);
-				final ASTNode arg = node.params()[x];
-				if (arg != null && arg.equals(IntegerLiteral.ZERO) && par != null && par.type() != PrimitiveType.INT)
-					return new Nil();
-				return arg;
-			}).toArray(l -> new ASTNode[l]);
-			node.setParams(converted);
-		}
 		return node;
 	}
 }
