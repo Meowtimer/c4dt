@@ -230,7 +230,7 @@ public class MatchingPlaceholder extends Placeholder {
 	private String property;
 	private EnumSet<Flag> flags;
 	private boolean negated;
-	private MatchingPlaceholder proto;
+	private MatchingPlaceholder proto, sub;
 
 	public boolean flagSet(final Flag flag) { return flags != null && flags.contains(flag); }
 	public Pattern stringRepresentationPattern() { return stringRepresentationPattern; }
@@ -249,6 +249,8 @@ public class MatchingPlaceholder extends Placeholder {
 			this.subElements = value.subElements;
 		}
 	}
+	public MatchingPlaceholder sub() { return sub; }
+	public void sub(MatchingPlaceholder sub) { this.sub = sub; }
 
 	@Override
 	public ASTNode[] subElements() {
@@ -478,6 +480,8 @@ public class MatchingPlaceholder extends Placeholder {
 				code.invoke(code.new Invocation(new Object[] {element}, code.script(), this));
 				return false;
 			}
+		if (sub != null && !sub.satisfiedBy(element))
+			return false;
 		return true;
 	}
 
@@ -515,6 +519,11 @@ public class MatchingPlaceholder extends Placeholder {
 			output.append(StringUtil.blockString("", "", ",", attribs));
 		}
 		output.append('$');
+		if (sub != null) {
+			output.append('[');
+			sub.print(output, depth);
+			output.append(']');
+		}
 		if (subElements != null)
 			Conf.printNodeList(output, subElements, depth, "(", ")");
 	}

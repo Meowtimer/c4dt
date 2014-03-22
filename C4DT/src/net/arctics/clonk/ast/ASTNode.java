@@ -263,7 +263,8 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 				j += multi.length-1;
 			}
 			prev = s;
-			prevT = t;
+			if (t != ITransformer.REMOVE)
+				prevT = t;
 		}
 		if (differentSubElms) {
 			final ASTNode replacement = this.clone();
