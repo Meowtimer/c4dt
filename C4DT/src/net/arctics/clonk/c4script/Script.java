@@ -1378,15 +1378,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		
 		ASTNode prev = null;
 		for (final ASTNode se : subElements()) {
-			if (se != null && !(se instanceof SynthesizedFunction)) {
+			final boolean skip =
+				se == null ||
+				se instanceof SynthesizedFunction ||
+				(se instanceof Variable && ((Variable)se).initializationExpression() != null && ((Variable)se).initializationExpression().parent(Function.class) != null);
+			if (!skip) {
 				if (prev != null) {
 					output.lb();
 					if (prev instanceof Function || categoryClass(prev) != categoryClass(se))
 						output.lb();
 				}
 				se.print(output, depth);
+				prev = se;
 			}
-			prev = se;
 		}
 	}
 
