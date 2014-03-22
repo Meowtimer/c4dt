@@ -2,6 +2,7 @@ package net.arctics.clonk.builder;
 
 import static java.lang.String.format;
 import static java.lang.System.out;
+import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
@@ -9,13 +10,17 @@ import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
+import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
@@ -26,6 +31,8 @@ import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.ast.AccessDeclaration;
+import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.IDLiteral;
@@ -33,6 +40,7 @@ import net.arctics.clonk.c4script.ast.IfStatement;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.Nil;
 import net.arctics.clonk.c4script.ast.PropListExpression;
+import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.effect.Effect;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.CodeTransformer;
@@ -215,7 +223,11 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		transformer.compatibilityFiles().forEach((key, value) -> {
 			final Path path = new Path(key);
 			try {
-				destinationProject.getProject().getFile(path).create(new ByteArrayInputStream(value), true, npm);
+				final IFile file = destinationProject.getProject().getFile(path);
+				if (file.exists())
+					file.setContents(new ByteArrayInputStream(value), IResource.FORCE, npm);
+				else
+					file.create(new ByteArrayInputStream(value), true, npm);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
@@ -228,21 +240,69 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			destinationProject.getProject().build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 			destinationProject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, npm);
 		} catch (final CoreException ce) {}
-		destinationProject.index().allScripts(s -> {
-			final List<ASTNode> nodes = new LinkedList<>();
+		final List<Runnable> list = new LinkedList<>();
+		final List<Script> toSave = Collections.synchronizedList(new LinkedList<>());
+		destinationProject.index().allScripts(s -> list.add(() -> {
+			final boolean[] doSave = new boolean[1];
 			s.traverse((node, ctx) -> {
 				if (
-					(node instanceof CallDeclaration && fixSomeParameterTypes((CallDeclaration) node)) ||
-					(node instanceof IfStatement && fixIfEffect(s, (IfStatement) node))
+					applyFix(node, CallDeclaration.class, ProjectConverter::fixSomeArgumentTypes) ||
+					applyFix(node, IfStatement.class, ProjectConverter::fixIfEffect) ||
+					applyFix(node, Function.class, ProjectConverter::fixParms) ||
+					applyFix(node, AccessDeclaration.class, ProjectConverter::fixUndeclaredIdentifier)
 				)
-					nodes.add(node);
+					doSave[0] = true;
 				return TraversalContinuation.Continue;
 			}, null);
-			s.saveNodes(nodes);
+			if (doSave[0])
+				toSave.add(s);
+		}));
+		TaskExecution.threadPool(list, 20);
+		toSave.forEach(s -> {
+			Core.instance().performActionsOnFileDocument(s.file(), d -> {
+				d.set(s.printed());
+				return null;
+			}, true);
 		});
 	}
 	
-	private static boolean fixSomeParameterTypes(CallDeclaration node) {
+	@FunctionalInterface
+	public interface Fix<T> {
+		boolean fix(T node);
+	}
+	@SuppressWarnings("unchecked")
+	private static <T> boolean applyFix(ASTNode node, Class<? extends ASTNode> cls, Fix<T> fix) {
+		if (cls.isInstance(node))
+			return fix.fix((T)node);
+		else
+			return false;
+	}
+	
+	private static boolean fixParms(Function node) {
+		final Set<String> got = new HashSet<>();
+		final boolean fixedParms = node.parameters().stream().reduce(false, (num, v) -> {
+			if (v.type() == PrimitiveType.REFERENCE) {
+				v.forceType(PrimitiveType.ANY);
+				return true;
+			} else if (!got.add(v.name())) {
+				final String mut = IntStream.iterate(2, x -> x + 1)
+					.mapToObj(x -> v.name()+Integer.valueOf(x))
+					.filter(got::add)
+					.findFirst()
+					.orElseThrow(() -> new IllegalStateException());
+				v.setName(mut);
+				return true;
+			} else
+				return false;
+		}, (a, b) -> a || b);
+		if (node.returnType() == PrimitiveType.REFERENCE) {
+			node.forceType(PrimitiveType.ANY);
+			return true;
+		}
+		return fixedParms;
+	}
+	
+	private static boolean fixSomeArgumentTypes(CallDeclaration node) {
 		final Function fn = node.function();
 		if (fn != null) {
 			final ASTNode[] converted = IntStream.range(0, node.params().length).mapToObj(x -> {
@@ -261,7 +321,22 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		return false;
 	}
 	
-	private static boolean fixIfEffect(Script script, IfStatement check) {
+	private static boolean fixUndeclaredIdentifier(AccessDeclaration v) {
+		if (v.declaration() == null && v.predecessor() == null) {
+			final CallDeclaration call = as(v, CallDeclaration.class);
+			if (v instanceof AccessVar)
+				v.parent().replaceSubElement(v, new CallDeclaration("EvaluateID", new StringLiteral(v.name())), 0);
+			else if (call != null) {
+				call.setParams(concat(new StringLiteral(call.name()), call.params()));
+				call.setName("UnknownFunction");
+			}
+			return true;
+		} else
+			return false;
+	}
+	
+	private static boolean fixIfEffect(IfStatement check) {
+		final Script script = check.parent(Script.class);
 		final BinaryOp comp = as(check.condition(), BinaryOp.class);
 		if (comp != null && comp.operator() == Operator.SmallerEqual &&
 			script.typings().get(comp.leftSide()) instanceof Effect &&
