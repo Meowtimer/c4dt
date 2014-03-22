@@ -466,6 +466,18 @@ public class CLI implements IApplication, AutoCloseable {
 		return EXIT_OK;
 	}
 	@Callable
+	public void listFunctionsInBothEngineAndProject(String projectName) {
+		final ClonkProjectNature cpn = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
+		cpn.index().engine().functions().forEach(efn -> {
+			final Function f = cpn.index().globalFunctions().stream().filter(gf ->
+				gf.file().getParent().getName().equals("System.ocg") &&
+				gf.name().equals(efn.name())
+			).findFirst().orElse(null);
+			if (f != null)
+				System.out.println(f.name());
+		});
+	}
+	@Callable
 	public Map<ID, ID> mapIDToName(String projectName, Map<?, ?> override) {
 		final ClonkProjectNature cpn = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
 		final Map<ID, ID> result =
