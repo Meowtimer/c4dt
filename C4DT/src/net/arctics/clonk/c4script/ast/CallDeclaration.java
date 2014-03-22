@@ -286,21 +286,23 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 			return f.invoke(f.new Invocation(args, context, self));
 		else if (self != null) {
 			final Object varEv = evaluateVariable(context.variable(this, self));
-			if (varEv instanceof Class) {
-				final Class<?>[] argTypes = Arrays.stream(args).map(o -> o != null ? o.getClass() : null)
-					.toArray(l -> new Class[l]);
-				try {
-					return ((Class<?>)varEv).getConstructor(argTypes).newInstance(args);
-				} catch (final Exception e) {
-					e.printStackTrace();
-					return null;
-				}
-			} else
+			if (varEv instanceof Class)
+				return Arrays.stream(((Class<?>)varEv).getConstructors())
+					.map(m -> {
+						try {
+							return m.newInstance(args);
+						} catch (final Exception e) {
+							return null;
+						}
+					})
+					.filter(r -> r != null)
+					.findFirst();
+			else
 				return Arrays.stream(self.getClass().getMethods())
 					.filter(m -> m.getName().equals(declarationName))
 					.map(m -> {
 						try {
-							return m != null ? m.invoke(self, args) : null;
+							return m.invoke(self, args);
 						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 							return null;
 						}
