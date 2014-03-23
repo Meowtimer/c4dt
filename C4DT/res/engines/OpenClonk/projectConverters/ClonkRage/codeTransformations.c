@@ -115,6 +115,28 @@ Chain(
 EffectVar($index:Integer$, $target$, $effect$) => $effect$.$index!Var("var"+value.literal)$;
 EffectVar($complex$, $target$, $effect$) => $effect$[Format("var%d", $complex$)];
 
+Chain
+(
+	Transform(
+		SetVar($:Whitespace$, $value$),
+		SetVar(0, $value$)
+	)
+	Transform(
+		SetVar($ndx$, $value$),
+		Var($ndx$) = $value$
+	),
+	Transform(
+		Var($ndx$) = $value$,
+		$ndx!VarArrayVar(value, value)$ = $value$
+	)
+);
+
+Chain
+(
+	Var() => Var(0),
+	Var($ndx$) => $ndx:!VarArrayVar(value, value)$
+);
+
 // Visibility is property, yes.
 GetVisibility($target$) => $target$.Visibility;
 SetVisibility($vis$, $target$) => $target$.Visibility = $vis$;
@@ -159,12 +181,12 @@ $call:Call,/FindConstructionSite/$($id$, $x:Integer$, $y:Integer$) =>
 		return value.name;
 	}$(
 		$id$,
-		$x!VarArrayVar(value.literal, value)$,
-		$y!VarArrayVar(value.literal, value)$
+		$x!VarArrayVar(value, value)$,
+		$y!VarArrayVar(value, value)$
 	)) &&
 	(
-		($x!VarArrayVar(value.literal, value)$ = xy[0]) ||
-		($y!VarArrayVar(value.literal, value)$ = xy[1]) ||
+		($x!VarArrayVar(value, value)$ = xy[0]) ||
+		($y!VarArrayVar(value, value)$ = xy[1]) ||
 		true
 	);
 

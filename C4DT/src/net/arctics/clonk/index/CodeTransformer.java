@@ -30,7 +30,6 @@ import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.Standalone;
 import net.arctics.clonk.c4script.TempScript;
 import net.arctics.clonk.c4script.ast.AccessVar;
-import net.arctics.clonk.c4script.ast.ArrayElementExpression;
 import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Comment;
@@ -290,15 +289,6 @@ public class CodeTransformer extends CodeConverter {
 					final ObjParConversion conv = objParConversions().getOrDefault(cd.name(), null);
 					if (conv != null) {
 						expression = conv.convertCall(cd);
-						success = true;
-					}
-				}
-				if (cd != null && cd.name().equals("Var")) {
-					final Function fn = expression.parent(Function.class);
-					if (fn != null) {
-						context.functionUsesVarArray(fn);
-						final ASTNode ndx = cd.params().length > 0 ? cd.params()[0] : IntegerLiteral.ZERO;
-						expression = new Sequence(new AccessVar(ICodeConverterContext.VAR_ARRAY_NAME), new ArrayElementExpression(ndx));
 						success = true;
 					}
 				}

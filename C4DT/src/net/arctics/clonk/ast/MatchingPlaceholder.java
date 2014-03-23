@@ -103,14 +103,14 @@ public class MatchingPlaceholder extends Placeholder {
 				ctx.functionUsesVarArray(fn);
 		}
 		@CommandFunction
-		public static ASTNode VarArrayVar(final IEvaluationContext context, Number index, ASTNode node) {
+		public static ASTNode VarArrayVar(final IEvaluationContext context, ASTNode node, ASTNode index) {
 			final Function fn = node.parent(Function.class);
 			final ICodeConverterContext ctx = as(context.self(), ICodeConverterContext.class);
 			if (fn != null && ctx != null) {
 				ctx.functionUsesVarArray(fn);
 				return new Sequence(
 					new AccessVar(ICodeConverterContext.VAR_ARRAY_NAME),
-					new ArrayElementExpression(new IntegerLiteral(index.longValue()))
+					new ArrayElementExpression(index)
 				);
 			} else
 				return null;

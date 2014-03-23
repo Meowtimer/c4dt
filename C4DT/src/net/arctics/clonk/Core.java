@@ -473,7 +473,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public interface IDocumentAction<T> {
 		T run(IDocument document);
 	}
-	
+
 	private static IProgressMonitor NPM = new NullProgressMonitor();
 
 	public <T> T performActionsOnFileDocument(final IStorage file, final IDocumentAction<T> action, final boolean save) {

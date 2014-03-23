@@ -3,6 +3,7 @@ package net.arctics.clonk.builder;
 import static java.lang.String.format;
 import static java.lang.System.out;
 import static net.arctics.clonk.util.ArrayUtil.concat;
+import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
@@ -52,6 +53,8 @@ import net.arctics.clonk.index.CodeTransformer;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ID;
+import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.ini.ActMapUnit;
 import net.arctics.clonk.ini.DefCoreUnit;
 import net.arctics.clonk.ini.IniEntry;
@@ -105,6 +108,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				return this;
 			}
 			void write() {
+				if (converted instanceof IndexEntity)
+					((IndexEntity)converted).forceIndex(destinationIndex);
+				converted.forceParents();
 				final String convString = converted.printed();
 				try {
 					target.setContents(new ByteArrayInputStream(convString.getBytes()), true, true, null);
@@ -133,9 +139,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					});
 				else
 					sub.put((IFile) origin, new FileConversion((Structure) declaration, (IFile)target).convert());
-				
+
 				sub.values().forEach(FileConversion::convert);
-				
+
 				final Script script = as(declaration, Script.class);
 				final FileConversion scriptFile = script != null ? sub.get(script.file()) : null;
 
@@ -165,7 +171,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 							}
 					}
 				}
-				
+
 				if (script != null) {
 					final List<Pair<Function, FunctionDescription>> descs = new ArrayList<>(5);
 					script.traverse(node -> {
@@ -201,7 +207,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 						((Script)scriptFile.converted).addDeclaration(new Variable(Scope.STATIC, "FunctionDescriptions", new PropListExpression(dec)));
 					}
 				}
-				
+
 				sub.values().forEach(FileConversion::write);
 			} catch (final CoreException e) {
 				e.printStackTrace();
@@ -216,6 +222,8 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	private IProgressMonitor monitor;
 	private final List<DeclarationConversion> conversions = new LinkedList<>();
 	private final List<Declaration> needResaving = Collections.synchronizedList(new LinkedList<>());
+	private Index destinationIndex;
+
 	public CodeTransformer configuration() { return transformer; }
 	/**
 	 * Create a new converter by specifying source and destination.
@@ -227,6 +235,11 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		this.destinationProject = ClonkProjectNature.get(destinationProject);
 		this.transformer = targetEngine().loadCodeTransformer(sourceEngine());
 		assert(sourceEngine() != targetEngine());
+		this.destinationIndex = new Index() {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+			@Override
+			public Engine engine() { return ProjectConverter.this.destinationProject.index().engine(); }
+		};
 	}
 	public static IPath convertPath(Engine sourceEngine, Engine targetEngine, final IPath path) {
 		IPath result = new Path("");
@@ -254,22 +267,42 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	 */
 	public void convert(final IProgressMonitor monitor) {
 		this.monitor = monitor;
-		this.needResaving.clear(); 
+		this.needResaving.clear();
 		runWithoutAutoBuild(this);
 		copyCompatibilityFiles();
 		postProcess();
 		saveThoseInNeedOfResaving();
 	}
-	
+
 	public void saveThoseInNeedOfResaving() {
 		needResaving.forEach(dec -> {
-			Core.instance().performActionsOnFileDocument(dec.file(), d -> {
-				d.set(dec.printed());
-				return null;
-			}, true);
+			try {
+				Core.instance().performActionsOnFileDocument(dec.file(), d -> {
+					d.set(dec.printed());
+					return null;
+				}, true);
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
 		});
 	}
-	
+
+	private static void forceCreate(IFile file, InputStream value, NullProgressMonitor npm) {
+		final List<IContainer> containers = new LinkedList<>();
+		for (IContainer c = file.getParent(); c != null; c = c.getParent())
+			containers.add(0, c);
+		ofType(containers.stream(), IFolder.class).forEach(f -> {
+			try {
+				f.create(true, true, npm);
+			} catch (final CoreException e) {}
+		});
+		try {
+			file.create(value, true, npm);
+		} catch (final CoreException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private void copyCompatibilityFiles() {
 		final NullProgressMonitor npm = new NullProgressMonitor();
 		transformer.compatibilityFiles().forEach((key, value) -> {
@@ -279,13 +312,13 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				if (file.exists())
 					file.setContents(new ByteArrayInputStream(value), IResource.FORCE, npm);
 				else
-					file.create(new ByteArrayInputStream(value), true, npm);
+					forceCreate(file, new ByteArrayInputStream(value), npm);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		});
 	}
-	
+
 	public void postProcess() {
 		final NullProgressMonitor npm = new NullProgressMonitor();
 		try {
@@ -310,7 +343,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		}));
 		TaskExecution.threadPool(list, 20);
 	}
-	
+
 	@FunctionalInterface
 	public interface Fix<T> {
 		boolean fix(T node);
@@ -322,7 +355,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		else
 			return false;
 	}
-	
+
 	private static boolean fixParms(Function node) {
 		final Set<String> got = new HashSet<>();
 		final boolean fixedParms = node.parameters().stream().reduce(false, (num, v) -> {
@@ -346,7 +379,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		}
 		return fixedParms;
 	}
-	
+
 	private static boolean fixSomeArgumentTypes(CallDeclaration node) {
 		final Function fn = node.function();
 		if (fn != null) {
@@ -365,7 +398,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		}
 		return false;
 	}
-	
+
 	private static boolean fixUndeclaredIdentifier(AccessDeclaration v) {
 		if (v.declaration() == null && v.predecessor() == null) {
 			final CallDeclaration call = as(v, CallDeclaration.class);
@@ -379,7 +412,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		} else
 			return false;
 	}
-	
+
 	private static boolean fixIfEffect(IfStatement check) {
 		final Script script = check.parent(Script.class);
 		final BinaryOp comp = as(check.condition(), BinaryOp.class);
@@ -410,7 +443,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		} else
 			return false;
 	}
-	
+
 	/**
 	 * By letting this converter visit the source project the actual conversion is performed.
 	 */
