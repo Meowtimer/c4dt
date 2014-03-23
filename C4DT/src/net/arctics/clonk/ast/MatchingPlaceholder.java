@@ -150,7 +150,7 @@ public class MatchingPlaceholder extends Placeholder {
 		}
 		@Override
 		public IVariable variable(final AccessDeclaration access, final Object obj) {
-			if (obj instanceof MatchingPlaceholder) {
+			if (obj instanceof MatchingPlaceholder || obj instanceof ICodeConverterContext) {
 				final Class<? extends ASTNode> cls = findClass(access.name());
 				return new Constant(cls);
 			} else
@@ -423,7 +423,7 @@ public class MatchingPlaceholder extends Placeholder {
 		if (code != null)
 			n = Arrays.stream(n).map(v -> {
 				try {
-					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), this));
+					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), context));
 				} catch (final Exception e) {
 					e.printStackTrace();
 					return v;
