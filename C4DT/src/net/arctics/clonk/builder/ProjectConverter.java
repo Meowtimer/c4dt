@@ -9,6 +9,7 @@ import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import net.arctics.clonk.Core;
@@ -28,6 +30,7 @@ import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Operator;
+import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
@@ -35,6 +38,7 @@ import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.ast.FunctionDescription;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.IfStatement;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
@@ -52,6 +56,7 @@ import net.arctics.clonk.ini.DefCoreUnit;
 import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.landscapescript.LandscapeScript;
+import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.TaskExecution;
 
@@ -112,8 +117,8 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			try {
 				final IFolder originFolder = as(origin, IFolder.class);
 				final IFolder targetFolder = as(target, IFolder.class);
-				if (originFolder != null && targetFolder != null) {
-					final Map<IFile, FileConversion> sub = new HashMap<>();
+				final Map<IFile, FileConversion> sub = new HashMap<>();
+				if (originFolder != null && targetFolder != null)
 					Arrays.stream(originFolder.members(IResource.FILE)).filter(r -> r instanceof IFile).forEach(res -> {
 						final IFile file = (IFile)res;
 						final Structure struct = Structure.pinned(file, false, false);
@@ -125,18 +130,18 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 								sub.put(file, new FileConversion(struct, target));
 						}
 					});
+				else
+					sub.put((IFile) origin, new FileConversion((Structure) declaration, (IFile)target).convert());
+				
+				sub.values().forEach(FileConversion::convert);
+				
+				final Script script = as(declaration, Script.class);
+				final FileConversion scriptFile = script != null ? sub.get(script.file()) : null;
 
-					sub.values().forEach(FileConversion::convert);
-
+				if (originFolder != null && targetFolder != null) {
 					final Definition definition = as(declaration, Definition.class);
 					if (definition != null && originFolder != null) {
-						final Supplier<ID> mapID = () -> {
-							final ID mapped = transformer.idMap().getOrDefault(definition.id(), null);
-							if (mapped != null)
-								return mapped;
-							else
-								return definition.id();
-						};
+						final Supplier<ID> mapID = () -> transformer.idMap().getOrDefault(definition.id(), null);
 						final ID mapped = mapID.get();
 						if (mapped != definition.id()) {
 							final FileConversion defCore = sub.get(findMemberCaseInsensitively(originFolder, DefCoreUnit.FILE_NAME));
@@ -149,20 +154,49 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 						}
 						final FileConversion actMap = sub.get(findMemberCaseInsensitively(originFolder, ActMapUnit.FILE_NAME));
 						final ActMapUnit actMapUnit = actMap != null ? as(actMap.converted, ActMapUnit.class) : null;
-						if (actMapUnit != null) {
-							final FileConversion script = sub.get(definition.file());
-							if (script != null && script.converted instanceof Script) {
-								final Variable actMapVar = ((Script)script.converted).addDeclaration(new Variable("ActMap", Scope.LOCAL));
-								actMapVar.setInitializationExpression(new PropListExpression(actMapUnit.toProplist()));
+						if (actMapUnit != null)
+							if (scriptFile != null && scriptFile.converted instanceof Script) {
+								((Script)scriptFile.converted).addDeclaration(
+									new Variable(Scope.LOCAL, "ActMap", new PropListExpression(actMapUnit.toProplist()))
+								);
 								actMap.target.delete(true, null);
 								sub.remove(actMap.original.file());
 							}
-						}
 					}
-
-					sub.values().forEach(FileConversion::write);
-				} else if (target instanceof IFile && declaration instanceof Structure)
-					new FileConversion((Structure) declaration, (IFile)target).convert().write();
+				}
+				
+				if (script != null) {
+					final List<Pair<Function, FunctionDescription>> descs = new ArrayList<>(5);
+					script.traverse(node -> {
+						if (node instanceof FunctionDescription)
+							descs.add(Pair.pair(node.parent(Function.class), (FunctionDescription) node));
+						return TraversalContinuation.Continue;
+					});
+					if (!descs.isEmpty()) {
+						final ProplistDeclaration dec = new ProplistDeclaration(descs.stream()
+							.map(d -> new Variable(
+								null,
+								d.first().name(), new PropListExpression(new ProplistDeclaration(
+									Arrays.stream(d.second().splitContents())
+										.map(p -> {
+											switch (p.first()) {
+											case "Method":
+												return new Variable(null, p.first(), new AccessVar("METHOD_"+p.second()));
+											default:
+												return new Variable(null, p.first(), new StringLiteral(p.second()));
+											}
+										})
+										.collect(Collectors.toList())
+								))
+							))
+							.collect(Collectors.toList())
+						);
+						descs.forEach(d -> d.second().parent().removeSubElement(d.second()));
+						((Script)scriptFile.converted).addDeclaration(new Variable(Scope.STATIC, "FunctionDescriptions", new PropListExpression(dec)));
+					}
+				}
+				
+				sub.values().forEach(FileConversion::write);
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
@@ -175,6 +209,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	private Engine targetEngine() { return destinationProject.index().engine(); }
 	private IProgressMonitor monitor;
 	private final List<DeclarationConversion> conversions = new LinkedList<>();
+	private final List<Declaration> needResaving = Collections.synchronizedList(new LinkedList<>());
 	public CodeTransformer configuration() { return transformer; }
 	/**
 	 * Create a new converter by specifying source and destination.
@@ -213,9 +248,20 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	 */
 	public void convert(final IProgressMonitor monitor) {
 		this.monitor = monitor;
+		this.needResaving.clear(); 
 		runWithoutAutoBuild(this);
 		copyCompatibilityFiles();
 		postProcess();
+		saveThoseInNeedOfResaving();
+	}
+	
+	public void saveThoseInNeedOfResaving() {
+		needResaving.forEach(dec -> {
+			Core.instance().performActionsOnFileDocument(dec.file(), d -> {
+				d.set(dec.printed());
+				return null;
+			}, true);
+		});
 	}
 	
 	private void copyCompatibilityFiles() {
@@ -241,7 +287,6 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			destinationProject.getProject().build(IncrementalProjectBuilder.FULL_BUILD, npm);
 		} catch (final CoreException ce) {}
 		final List<Runnable> list = new LinkedList<>();
-		final List<Script> toSave = Collections.synchronizedList(new LinkedList<>());
 		destinationProject.index().allScripts(s -> list.add(() -> {
 			final boolean[] doSave = new boolean[1];
 			s.traverse((node, ctx) -> {
@@ -255,15 +300,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				return TraversalContinuation.Continue;
 			}, null);
 			if (doSave[0])
-				toSave.add(s);
+				needResaving.add(s);
 		}));
 		TaskExecution.threadPool(list, 20);
-		toSave.forEach(s -> {
-			Core.instance().performActionsOnFileDocument(s.file(), d -> {
-				d.set(s.printed());
-				return null;
-			}, true);
-		});
 	}
 	
 	@FunctionalInterface

@@ -13,3 +13,6 @@ global func UnknownFunction(string name)
 {
 	Log("Unknown function called: %s", name);
 }
+
+static const METHOD_Classic = 1;
+static const METHOD_JumpNRun = 2;

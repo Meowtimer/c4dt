@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -11,6 +12,7 @@ import net.arctics.clonk.ast.NameValueAssignment;
 import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.stringtbl.StringTbl;
+import net.arctics.clonk.util.Pair;
 
 import org.eclipse.jface.text.Region;
 
@@ -33,6 +35,13 @@ public class FunctionDescription extends Statement implements Serializable {
 	}
 	public void setContents(final String contents) {
 		this.contents = contents;
+	}
+	@SuppressWarnings("unchecked")
+	public Pair<String, String>[] splitContents() {
+		return Arrays.stream(contents.split("\\|")).map(c -> {
+			final String[] s = c.split("=");
+			return Pair.pair(s[0], s.length > 1 ? s[1] : null);
+		}).toArray(l -> new Pair[l]);
 	}
 	@Override
 	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
