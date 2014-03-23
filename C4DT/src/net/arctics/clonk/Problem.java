@@ -31,6 +31,7 @@ public enum Problem {
 	ConstantValueExpected(Messages.ConstantValueExpected),
 	CommaOrSemicolonExpected(Messages.CommaOrSemicolonExpected),
 	IncompatibleTypes(Messages.IncompatibleTypes, Messages.Arg_Type1, Messages.Arg_Type2),
+	IncompatibleArgTypes("%s: Incompatible argument type for %s: expected %s, got %s", "Method", "Parameter", Messages.Arg_Type1, Messages.Arg_Type2),
 	VariableCalled(Messages.VariableCalled, Messages.Arg_Variable, Messages.Arg_VariableType),
 	TypeAsName(Messages.TypeAsName, Messages.Arg_Typename),
 	BlockNotClosed(Messages.BlockNotClosed),

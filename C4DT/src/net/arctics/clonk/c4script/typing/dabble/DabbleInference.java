@@ -299,9 +299,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final IType unified = inference.typing.unifyNoChoice(parmTy, givenTy);
 				if (unified == null)
 					try {
-						inference.markers().marker(script, Problem.IncompatibleTypes, given, given.start(), given.end(), Markers.NO_THROW,
+						inference.markers().marker(script, Problem.IncompatibleArgTypes, given, given.start(), given.end(), Markers.NO_THROW,
 							inference.typing == Typing.STATIC ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING,
-							parmTy.typeName(true), givenTy.typeName(true)
+							called.name(), called.parameter(p).name(), parmTy.typeName(true), givenTy.typeName(true)
 						);
 					} catch (final ProblemException e) {}
 				else if (visitor != null && givenTy == PrimitiveType.UNKNOWN)
