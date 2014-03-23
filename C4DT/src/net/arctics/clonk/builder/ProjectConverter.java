@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.lang.System.out;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
@@ -179,12 +180,17 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 								d.first().name(), new PropListExpression(new ProplistDeclaration(
 									Arrays.stream(d.second().splitContents())
 										.map(p -> {
-											switch (p.first()) {
+											final String n = defaulting(p.first(), "Desc");
+											ASTNode v;
+											switch (n) {
 											case "Method":
-												return new Variable(null, p.first(), new AccessVar("METHOD_"+p.second()));
+												v = new AccessVar("METHOD_"+p.second());
+												break;
 											default:
-												return new Variable(null, p.first(), new StringLiteral(p.second()));
+												v = new StringLiteral(p.second());
+												break;
 											}
+											return new Variable(Scope.VAR, n, v);
 										})
 										.collect(Collectors.toList())
 								))
@@ -377,13 +383,30 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	private static boolean fixIfEffect(IfStatement check) {
 		final Script script = check.parent(Script.class);
 		final BinaryOp comp = as(check.condition(), BinaryOp.class);
-		if (comp != null && comp.operator() == Operator.SmallerEqual &&
-			script.typings().get(comp.leftSide()) instanceof Effect &&
-			IntegerLiteral.ZERO.equals(comp.rightSide())
-		) {
-			comp.operator(Operator.Equal);
-			comp.setRightSide(new Nil());
-			return true;
+		if (comp != null) {
+			final boolean leftSideIsEffect = script.typings().get(comp.leftSide()) instanceof Effect;
+			final boolean rightSideIsZero = IntegerLiteral.ZERO.equals(comp.rightSide());
+			final boolean elligible = leftSideIsEffect && rightSideIsZero;
+			if (elligible) {
+				Operator conv;
+				switch (comp.operator()) {
+				case SmallerEqual:
+					conv = Operator.Equal;
+					break;
+				case Larger:
+					conv = Operator.NotEqual;
+					break;
+				default:
+					conv = null;
+				}
+				if (conv != null) {
+					comp.operator(conv);
+					comp.setRightSide(new Nil());
+					return true;
+				} else
+					return false;
+			} else
+				return false;
 		} else
 			return false;
 	}
