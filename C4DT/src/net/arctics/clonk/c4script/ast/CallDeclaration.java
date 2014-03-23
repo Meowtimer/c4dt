@@ -296,7 +296,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 						}
 					})
 					.filter(r -> r != null)
-					.findFirst();
+					.findFirst().orElse(null);
 			else
 				return Arrays.stream(self.getClass().getMethods())
 					.filter(m -> m.getName().equals(declarationName))
@@ -308,7 +308,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 						}
 					})
 					.filter(r -> r != null)
-					.findFirst();
+					.findFirst().orElse(null);
 		} else
 			return null;
 	}
