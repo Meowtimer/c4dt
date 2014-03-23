@@ -1,5 +1,7 @@
 package net.arctics.clonk.ast;
 
+import static net.arctics.clonk.util.ArrayUtil.indexOf;
+import static net.arctics.clonk.util.ArrayUtil.removeElement;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.Serializable;
@@ -295,15 +297,19 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 			result = new Sequence((ASTNode[])result);
 		return as(result, ASTNode.class);
 	}
+	
+	public final <T> TraversalContinuation traverse(final IASTVisitorNoContext visitor) {
+		return traverse(visitor, null);
+	}
 
 	/**
 	 * Traverses this expression by calling {@link IASTVisitor#visitNode(ASTNode, Object)} on the supplied {@link IASTVisitor} for the root expression and its sub elements.
-	 * @param listener the expression listener
+	 * @param visitor the expression listener
 	 * @param context Context object
 	 * @return flow control for the calling function
 	 */
-	public final <T> TraversalContinuation traverse(final IASTVisitor<T> listener, final T context) {
-		TraversalContinuation result = listener.visitNode(this, context);
+	public final <T> TraversalContinuation traverse(final IASTVisitor<T> visitor, final T context) {
+		TraversalContinuation result = visitor.visitNode(this, context);
 		switch (result) {
 		case Cancel:
 			return TraversalContinuation.Cancel;
@@ -315,7 +321,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 		for (final ASTNode sub : traversalSubElements()) {
 			if (sub == null)
 				continue;
-			switch (sub.traverse(listener, context)) {
+			switch (sub.traverse(visitor, context)) {
 			case Continue:
 				break;
 			case TraverseSubElements: case Cancel:
@@ -506,6 +512,15 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 		} else
 			throw new InvalidParameterException("element must actually be a subelement of this");
 		return this;
+	}
+	
+	public void removeSubElement(ASTNode node) {
+		final ASTNode[] elms = subElements();
+		final int ndx = indexOf(elms, node);
+		if (ndx == -1)
+			throw new IllegalArgumentException();
+		elms[ndx] = null;
+		setSubElements(removeElement(elms, ndx));
 	}
 
 	/**

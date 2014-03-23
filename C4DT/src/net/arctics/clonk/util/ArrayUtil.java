@@ -77,6 +77,16 @@ public class ArrayUtil {
 		}
 		return array;
 	}
+	
+	public static <T> T[] removeElement(T[] array, int ndx) {
+		if (ndx < 0 || ndx >= array.length)
+			throw new IllegalArgumentException();
+		@SuppressWarnings("unchecked")
+		final T[] result = (T[]) Array.newInstance(array.getClass().getComponentType(), array.length-1);
+		System.arraycopy(array, 0, result, 0, ndx);
+		System.arraycopy(array, ndx+1, result, ndx, array.length-ndx-1);
+		return result;
+	}
 
 	@SuppressWarnings("unchecked")
 	public static <E> ArrayList<E> list(final E... elements) {
