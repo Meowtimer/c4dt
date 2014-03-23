@@ -660,7 +660,7 @@ global func int GetWealth(int iOwner);
 global func bool Hostile(int iPlr1, int iPlr2, bool fCheckOneWayOnly);
 global func bool SelectCrew(int iPlr, object pObj, bool fSelect);
 global func any SetCrewExtraData(object pCrew, string strDataName, any Data);
-global func bool SetCursor(int iPlr, object pObj, bool fNoSelectMark, bool fNoSelectArrow);
+global func bool SetCursor(int iPlr, object pCursor, bool fNoSelectMark, bool fNoSelectArrow);
 global func bool SetHostility(int iPlr1, int iPlr2, bool fHostile, bool fSilent, bool fNoCalls);
 global func bool SetMaxPlayer(int iNewCount);
 global func int SetPlayerTeam(int iPlr, int idNewTeam, bool fDoNoCalls);
