@@ -297,7 +297,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 			result = new Sequence((ASTNode[])result);
 		return as(result, ASTNode.class);
 	}
-	
+
 	public final <T> TraversalContinuation traverse(final IASTVisitorNoContext visitor) {
 		return traverse(visitor, null);
 	}
@@ -513,7 +513,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 			throw new InvalidParameterException("element must actually be a subelement of this");
 		return this;
 	}
-	
+
 	public void removeSubElement(ASTNode node) {
 		final ASTNode[] elms = subElements();
 		final int ndx = indexOf(elms, node);
@@ -691,5 +691,13 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 		final IASTSection section = section();
 		if (section != null)
 			((ASTNode)section).shift(localInsertionOffset, amount);
+	}
+
+	public void forceParents() {
+		for (final ASTNode n : subElements())
+			if (n != null) {
+				n.setParent(this);
+				n.forceParents();
+			}
 	}
 }
