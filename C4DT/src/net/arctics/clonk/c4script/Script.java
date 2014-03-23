@@ -674,7 +674,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					return f;
 			}
 
-		if (info.findGlobalVariables && engine().acceptsId(info.name)) {
+		if (info.findGlobalVariables && engine().acceptsID(info.name)) {
 			final Declaration d  = findDefinition(info);
 			if (d != null)
 				return d;

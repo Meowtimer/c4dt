@@ -40,7 +40,7 @@ public class FunctionDescription extends Statement implements Serializable {
 	public Pair<String, String>[] splitContents() {
 		return Arrays.stream(contents.split("\\|")).map(c -> {
 			final String[] s = c.split("=");
-			return Pair.pair(s[0], s.length > 1 ? s[1] : null);
+			return Pair.pair(s.length > 1 ? s[0] : null, s[s.length > 1 ? 1 : 0]);
 		}).toArray(l -> new Pair[l]);
 	}
 	@Override

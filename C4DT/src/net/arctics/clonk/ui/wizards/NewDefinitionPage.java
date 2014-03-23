@@ -53,7 +53,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		super.dialogChanged();
 		final ClonkProjectNature nature = ClonkProjectNature.get(project);
 		if (nature != null)
-			if (!nature.index().engine().acceptsId(c4idText.getText())) {
+			if (!nature.index().engine().acceptsID(c4idText.getText())) {
 				updateStatus(Messages.NewC4ObjectPage_BadID);
 				return;
 			}

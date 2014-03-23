@@ -26,6 +26,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
+import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
@@ -33,6 +34,7 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group.GroupType;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.typing.ArrayType;
 import net.arctics.clonk.c4script.typing.IType;
@@ -979,9 +981,8 @@ public abstract class SpecialEngineRules {
 	 * @param scanner The scanner to parse the id from
 	 * @return The parsed id or null if parsing failed
 	 */
-	public ID parseId(final BufferedScanner scanner) {
-		return null;
-	}
+	public ID parseID(final BufferedScanner scanner) { return null; }
+	public void printID(ASTNodePrinter output, IDLiteral literal) { output.append(literal.idValue().stringValue()); }
 
 	public enum ScenarioConfigurationProcessing {
 		Load,
@@ -1016,7 +1017,6 @@ public abstract class SpecialEngineRules {
 	}
 
 	public void refreshIndex(final Index index) {}
-
 	public void contribute(final Engine engine) {}
 
 }

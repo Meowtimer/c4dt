@@ -19,6 +19,7 @@ import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
+import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.IEvaluationContext;
@@ -397,11 +398,14 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	private static final Pattern ID_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
 
 	@Override
-	public ID parseId(final BufferedScanner scanner) {
+	public ID parseID(final BufferedScanner scanner) {
 		// HACK: Script parsers won't get IDs from this method because IDs are actually parsed as AccessVars and parsing them with
 		// a <match all identifiers> pattern would cause zillions of err0rs
 		if (scanner instanceof ScriptParser)
-			return null;
+			if (scanner.read() != ':') {
+				scanner.unread();
+				return null;
+			}
 		final Matcher idMatcher = ID_PATTERN.matcher(scanner.bufferSequence(scanner.tell()));
 		if (idMatcher.lookingAt()) {
 			final String idString = idMatcher.group();
@@ -413,6 +417,14 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			return ID.get(idString);
 		}
 		return null;
+	}
+	
+	@Override
+	public void printID(ASTNodePrinter output, IDLiteral literal) {
+		final Script script = literal.parent(Script.class);
+		if (script != null && script.findLocalFunction(literal.idValue().stringValue(), true) != null)
+			output.append(':');
+		super.printID(output, literal);
 	}
 
 	public static final String CREATE_ENVIRONMENT = "CreateEnvironment";

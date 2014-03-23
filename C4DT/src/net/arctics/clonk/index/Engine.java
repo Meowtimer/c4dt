@@ -179,7 +179,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @param text The ID text
 	 * @return Whether accepted or not
 	 */
-	public boolean acceptsId(final String text) { return specialRules().parseId(new BufferedScanner(text)) != null; }
+	public boolean acceptsID(final String text) { return specialRules().parseID(new BufferedScanner(text)) != null; }
 	private boolean hasCustomSettings() { return !settings.equals(intrinsicSettings); }
 
 	/**

@@ -36,7 +36,7 @@ public class SpecialEngineRules_ClonkRage extends SpecialEngineRules {
 		}, "ObjectSetAction");
 	}
 	@Override
-	public ID parseId(final BufferedScanner scanner) {
+	public ID parseID(final BufferedScanner scanner) {
 		final Matcher idMatcher = ID_PATTERN.matcher(scanner.bufferSequence(scanner.tell()));
 		if (idMatcher.lookingAt()) {
 			final String idString = idMatcher.group();

@@ -819,7 +819,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				 */
 				t = typeAnnotation(start, offset, pt.unified());
 			else if (typing.allowsNonParameterAnnotations())
-				if (script.index() != null && engine.acceptsId(str)) {
+				if (script.index() != null && engine.acceptsID(str)) {
 					final Definition def = script.index().definitionNearestTo(script.file(), ID.get(str));
 					if (def != null)
 						t = typeAnnotation(start, offset, def);
@@ -2458,7 +2458,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	private ID parseID() throws ProblemException {
 		ID id;
-		if (offset < size && (id = specialEngineRules != null ? specialEngineRules.parseId(this) : null) != null)
+		if (offset < size && (id = specialEngineRules != null ? specialEngineRules.parseID(this) : null) != null)
 			return id;
 		else
 			return null;

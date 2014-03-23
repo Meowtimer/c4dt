@@ -111,7 +111,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 									final IResource r = structure().file();
 									final Index index = ProjectIndex.fromResource(r);
 									final String id = line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength());
-									if (index.engine() != null && index.engine().acceptsId(id)) {
+									if (index.engine() != null && index.engine().acceptsID(id)) {
 										declaration = index.definitionNearestTo(r, ID.get(line.substring(idRegion.getOffset(), idRegion.getOffset()+idRegion.getLength())));
 										linkStart = lineRegion.getOffset()+idRegion.getOffset();
 										linkLen = idRegion.getLength();
