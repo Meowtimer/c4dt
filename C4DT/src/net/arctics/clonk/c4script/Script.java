@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
+import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
@@ -1342,12 +1343,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public void setSubElements(ASTNode[] elms) {
 		this.clearDeclarations();
-		Arrays.stream(elms)
-			.filter(n -> n instanceof Declaration)
-			.map(n -> (Declaration)n)
-			.forEach(this::addDeclaration);
+		// FIXME: dropping non-declarations here
+		ofType(Arrays.stream(elms), Declaration.class).forEach(this::addDeclaration);
 	}
-	
+
 	@Override
 	public ASTNode[] subElements() {
 		final List<ASTNode> decs = new ArrayList<ASTNode>(subDeclarations(index(), DeclMask.ALL));
@@ -1371,16 +1370,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		final Function f = node.parent(Function.class);
 		return f != null && !(f instanceof SynthesizedFunction);
 	}
-	
+
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
-		
+
 		if (sourceComment != null) {
 			new Comment(sourceComment, true, false).print(output, depth);
 			output.lb();
 			output.lb();
 		}
-		
+
 		ASTNode prev = null;
 		for (final ASTNode se : subElements()) {
 			final boolean skip =
