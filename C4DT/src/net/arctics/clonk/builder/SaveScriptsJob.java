@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,7 +27,7 @@ class SaveScriptsJob extends Job {
 	}
 	@Override
 	protected IStatus run(final IProgressMonitor monitor) {
-		final List<Index> indices = scriptsToSave.stream().map(s -> s.index()).distinct().collect(Collectors.toList());
+		final Set<Index> indices = scriptsToSave.stream().map(s -> s.index()).collect(Collectors.toSet());
 		monitor.beginTask(ClonkBuilder.buildTask(Messages.ClonkBuilder_SavingScriptIndexFiles, project), scriptsToSave.size()+3+indices.size());
 		try {
 			for (final Iterator<Script> it = scriptsToSave.iterator(); it.hasNext();) {
@@ -55,6 +54,7 @@ class SaveScriptsJob extends Job {
 					try {
 						index.saveShallow();
 						monitor.worked(1);
+						break;
 					} catch (final Exception e) {}
 			});
 			monitor.worked(3);
