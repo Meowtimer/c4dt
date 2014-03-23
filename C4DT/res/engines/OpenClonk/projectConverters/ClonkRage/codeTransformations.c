@@ -70,6 +70,11 @@ Chain(
 		=> FindObject($left$, $right$)
 );
 
+ObjectCount($id$) => ObjectCount(Find_ID($id$));
+
+$target$->SetCommand($$[[$:Integer,/0/$|$:Whitespace$]], $cmd:String$, $rest...$)
+	=> $target$->SetCommand($cmd$, $rest$);
+
 Transform(
 	while ($x$ = FindObject($params:Call,/Find_.*/,...$, $x$)) $body$;,
 	for ($x$ in FindObjects($params$)) $body$;
