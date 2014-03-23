@@ -423,7 +423,7 @@ public class MatchingPlaceholder extends Placeholder {
 		if (code != null)
 			n = Arrays.stream(n).map(v -> {
 				try {
-					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), context));
+					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), this));
 				} catch (final Exception e) {
 					e.printStackTrace();
 					return v;
