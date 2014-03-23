@@ -1367,6 +1367,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			return node.getClass();
 	}
 
+	private static boolean inRegularFunction(ASTNode node) {
+		final Function f = node.parent(Function.class);
+		return f != null && !(f instanceof SynthesizedFunction);
+	}
+	
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
 		
@@ -1381,7 +1386,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			final boolean skip =
 				se == null ||
 				se instanceof SynthesizedFunction ||
-				(se instanceof Variable && ((Variable)se).initializationExpression() != null && ((Variable)se).initializationExpression().parent(Function.class) != null);
+				(se instanceof Variable && ((Variable)se).initializationExpression() != null && inRegularFunction(((Variable)se).initializationExpression()));
 			if (!skip) {
 				if (prev != null) {
 					output.lb();
