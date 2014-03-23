@@ -240,7 +240,7 @@ public class Definition extends Script implements IProplistDeclaration {
 	 *
 	 */
 	public final class ProxyVar extends Variable implements IReplacedWhenSaved {
-		public ProxyVar() { super(Definition.this.id().stringValue(), Scope.STATIC); }
+		public ProxyVar() { super(Scope.STATIC, Definition.this.id().stringValue()); }
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		@Override
 		public String name() { return id().stringValue(); }

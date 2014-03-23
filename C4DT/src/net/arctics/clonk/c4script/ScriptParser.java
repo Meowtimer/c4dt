@@ -788,7 +788,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 	@Override
 	public Variable newVariable(final String varName, final Scope scope) {
-		return new Variable(varName, scope);
+		return new Variable(scope, varName);
 	}
 
 	private TypeAnnotation parseTypeAnnotation(final boolean topLevel, boolean required) throws ProblemException {
@@ -1580,7 +1580,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 								error(Problem.UnexpectedToken, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, (char)c_);
 							} else {
 								eatWhitespace();
-								final Variable v = new Variable(name, currentFunction != null ? Scope.VAR : Scope.LOCAL);
+								final Variable v = new Variable(currentFunction != null ? Scope.VAR : Scope.LOCAL, name);
 								v.setLocation(absoluteSourceLocation(nameStart, nameEnd));
 								final Declaration outerDec = currentDeclaration();
 								this.currentDeclaration = v;
@@ -2509,7 +2509,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		default:
 			break;
 		}
-		final Variable var = new Variable(null, Scope.PARAMETER);
+		final Variable var = new Variable(Scope.PARAMETER, null);
 		if (type != null)
 			type.setTarget(var);
 		if (type != null) {

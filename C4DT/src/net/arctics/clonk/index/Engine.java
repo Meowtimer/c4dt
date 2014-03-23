@@ -277,7 +277,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			if (findFunction("this") == null) //$NON-NLS-1$
 				this.addDeclaration(new Function("this", Function.FunctionScope.GLOBAL)); //$NON-NLS-1$
 			if (findVariable(Keywords.Nil) == null)
-				this.addDeclaration(new Variable(Keywords.Nil, Variable.Scope.CONST));
+				this.addDeclaration(new Variable(Variable.Scope.CONST, Keywords.Nil));
 		} finally {
 			resetCache();
 		}
@@ -312,7 +312,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				continue;
 			IDocumentedDeclaration dec;
 			if (isConst)
-				dec = new DocumentedVariable(rawFileName, Variable.Scope.CONST);
+				dec = new DocumentedVariable(Variable.Scope.CONST, rawFileName);
 			else
 				dec = new DocumentedFunction(rawFileName, Function.FunctionScope.GLOBAL);
 			this.addDeclaration((Declaration)dec);

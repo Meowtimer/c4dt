@@ -512,7 +512,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					);
 					final List<Declaration> decs = createNewDeclarationReplacement.additionalDeclarations();
 					if (accessDec instanceof AccessVar)
-						decs.add(new Variable(accessDec.name(), Scope.LOCAL));
+						decs.add(new Variable(Scope.LOCAL, accessDec.name()));
 					else {
 						final CallDeclaration callFunc = (CallDeclaration) accessDec;
 						Function function;

@@ -641,7 +641,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public void createParameters(final int num) {
 		for (int i = parameters.size(); i < num; i++)
-			parameters.add(new Variable("par"+i, Scope.VAR)); //$NON-NLS-1$
+			parameters.add(new Variable(Scope.VAR, "par"+i)); //$NON-NLS-1$
 	}
 
 	/**

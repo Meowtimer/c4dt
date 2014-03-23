@@ -1593,14 +1593,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void addFieldToScript(final T node, final IType type, final ASTNode origin, final Visitor visitor) {
-				final Variable var = new Variable(node.name(), Variable.Scope.LOCAL);
+				final Variable var = new Variable(Variable.Scope.LOCAL, node.name());
 				initializeFromAssignment(node, type, origin, visitor, var);
 				visitor.script().addDeclaration(var);
 				node.setDeclaration(var);
 			}
 
 			private void addComponentToProplist(final T node, final IType type, final ASTNode origin, final Visitor visitor, final IProplistDeclaration proplDecl) {
-				final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
+				final Variable var = proplDecl.addComponent(new Variable(Variable.Scope.VAR, node.name()), true);
 				var.setLocation(node.absolute());
 				node.setDeclaration(var);
 				initializeFromAssignment(node, type, origin, visitor, var);
@@ -1608,7 +1608,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			private void typeAsProplist(final T node, final IType type, final ASTNode origin, final Visitor visitor) {
 				final ProplistDeclaration proplDecl = new ProplistDeclaration(new ArrayList<Variable>());
-				final Variable var = proplDecl.addComponent(new Variable(node.name(), Variable.Scope.VAR), true);
+				final Variable var = proplDecl.addComponent(new Variable(Variable.Scope.VAR, node.name()), true);
 				proplDecl.setParent(visitor.script());
 				var.setLocation(node);
 				node.setDeclaration(var);

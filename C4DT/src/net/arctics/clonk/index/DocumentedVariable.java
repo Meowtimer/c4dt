@@ -8,7 +8,7 @@ public final class DocumentedVariable extends EngineVariable implements IDocumen
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private boolean fleshedOut;
 	public DocumentedVariable(final String name, final IType type) { super(name, type); }
-	public DocumentedVariable(final String name, final Scope scope) { super(name, scope); }
+	public DocumentedVariable(final Scope scope, final String name) { super(scope, name); }
 	public DocumentedVariable() { super(); }
 	@Override
 	public synchronized IType type() {

@@ -272,7 +272,7 @@ public class IniSection
 				ls = ls.filter(i -> i != nameEntry);
 		}
 		return new ProplistDeclaration(
-			ls.map(i -> new Variable(proplistKey(unit, i), i.proplistValue())
+			ls.map(i -> new Variable(Variable.Scope.VAR, proplistKey(unit, i), i.proplistValue())
 		).collect(Collectors.toList()));
 	}
 

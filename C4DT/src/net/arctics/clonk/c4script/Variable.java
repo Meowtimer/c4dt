@@ -72,35 +72,34 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
 
-	private Variable(final String name) { this.name = name; }
-
 	private Variable(final String name, final IType type, final String desc) {
-		this(name);
+		this.name = name;
 		this.type = type;
 		this.description = desc;
 		this.scope = Scope.VAR;
 		this.typePinned = true;
 	}
 
-	public Variable(final String name, final ASTNode initialization) {
-		this(name);
-		initializationExpression = initialization;
+	public Variable(Scope scope, final String name, final ASTNode initialization) {
+		this.name = name;
+		this.scope = scope;
+		this.initializationExpression = initialization;
 	}
 
 	public Variable(final String name, final IType type) {
-		this(name);
-		forceType(type);
+		this.name = name;
+		this.forceType(type);
 	}
 
-	public Variable(final String name, final Scope scope) {
-		this(name);
+	public Variable(final Scope scope, final String name) {
+		this.name = name;
 		this.scope = scope;
-		type = PrimitiveType.UNKNOWN;
+		this.type = PrimitiveType.UNKNOWN;
 	}
 
 	public Variable() {
-		this(""); //$NON-NLS-1$
-		scope = Scope.VAR;
+		this.name = ""; //$NON-NLS-1$
+		this.scope = Scope.VAR;
 	}
 
 	/**
@@ -405,6 +404,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 			return super.occurenceScope(indexes);
 	}
 
-	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = (varName, scope) -> new Variable(varName, scope);
+	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = (varName, scope) -> new Variable(scope, varName);
 
 }

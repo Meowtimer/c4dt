@@ -26,7 +26,7 @@ public class EngineVariable extends Variable implements IReplacedWhenSaved {
 	}
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public EngineVariable(final String name, final IType type) { super(name, type); }
-	public EngineVariable(final String name, final Scope scope) { super(name, scope); }
+	public EngineVariable(final Scope scope, final String name) { super(scope, name); }
 	public EngineVariable() { super(); }
 	@Override
 	public Object saveReplacement(final Index context) { return new Ticket(name()); }

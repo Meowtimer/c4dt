@@ -1,5 +1,6 @@
 package net.arctics.clonk.command;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.StringUtil.multiply;
 
@@ -126,7 +127,10 @@ public class Command {
 	}
 
 	public static void addCommand(final Script script, final Method method) {
-		script.addDeclaration(new NativeCommandFunction(script, method));
+		if (script.findLocalDeclaration(method.getName(), Function.class) == null)
+			script.addDeclaration(new NativeCommandFunction(script, method));
+		else
+			System.out.println(format("Skipping %s", method.getName()));
 	}
 
 	public static void addCommand(final Method method) {
