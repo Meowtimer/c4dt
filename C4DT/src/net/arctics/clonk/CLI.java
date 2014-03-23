@@ -404,9 +404,9 @@ public class CLI implements IApplication, AutoCloseable {
 		final ICommand command = desc.newCommand();
 		command.setBuilderName(Core.id("builder")); //$NON-NLS-1$
 		desc.setBuildSpec(new ICommand[] {command});
-		final IProject baseProj = engineName.equals(OPEN_CLONK) ? oc : cr;
-		if (baseProj != null)
-			desc.setReferencedProjects(new IProject[] {baseProj});
+		//final IProject baseProj = engineName.equals(OPEN_CLONK) ? oc : cr;
+		//if (baseProj != null)
+		//	desc.setReferencedProjects(new IProject[] {baseProj});
 		proj.setDescription(desc, npm);
 
 		final ClonkProjectNature nature = ClonkProjectNature.get(proj);
