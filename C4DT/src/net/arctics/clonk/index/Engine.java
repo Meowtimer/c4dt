@@ -698,10 +698,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	public C4Group.GroupType groupTypeForExtension(final String ext) {
 		final C4Group.GroupType gt = settings.fileExtensionToGroupTypeMapping().get(ext);
-		if (gt != null)
-			return gt;
-		else
-			return C4Group.GroupType.OtherGroup;
+		return gt != null ? gt : C4Group.GroupType.OtherGroup;
 	}
 
 	public C4Group.GroupType groupTypeForFileName(final String fileName) {
@@ -710,11 +707,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	public Object image(final String name, final boolean returnDescriptor) {
 		final Collection<URL> urls = getURLsOfStorageLocationPath("images", false); //$NON-NLS-1$
-		if (urls != null)
-			for (final URL url : urls)
-				if (url.getFile().endsWith(name+".png")) //$NON-NLS-1$
-					return returnDescriptor ? UI.imageDescriptorForURL(url) :  UI.imageForURL(url);
-		return null;
+		final URL url = urls != null ? urls.stream().filter(u -> u.getFile().endsWith(name+".png")).findFirst().orElse(null) : null; //$NON-NLS-1$
+		return url != null
+			?  returnDescriptor ? UI.imageDescriptorForURL(url) :  UI.imageForURL(url)
+			: null;
 	}
 
 	public Image image(final GroupType groupType) {return (Image) image(groupType.name(), false);}

@@ -44,7 +44,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		DefinitionGroup,
 		ResourceGroup,
 		ScenarioGroup,
-		FolderGroup
+		FolderGroup,
+		Material
 	}
 
 	public interface StreamReadCallback {
