@@ -1383,7 +1383,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		ASTNode prev = null;
 		for (final ASTNode se : subElements()) {
 			final boolean skip =
-				se == null ||
+				se == null || se instanceof ProplistDeclaration ||
 				se instanceof SynthesizedFunction ||
 				(se instanceof Variable && ((Variable)se).initializationExpression() != null && inRegularFunction(((Variable)se).initializationExpression()));
 			if (!skip) {
