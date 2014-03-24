@@ -275,12 +275,10 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	}
 
 	public void saveThoseInNeedOfResaving() {
+		final NullProgressMonitor npm = new NullProgressMonitor();
 		needResaving.forEach(dec -> {
 			try {
-				Core.instance().performActionsOnFileDocument(dec.file(), d -> {
-					d.set(dec.printed());
-					return null;
-				}, true);
+				dec.file().setContents(new ByteArrayInputStream(dec.printed().getBytes("UTF-8")), true, false, npm);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
