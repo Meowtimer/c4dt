@@ -1,0 +1,8 @@
+Graphics.ocg/LandscapeShader.c
+Graphics.ocg/ClonkSkins.png
+Graphics.ocg/Cursor.png
+Graphics.ocg/GUIButtonHighlightRound.png
+Graphics.ocg/Scaler.png
+Graphics.ocg/StartupLogo.png
+Graphics.ocg/Endeavour.ttf
+System.ocg/PlayerControls.txt

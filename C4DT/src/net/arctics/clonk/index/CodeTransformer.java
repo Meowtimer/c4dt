@@ -3,8 +3,11 @@ package net.arctics.clonk.index;
 import static net.arctics.clonk.util.ArrayUtil.indexOfItemSatisfying;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.StringUtil.blockString;
+import static net.arctics.clonk.util.StringUtil.lines;
+import static net.arctics.clonk.util.StringUtil.nullOrEmpty;
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.io.File;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
@@ -51,6 +54,7 @@ import org.eclipse.core.runtime.Path;
  *
  */
 public class CodeTransformer extends CodeConverter {
+	private static final String FROM_REPO = "fromrepo.txt";
 	public class CodeTransformation {
 		private final ASTNode template;
 		private final ASTNode transformation;
@@ -182,11 +186,23 @@ public class CodeTransformer extends CodeConverter {
 				codeTransformations = f;
 			else if (last.equals("idMap.txt"))
 				idMap = f;
-			else if ((s = subSeqToRight.apply(segments, "compatibility")) != null && !s[s.length-1].startsWith(".")) {
-				final byte[] bytes = StreamUtil.bytesFromURL(f);
-				if (bytes != null)
-					compatibilityFiles.put(blockString("", "", "/", iterable(s)), bytes);
-			}
+			else if ((s = subSeqToRight.apply(segments, "compatibility")) != null && !s[s.length-1].startsWith("."))
+				switch (s[s.length-1]) {
+				case FROM_REPO:
+					if (nullOrEmpty(targetEngine.settings().repositoryPath))
+						throw new IllegalStateException();
+					final File repoDir = new File(targetEngine.settings().repositoryPath);
+					lines(new StringReader(StreamUtil.stringFromURL(f))).forEach(repoFile -> {
+						final byte[] bytes = StreamUtil.bytesFromFile(new File(repoDir, "planet/" + repoFile));
+						if (bytes != null)
+							compatibilityFiles.put(repoFile, bytes);
+					});
+					break;
+				default:
+					final byte[] bytes = StreamUtil.bytesFromURL(f);
+					if (bytes != null)
+						compatibilityFiles.put(blockString("", "", "/", iterable(s)), bytes);
+				}
 		}
 		objParConversions = prepareObjParConversions();
 		if (codeTransformations != null)

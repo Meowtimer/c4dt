@@ -359,6 +359,10 @@ public class CLI implements IApplication, AutoCloseable {
 		desc.setLocation(new Path(ocRepo).append("planet"));
 		desc.setNatureIds(new String[0]);
 		desc.setBuildSpec(new ICommand[0]);
+		
+		final Engine ocEngine = Core.instance().loadEngine(OPEN_CLONK);
+		ocEngine.settings().repositoryPath = ocRepo;
+		ocEngine.saveSettings();
 
 		oc = ResourcesPlugin.getWorkspace().getRoot().getProject(OPEN_CLONK);
 		if (oc.exists())

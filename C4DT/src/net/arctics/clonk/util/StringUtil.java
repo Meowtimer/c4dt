@@ -251,4 +251,7 @@ public class StringUtil {
 			replace("\n", " "). //$NON-NLS-1$ //$NON-NLS-2$
 			replace("\t", " "); //$NON-NLS-1$ //$NON-NLS-2$
 	}
+	public static boolean nullOrEmpty(String str) {
+		return str == null || str.equals("");
+	}
 }

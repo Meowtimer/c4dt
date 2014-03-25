@@ -168,12 +168,25 @@ public class StreamUtil {
 
 	public static byte[] bytesFromURL(URL f) {
 		try (InputStream s = f.openStream()) {
-			final ByteArrayOutputStream out = new ByteArrayOutputStream();
+			return bytesFromInputStream(s);
+		} catch (final IOException e) {
+			return null;
+		}
+	}
+
+	public static byte[] bytesFromInputStream(InputStream s) throws IOException {
+		try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 			int r;
 			final byte[] buf = new byte[1024];
 			while ((r = s.read(buf)) > 0)
 				out.write(buf, 0, r);
 			return out.toByteArray();
+		}
+	}
+
+	public static byte[] bytesFromFile(File file) {
+		try (FileInputStream fs = new FileInputStream(file)) {
+			return bytesFromInputStream(fs);
 		} catch (final IOException e) {
 			return null;
 		}
