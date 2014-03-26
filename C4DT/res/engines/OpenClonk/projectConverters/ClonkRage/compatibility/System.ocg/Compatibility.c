@@ -19,9 +19,39 @@ global func GetPhysical()
 	return 0;
 }
 
+global func SetPhysical()
+{
+	return false;
+}
+
 global func GetPlrMagic()
 {
 	return false;
+}
+
+global func ResetPhysical()
+{
+	return false;
+}
+
+global func CastParticles()
+{
+	
+}
+
+global func ShakeObjects()
+{
+	
+}
+
+global func LaunchLightning()
+{
+	
+}
+
+global func ScoreboardCol()
+{
+	
 }
 
 static const METHOD_Classic = 1;
