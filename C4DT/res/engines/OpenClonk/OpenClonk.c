@@ -614,6 +614,7 @@ global func any LocateFunc(any funcname, any p);
 global func any ModulateColor(int clr1, int clr2);
 global func any StartCallTrace();
 global func any GetConstantNameByValue(int value, any name_prefix, int idx);
+global func any IncinerateLandscape(int x, int y);
 global func any GetPlayerColor(int player);
 global func any GetTexture(int x, int y);
 global func any GetAverageTextureColor(string texture);
