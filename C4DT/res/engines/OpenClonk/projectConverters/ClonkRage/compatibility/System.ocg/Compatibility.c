@@ -14,5 +14,19 @@ global func UnknownFunction(string name)
 	Log("Unknown function called: %s", name);
 }
 
+global func GetPhysical()
+{
+	return 0;
+}
+
+global func GetPlrMagic()
+{
+	return false;
+}
+
 static const METHOD_Classic = 1;
-static const METHOD_JumpNRun = 2;
+static const METHOD_JumpAndRun = 2;
+static const METHOD_None = 3;
+
+static const OCF_Chop = 256;
+static const OCF_Living = OCF_Alive;

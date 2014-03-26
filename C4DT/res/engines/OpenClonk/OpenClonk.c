@@ -421,7 +421,6 @@ global func int GetOCF();
 global func int GetOwner();
 global func int GetPathLength(int startx, int starty, int endx, int endy);
 global func int GetPhase();
-global func int GetPhysical(string physical, int mode);
 global func int GetPlayerByIndex(int index, int player_type);
 global func string GetPlayerControlAssignment(int player, int control, bool human_readable, bool short_name);
 global func int GetPlayerCount(int player_type);
@@ -438,7 +437,6 @@ global func int GetPlrClonkSkin(int player);
 global func int GetPlrColor(int player);
 global func any GetPlrExtraData(int player, string data_name);
 global func int GetPlrKnowledge(int player, id type, int index, int category);
-global func any GetPlrMagic(int player, id id, int index);
 global func object GetPlrView(int player);
 
 global func int GetPlrViewMode(int player);
