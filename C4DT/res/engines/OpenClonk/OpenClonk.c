@@ -381,6 +381,7 @@ global func int|id GetComponent(id component, int index, object obj, id definiti
 global func int GetCon();
 global func int GetContact(int index, int dwCNAT);
 global func int GetController();
+global func bool SetController(int controller);
 global func object GetCrew(int player, int index);
 global func int GetCrewCount(int player);
 global func bool GetCrewEnabled();
