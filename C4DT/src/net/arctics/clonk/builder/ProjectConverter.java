@@ -204,7 +204,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 							.collect(Collectors.toList())
 						);
 						descs.forEach(d -> d.second().parent().removeSubElement(d.second()));
-						((Script)scriptFile.converted).addDeclaration(new Variable(Scope.STATIC, "FunctionDescriptions", new PropListExpression(dec)));
+						((Script)scriptFile.converted).addDeclaration(new Variable(Scope.CONST, "FunctionDescriptions", new PropListExpression(dec)));
 					}
 				}
 
