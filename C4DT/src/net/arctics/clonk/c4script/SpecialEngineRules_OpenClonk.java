@@ -399,6 +399,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	@Override
 	public ID parseID(final BufferedScanner scanner) {
+		final int pos = scanner.tell();
 		// HACK: Script parsers won't get IDs from this method because IDs are actually parsed as AccessVars and parsing them with
 		// a <match all identifiers> pattern would cause zillions of err0rs
 		if (scanner instanceof ScriptParser)
@@ -416,6 +417,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			}
 			return ID.get(idString);
 		}
+		scanner.seek(pos);
 		return null;
 	}
 	
