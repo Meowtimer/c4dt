@@ -111,10 +111,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		Problem.BlockNotClosed,
 		Problem.NotAllowedHere
 	);
-	private static final char[] SEMICOLON_DELIMITER = new char[] { ';' };
-	private static final char[] OPENING_BLOCK_BRACKET_DELIMITER = new char[] { '{' };
-	private static final char[] COMMA_OR_CLOSE_BRACKET = new char[] { ',', ']' };
-	private static final char[] COMMA_OR_CLOSE_BLOCK = new char[] { ',', '}' };
 
 	protected Function currentFunction;
 	private Declaration currentDeclaration;
@@ -1333,7 +1329,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					// tricky new keyword parsing that also respects use of new as regular identifier
 					if (!noNewProplist && word.equals(Keywords.New)) {
 						// don't report errors here since there is the possibility that 'new' will be interpreted as variable name in which case this expression will be parsed again
-						final ASTNode prototype = parseExpression(OPENING_BLOCK_BRACKET_DELIMITER);
+						final ASTNode prototype = parseExpression('{');
 						boolean treatNewAsVarName = false;
 						if (prototype == null)
 							treatNewAsVarName = true;
@@ -1587,7 +1583,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 								ASTNode value = null;
 								try {
 									v.setParent(outerDec);
-									value = parseExpression(COMMA_OR_CLOSE_BLOCK);
+									value = parseExpression(',', '}');
 									if (value == null) {
 										error(Problem.ValueExpected, offset-1, offset, Markers.NO_THROW);
 										value = placeholderExpression(offset);
@@ -1634,12 +1630,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		if (c == '[') {
 			if (prevElm != null) {
 				// array access
-				final ASTNode arg = parseExpression();
+				final ASTNode arg = parseExpression(':', ']');
 				eatWhitespace();
 				int t;
 				switch (t = read()) {
 				case ':':
-					final ASTNode arg2 = parseExpression();
+					final ASTNode arg2 = parseExpression(']');
 					eatWhitespace();
 					expect(']');
 					elm = new ArraySliceExpression(arg, arg2);
@@ -1673,7 +1669,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						break Loop;
 					default:
 						unread();
-						final ASTNode arrayElement = parseExpression(COMMA_OR_CLOSE_BRACKET);
+						final ASTNode arrayElement = parseExpression(',', ']');
 						if (arrayElement != null) {
 							if (expectingComma) {
 								final ASTNode last = arrayElms.get(arrayElms.size()-1);
@@ -1745,7 +1741,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return parseExpression();
 	}
 
-	protected ASTNode parseExpression(final char[] delimiters) throws ProblemException {
+	private final ASTNode parseExpression(char delim1) throws ProblemException { return parseExpression(delim1, delim1); }
+	protected ASTNode parseExpression(char delim1, char delim2) throws ProblemException {
 
 		final int offset = this.offset;
 
@@ -1780,12 +1777,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					eatWhitespace();
 					// end of expression?
 					final int c = read();
-					for (int i = 0; i < delimiters.length; i++)
-						if (delimiters[i] == c) {
-							state = DONE;
-							this.seek(operatorStartPos);
-							break;
-						}
+					if (c == delim1 || c == delim2) {
+						state = DONE;
+						this.seek(operatorStartPos);
+						break;
+					}
 
 					if (state != DONE) {
 						unread(); // unread c
@@ -1859,7 +1855,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	protected ASTNode parseExpression() throws ProblemException {
-		return parseExpression(SEMICOLON_DELIMITER);
+		return parseExpression(';');
 	}
 
 	/**
