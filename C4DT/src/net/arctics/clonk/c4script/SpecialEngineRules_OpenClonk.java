@@ -74,7 +74,9 @@ import org.eclipse.jface.text.Region;
 
 public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
+	private static final char ID_SIGNIFIER = '@';
 	private static final String DEFINITION_FUNCTION = "Definition";
+	private static final Pattern ID_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
 
 	/**
 	 * Rule to handle typing of effect proplists.<br>
@@ -395,15 +397,13 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		putFuncRule(criteriaSearchRule, "FindObject"); //$NON-NLS-1$
 	}
 
-	private static final Pattern ID_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
-
 	@Override
 	public ID parseID(final BufferedScanner scanner) {
 		final int pos = scanner.tell();
 		// HACK: Script parsers won't get IDs from this method because IDs are actually parsed as AccessVars and parsing them with
 		// a <match all identifiers> pattern would cause zillions of err0rs
 		if (scanner instanceof ScriptParser)
-			if (scanner.read() != ':') {
+			if (scanner.read() != ID_SIGNIFIER) {
 				scanner.unread();
 				return null;
 			}
@@ -425,7 +425,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	public void printID(ASTNodePrinter output, IDLiteral literal) {
 		final Script script = literal.parent(Script.class);
 		if (script != null && script.findLocalFunction(literal.idValue().stringValue(), true) != null)
-			output.append(':');
+			output.append(ID_SIGNIFIER);
 		super.printID(output, literal);
 	}
 
