@@ -2442,9 +2442,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	private Statement withMissingFallback(final int offsetWhereExpected, final Statement statement) throws ProblemException {
-		return statement != null
-			? statement
-				: new MissingStatement(offsetWhereExpected-sectionOffset());
+		return defaulting(statement, () -> new MissingStatement(offsetWhereExpected-sectionOffset()));
 	}
 
 	/**
@@ -2600,15 +2598,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 		final List<ASTNode> statements = new LinkedList<ASTNode>();
 		Statement statement;
-		do {
-			statement = parseStatement();
-			if (statement != null) {
-				statement.setParent(function);
-				statements.add(statement);
-			}
-			else
-				break;
-		} while (true);
+		while ((statement = parseStatement()) != null)
+			statements.add(statement);
 		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
 	}
 
