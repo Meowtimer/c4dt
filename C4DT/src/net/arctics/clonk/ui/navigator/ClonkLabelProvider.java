@@ -69,17 +69,20 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 	public StyledString getStyledText(final Object element) {
 		if (element instanceof IFolder) {
 			final IFolder folder = (IFolder)element;
-			final GroupType groupType = ClonkProjectNature.engineFromResource(folder).groupTypeForFileName(folder.getName());
-			if (groupType == GroupType.DefinitionGroup)
-				// add [C4ID] to .c4d folders
-				try {
-					final String c4id = folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID);
-					return getIDText(folder.getName(), c4id, false);
-				} catch (final CoreException e) {
-					e.printStackTrace();
-				}
-			if (groupType == GroupType.FolderGroup || groupType == GroupType.ScenarioGroup || groupType == GroupType.ResourceGroup)
-				return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf("."))); //$NON-NLS-1$
+			Engine engine = ClonkProjectNature.engineFromResource(folder);
+			if (engine != null) {
+				final GroupType groupType = engine.groupTypeForFileName(folder.getName());
+				if (groupType == GroupType.DefinitionGroup)
+					// add [C4ID] to .c4d folders
+					try {
+						final String c4id = folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID);
+						return getIDText(folder.getName(), c4id, false);
+					} catch (final CoreException e) {
+						e.printStackTrace();
+					}
+				if (groupType == GroupType.FolderGroup || groupType == GroupType.ScenarioGroup || groupType == GroupType.ResourceGroup)
+					return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf("."))); //$NON-NLS-1$
+			}
 			return new StyledString(((IFolder)element).getName());
 		}
 		else if (element instanceof IResource)
