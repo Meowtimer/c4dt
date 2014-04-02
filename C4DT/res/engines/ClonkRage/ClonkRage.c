@@ -649,6 +649,7 @@ global func string GetPlayerName(int iPlayer);
 global func int GetPlayerTeam(int iPlr);
 global func int GetPlayerType(int iPlayer);
 global func int GetPlrColorDw(int iPlr);
+global func bool GetPlrJumpAndRunControl(int iPlr);
 global func bool GetPlrDownDouble(int iPlr);
 global func any GetPlrExtraData(int iPlr, string strDataName);
 global func int | id | bool GetPlrKnowledge(int iPlr, id id, int iIndex, int dwCategory);
