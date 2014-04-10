@@ -850,7 +850,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		body.setParent(this);
 	}
 
-	private void assignLocalIdentifiers() {
+	public void assignLocalIdentifiers() {
 		totalNumASTNodes = 0;
 		if (body != null)
 			body.traverse(AST_ASSIGN_IDENTIFIER_VISITOR, this);

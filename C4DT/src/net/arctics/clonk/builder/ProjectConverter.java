@@ -204,7 +204,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 							.collect(Collectors.toList())
 						);
 						descs.forEach(d -> d.second().parent().removeSubElement(d.second()));
-						((Script)scriptFile.converted).addDeclaration(new Variable(Scope.CONST, "FunctionDescriptions", new PropListExpression(dec)));
+						((Script)scriptFile.converted).addDeclaration(new Variable(Scope.LOCAL, "FunctionDescriptions", new PropListExpression(dec)));
 					}
 				}
 
@@ -336,8 +336,15 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 					doSave[0] = true;
 				return TraversalContinuation.Continue;
 			}, null);
-			if (doSave[0])
+			if (doSave[0]) {
+				s.traverse(node -> {
+					final Function fn = as(node, Function.class);
+					if (fn != null)
+						fn.assignLocalIdentifiers();
+					return TraversalContinuation.Continue;
+				});
 				needResaving.add(s);
+			}
 		}));
 		TaskExecution.threadPool(list, 20);
 	}
