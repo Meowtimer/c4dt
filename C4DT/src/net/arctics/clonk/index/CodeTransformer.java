@@ -272,9 +272,11 @@ public class CodeTransformer extends CodeConverter {
 	public void apply(Map<String, Object> conf) {
 		final Map<?, ?> idMap = as(conf.getOrDefault("idMap", null), Map.class);
 		if (idMap != null)
-			idMap.forEach(
-				(key, value) -> this.idMap.put(ID.get(key.toString()), ID.get(value.toString()))
-			);
+			idMap.forEach((key, value) -> {
+				final String target = value.toString();
+				final String nonConflict = targetEngine.findLocalDeclaration(target, Declaration.class) != null ? target + "_" : target;
+				this.idMap.put(ID.get(key.toString()), ID.get(nonConflict));
+			});
 	}
 	@Override
 	public ASTNode performConversion(ASTNode expression, Declaration declaration, ICodeConverterContext context) {
