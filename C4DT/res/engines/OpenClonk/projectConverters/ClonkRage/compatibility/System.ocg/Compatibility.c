@@ -60,3 +60,23 @@ static const METHOD_None = 3;
 
 static const OCF_Chop = 256;
 static const OCF_Living = OCF_Alive;
+
+global func Bubble(int amount, int x, int y)
+{
+	if (amount==nil || amount==0) 
+		amount=3;
+
+	for (var i = 0; i < amount; i++)
+	{
+		var bubble = CreateObject(Bubble_, x, y, NO_OWNER);
+		if (bubble) bubble.creator = this;
+	}
+	return;
+}
+
+global func GetPlrDownDouble() { return false; }
+global func GetPlrJumpAndRunControl() { return false; }
+global func Incinerate() { return false; }
+global func SetObjectOrder() { return false; }
+global func SetPlrMagic() { return false; }
+global func GetActMapVal() { return nil; }
