@@ -2,7 +2,6 @@ package net.arctics.clonk.builder;
 
 import static java.lang.String.format;
 import static java.lang.System.out;
-import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -406,14 +405,11 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 
 	private static boolean fixUndeclaredIdentifier(AccessDeclaration v) {
 		if (v.declaration() == null && v.predecessor() == null) {
-			final CallDeclaration call = as(v, CallDeclaration.class);
-			if (v instanceof AccessVar)
+			if (v instanceof AccessVar) {
 				v.parent().replaceSubElement(v, new CallDeclaration("EvaluateID", new StringLiteral(v.name())), 0);
-			else if (call != null) {
-				call.setParams(concat(new StringLiteral(call.name()), call.params()));
-				call.setName("UnknownFunction");
-			}
-			return true;
+				return true;
+			} else
+				return false;
 		} else
 			return false;
 	}
