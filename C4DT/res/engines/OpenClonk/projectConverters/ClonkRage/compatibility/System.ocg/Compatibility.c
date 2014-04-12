@@ -80,3 +80,123 @@ global func Incinerate() { return false; }
 global func SetObjectOrder() { return false; }
 global func SetPlrMagic() { return false; }
 global func GetActMapVal() { return nil; }
+
+global func BlastObject()
+{
+}
+
+global func ChangeEffect()
+{
+}
+
+global func CheckEnergyNeedChain()
+{
+}
+
+global func ClearLastPlrCom()
+{
+}
+
+global func Extinguish()
+{
+}
+
+global func ExtractLiquid()
+{
+}
+
+global func FindBase()
+{
+}
+
+global func FlameConsumeMaterial()
+{
+}
+
+global func GetActMapVal()
+{
+}
+
+global func GetBase()
+{
+}
+
+global func GetCaptain()
+{
+}
+
+global func GetMaterialColor()
+{
+}
+
+global func GetPlrDownDouble()
+{
+}
+
+global func GetPlrJumpAndRunControl()
+{
+}
+
+global func GetPortrait()
+{
+}
+
+global func GetTaggedPlayerName()
+{
+}
+
+global func Incinerate()
+{
+}
+
+global func NoContainer()
+{
+}
+
+global func OnFire()
+{
+}
+
+global func ResortObjects()
+{
+}
+
+global func ScriptGo()
+{
+}
+
+global func SelectCrew()
+{
+}
+
+global func SetLandscapePixel()
+{
+}
+
+global func SetObjectOrder()
+{
+}
+
+global func SetPortrait()
+{
+}
+
+global func SetVisibility()
+{
+}
+
+global func Smoke()
+{
+}
+
+global func Split2Components()
+{
+}
+
+global func Value()
+{
+}
+
+global func goto()
+{
+}
