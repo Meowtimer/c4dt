@@ -3,9 +3,11 @@ package net.arctics.clonk.ui.search;
 import static net.arctics.clonk.util.ArrayUtil.collectionSink;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.map;
+import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
+import static net.arctics.clonk.util.Utilities.printingException;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.util.ArrayList;
@@ -224,19 +226,14 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 			break;
 		case ISearchPageContainer.SELECTION_SCOPE: {
 			final IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
-			IStructuredSelection ssel;
-			if (input != null)
-				ssel = new StructuredSelection(input.getFile());
-			else
-				ssel = as(sel, IStructuredSelection.class);
+			final IStructuredSelection ssel = input != null
+				? new StructuredSelection(input.getFile())
+				: as(sel, IStructuredSelection.class);
 			if (ssel != null)
-				for (final Object s : ssel.toArray())
-					if (s instanceof IResource)
-						try {
-							((IResource)s).accept(scopeVisitor);
-						} catch (final CoreException e1) {
-							e1.printStackTrace();
-						}
+				ofType(Arrays.stream(ssel.toArray()), IResource.class).forEach(printingException(
+					r -> r.accept(scopeVisitor),
+					CoreException.class
+				));
 			break;
 		}
 		case ISearchPageContainer.WORKSPACE_SCOPE: {

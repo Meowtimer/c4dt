@@ -396,17 +396,29 @@ public abstract class Utilities {
 		throw new RuntimeException(e);
 	}
 
-	public static <T, E extends Exception> Consumer<? super T> printingException(ThrowHappy<? super T, E> throwing, Class<E> expectedException) {
+	@SuppressWarnings("unchecked")
+	public static <T, E extends Exception> Consumer<? super T> splittingException(
+		ThrowHappy<? super T, E> throwing,
+		Class<E> expectedException,
+		Consumer<E> exceptionHandler
+	) {
 		return item -> {
 			try {
 				throwing.accept(item);
 			} catch (final Exception e) {
 				if (expectedException.isInstance(e))
-					e.printStackTrace();
+					exceptionHandler.accept((E)e);
 				else
 					unexpectedException(e);
 			}
 		};
+	}
+
+	public static <T, E extends Exception> Consumer<? super T> printingException(
+		ThrowHappy<? super T, E> throwing,
+		Class<E> expectedException
+	) {
+		return splittingException(throwing, expectedException, e -> e.printStackTrace());
 	}
 
 }
