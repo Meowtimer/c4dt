@@ -1,6 +1,7 @@
 package net.arctics.clonk.ast;
 
 import static java.lang.String.format;
+import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -21,6 +22,7 @@ import net.arctics.clonk.builder.CodeConverter.ICodeConverterContext;
 import net.arctics.clonk.c4script.Conf;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.AccessVar;
 import net.arctics.clonk.c4script.ast.ArrayElementExpression;
@@ -30,6 +32,7 @@ import net.arctics.clonk.c4script.ast.GarbageStatement;
 import net.arctics.clonk.c4script.ast.IDLiteral;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.MemberOperator;
+import net.arctics.clonk.c4script.ast.PropListExpression;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.ast.evaluate.Constant;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
@@ -159,6 +162,19 @@ public class MatchingPlaceholder extends Placeholder {
 		private static Map<String, Class<?extends ASTNode>> classCache = new HashMap<>();
 		@SuppressWarnings("unchecked")
 		public static Class<? extends ASTNode> findClass(final String className) {
+			synchronized (classCache) {
+				final Class<? extends ASTNode> existing = classCache.get(className);
+				if (existing != null)
+					return existing;
+			}
+			final Map<String, Class<? extends ASTNode>> shortcuts = map(false,
+				"func", Function.class,
+				"var", Variable.class,
+				"proplist", PropListExpression.class
+			);
+			final Class<? extends ASTNode> scls = shortcuts.get(className);
+			if (scls != null)
+				return scls;
 			final String[] packageFormats = new String[] {
 				"%s.c4script.ast.%s",
 				"%s.parser.%s",
@@ -172,20 +188,17 @@ public class MatchingPlaceholder extends Placeholder {
 				"%s.ast.%s",
 				"%s.%s"
 			};
-			synchronized (classCache) {
-				final Class<? extends ASTNode> existing = classCache.get(className);
-				if (existing != null)
-					return existing;
-			}
-			Class<?extends ASTNode> result = null;
-			for (final String pkgFormat : packageFormats)
-				try {
-					result = (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
-					if (ASTNode.class.isAssignableFrom(result))
-						break;
-				} catch (final ClassNotFoundException e) {
-					continue;
-				}
+			final Class<?extends ASTNode> result = Arrays.stream(packageFormats)
+				.map(pkgFormat -> {
+					try {
+						return (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
+					} catch (final ClassNotFoundException e) {
+						return null;
+					}
+				})
+				.filter(cls -> cls != null && ASTNode.class.isAssignableFrom(cls))
+				.findFirst()
+				.orElse(null);
 			synchronized (classCache) {
 				classCache.put(className, result);
 				return result;
