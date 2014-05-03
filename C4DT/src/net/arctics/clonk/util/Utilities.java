@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import net.arctics.clonk.Core;
@@ -385,6 +386,27 @@ public abstract class Utilities {
 	@SuppressWarnings("unchecked")
 	public static <T extends Herbert<? super T>> T clone(T item) {
 		return (T)item.clone();
+	}
+
+	public interface ThrowHappy<T, E extends Exception> {
+		void accept(T item) throws E;
+	}
+
+	public static void unexpectedException(Exception e) {
+		throw new RuntimeException(e);
+	}
+
+	public static <T, E extends Exception> Consumer<? super T> printingException(ThrowHappy<? super T, E> throwing, Class<E> expectedException) {
+		return item -> {
+			try {
+				throwing.accept(item);
+			} catch (final Exception e) {
+				if (expectedException.isInstance(e))
+					e.printStackTrace();
+				else
+					unexpectedException(e);
+			}
+		};
 	}
 
 }
