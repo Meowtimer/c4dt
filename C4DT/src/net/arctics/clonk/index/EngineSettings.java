@@ -72,6 +72,8 @@ public class EngineSettings extends SettingsBase {
 	/** Engine supports proplists (OC) */
 	@IniField(category=INTRINSIC)
 	public boolean supportsProplists;
+	@IniField(category=INTRINSIC)
+	public boolean supportsVarArgsDeclaration;
 	/** ';'-separated list of file extensions supported as sound files */
 	@IniField(category=INTRINSIC)
 	public String supportedSoundFileExtensions;
