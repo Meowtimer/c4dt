@@ -2600,7 +2600,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		Statement statement;
 		while ((statement = parseStatement()) != null)
 			statements.add(statement);
-		return statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
+		final ASTNode result = statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
+		result.setParent(function);
+		return result;
 	}
 
 	@Override
