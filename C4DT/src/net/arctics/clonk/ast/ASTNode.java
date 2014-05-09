@@ -7,6 +7,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -182,10 +183,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	public boolean allowsSequenceSuccessor(final ASTNode successor) { return true; }
 
 	public boolean hasSideEffects() {
-		for (final ASTNode e : subElements())
-			if (e != null && e.hasSideEffects())
-				return true;
-		return false;
+		return Arrays.stream(subElements()).anyMatch(e -> e.hasSideEffects());
 	}
 
 	@Override
@@ -394,11 +392,10 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @return Sub element containing elm or null.
 	 */
 	public ASTNode findSubElementContaining(final ASTNode elm) {
-		for (final ASTNode subElm : traversalSubElements())
-			if (subElm != null)
-				if (elm.containedIn(subElm))
-					return subElm;
-		return null;
+		return Arrays.stream(traversalSubElements())
+			.filter(s -> s != null && elm.containedIn(s))
+			.findFirst()
+			.orElse(null);
 	}
 
 	/**
