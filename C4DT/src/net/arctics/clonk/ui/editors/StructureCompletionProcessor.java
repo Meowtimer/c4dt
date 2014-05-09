@@ -138,7 +138,7 @@ public abstract class StructureCompletionProcessor<StateClass
 			if (!stringMatchesPrefix(func.name(), site.prefix))
 				return null;
 		final int replacementLength = site.prefix != null ? site.prefix.length() : 0;
-		final String replacement = func.name(); 
+		final String replacement = func.name();
 		final IType returnType = func.returnType(target.script());
 		final String postInfo = returnType == PrimitiveType.UNKNOWN ? "" : ": " + returnType.typeName(true);
 		final DeclarationProposal prop = new DeclarationProposal(
@@ -305,9 +305,11 @@ public abstract class StructureCompletionProcessor<StateClass
 	}
 	static AutoActivationCharacters autoActivationCharacters;
 	static {
-		final IPreferenceStore prefStore = Core.instance().getPreferenceStore();
-		if (prefStore != null)
-			prefStore.addPropertyChangeListener(autoActivationCharacters = new AutoActivationCharacters());
+		if (!Core.runsHeadless()) {
+			final IPreferenceStore prefStore = Core.instance().getPreferenceStore();
+			if (prefStore != null)
+				prefStore.addPropertyChangeListener(autoActivationCharacters = new AutoActivationCharacters());
+		}
 	}
 
 	@Override

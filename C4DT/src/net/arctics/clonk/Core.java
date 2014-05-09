@@ -524,7 +524,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	@Override
 	public IPreferenceStore getPreferenceStore() {
-		return super.getPreferenceStore();
+		try {
+			return super.getPreferenceStore();
+		} catch (final NullPointerException npe) {
+			return null;
+		}
 	}
 
 }
