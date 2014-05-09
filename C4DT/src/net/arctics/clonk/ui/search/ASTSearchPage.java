@@ -13,10 +13,9 @@ import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
@@ -46,7 +45,6 @@ import org.eclipse.search.ui.ISearchPage;
 import org.eclipse.search.ui.ISearchPageContainer;
 import org.eclipse.search.ui.ISearchResultViewPart;
 import org.eclipse.search.ui.NewSearchUI;
-import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -293,25 +291,17 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 				if (page != null) {
 					final SearchResult result = (SearchResult)page.getInput();
 					runWithoutAutoBuild(() -> {
-						for (final Object element : result.getElements()) {
-							final Structure struct = as(element, Structure.class);
-							if (struct == null)
-								continue;
-							final Match[] matches = result.getMatches(element);
-							final List<ASTNode> replacements = new LinkedList<ASTNode>();
-							for (final Match m : matches)
-								if (m instanceof ASTSearchQuery.Match) {
-									final ASTSearchQuery.Match qm = (ASTSearchQuery.Match) m;
-									final ASTNode replacement = query.replacement();
-									ASTNode repl = replacement.transform(qm.subst(), replacement);
-									if (repl == replacement)
-										repl = repl.clone();
-									repl.setLocation(qm.getOffset(), qm.getOffset()+qm.getLength());
-									repl.setParent(qm.node().parent());
-									replacements.add(repl);
-								}
-							struct.saveNodes(replacements);
-						}
+						ofType(Arrays.stream(result.getElements()), Structure.class).forEach(struct -> {
+							struct.saveNodes(ofType(Arrays.stream(result.getMatches(struct)), ASTSearchQuery.Match.class).map(qm -> {
+								final ASTNode replacement = query.replacement();
+								ASTNode repl = replacement.transform(qm.subst(), replacement);
+								if (repl == replacement)
+									repl = repl.clone();
+								repl.setLocation(qm.node());
+								repl.setParent(qm.node().parent());
+								return repl;
+							}).collect(Collectors.toList()));
+						});
 					});
 				}
 			}
