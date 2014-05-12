@@ -252,11 +252,11 @@ public class EngineLaunch implements ILaunchesListener2 {
 		final String purged = StaticTypingUtil.eraseTypeAnnotations(script);
 		if (purged != null) {
 			final IResource res = script.file();
-			final List<String> breadcrump = new LinkedList<>();
-			breadcrump.add(res.getName());
+			final List<String> breadcrumb = new LinkedList<>();
+			breadcrumb.add(res.getName());
 			for (IContainer c = res.getParent(); c != null; c = c.getParent())
 				if (c == nature.getProject()) {
-					final File dest = new File(tempFolder, StringUtil.blockString("", "", File.separator, breadcrump));
+					final File dest = new File(tempFolder, StringUtil.blockString("", "", File.separator, breadcrumb));
 					try {
 						StreamUtil.writeToFile(dest, (file, stream, writer) -> writer.write(purged));
 					} catch (final IOException e) {
@@ -264,7 +264,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 					}
 					break;
 				} else
-					breadcrump.add(0, c.getName());
+					breadcrumb.add(0, c.getName());
 		}
 	}
 

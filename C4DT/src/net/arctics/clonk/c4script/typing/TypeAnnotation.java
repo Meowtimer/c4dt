@@ -69,7 +69,7 @@ public final class TypeAnnotation extends ASTNode implements IType {
 		return entities.size() > 0 ? new EntityRegion(entities, this) : null;
 	}
 	@Override
-	public String printed() { return type.typeName(true); }
+	public String printed() { return type != null ? type.typeName(true) : ""; }
 	@Override
 	public String toString() { return printed(); }
 	@Override

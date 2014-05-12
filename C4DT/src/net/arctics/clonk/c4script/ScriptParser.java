@@ -768,14 +768,14 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	private TypeAnnotation placeholderTypeAnnotationIfMigrating(final int offset) {
-		TypeAnnotation typeAnnotation;
-		if (migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()) {
-			typeAnnotation = typeAnnotation(offset, offset, null);
-			if (typeAnnotations != null && sectionOffset() != 0)
-				typeAnnotations.add(typeAnnotation);
-		} else
-			typeAnnotation = null;
-		return typeAnnotation;
+		return migrationTyping != null && migrationTyping.allowsNonParameterAnnotations()
+			? placeholderTypeAnnotation(offset)
+			: null;
+	}
+	private TypeAnnotation placeholderTypeAnnotation(final int offset) {
+		final TypeAnnotation annot = typeAnnotation(offset, offset, null);
+		typeAnnotations.add(annot);
+		return annot;
 	}
 
 	private void typeRequiredAt(final int typeExpectedAt) throws ProblemException {
@@ -871,15 +871,14 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			}
 		}
 		if (t == null) {
-			if (typing == Typing.STATIC) {
+			if (typing == Typing.STATIC || migrationTyping == Typing.STATIC)
 				if (required) {
 					error(Problem.InvalidType, start, offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, readStringAt(start, offset));
 					return typeAnnotation(start, offset, new ErroneousType(readStringAt(start, offset)));
 				}
-				if (topLevel && typeAnnotations != null && sectionOffset() == 0)
+				else if (topLevel && typeAnnotations != null && (sectionOffset() == 0 || migrationTyping != null))
 					// placeholder annotation
-					typeAnnotations.add(typeAnnotation(start, start, null));
-			}
+					placeholderTypeAnnotation(start);
 			this.seek(start);
 		} else
 			t.setEnd(-sectionOffset()+offset);
@@ -888,7 +887,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 	/**
 	 * Parse a function declaration.
-	 * @param header Description of the alread-parsed function header as {@link FunctionHeader}
+	 * @param header Description of the already-parsed function header as {@link FunctionHeader}
 	 * @return The parse function or null if something went wrong
 	 * @throws ProblemException
 	 */

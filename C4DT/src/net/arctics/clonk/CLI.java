@@ -359,7 +359,7 @@ public class CLI implements IApplication, AutoCloseable {
 		desc.setLocation(new Path(ocRepo).append("planet"));
 		desc.setNatureIds(new String[0]);
 		desc.setBuildSpec(new ICommand[0]);
-		
+
 		final Engine ocEngine = Core.instance().loadEngine(OPEN_CLONK);
 		ocEngine.settings().repositoryPath = ocRepo;
 		ocEngine.saveSettings();
@@ -484,11 +484,12 @@ public class CLI implements IApplication, AutoCloseable {
 	@Callable
 	public Map<ID, ID> mapIDToName(String projectName, Map<?, ?> override) {
 		final ClonkProjectNature cpn = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
-		final Map<ID, ID> result =
-			override != null ? override.entrySet().stream().collect(Collectors.toMap(
+		final Map<ID, ID> result = override != null
+			? override.entrySet().stream().collect(Collectors.toMap(
 				e -> ID.get(e.getKey().toString()),
-				e -> ID.get(e.getValue().toString()))) :
-			new HashMap<>();
+				e -> ID.get(e.getValue().toString()))
+			)
+			: new HashMap<>();
 		final Map<ID, ID> reverse = new HashMap<>();
 		result.forEach((key, value) -> reverse.put(value, key));
 		cpn.index().allDefinitions((Definition def) -> {

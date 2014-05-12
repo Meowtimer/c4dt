@@ -1,1 +1,1 @@
-java -classpath $(dirname $0)/bin:${ECLIPSE_HOME}/plugins/* net.arctics.clonk.CLI $*
+$ECLIPSE_HOME/eclipse -application net.arctics.clonk.CLI -data . -nosplash $*
