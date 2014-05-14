@@ -4,9 +4,13 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Script;
@@ -419,6 +423,20 @@ public abstract class Utilities {
 		Class<E> expectedException
 	) {
 		return splittingException(throwing, expectedException, e -> e.printStackTrace());
+	}
+
+	public static <T> Stream<T> walk(T start, Function<T, T> next) {
+		T s;
+		final LinkedList<T> l = new LinkedList<>();
+		for (s = start; s != null; s = next.apply(s))
+			l.add(s);
+		return l.stream();
+	}
+
+	public static <T> T synchronizing(Object lock, Supplier<T> supplier) {
+		synchronized (lock) {
+			return supplier.get();
+		}
 	}
 
 }
