@@ -2,6 +2,7 @@ package net.arctics.clonk;
 
 import static java.lang.String.format;
 import static java.lang.System.out;
+import static net.arctics.clonk.util.Utilities.synchronizing;
 
 import java.io.File;
 import java.io.IOException;
@@ -478,25 +479,31 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	public <T> T performActionsOnFileDocument(final IStorage file, final IDocumentAction<T> action, final boolean save) {
 		final TextFileDocumentProvider provider = TextFileDocumentProviderThing.provider;
-		synchronized (provider) {
+		final IDocument document = synchronizing(provider, () -> {
 			try {
 				provider.connect(file);
+				return provider.getDocument(file);
 			} catch (final CoreException e) {
 				e.printStackTrace();
 				return null;
 			}
-			try {
-				final IDocument document = provider.getDocument(file);
-				final T result = action.run(document);
-				if (save)
+		});
+		if (document == null)
+			return null;
+		try {
+			final T result = action.run(document);
+			if (save)
+				synchronized (provider) {
 					try {
 						//textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
 						provider.saveDocument(NPM, file, document, true);
 					} catch (final CoreException e) {
 						out.println(format("Failed to save %s: %s", file.getFullPath(), e.getMessage()));
 					}
-				return result;
-			} finally {
+				}
+			return result;
+		} finally {
+			synchronized (provider) {
 				provider.disconnect(file);
 			}
 		}
