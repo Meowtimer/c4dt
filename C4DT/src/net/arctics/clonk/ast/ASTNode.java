@@ -14,7 +14,11 @@ import java.util.List;
 import java.util.Map;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Script.Typings;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
+import net.arctics.clonk.c4script.typing.IType;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Herbert;
 import net.arctics.clonk.util.IPrintable;
@@ -31,6 +35,12 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	protected ASTNode(final int start, final int end) { super(start, end); }
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+
+	public IType ty() {
+		final Script s = parent(Script.class);
+		final Typings typings = s != null ? s.typings() : null;
+		return typings != null ? typings.get(this) : PrimitiveType.UNKNOWN;
+	}
 
 	public static final ASTNode NULL_EXPR = new ASTNode();
 	public static final ASTNode[] EMPTY_EXPR_ARRAY = new ASTNode[0];
