@@ -425,12 +425,16 @@ public abstract class Utilities {
 		return splittingException(throwing, expectedException, e -> e.printStackTrace());
 	}
 
-	public static <T> Stream<T> walk(T start, Function<T, T> next) {
+	public static <T> Stream<T> walk(T start, Predicate<T> condition, Function<T, T> next) {
 		T s;
 		final LinkedList<T> l = new LinkedList<>();
-		for (s = start; s != null; s = next.apply(s))
+		for (s = start; condition.test(s); s = next.apply(s))
 			l.add(s);
 		return l.stream();
+	}
+
+	public static <T> Stream<T> walk(T start, Function<T, T> next) {
+		return walk(start, i -> i != null, next);
 	}
 
 	public static <T> T synchronizing(Object lock, Supplier<T> supplier) {
