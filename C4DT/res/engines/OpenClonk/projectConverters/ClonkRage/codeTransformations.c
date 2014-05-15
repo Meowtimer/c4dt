@@ -5,7 +5,7 @@ ObjectSetAction($obj$, $action$, $params...$) => $obj$->SetAction($action$, $par
 $:Call,/DefinitionCall|ObjectCall|PrivateCall|ProtectedCall|DefinitionCall/$($target$, $func:String$, $params...$)
 	=> $target$->$func!Call(value.literal, placeholder.subElements)$($params$);
 // convert all indirect calls where function parameter is complex expression into Call() calls
-$:Call,/DefinitionCall|ObjectCall|PrivateCall|ProtectedCall||DefinitionCall/$($target$, $func:~String$, $params...$)
+$:Call,/DefinitionCall|ObjectCall|PrivateCall|ProtectedCall|DefinitionCall/$($target$, $func:~String$, $params...$)
 	=> $target$->Call($func$, $params$);
 
 // remove obnoxious first parameter from SetCommand when already direct-called
