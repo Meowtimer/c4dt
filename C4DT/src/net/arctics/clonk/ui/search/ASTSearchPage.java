@@ -280,7 +280,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 	public boolean performReplace() {
 		addRecent();
 		final ASTSearchQuery query = newQuery(false);
-		final IStatus status= NewSearchUI.runQueryInForeground(container.getRunnableContext(), query);
+		final IStatus status = NewSearchUI.runQueryInForeground(container.getRunnableContext(), query);
 		if (status.matches(IStatus.CANCEL))
 			return false;
 
