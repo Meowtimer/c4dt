@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.util.ITreeNode;
@@ -34,7 +34,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 
 	private static class EntryCache {
-
 		private static class CachedEntry {
 			public File file;
 			public long creationTime;
@@ -47,27 +46,25 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 				return file.lastModified() != creationTime;
 			}
 		}
-
-		private final Map<C4GroupFile, CachedEntry> files = new HashMap<C4GroupFile, CachedEntry>();
-
+		private final Map<C4GroupFile, CachedEntry> files = new WeakHashMap<C4GroupFile, CachedEntry>();
 		public File getCachedFile(final C4GroupFile groupEntry) throws IOException, CoreException {
-			CachedEntry e = files.get(groupEntry);
-			if (e == null || e.modified()) {
-				final File f = File.createTempFile("c4dt", "c4groupcache"); //$NON-NLS-1$ //$NON-NLS-2$
-				final FileOutputStream fileStream = new FileOutputStream(f);
-				try {
-					final ByteArrayInputStream contents = groupEntry.getContents();
-					final byte[] buf = new byte[1024];
-					int read;
-					while ((read = contents.read(buf)) != -1)
-						fileStream.write(buf, 0, read);
-				} finally {
-					fileStream.close();
+			synchronized (files) {
+				CachedEntry e = files.get(groupEntry);
+				if (e == null || e.modified()) {
+					final File f = File.createTempFile("c4dt", "c4groupcache"); //$NON-NLS-1$ //$NON-NLS-2$
+					try (final FileOutputStream fileStream = new FileOutputStream(f)) {
+						final ByteArrayInputStream contents = groupEntry.getContents();
+						final byte[] buf = new byte[1024];
+						int read;
+						while ((read = contents.read(buf)) != -1)
+							fileStream.write(buf, 0, read);
+					}
+					f.deleteOnExit();
+					e = new CachedEntry(f, f.lastModified());
+					files.put(groupEntry, e);
 				}
-				f.deleteOnExit();
-				e = new CachedEntry(f, f.lastModified());
+				return e.file;
 			}
-			return e.file;
 		}
 	}
 
@@ -108,7 +105,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 		if (completed) return;
 		completed = true;
 
-		if ((filter.flagsForEntry(this) & C4GroupHeaderFilterBase.DONTREADINTOMEMORY) == 0)
+		if ((filter.flagsForEntry(this) & C4GroupHeaderFilterBase.READINTOMEMORY) != 0)
 			fetchContents(stream);
 		else
 			stream.skip(getSize());

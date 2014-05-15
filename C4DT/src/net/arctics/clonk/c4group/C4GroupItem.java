@@ -26,7 +26,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 		@Override
 		public boolean accepts(final C4GroupEntryHeader header, final C4Group context) { return true; };
 		@Override
-		public int flagsForEntry(final C4GroupFile entry) { return DONTREADINTOMEMORY; };
+		public int flagsForEntry(final C4GroupFile entry) { return 0; };
 	};
 
 	/**

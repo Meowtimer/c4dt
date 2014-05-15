@@ -7,7 +7,7 @@ import org.eclipse.core.runtime.CoreException;
  */
 @FunctionalInterface
 public interface C4GroupHeaderFilterBase {
-	int DONTREADINTOMEMORY = 1;
+	int READINTOMEMORY = 1;
 	boolean accepts(C4GroupEntryHeader header, C4Group context);
 	default void processGroupItem(final C4GroupItem item) throws CoreException {}
 	default void notifyAboutCreatedItem(final C4GroupEntryHeader header, final C4GroupItem item) {}
