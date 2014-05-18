@@ -1,5 +1,9 @@
 package net.arctics.clonk.debug;
 
+import static net.arctics.clonk.util.StreamUtil.ofType;
+import static net.arctics.clonk.util.Utilities.tri;
+import static net.arctics.clonk.util.Utilities.walk;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,6 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -16,7 +21,6 @@ import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.typing.StaticTypingUtil;
 import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.util.StreamUtil;
@@ -96,7 +100,15 @@ public class EngineLaunch implements ILaunchesListener2 {
 			throw new CoreException(new Status(IStatus.ERROR, Core.PLUGIN_ID, err));
 		}
 		this.scenario = s;
+		this.nature = n;
+		this.tempFolder = maybeTempFolder();
+		this.args = determineArguments();
 		// Don't launch engine multiple times
+		register();
+		DebugPlugin.getDefault().getLaunchManager().addLaunchListener(this);
+	}
+
+	private void register() throws MultipleLaunchesException {
 		synchronized (list) {
 			if (list.get(scenarioFolderPath) != null)
 				throw new MultipleLaunchesException(new Status(IStatus.ERROR, Core.PLUGIN_ID,
@@ -104,8 +116,9 @@ public class EngineLaunch implements ILaunchesListener2 {
 			else
 				list.put(scenarioFolderPath, this);
 		}
-		this.nature = n;
-		this.args = new LinkedList<String>();
+	}
+
+	public File maybeTempFolder() {
 		File tf = null;
 		if (nature.settings().typing.allowsNonParameterAnnotations())
 			try {
@@ -114,74 +127,74 @@ public class EngineLaunch implements ILaunchesListener2 {
 			} catch (final IOException e) {
 				e.printStackTrace();
 			}
-		this.tempFolder = tf;
-		DebugPlugin.getDefault().getLaunchManager().addLaunchListener(this);
-		determineArguments();
+		return tf;
 	}
 
-	void addWorkspaceDependency(final IContainer res) {
+	void addWorkspaceDependency(Collection<String> args, final IContainer res) {
 		if (tempFolder != null)
-			addArgument(Path.fromOSString(tempFolder.getAbsolutePath()).append(res.getProjectRelativePath()).toOSString());
+			args.add(Path.fromOSString(tempFolder.getAbsolutePath()).append(res.getProjectRelativePath()).toOSString());
 		else
-			addArgument(ClonkLaunchConfigurationDelegate.resFilePath(res));
-	}
-
-	public void addArgument(final String arg) {
-		args.add(arg);
+			args.add(ClonkLaunchConfigurationDelegate.resFilePath(res));
 	}
 
 	public String[] arguments() {
 		return args.toArray(new String[args.size()]);
 	}
 
-	public void determineArguments() throws CoreException {
+	public Collection<String> determineArguments() throws CoreException {
 		final Engine engine = nature.index().engine();
+		final Collection<String> args = new LinkedList<>();
 		// Engine
-		this.addArgument(engineFile.getAbsolutePath());
+		args.add(engineFile.getAbsolutePath());
 
 		// Scenario
-		this.addWorkspaceDependency(scenarioFolder);
+		this.addWorkspaceDependency(args, scenarioFolder);
 
 		// add stuff from the project so Clonk does not fail to find them
-		for (final Index index : ClonkProjectNature.get(scenarioFolder).index().relevantIndexes())
-			if (index instanceof ProjectIndex) {
-				final IContainer projectLevel = ((ProjectIndex) index).nature().getProject();
-				for (IContainer c = scenarioFolder.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent())
-					for (final IResource res : c.members())
-						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
-							final FileExtension gType = engine.extensionForFileName(res.getName());
-							if (gType == FileExtension.DefinitionGroup || gType == FileExtension.ResourceGroup)
-								if (!Utilities.resourceInside(scenarioFolder, (IContainer) res))
-									this.addWorkspaceDependency((IContainer) res);
-						}
-			}
+		ofType(ClonkProjectNature.get(scenarioFolder).index().relevantIndexes().stream(), ProjectIndex.class)
+			.flatMap(index -> {
+				final IContainer projectLevel = index.nature().getProject();
+				return walk(scenarioFolder.getParent(), c -> c != null && c != projectLevel, c -> c.getParent());
+			})
+			.flatMap(c -> {
+				final IResource[] mems = tri(() -> c.members(), CoreException.class, e -> e.printStackTrace());
+				return mems != null
+					? Arrays.stream(mems)
+						.filter(res -> {
+							final FileExtension ext = engine.extensionForFileName(res.getName());
+							return
+								!res.getName().startsWith(".") && res instanceof IContainer &&
+								(ext == FileExtension.DefinitionGroup || ext == FileExtension.ResourceGroup) &&
+								!Utilities.resourceInside(scenarioFolder, (IContainer)res);
+						})
+					: Stream.empty();
+			})
+			.forEach(res -> this.addWorkspaceDependency(args, (IContainer) res));
 
 		// Full screen/console
 		if (configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false))
-			this.addArgument(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "fullscreen")); //$NON-NLS-1$
+			args.add(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "fullscreen")); //$NON-NLS-1$
 		else {
-			this.addArgument(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, engine.settings().editorCmdLineOption));
-			this.addArgument(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "noleague")); //$NON-NLS-1$
+			args.add(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, engine.settings().editorCmdLineOption));
+			args.add(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "noleague")); //$NON-NLS-1$
 		}
 
 		// Record
 		if (configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_RECORD, false))
-			this.addArgument(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "record")); //$NON-NLS-1$
+			args.add(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "record")); //$NON-NLS-1$
 
 		// Debug
 		if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-			this.addArgument(String
-					.format(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "debug", "%d"), ClonkLaunchConfigurationDelegate.DEFAULT_DEBUG_PORT)); //$NON-NLS-1$ //$NON-NLS-2$
-			this.addArgument(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "debugwait")); //$NON-NLS-1$
+			args.add(String.format(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "debug", "%d"), ClonkLaunchConfigurationDelegate.DEFAULT_DEBUG_PORT)); //$NON-NLS-1$ //$NON-NLS-2$
+			args.add(ClonkLaunchConfigurationDelegate.cmdLineOptionString(engine, "debugwait")); //$NON-NLS-1$
 		}
 
 		final String custom = configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, (String) null);
-		if (custom != null) {
+		if (custom != null)
 			// FIXME: doesn't take into account '\ ' and such..
-			final String[] split = custom.split(" "); //$NON-NLS-1$
-			for (final String s : split)
-				this.addArgument(s);
-		}
+			Arrays.stream(custom.split(" ")).forEach(args::add);
+		
+		return args;
 	}
 
 	@Override
