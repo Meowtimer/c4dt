@@ -1,5 +1,7 @@
 package net.arctics.clonk.util;
 
+import static net.arctics.clonk.util.ArrayUtil.iterable;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -253,5 +255,9 @@ public class StringUtil {
 	}
 	public static boolean nullOrEmpty(String str) {
 		return str == null || str.equals("");
+	}
+	
+	public static String join(String joinStr, String... parts) {
+		return blockString("", "", joinStr, iterable(parts));
 	}
 }
