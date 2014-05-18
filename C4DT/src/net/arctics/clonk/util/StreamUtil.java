@@ -162,7 +162,7 @@ public class StreamUtil {
 		};
 	}
 
-	public static <T> Stream<T> ofType(Stream<? super T> stream, Class<T> cls) {
+	public static <T, C> Stream<C> ofType(Stream<T> stream, Class<C> cls) {
 		return stream.map(i -> as(i, cls)).filter(i -> i != null);
 	}
 
