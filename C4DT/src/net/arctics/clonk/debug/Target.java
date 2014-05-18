@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.Queue;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4group.GroupType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;

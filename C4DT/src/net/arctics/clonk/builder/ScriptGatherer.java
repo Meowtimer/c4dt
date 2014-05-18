@@ -10,7 +10,7 @@ import java.util.Set;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group;
-import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4group.GroupType;
 import net.arctics.clonk.c4script.LocalizedScript;
 import net.arctics.clonk.c4script.MapScript;
 import net.arctics.clonk.c4script.ObjectsScript;

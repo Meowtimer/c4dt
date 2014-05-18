@@ -2,7 +2,7 @@ package net.arctics.clonk.builder;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4group.C4Group;
-import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4group.GroupType;
 import net.arctics.clonk.index.Engine;
 
 import org.eclipse.core.expressions.PropertyTester;
@@ -50,7 +50,7 @@ public class ResourceTester extends PropertyTester {
 		}
 	}
 
-	private static boolean checkGroupType(final IResource res, final C4Group.GroupType gt) {
+	private static boolean checkGroupType(final IResource res, final GroupType gt) {
 		final Engine engine = ClonkProjectNature.engineFromResource(res);
 		return engine != null && engine.groupTypeForFileName(res.getName()) == gt;
 	}

@@ -1,7 +1,7 @@
 package net.arctics.clonk.mapcreator;
 
 import static net.arctics.clonk.util.Utilities.as;
-import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4group.GroupType;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ini.IniData;

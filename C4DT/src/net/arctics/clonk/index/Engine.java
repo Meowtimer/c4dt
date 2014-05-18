@@ -22,8 +22,7 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4group.C4Group;
-import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4group.GroupType;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.PrintParametersOptions;
@@ -696,12 +695,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			return null;
 	}
 
-	public C4Group.GroupType groupTypeForExtension(final String ext) {
-		final C4Group.GroupType gt = settings.fileExtensionToGroupTypeMapping().get(ext);
-		return gt != null ? gt : C4Group.GroupType.OtherGroup;
+	public GroupType groupTypeForExtension(final String ext) {
+		final GroupType gt = settings.fileExtensionToGroupTypeMapping().get(ext);
+		return gt != null ? gt : GroupType.OtherGroup;
 	}
 
-	public C4Group.GroupType groupTypeForFileName(final String fileName) {
+	public GroupType groupTypeForFileName(final String fileName) {
 		return groupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
 	}
 

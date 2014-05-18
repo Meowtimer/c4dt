@@ -13,7 +13,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4group.GroupType;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.ast.CallInherited;
 import net.arctics.clonk.index.Definition;

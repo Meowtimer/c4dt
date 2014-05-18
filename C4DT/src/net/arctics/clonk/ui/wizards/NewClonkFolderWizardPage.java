@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import java.lang.reflect.Field;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4group.GroupType;
 import net.arctics.clonk.index.Engine;
 
 import org.eclipse.core.resources.IContainer;

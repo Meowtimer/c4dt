@@ -39,15 +39,6 @@ import org.eclipse.core.runtime.SubProgressMonitor;
  */
 public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
-	public enum GroupType {
-		OtherGroup,
-		DefinitionGroup,
-		ResourceGroup,
-		ScenarioGroup,
-		FolderGroup,
-		Material
-	}
-
 	public interface StreamReadCallback {
 		public void readStream(InputStream stream);
 	}

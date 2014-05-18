@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.C4Group;
+import net.arctics.clonk.c4group.GroupType;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
@@ -247,7 +247,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 		// Must be a valid scenario file name
 		final String scenName = fScenText.getText();
-		if (getEngine().groupTypeForFileName(scenName) != C4Group.GroupType.ScenarioGroup) {
+		if (getEngine().groupTypeForFileName(scenName) != GroupType.ScenarioGroup) {
 			setErrorMessage(Messages.LaunchMainTab_ScenarioNameInvalid);
 			return null;
 		}
@@ -303,11 +303,11 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			if(res instanceof IProject)
 				return true;
 			// Type lookup
-			final C4Group.GroupType type = getEngine().groupTypeForExtension(res.getFileExtension());
-			if(type == C4Group.GroupType.ScenarioGroup)
+			final GroupType type = getEngine().groupTypeForExtension(res.getFileExtension());
+			if(type == GroupType.ScenarioGroup)
 				scenarios.add(res);
 			// Only recurse into scenario folders
-			return type == C4Group.GroupType.FolderGroup;
+			return type == GroupType.FolderGroup;
 		};
 		for(final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
 			try {

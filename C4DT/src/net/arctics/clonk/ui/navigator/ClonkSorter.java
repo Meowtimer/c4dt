@@ -6,8 +6,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.C4Group;
-import net.arctics.clonk.c4group.C4Group.GroupType;
+import net.arctics.clonk.c4group.GroupType;
 import net.arctics.clonk.index.Engine;
 
 import org.eclipse.core.resources.IProject;
@@ -23,7 +22,7 @@ public class ClonkSorter extends ViewerSorter {
 	private transient Map<String, Integer> colorTagToCategory = new HashMap<String, Integer>();
 	
 	final static private String[] sortPriorities = new String[] {".c", ".txt", ".bmp", ".png" , ".wav", ".pal"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ 
-	final static private C4Group.GroupType[] groupSortOrder = new C4Group.GroupType[] {
+	final static private GroupType[] groupSortOrder = new GroupType[] {
 		GroupType.FolderGroup, GroupType.ScenarioGroup, GroupType.DefinitionGroup, GroupType.ResourceGroup
 	};
 	
