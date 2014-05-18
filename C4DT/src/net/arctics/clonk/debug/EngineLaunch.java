@@ -152,7 +152,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 						&& c != projectLevel.getParent(); c = c.getParent())
 					for (final IResource res : c.members())
 						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
-							final FileExtension gType = engine.groupTypeForFileName(res.getName());
+							final FileExtension gType = engine.extensionForFileName(res.getName());
 							if (gType == FileExtension.DefinitionGroup || gType == FileExtension.ResourceGroup)
 								if (!Utilities.resourceInside(scenarioFolder, (IContainer) res))
 									this.addWorkspaceDependency((IContainer) res);

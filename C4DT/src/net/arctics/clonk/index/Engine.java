@@ -695,13 +695,13 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			return null;
 	}
 
-	public FileExtension groupTypeForExtension(final String ext) {
-		final FileExtension gt = settings.fileExtensionToGroupTypeMapping().get(ext);
+	public FileExtension canonicalExtension(final String ext) {
+		final FileExtension gt = settings.concreteToCanonicalExtension().get(ext);
 		return gt != null ? gt : FileExtension.Other;
 	}
 
-	public FileExtension groupTypeForFileName(final String fileName) {
-		return groupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
+	public FileExtension extensionForFileName(final String fileName) {
+		return canonicalExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
 	}
 
 	public Object image(final String name, final boolean returnDescriptor) {
@@ -724,7 +724,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @return Group name with correct extension.
 	 */
 	public String groupName(final String name, final FileExtension groupType) {
-		return name + "." + settings().groupTypeToFileExtensionMapping().get(groupType); //$NON-NLS-1$
+		return name + "." + settings().canonicalToConcreteExtension().get(groupType); //$NON-NLS-1$
 	}
 
 	/**

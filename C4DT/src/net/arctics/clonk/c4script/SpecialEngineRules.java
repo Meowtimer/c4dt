@@ -833,7 +833,7 @@ public abstract class SpecialEngineRules {
 			if (extensionWildcardNeeded)
 				name += "\\." + StringUtil.writeBlock(null, "(", ")", "|", engine.settings().supportedSoundFileExtensions());
 			final Matcher nameMatcher = Pattern.compile(name).matcher("");
-			final String soundGroupName = "Sound."+engine.settings().groupTypeToFileExtensionMapping().get(FileExtension.ResourceGroup);
+			final String soundGroupName = "Sound."+engine.settings().canonicalToConcreteExtension().get(FileExtension.ResourceGroup);
 			final IResource r = script.resource();
 			for (
 				IContainer c = r instanceof IContainer ? (IContainer)r : r != null ? r.getParent() : null, d = null;

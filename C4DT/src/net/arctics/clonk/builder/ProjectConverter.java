@@ -244,7 +244,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		IPath result = new Path("");
 		for (int i = 0; i < path.segmentCount(); i++) {
 			String segment = path.segment(i);
-			final FileExtension groupType = sourceEngine.groupTypeForFileName(segment);
+			final FileExtension groupType = sourceEngine.extensionForFileName(segment);
 			if (groupType != FileExtension.Other)
 				segment = targetEngine.groupName(StringUtil.rawFileName(segment), groupType);
 			result = result.append(segment);

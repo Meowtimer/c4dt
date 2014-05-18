@@ -90,7 +90,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 						return false;
 					if (Util.isMac() && name.endsWith(".app")) //$NON-NLS-1$
 						return false;
-					return (currentEngine().groupTypeForFileName(name) != FileExtension.Other || new File(dir, name).isDirectory());
+					return (currentEngine().extensionForFileName(name) != FileExtension.Other || new File(dir, name).isDirectory());
 				});
 			} catch (final Exception e) {
 				return new Object[0];
@@ -121,7 +121,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 		@Override
 		public Image getImage(final Object element) {
 			final Engine engine = currentEngine();
-			final FileExtension gt = engine.groupTypeForFileName((((File) element).toString()));
+			final FileExtension gt = engine.extensionForFileName((((File) element).toString()));
 			return engine.image(gt);
 		}
 

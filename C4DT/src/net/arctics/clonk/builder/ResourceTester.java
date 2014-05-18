@@ -52,7 +52,7 @@ public class ResourceTester extends PropertyTester {
 
 	private static boolean checkGroupType(final IResource res, final FileExtension gt) {
 		final Engine engine = ClonkProjectNature.engineFromResource(res);
-		return engine != null && engine.groupTypeForFileName(res.getName()) == gt;
+		return engine != null && engine.extensionForFileName(res.getName()) == gt;
 	}
 
 	/** @return Whether the given resource is a scenario */

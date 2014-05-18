@@ -8,7 +8,6 @@ import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.C4Group;
 import net.arctics.clonk.c4group.C4GroupFileSystem;
 import net.arctics.clonk.c4group.C4GroupItem;
-import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
@@ -86,7 +85,7 @@ public class ClonkNavigator extends ClonkOutlineProvider {
 			NullProgressMonitor mon = null;
 			for (final IResource res : resources) {
 				C4GroupItem groupItem;
-				if (res instanceof IFile && engine.groupTypeForFileName(res.getName()) != FileExtension.Other) {
+				if (res instanceof IFile && engine.extensionForFileName(res.getName()).group()) {
 					if (mon == null)
 						mon = new NullProgressMonitor();
 					groupItem = C4GroupItem.groupItemBackingResource(res);

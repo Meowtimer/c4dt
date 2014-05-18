@@ -20,7 +20,7 @@ public class NewParticle extends NewClonkFolderWizard<NewClonkFolderWizardPage> 
 			@Override
 			protected void initialize() {
 				super.initialize();
-				setFolderExtension(ClonkProjectNature.engineFromResource(project).settings().groupTypeToFileExtensionMapping().get(FileExtension.DefinitionGroup));
+				setFolderExtension(ClonkProjectNature.engineFromResource(project).settings().canonicalToConcreteExtension().get(FileExtension.DefinitionGroup));
 				setTitle(Messages.NewParticle_PageTitle);
 				setDescription(Messages.NewParticle_Description);
 				setImageDescriptor(UI.imageDescriptorForPath("icons/particlebig.png"));

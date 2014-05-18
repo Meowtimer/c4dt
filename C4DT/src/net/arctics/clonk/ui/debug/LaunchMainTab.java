@@ -247,7 +247,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 		// Must be a valid scenario file name
 		final String scenName = fScenText.getText();
-		if (getEngine().groupTypeForFileName(scenName) != FileExtension.ScenarioGroup) {
+		if (getEngine().extensionForFileName(scenName) != FileExtension.ScenarioGroup) {
 			setErrorMessage(Messages.LaunchMainTab_ScenarioNameInvalid);
 			return null;
 		}
@@ -303,7 +303,7 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 			if(res instanceof IProject)
 				return true;
 			// Type lookup
-			final FileExtension type = getEngine().groupTypeForExtension(res.getFileExtension());
+			final FileExtension type = getEngine().canonicalExtension(res.getFileExtension());
 			if(type == FileExtension.ScenarioGroup)
 				scenarios.add(res);
 			// Only recurse into scenario folders

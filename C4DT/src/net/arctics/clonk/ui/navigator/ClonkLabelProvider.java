@@ -47,7 +47,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			final IFolder folder = (IFolder)element;
 			final Engine engine = ClonkProjectNature.engineFromResource(folder);
 			if (engine != null)
-				return engine.image(engine.groupTypeForFileName(folder.getName()));
+				return engine.image(engine.extensionForFileName(folder.getName()));
 		}
 		return UI.iconFor(element);
 	}
@@ -71,7 +71,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			final IFolder folder = (IFolder)element;
 			Engine engine = ClonkProjectNature.engineFromResource(folder);
 			if (engine != null) {
-				final FileExtension groupType = engine.groupTypeForFileName(folder.getName());
+				final FileExtension groupType = engine.extensionForFileName(folder.getName());
 				if (groupType == FileExtension.DefinitionGroup)
 					// add [C4ID] to .c4d folders
 					try {

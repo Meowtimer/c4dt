@@ -161,7 +161,7 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 			if (index instanceof ProjectIndex)
 				try {
 					for (final IResource res : ((ProjectIndex)index).nature().getProject().members())
-						if (res instanceof IContainer && nature.index().engine().groupTypeForFileName(res.getName()) == FileExtension.DefinitionGroup)
+						if (res instanceof IContainer && nature.index().engine().extensionForFileName(res.getName()) == FileExtension.DefinitionGroup)
 							if (res.getName().toLowerCase().contains(pl.prefix))
 								pl.addProposal(new CompletionProposal(res.getName(), pl.wordOffset, pl.prefix.length(), res.getName().length()));
 				} catch (final CoreException e) {

@@ -40,7 +40,7 @@ public class ClonkSorter extends ViewerSorter {
 			cachedEngine = ClonkProjectNature.engineFromResource(resource);
 		}
 		FileExtension gt;
-		if (cachedEngine != null && (gt = cachedEngine.groupTypeForFileName(resource.getName())) != FileExtension.Other)
+		if (cachedEngine != null && (gt = cachedEngine.extensionForFileName(resource.getName())) != FileExtension.Other)
 			for (int i = 0; i < groupSortOrder.length; i++)
 				if (groupSortOrder[i] == gt)
 					return i;

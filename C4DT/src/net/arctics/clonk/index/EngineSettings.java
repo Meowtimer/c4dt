@@ -4,8 +4,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.c4group.FileExtension;
+import net.arctics.clonk.c4script.ast.evaluate.ConcreteVariable;
 import net.arctics.clonk.ini.IniField;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
@@ -65,7 +67,7 @@ public class EngineSettings extends SettingsBase {
 	public boolean spaceAllowedBetweenArrowAndTilde;
 	/** String of the form c4d->DefinitionGroup,... specifying what file extension denote what group type. */
 	@IniField(category=INTRINSIC)
-	public String fileExtensionToGroupTypeMapping;
+	public String extensionMap;
 	/** Extension for material definition files */
 	@IniField(category=INTRINSIC)
 	public String materialExtension;
@@ -149,36 +151,32 @@ public class EngineSettings extends SettingsBase {
 	@IniField(category=SOURCE)
 	public String callbackFunctions;
 
-	private transient Map<String, FileExtension> fetgtm;
-	private transient Map<FileExtension, String> rfetgtm;
+	private transient Map<String, FileExtension> concreteToCanonicalExtension;
+	private transient Map<FileExtension, String> canonicalToConcreteExtension;
 	private transient List<String> supportedSoundFileExtensions_;
 
 	/**
 	 * Return a map mapping a file name extension to a group type for this engine.
 	 * @return The map.
 	 */
-	public Map<String, FileExtension> fileExtensionToGroupTypeMapping() {
-		if (fetgtm == null) {
-			fetgtm = new HashMap<String, FileExtension>(FileExtension.values().length);
-			for (final String mapping : fileExtensionToGroupTypeMapping.split(",")) {
-				final String[] elms = mapping.split("->");
-				if (elms.length >= 2) {
-					final FileExtension gt = FileExtension.valueOf(elms[1]);
-					fetgtm.put(elms[0], gt);
-				}
-			}
-			rfetgtm = ArrayUtil.reverseMap(fetgtm, new HashMap<FileExtension, String>());
+	public Map<String, FileExtension> concreteToCanonicalExtension() {
+		if (concreteToCanonicalExtension == null) {
+			concreteToCanonicalExtension = Arrays.stream(extensionMap.split(","))
+				.map(seg -> seg.split("->"))
+				.filter(elms -> elms.length == 2)
+				.collect(Collectors.toMap(elms -> elms[0], elms -> FileExtension.valueOf(elms[1])));
+			canonicalToConcreteExtension = ArrayUtil.reverseMap(concreteToCanonicalExtension, new HashMap<FileExtension, String>());
 		}
-		return fetgtm;
+		return concreteToCanonicalExtension;
 	}
 
 	/**
-	 * Reverse map of {@link #fileExtensionToGroupTypeMapping()}
+	 * Reverse map of {@link #concreteToCanonicalExtension()}
 	 * @return The reverse map
 	 */
-	public Map<FileExtension, String> groupTypeToFileExtensionMapping() {
-		fileExtensionToGroupTypeMapping();
-		return rfetgtm;
+	public Map<FileExtension, String> canonicalToConcreteExtension() {
+		concreteToCanonicalExtension();
+		return canonicalToConcreteExtension;
 	}
 
 	private transient String fileDialogFilterString;
@@ -188,12 +186,12 @@ public class EngineSettings extends SettingsBase {
 	 */
 	public String fileDialogFilterForGroupFiles() {
 		if (fileDialogFilterString == null) {
-			final StringBuilder builder = new StringBuilder(6*fileExtensionToGroupTypeMapping().size());
-			for (final String ext : fileExtensionToGroupTypeMapping().keySet()) {
+			final StringBuilder builder = new StringBuilder(6*concreteToCanonicalExtension().size());
+			concreteToCanonicalExtension().keySet().forEach(ext -> {
 				builder.append("*.");
 				builder.append(ext);
 				builder.append(";");
-			}
+			});
 			fileDialogFilterString = builder.toString();
 		}
 		return fileDialogFilterString;

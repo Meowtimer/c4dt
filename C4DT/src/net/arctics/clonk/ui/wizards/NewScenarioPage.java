@@ -19,7 +19,7 @@ public class NewScenarioPage extends NewClonkFolderWizardPage {
 		final Engine engine = ClonkProjectNature.engineFromResource((IResource)((IStructuredSelection)selection).getFirstElement());
 		setTitle(Messages.NewScenarioPage_Title);
 		setDescription(Messages.NewScenarioPage_Description);
-		setFolderExtension(engine.settings().groupTypeToFileExtensionMapping().get(FileExtension.ScenarioGroup));
+		setFolderExtension(engine.settings().canonicalToConcreteExtension().get(FileExtension.ScenarioGroup));
 	}
 	
 	@Override
