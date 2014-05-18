@@ -2,7 +2,7 @@ package net.arctics.clonk.ui.navigator;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -71,8 +71,8 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			final IFolder folder = (IFolder)element;
 			Engine engine = ClonkProjectNature.engineFromResource(folder);
 			if (engine != null) {
-				final GroupType groupType = engine.groupTypeForFileName(folder.getName());
-				if (groupType == GroupType.DefinitionGroup)
+				final FileExtension groupType = engine.groupTypeForFileName(folder.getName());
+				if (groupType == FileExtension.DefinitionGroup)
 					// add [C4ID] to .c4d folders
 					try {
 						final String c4id = folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID);
@@ -80,7 +80,7 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 					} catch (final CoreException e) {
 						e.printStackTrace();
 					}
-				if (groupType == GroupType.FolderGroup || groupType == GroupType.ScenarioGroup || groupType == GroupType.ResourceGroup)
+				if (groupType == FileExtension.FolderGroup || groupType == FileExtension.ScenarioGroup || groupType == FileExtension.ResourceGroup)
 					return new StyledString(folder.getName().substring(0,folder.getName().lastIndexOf("."))); //$NON-NLS-1$
 			}
 			return new StyledString(((IFolder)element).getName());

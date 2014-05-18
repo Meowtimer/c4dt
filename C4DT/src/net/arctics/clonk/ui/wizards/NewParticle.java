@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import java.util.Map;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -20,7 +20,7 @@ public class NewParticle extends NewClonkFolderWizard<NewClonkFolderWizardPage> 
 			@Override
 			protected void initialize() {
 				super.initialize();
-				setFolderExtension(ClonkProjectNature.engineFromResource(project).settings().groupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
+				setFolderExtension(ClonkProjectNature.engineFromResource(project).settings().groupTypeToFileExtensionMapping().get(FileExtension.DefinitionGroup));
 				setTitle(Messages.NewParticle_PageTitle);
 				setDescription(Messages.NewParticle_Description);
 				setImageDescriptor(UI.imageDescriptorForPath("icons/particlebig.png"));

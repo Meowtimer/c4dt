@@ -11,7 +11,7 @@ import java.util.Map;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.typing.StaticTypingUtil;
 import net.arctics.clonk.index.Engine;
@@ -152,8 +152,8 @@ public class EngineLaunch implements ILaunchesListener2 {
 						&& c != projectLevel.getParent(); c = c.getParent())
 					for (final IResource res : c.members())
 						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
-							final GroupType gType = engine.groupTypeForFileName(res.getName());
-							if (gType == GroupType.DefinitionGroup || gType == GroupType.ResourceGroup)
+							final FileExtension gType = engine.groupTypeForFileName(res.getName());
+							if (gType == FileExtension.DefinitionGroup || gType == FileExtension.ResourceGroup)
 								if (!Utilities.resourceInside(scenarioFolder, (IContainer) res))
 									this.addWorkspaceDependency((IContainer) res);
 						}

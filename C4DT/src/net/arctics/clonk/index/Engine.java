@@ -22,7 +22,7 @@ import java.util.Set;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.PrintParametersOptions;
@@ -695,12 +695,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			return null;
 	}
 
-	public GroupType groupTypeForExtension(final String ext) {
-		final GroupType gt = settings.fileExtensionToGroupTypeMapping().get(ext);
-		return gt != null ? gt : GroupType.OtherGroup;
+	public FileExtension groupTypeForExtension(final String ext) {
+		final FileExtension gt = settings.fileExtensionToGroupTypeMapping().get(ext);
+		return gt != null ? gt : FileExtension.Other;
 	}
 
-	public GroupType groupTypeForFileName(final String fileName) {
+	public FileExtension groupTypeForFileName(final String fileName) {
 		return groupTypeForExtension(fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase()); //$NON-NLS-1$
 	}
 
@@ -712,18 +712,18 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			: null;
 	}
 
-	public Image image(final GroupType groupType) {return (Image) image(groupType.name(), false);}
-	public ImageDescriptor imageDescriptor(final GroupType groupType) {return (ImageDescriptor) image(groupType.name(), true);}
+	public Image image(final FileExtension groupType) {return (Image) image(groupType.name(), false);}
+	public ImageDescriptor imageDescriptor(final FileExtension groupType) {return (ImageDescriptor) image(groupType.name(), true);}
 	public Image image(final String name) {return (Image) image(name, false);}
 	public ImageDescriptor imageDescriptor(final String name) {return (ImageDescriptor) image(name, true);}
 
 	/**
-	 * Construct group name based on the name without extension and a {@link GroupType}
+	 * Construct group name based on the name without extension and a {@link FileExtension}
 	 * @param name The name without extension
 	 * @param groupType The group type
 	 * @return Group name with correct extension.
 	 */
-	public String groupName(final String name, final GroupType groupType) {
+	public String groupName(final String name, final FileExtension groupType) {
 		return name + "." + settings().groupTypeToFileExtensionMapping().get(groupType); //$NON-NLS-1$
 	}
 

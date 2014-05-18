@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
@@ -161,7 +161,7 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 			if (index instanceof ProjectIndex)
 				try {
 					for (final IResource res : ((ProjectIndex)index).nature().getProject().members())
-						if (res instanceof IContainer && nature.index().engine().groupTypeForFileName(res.getName()) == GroupType.DefinitionGroup)
+						if (res instanceof IContainer && nature.index().engine().groupTypeForFileName(res.getName()) == FileExtension.DefinitionGroup)
 							if (res.getName().toLowerCase().contains(pl.prefix))
 								pl.addProposal(new CompletionProposal(res.getName(), pl.wordOffset, pl.prefix.length(), res.getName().length()));
 				} catch (final CoreException e) {

@@ -28,7 +28,7 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.ProplistDeclaration;
@@ -244,8 +244,8 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		IPath result = new Path("");
 		for (int i = 0; i < path.segmentCount(); i++) {
 			String segment = path.segment(i);
-			final GroupType groupType = sourceEngine.groupTypeForFileName(segment);
-			if (groupType != GroupType.OtherGroup)
+			final FileExtension groupType = sourceEngine.groupTypeForFileName(segment);
+			if (groupType != FileExtension.Other)
 				segment = targetEngine.groupName(StringUtil.rawFileName(segment), groupType);
 			result = result.append(segment);
 		}

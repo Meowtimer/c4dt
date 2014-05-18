@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.SystemScript;
 import net.arctics.clonk.index.Definition;
@@ -90,9 +90,9 @@ public class SearchContentProvider extends ClonkLabelProvider implements ITreeCo
 		final Engine engine = element instanceof Declaration ? ((Declaration)element).engine() : null;
 		if (engine != null) {
 			if (element instanceof Scenario)
-				return engine.image(GroupType.ScenarioGroup);
+				return engine.image(FileExtension.ScenarioGroup);
 			if (element instanceof Definition)
-				return engine.image(GroupType.DefinitionGroup);
+				return engine.image(FileExtension.DefinitionGroup);
 			if (element instanceof SystemScript)
 				return UI.SCRIPT_ICON;
 

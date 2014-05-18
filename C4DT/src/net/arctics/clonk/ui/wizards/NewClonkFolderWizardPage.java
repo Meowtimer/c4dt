@@ -3,7 +3,7 @@ package net.arctics.clonk.ui.wizards;
 import java.lang.reflect.Field;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.index.Engine;
 
 import org.eclipse.core.resources.IContainer;
@@ -42,7 +42,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 	 * Return group type. Used for setting a fitting icon for the page.
 	 * @return
 	 */
-	protected GroupType groupType() {
+	protected FileExtension groupType() {
 		return null;
 	}
 
@@ -51,7 +51,7 @@ public class NewClonkFolderWizardPage extends WizardPage {
 		setTitle(Messages.NewClonkFolderWizardPage_Title);
 		setDescription(Messages.NewClonkFolderWizardPage_Description);
 		this.selection = selection;
-		final GroupType groupType = this.groupType();
+		final FileExtension groupType = this.groupType();
 		if (groupType != null) {
 			final Engine engine = ClonkProjectNature.engineFromSelection(selection);
 			if (engine != null)

@@ -16,7 +16,7 @@ import javax.swing.text.rtf.RTFEditorKit;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Engine;
@@ -202,7 +202,7 @@ public class ClonkPreviewView extends ViewPart implements ISelectionListener, Co
 	private File tempLandscapeRenderFile = null;
 
 	private static String getMaterialsFolderPath(final Engine engine, final IFile resource) {
-		final String materialFolderBaseName = "Material."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
+		final String materialFolderBaseName = "Material."+engine.settings().groupTypeToFileExtensionMapping().get(FileExtension.ResourceGroup);
 		for (IContainer container = resource.getParent(); container != null; container = container.getParent()) {
 			final IResource matsRes = container.findMember(materialFolderBaseName);
 			if (matsRes != null)

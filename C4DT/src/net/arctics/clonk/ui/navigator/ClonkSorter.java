@@ -6,7 +6,7 @@ import java.util.Map;
 
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.index.Engine;
 
 import org.eclipse.core.resources.IProject;
@@ -22,8 +22,8 @@ public class ClonkSorter extends ViewerSorter {
 	private transient Map<String, Integer> colorTagToCategory = new HashMap<String, Integer>();
 	
 	final static private String[] sortPriorities = new String[] {".c", ".txt", ".bmp", ".png" , ".wav", ".pal"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ 
-	final static private GroupType[] groupSortOrder = new GroupType[] {
-		GroupType.FolderGroup, GroupType.ScenarioGroup, GroupType.DefinitionGroup, GroupType.ResourceGroup
+	final static private FileExtension[] groupSortOrder = new FileExtension[] {
+		FileExtension.FolderGroup, FileExtension.ScenarioGroup, FileExtension.DefinitionGroup, FileExtension.ResourceGroup
 	};
 	
 	public ClonkSorter() {
@@ -39,8 +39,8 @@ public class ClonkSorter extends ViewerSorter {
 			cachedProject = resource.getProject();
 			cachedEngine = ClonkProjectNature.engineFromResource(resource);
 		}
-		GroupType gt;
-		if (cachedEngine != null && (gt = cachedEngine.groupTypeForFileName(resource.getName())) != GroupType.OtherGroup)
+		FileExtension gt;
+		if (cachedEngine != null && (gt = cachedEngine.groupTypeForFileName(resource.getName())) != FileExtension.Other)
 			for (int i = 0; i < groupSortOrder.length; i++)
 				if (groupSortOrder[i] == gt)
 					return i;

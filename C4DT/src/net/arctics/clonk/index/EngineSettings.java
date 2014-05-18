@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.ini.IniField;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.ArrayUtil;
@@ -149,25 +149,25 @@ public class EngineSettings extends SettingsBase {
 	@IniField(category=SOURCE)
 	public String callbackFunctions;
 
-	private transient Map<String, GroupType> fetgtm;
-	private transient Map<GroupType, String> rfetgtm;
+	private transient Map<String, FileExtension> fetgtm;
+	private transient Map<FileExtension, String> rfetgtm;
 	private transient List<String> supportedSoundFileExtensions_;
 
 	/**
 	 * Return a map mapping a file name extension to a group type for this engine.
 	 * @return The map.
 	 */
-	public Map<String, GroupType> fileExtensionToGroupTypeMapping() {
+	public Map<String, FileExtension> fileExtensionToGroupTypeMapping() {
 		if (fetgtm == null) {
-			fetgtm = new HashMap<String, GroupType>(GroupType.values().length);
+			fetgtm = new HashMap<String, FileExtension>(FileExtension.values().length);
 			for (final String mapping : fileExtensionToGroupTypeMapping.split(",")) {
 				final String[] elms = mapping.split("->");
 				if (elms.length >= 2) {
-					final GroupType gt = GroupType.valueOf(elms[1]);
+					final FileExtension gt = FileExtension.valueOf(elms[1]);
 					fetgtm.put(elms[0], gt);
 				}
 			}
-			rfetgtm = ArrayUtil.reverseMap(fetgtm, new HashMap<GroupType, String>());
+			rfetgtm = ArrayUtil.reverseMap(fetgtm, new HashMap<FileExtension, String>());
 		}
 		return fetgtm;
 	}
@@ -176,7 +176,7 @@ public class EngineSettings extends SettingsBase {
 	 * Reverse map of {@link #fileExtensionToGroupTypeMapping()}
 	 * @return The reverse map
 	 */
-	public Map<GroupType, String> groupTypeToFileExtensionMapping() {
+	public Map<FileExtension, String> groupTypeToFileExtensionMapping() {
 		fileExtensionToGroupTypeMapping();
 		return rfetgtm;
 	}

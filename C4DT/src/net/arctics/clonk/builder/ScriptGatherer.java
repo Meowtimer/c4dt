@@ -10,7 +10,7 @@ import java.util.Set;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4Group;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.LocalizedScript;
 import net.arctics.clonk.c4script.MapScript;
 import net.arctics.clonk.c4script.ObjectsScript;
@@ -80,7 +80,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				if (def == null)
 					def = new Scenario(builder.index(), folder.getName(), folder);
 			}
-			else if (script != null && builder.index().engine().groupTypeForFileName(folder.getName()) == GroupType.DefinitionGroup)
+			else if (script != null && builder.index().engine().groupTypeForFileName(folder.getName()) == FileExtension.DefinitionGroup)
 				if (def == null)
 					def = new Definition(builder.index(), ID.get(folder.getName()), folder.getName(), folder);
 			return def;
@@ -242,6 +242,6 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			resource.getName().equals("Map.c");
 	}
 	private boolean isSystemGroup(final IContainer container) {
-		return container.getName().equals(builder.index().engine().groupName("System", GroupType.ResourceGroup)); //$NON-NLS-1$
+		return container.getName().equals(builder.index().engine().groupName("System", FileExtension.ResourceGroup)); //$NON-NLS-1$
 	}
 }

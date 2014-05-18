@@ -1,7 +1,7 @@
 package net.arctics.clonk.mapcreator;
 
 import static net.arctics.clonk.util.Utilities.as;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ini.IniData;
@@ -27,7 +27,7 @@ public abstract class MapCreator {
 		for (final Index i : scenarioConfiguration.index().relevantIndexes())
 			if (i instanceof ProjectIndex) {
 				materialsContainer = as(i.nature().getProject().findMember
-					(i.engine().groupName("Material", GroupType.ResourceGroup)), IContainer.class);
+					(i.engine().groupName("Material", FileExtension.ResourceGroup)), IContainer.class);
 				if (materialsContainer != null)
 					break;
 			}

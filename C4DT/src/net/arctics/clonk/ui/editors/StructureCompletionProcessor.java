@@ -9,7 +9,7 @@ import java.util.Comparator;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SynthesizedFunction;
@@ -85,7 +85,7 @@ public abstract class StructureCompletionProcessor<StateClass
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(final ITextViewer viewer, final int offset) {
 		if (state != null)
-			this.defIcon = state.structure().engine().image(GroupType.DefinitionGroup);
+			this.defIcon = state.structure().engine().image(FileExtension.DefinitionGroup);
 		return null;
 	}
 

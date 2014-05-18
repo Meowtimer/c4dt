@@ -2,7 +2,7 @@ package net.arctics.clonk.ui;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.util.UI;
 
@@ -32,7 +32,7 @@ public class LightweightLabelDecorator implements ILightweightLabelDecorator {
 			if (res instanceof IFolder) {
 				final Engine engine = ClonkProjectNature.engineFromResource(res);
 				if (engine != null) {
-					final GroupType groupType = engine.groupTypeForFileName(res.getName());
+					final FileExtension groupType = engine.groupTypeForFileName(res.getName());
 					final ImageDescriptor imgDesc = engine.imageDescriptor(groupType);
 					if (imgDesc != null)
 						decoration.addOverlay(imgDesc, IDecoration.REPLACE);

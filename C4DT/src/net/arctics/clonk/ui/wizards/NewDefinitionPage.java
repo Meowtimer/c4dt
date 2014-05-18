@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.wizards;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Text;
@@ -24,7 +24,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 	}
 
 	@Override
-	protected GroupType groupType() { return GroupType.DefinitionGroup; }
+	protected FileExtension groupType() { return FileExtension.DefinitionGroup; }
 
 	@Override
 	protected void fields() {
@@ -71,7 +71,7 @@ public class NewDefinitionPage extends NewClonkFolderWizardPage {
 		c4idText.setText(Messages.NewC4ObjectPage_File);
 		folderText.setText(Messages.NewC4ObjectPage_File);
 		descriptionText.setText(Messages.NewC4ObjectPage_DescriptionDefault);
-		setFolderExtension(ClonkProjectNature.engineFromResource(project).settings().groupTypeToFileExtensionMapping().get(GroupType.DefinitionGroup));
+		setFolderExtension(ClonkProjectNature.engineFromResource(project).settings().groupTypeToFileExtensionMapping().get(FileExtension.DefinitionGroup));
 	}
 
 	public String objectID() {

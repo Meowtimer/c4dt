@@ -2,7 +2,7 @@ package net.arctics.clonk.builder;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4group.C4Group;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.index.Engine;
 
 import org.eclipse.core.expressions.PropertyTester;
@@ -50,29 +50,29 @@ public class ResourceTester extends PropertyTester {
 		}
 	}
 
-	private static boolean checkGroupType(final IResource res, final GroupType gt) {
+	private static boolean checkGroupType(final IResource res, final FileExtension gt) {
 		final Engine engine = ClonkProjectNature.engineFromResource(res);
 		return engine != null && engine.groupTypeForFileName(res.getName()) == gt;
 	}
 
 	/** @return Whether the given resource is a scenario */
 	public static boolean isScenario(final IResource res) {
-		return checkGroupType(res, GroupType.ScenarioGroup);
+		return checkGroupType(res, FileExtension.ScenarioGroup);
 	}
 
 	/** @return Whether the given resource is an object definition or object package */
 	public static boolean isDefinition(final IResource res) {
-		return checkGroupType(res, GroupType.DefinitionGroup);
+		return checkGroupType(res, FileExtension.DefinitionGroup);
 	}
 
 	/** @return Whether the given resource is a scenario folder */
 	public static boolean isFolder(final IResource res) {
-		return checkGroupType(res, GroupType.FolderGroup);
+		return checkGroupType(res, FileExtension.FolderGroup);
 	}
 
 	/** @return Whether the given resource is a resource group */
 	public static boolean isResource(final IResource res) {
-		return checkGroupType(res, GroupType.ResourceGroup);
+		return checkGroupType(res, FileExtension.ResourceGroup);
 	}
 
 	/** @return Whether the given resource is contained in a scenario */

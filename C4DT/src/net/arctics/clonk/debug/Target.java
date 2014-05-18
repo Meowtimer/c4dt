@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.Queue;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
@@ -465,7 +465,7 @@ public class Target extends DebugElement implements IDebugTarget {
 	private IPath relativePath(final IResource res) {
 		final IPath relPath = res.getProjectRelativePath();
 		final ClonkProjectNature cpn = ClonkProjectNature.get(res);
-		final String scenSuffix = "." + cpn.index().engine().settings().groupTypeToFileExtensionMapping().get(GroupType.ScenarioGroup);
+		final String scenSuffix = "." + cpn.index().engine().settings().groupTypeToFileExtensionMapping().get(FileExtension.ScenarioGroup);
 		for (int i = relPath.segmentCount()-1; i >= 0; i--)
 			if (relPath.segment(i).endsWith(scenSuffix))
 				return relPath.removeFirstSegments(i);

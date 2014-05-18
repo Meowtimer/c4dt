@@ -31,7 +31,7 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.c4group.GroupType;
+import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.c4script.Directive.DirectiveType;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.IDLiteral;
@@ -833,7 +833,7 @@ public abstract class SpecialEngineRules {
 			if (extensionWildcardNeeded)
 				name += "\\." + StringUtil.writeBlock(null, "(", ")", "|", engine.settings().supportedSoundFileExtensions());
 			final Matcher nameMatcher = Pattern.compile(name).matcher("");
-			final String soundGroupName = "Sound."+engine.settings().groupTypeToFileExtensionMapping().get(GroupType.ResourceGroup);
+			final String soundGroupName = "Sound."+engine.settings().groupTypeToFileExtensionMapping().get(FileExtension.ResourceGroup);
 			final IResource r = script.resource();
 			for (
 				IContainer c = r instanceof IContainer ? (IContainer)r : r != null ? r.getParent() : null, d = null;
