@@ -395,6 +395,10 @@ public abstract class Utilities {
 	public interface ThrowHappy<T, E extends Exception> {
 		void accept(T item) throws E;
 	}
+	
+	public interface ThrowHappySupplier<T, E extends Exception> {
+		T get() throws E;
+	}
 
 	public static void unexpectedException(Exception e) {
 		throw new RuntimeException(e);
@@ -441,6 +445,25 @@ public abstract class Utilities {
 		synchronized (lock) {
 			return supplier.get();
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T, E extends Exception> Supplier<T> trying(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
+		return () -> {
+			try {
+				return sup.get();
+			} catch (final Exception e) {
+				if (expectedException.isInstance(e))
+					exceptionHandler.accept((E)e);
+				else
+					unexpectedException(e);
+				return null;
+			}
+		};
+	}
+	
+	public static <T, E extends Exception> T tri(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
+		return trying(sup, expectedException, exceptionHandler).get();
 	}
 
 }
