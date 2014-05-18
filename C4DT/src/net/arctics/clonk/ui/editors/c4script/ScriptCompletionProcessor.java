@@ -22,7 +22,6 @@ import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Placeholder;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.BuiltInDefinitions;
 import net.arctics.clonk.c4script.Directive;
 import net.arctics.clonk.c4script.Function;
@@ -63,6 +62,7 @@ import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.ui.editors.PrimitiveTypeProposal;
 import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
+import net.arctics.clonk.ui.editors.c4script.ScriptEditingState.Assistant;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IContainer;
@@ -185,7 +185,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 
 		return new ProposalsSite(
 			state(), offset, wordOffset, doc, prefix, new ArrayList<ICompletionProposal>(),
-			ClonkProjectNature.get(state().structure().resource()).index(),
+			state().structure().index(),
 			state.functionAt(offset), state.structure(), null, null, null
 		);
 	}
@@ -200,7 +200,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			? computeProposalsOutsideFunction(viewer, site)
 			: computeProposalsInsideFunction(site)))
 			return null;
-		state().assistant().setStatusMessage(proposalCycleMessage());
+		final Assistant a = state().assistant();
+		if (a != null)
+			a.setStatusMessage(proposalCycleMessage());
 		ICompletionProposal[] proposals = site.finish(proposalCycle);
 		if (proposals != null && site.prefix == null || site.prefix.length() == 0)
 			proposals = appendWhitespaceLocalGlobalDelimiter(proposals);
@@ -797,10 +799,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 
 	private String proposalCycleMessage() {
 		final TriggerSequence sequence = iterationBinding();
-		if (proposalCycle != null)
-			return String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description());
-		else
-			return "";
+		return proposalCycle != null && sequence != null ? String.format(Messages.C4ScriptCompletionProcessor_PressToShowCycle, sequence.format(), proposalCycle.cycle().description()) : "";
 	}
 
 	private List<DeclarationProposal> proposalsForStructure(final ProposalsSite site, final Declaration target, final Declaration structure) {
@@ -908,11 +907,11 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	public String getErrorMessage() { return null; }
 
 	private KeySequence iterationBinding() {
+		if (Core.runsHeadless())
+			return null;
 		final IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(IBindingService.class);
 		final TriggerSequence binding = bindingSvc.getBestActiveBindingFor(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
-		if (binding instanceof KeySequence)
-			return (KeySequence) binding;
-		return null;
+		return binding instanceof KeySequence ? (KeySequence) binding : null;
 	}
 
 	@Override

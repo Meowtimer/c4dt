@@ -12,6 +12,7 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.DeclarationProposal;
 import net.arctics.clonk.util.WeakListenerManager;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
 import org.eclipse.jface.text.DocumentCommand;
@@ -72,7 +73,9 @@ public class ScriptAutoEditStrategy extends DefaultIndentLineAutoEditStrategy im
 
 	private static class WeakListenerManagerPCL extends WeakListenerManager<IPropertyChangeListener> implements IPropertyChangeListener	{
 		public WeakListenerManagerPCL() {
-			Core.instance().getPreferenceStore().addPropertyChangeListener(this);
+			final IPreferenceStore prefStore = Core.instance().getPreferenceStore();
+			if (prefStore != null)
+				prefStore.addPropertyChangeListener(this);
 		}
 		@Override
 		public void propertyChange(final PropertyChangeEvent event) {

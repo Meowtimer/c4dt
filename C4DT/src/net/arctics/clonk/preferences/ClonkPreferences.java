@@ -36,7 +36,8 @@ public class ClonkPreferences extends AbstractPreferenceInitializer {
 	}
 
 	public static boolean toggle(final String toggleName, final boolean defaultValue) {
-		return Core.instance().getPreferenceStore().getBoolean(toggleName);
+		final IPreferenceStore prefStore = Core.instance().getPreferenceStore();
+		return prefStore != null ? prefStore.getBoolean(toggleName) : defaultValue;
 	}
 
 	public static int integer(final String prefName) {
