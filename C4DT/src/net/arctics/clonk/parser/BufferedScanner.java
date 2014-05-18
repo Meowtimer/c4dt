@@ -1,5 +1,7 @@
 package net.arctics.clonk.parser;
 
+import static net.arctics.clonk.util.Utilities.thro;
+
 import java.io.CharArrayReader;
 import java.io.File;
 import java.io.InputStream;
@@ -110,20 +112,14 @@ public class BufferedScanner implements ICharacterScanner {
 	}
 
 	private static String stringFromSource(final Object source) {
-		if (source instanceof IStorage)
-			return StreamUtil.stringFromStorage((IStorage) source);
-		else if (source instanceof Reader)
-			return StreamUtil.stringFromReader((Reader)source);
-		else if (source instanceof InputStream)
-			return StreamUtil.stringFromInputStream((InputStream)source);
-		else if (source instanceof String)
-			return (String)source;
-		else if (source instanceof File)
-			return StreamUtil.stringFromFile((File) source);
-		else if (source instanceof IDocument)
-			return ((IDocument)source).get();
-		else
-			throw new IllegalArgumentException(String.format("source: %s", source));
+		return
+			source instanceof IStorage ? StreamUtil.stringFromStorage((IStorage) source) :
+			source instanceof Reader ? StreamUtil.stringFromReader((Reader)source) :
+			source instanceof InputStream ? StreamUtil.stringFromInputStream((InputStream)source) :
+			source instanceof String ? (String)source :
+			source instanceof File ? StreamUtil.stringFromFile((File) source) :
+			source instanceof IDocument ? ((IDocument)source).get()
+			: thro(new IllegalArgumentException(String.format("source: %s", source)));
 	}
 
 	/**
@@ -171,10 +167,11 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return
 	 */
 	public static boolean isWordPart(final int character) {
-		return ('A' <= character && character <= 'Z') ||
-		('a'<= character && character <= 'z') ||
-		(character == '_') ||
-		(/*length > 0 &&*/ '0' <= character && character <= '9');
+		return
+			('A' <= character && character <= 'Z') ||
+			('a'<= character && character <= 'z') ||
+			(character == '_') ||
+			(/*length > 0 &&*/ '0' <= character && character <= '9');
 	}
 
 	public static boolean isWordStart(final int character) {
