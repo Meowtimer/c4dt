@@ -1,5 +1,6 @@
 package net.arctics.clonk.builder;
 
+import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.Collection;
@@ -11,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Flags;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4group.C4GroupStreamOpener;
@@ -324,7 +324,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void reportProblems(final ScriptParser[] parsers, final Script[] scripts) {
-		if (Flags.DEBUG)
+		if (DEBUG)
 			System.out.println(String.format("%s: Reporting problems", getProject().getName()));
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
