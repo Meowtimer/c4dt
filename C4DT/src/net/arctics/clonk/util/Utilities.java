@@ -392,10 +392,12 @@ public abstract class Utilities {
 		return (T)item.clone();
 	}
 
+	@FunctionalInterface
 	public interface ThrowHappy<T, E extends Exception> {
 		void accept(T item) throws E;
 	}
 	
+	@FunctionalInterface
 	public interface ThrowHappySupplier<T, E extends Exception> {
 		T get() throws E;
 	}
@@ -465,5 +467,7 @@ public abstract class Utilities {
 	public static <T, E extends Exception> T tri(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
 		return trying(sup, expectedException, exceptionHandler).get();
 	}
+	
+	public static <T, E extends Throwable> T thro(E e) throws E { throw e; }
 
 }
