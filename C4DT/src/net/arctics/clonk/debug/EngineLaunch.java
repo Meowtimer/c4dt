@@ -3,6 +3,7 @@ package net.arctics.clonk.debug;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -61,17 +62,15 @@ public class EngineLaunch implements ILaunchesListener2 {
 
 	public static void scriptsBuilt(final Script[] scripts) {
 		synchronized (list) {
-			if (list.size() == 0)
+			if (list.isEmpty())
 				return;
 		}
-		for (final Script s : scripts) {
+		Arrays.stream(scripts).forEach(s -> {
 			final Scenario scen = s.scenario();
-			if (scen != null) {
-				final EngineLaunch launch = get(scen.resource().getFullPath());
-				if (launch != null)
-					launch.eraseTypeAnnotations(s);
-			}
-		}
+			final EngineLaunch l = scen != null ? get(scen.resource().getFullPath()) : null;
+			if (l != null)
+				l.eraseTypeAnnotations(s);
+		});
 	}
 
 	public static class MultipleLaunchesException extends CoreException {
@@ -146,10 +145,8 @@ public class EngineLaunch implements ILaunchesListener2 {
 		// add stuff from the project so Clonk does not fail to find them
 		for (final Index index : ClonkProjectNature.get(scenarioFolder).index().relevantIndexes())
 			if (index instanceof ProjectIndex) {
-				final IContainer projectLevel = ((ProjectIndex) index)
-						.nature().getProject();
-				for (IContainer c = scenarioFolder.getParent(); c != null
-						&& c != projectLevel.getParent(); c = c.getParent())
+				final IContainer projectLevel = ((ProjectIndex) index).nature().getProject();
+				for (IContainer c = scenarioFolder.getParent(); c != null && c != projectLevel.getParent(); c = c.getParent())
 					for (final IResource res : c.members())
 						if (!res.getName().startsWith(".") && res instanceof IContainer) { //$NON-NLS-1$
 							final FileExtension gType = engine.extensionForFileName(res.getName());
