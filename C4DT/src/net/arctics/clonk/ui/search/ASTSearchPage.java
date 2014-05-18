@@ -1,7 +1,7 @@
 package net.arctics.clonk.ui.search;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.ArrayUtil.collectionSink;
-import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
@@ -23,12 +23,12 @@ import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.DialogPage;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -55,7 +55,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.ISelectionService;
-import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PlatformUI;
 
 public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePage {
@@ -207,6 +206,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		final ISelectionService selectionService = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService();
 		final ISelection sel = selectionService.getSelection();
 		final Set<Structure> scope = new HashSet<Structure>();
+		final Sink<? super Script> scopeSink = collectionSink(scope);
 		final IResourceVisitor scopeVisitor = resource -> {
 			final Structure script = Script.get(resource, true);
 			if (script != null)
@@ -218,9 +218,10 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		};
 		switch (container.getSelectedScope()) {
 		case ISearchPageContainer.SELECTED_PROJECTS_SCOPE:
-			for (final ClonkProjectNature nature : map(iterable(container.getSelectedProjectNames()), from -> ClonkProjectNature.get(from)))
-				if (nature != null)
-					nature.index().allScripts(collectionSink(scope));
+			stream(container.getSelectedProjectNames())
+				.map(from -> ClonkProjectNature.get(from))
+				.filter(n -> n != null)
+				.forEach(n -> n.index().allScripts(scopeSink));
 			break;
 		case ISearchPageContainer.SELECTION_SCOPE: {
 			final IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
@@ -228,7 +229,7 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 				? new StructuredSelection(input.getFile())
 				: as(sel, IStructuredSelection.class);
 			if (ssel != null)
-				ofType(Arrays.stream(ssel.toArray()), IResource.class).forEach(printingException(
+				ofType(stream(ssel.toArray()), IResource.class).forEach(printingException(
 					r -> r.accept(scopeVisitor),
 					CoreException.class
 				));
@@ -236,26 +237,19 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		}
 		case ISearchPageContainer.WORKSPACE_SCOPE: {
 			final IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
-			if (input != null) {
-				final ClonkProjectNature nature = ClonkProjectNature.get(input.getFile());
-				if (nature != null)
-					for (final ClonkProjectNature n : ClonkProjectNature.allInWorkspace())
-						if (n.index().engine() == nature.index().engine())
-							n.index().allScripts(collectionSink(scope));
-			}
+			final ClonkProjectNature nature = input != null ? ClonkProjectNature.get(input.getFile()) : null;
+			if (nature != null)
+				stream(ClonkProjectNature.allInWorkspace())
+					.filter(n -> n.index().engine() == nature.index().engine())
+					.forEach(n -> n.index().allScripts(scopeSink));
 			break;
 		}
 		case ISearchPageContainer.WORKING_SET_SCOPE:
-			for (final IWorkingSet workingSet : container.getSelectedWorkingSets())
-				for (final IAdaptable a : workingSet.getElements()) {
-					final IResource res = (IResource)a.getAdapter(IResource.class);
-					if (res != null)
-						try {
-							res.accept(scopeVisitor);
-						} catch (final CoreException e) {
-							e.printStackTrace();
-						}
-				}
+			stream(container.getSelectedWorkingSets())
+				.flatMap(ws -> stream(ws.getElements()))
+				.map(a -> (IResource)a.getAdapter(IResource.class))
+				.filter(r -> r != null)
+				.forEach(printingException(r -> r.accept(scopeVisitor), CoreException.class));
 			break;
 		default:
 			return null;
@@ -291,8 +285,8 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 				if (page != null) {
 					final SearchResult result = (SearchResult)page.getInput();
 					runWithoutAutoBuild(() -> {
-						ofType(Arrays.stream(result.getElements()), Structure.class).forEach(struct -> {
-							struct.saveNodes(ofType(Arrays.stream(result.getMatches(struct)), ASTSearchQuery.Match.class).map(qm -> {
+						ofType(stream(result.getElements()), Structure.class).forEach(struct -> {
+							struct.saveNodes(ofType(stream(result.getMatches(struct)), ASTSearchQuery.Match.class).map(qm -> {
 								final ASTNode replacement = query.replacement();
 								ASTNode repl = replacement.transform(qm.subst(), replacement);
 								if (repl == replacement)
