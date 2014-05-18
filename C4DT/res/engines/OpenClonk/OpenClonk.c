@@ -719,3 +719,6 @@ static const object Global;
 static const int ATTACH_Front;
 static const int ATTACH_Back;
 static const int ATTACH_MoveRelative;
+
+global func bool SetLeagueProgressData(string newData, int player);
+global func string GetLeagueProgressData(int player);
