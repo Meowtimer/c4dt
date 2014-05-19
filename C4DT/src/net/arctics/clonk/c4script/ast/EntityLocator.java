@@ -28,7 +28,6 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectResource;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -124,7 +123,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 				if (projectDeclarations != null)
 					potentialEntities.addAll(projectDeclarations);
 				// only add engine func if not overloaded by any global function
-				if (engineFunc != null && !Utilities.any(potentialEntities, IS_GLOBAL))
+				if (engineFunc != null && !potentialEntities.stream().anyMatch(IS_GLOBAL))
 					potentialEntities.add(engineFunc);
 				if (potentialEntities.size() == 0)
 					potentialEntities = null;

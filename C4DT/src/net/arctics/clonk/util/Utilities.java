@@ -1,11 +1,11 @@
 package net.arctics.clonk.util;
 
+import static java.lang.String.format;
 import static java.util.Arrays.stream;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -50,26 +50,18 @@ public abstract class Utilities {
 	}
 
 	public static IFile fileFromEditorInput(final IEditorInput editorInput) {
-		if (editorInput instanceof FileEditorInput)
-			return ((FileEditorInput)editorInput).getFile();
-		else
-			return null;
+		return editorInput instanceof FileEditorInput ? ((FileEditorInput)editorInput).getFile() : null;
 	}
 
 	public static Script scriptForResource(final IResource resource) {
-		if (resource instanceof IContainer)
-			return Definition.at((IContainer) resource);
-		else if (resource instanceof IFile)
-			return Script.get(resource, true);
-		else
-			return null;
+		return
+			resource instanceof IContainer ? Definition.at((IContainer) resource) :
+			resource instanceof IFile ?  Script.get(resource, true) :
+			null;
 	}
 
 	public static Script scriptForEditor(final IEditorPart editor) {
-		if (editor instanceof C4ScriptEditor)
-			return ((C4ScriptEditor) editor).script();
-		else
-			return null;
+		return editor instanceof C4ScriptEditor ? ((C4ScriptEditor) editor).script() : null;
 	}
 
 	/**
@@ -82,10 +74,6 @@ public abstract class Utilities {
 		return (a == null && b == null) || (a != null && b != null && (a.equals(b)||b.equals(a)));
 	}
 
-	public static boolean objectsNonNullEqual(final Object a, final Object b) {
-		return a != null && b != null && a.equals(b);
-	}
-
 	/**
 	 * Returns whether resource somewhere below container in the file hierarchy
 	 * @param resource the resource
@@ -93,10 +81,8 @@ public abstract class Utilities {
 	 * @return true if resource is below container, false if not
 	 */
 	public static boolean resourceInside(final IResource resource, final IContainer container) {
-		for (IContainer c = resource instanceof IContainer ? (IContainer)resource : resource.getParent(); c != null; c = c.getParent())
-			if (c.equals(container))
-				return true;
-		return false;
+		return walk(resource instanceof IContainer ? (IContainer)resource : resource.getParent(), c -> c.getParent())
+			.anyMatch(c -> c.equals(container));
 	}
 
 	private static int distanceToCommonContainer(final IResource a, final IResource b, Scenario aScenario, Scenario bScenario) {
@@ -152,13 +138,6 @@ public abstract class Utilities {
 		return best;
 	}
 
-	public static boolean allInstanceOf(final Object[] objects, final Class<?> cls) {
-		for (final Object item : objects)
-			if (!(cls.isAssignableFrom(item.getClass())))
-				return false;
-		return true;
-	}
-
 	public static Class<?> baseClass(final Class<?> a, final Class<?> b) {
 		Class<?> result = a;
 		while (!result.isAssignableFrom(b))
@@ -186,19 +165,7 @@ public abstract class Utilities {
 	}
 
 	public static int clamp(final int value, final int min, final int max) {
-		if (value < min)
-			return min;
-		else if (value > max)
-			return max;
-		else
-			return value;
-	}
-
-	public static <T> T itemMatching(final Predicate<T> predicate, final List<T> sectionsList) {
-		for (final T item : sectionsList)
-			if (predicate.test(item))
-				return item;
-		return null;
+		return value < min ? min : value > max ? max : value;
 	}
 
 	public static Enum<?>[] enumValues(final Class<?> enumClass) {
@@ -244,37 +211,13 @@ public abstract class Utilities {
 		return builder.toString();
 	}
 
-	public static <E, T extends Collection<E>> T collectionFromArray(final Class<T> cls, final E[] array) {
-		try {
-			final T result = cls.newInstance();
-			for (final E e : array)
-				result.add(e);
-			return result;
-		} catch (final Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
 	public static <S, T extends S> boolean isAnyOf(final S something, @SuppressWarnings("unchecked") final T... things) {
-		if (something != null)
-			for (final Object o : things)
-				if (something.equals(o))
-					return true;
-		return false;
-	}
-
-	public static <T> boolean collectionContains(final Collection<T> list, final T elm) {
-		for (final T e : list)
-			if (e.equals(elm))
-				return true;
-		return false;
+		return stream(things).anyMatch(o -> eq(something, o));
 	}
 
 	public static void errorMessage(final Throwable error, final String title) {
-		String message = error.getClass().getSimpleName();
-		if (error.getLocalizedMessage() != null)
-			message += ": " + error.getLocalizedMessage(); //$NON-NLS-1$
+		final String clsName = error.getClass().getSimpleName();
+		final String message =  error.getLocalizedMessage() != null ? format("%s: %s", clsName, error.getLocalizedMessage()) : clsName;
 		errorMessage(message, title);
 	}
 
@@ -292,28 +235,8 @@ public abstract class Utilities {
 	public static IResource findMemberCaseInsensitively(final IContainer container, final String name) {
 		if (container == null)
 			return null;
-		try {
-	        for (final IResource child : container.members())
-				if (child.getName().equalsIgnoreCase(name))
-	        		return child;
-        } catch (final CoreException e) {
-	        //e.printStackTrace(); just return null, will just be some case of having a referenced container that does not exist anymore
-        }
-		return null;
-	}
-
-	/**
-	 * Returns true if there is anything in items that matches the predicate
-	 * @param <T>
-	 * @param items items
-	 * @param predicate predicate
-	 * @return see above
-	 */
-	public static <T> boolean any(final Iterable<? extends T> items, final Predicate<T> predicate) {
-		for (final T item : items)
-			if (predicate.test(item))
-				return true;
-		return false;
+		final IResource[] members = tri(() -> container.members(), CoreException.class, e -> {});
+		return members != null ? stream(members).filter(c -> c.getName().equalsIgnoreCase(name)).findFirst().orElse(null) : null;
 	}
 
 	public static <A, B> B as(final A obj, final Class<B> type) {
@@ -329,19 +252,7 @@ public abstract class Utilities {
 	}
 
 	public static <A> A or(final A a, final A b) {
-		if (a != null)
-			return a;
-		else
-			return b;
-	}
-
-	public static Object token(final String token) {
-		return new Object() {
-			@Override
-			public String toString() {
-				return token;
-			}
-		};
+		return a != null ? a : b;
 	}
 
 	private static Object autoBuildDisablingLock = new Object();
@@ -372,8 +283,7 @@ public abstract class Utilities {
 
 	public static void removeRecursively(final File f) {
 		if (f.isDirectory())
-			for (final File fi : f.listFiles())
-				removeRecursively(fi);
+			stream(f.listFiles()).forEach(Utilities::removeRecursively);
 		f.delete();
 	}
 

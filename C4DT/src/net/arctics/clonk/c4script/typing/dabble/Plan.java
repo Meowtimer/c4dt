@@ -3,7 +3,6 @@ package net.arctics.clonk.c4script.typing.dabble;
 import static java.lang.String.format;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.StringUtil.blockString;
-import static net.arctics.clonk.util.Utilities.any;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -165,7 +164,7 @@ class Plan {
 		public boolean test(final Visit dependent) {
 			return add(dependent) &&
 				(dependent.dependencies.contains(dependency) ||
-				 any(dependent.dependencies, this));
+				 dependent.dependencies.stream().anyMatch(this));
 		}
 	}
 

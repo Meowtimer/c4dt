@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.ArrayUtil.addAllSynchronized;
 import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
 import static net.arctics.clonk.util.ArrayUtil.filter;
@@ -27,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
@@ -1063,7 +1065,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	@SuppressWarnings("unchecked")
 	public Collection<? extends INode> childCollection() {
-		return Utilities.collectionFromArray(LinkedList.class, subDeclarationsForOutline());
+		return stream(subDeclarationsForOutline()).collect(Collectors.toList());
 	}
 
 	@Override
