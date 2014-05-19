@@ -1,6 +1,8 @@
 package net.arctics.clonk;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
@@ -25,6 +27,7 @@ import net.arctics.clonk.c4script.Function.Invocation;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.typing.Typing;
+import net.arctics.clonk.cli.C4ScriptToCPPConverter;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
 import net.arctics.clonk.command.ExecutableScript;
@@ -279,6 +282,22 @@ public class CLI implements IApplication, AutoCloseable {
 		}));
 		parser.parse();
 		System.out.println(parser.script().printed());
+	}
+	@Callable
+	public void scriptToCPP(final String fileName) throws ProblemException, IOException {
+		final String scriptText = fileName != null ? StreamUtil.stringFromFile(new File(fileName)) : readFile();
+		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, scriptText, new Index() {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+			@Override
+			public Engine engine() {
+				return Core.instance().activeEngine();
+			}
+		}));
+		parser.parse();
+		final C4ScriptToCPPConverter converter = new C4ScriptToCPPConverter();
+		try (PrintWriter output = new PrintWriter(System.out)) {
+			converter.printScript(parser.script(), output);
+		}
 	}
 	@Callable
 	public void help(String on) {
