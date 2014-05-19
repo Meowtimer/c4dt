@@ -1,5 +1,7 @@
 package net.arctics.clonk.util;
 
+import static java.util.Arrays.stream;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -396,7 +398,7 @@ public abstract class Utilities {
 	public interface ThrowHappy<T, E extends Exception> {
 		void accept(T item) throws E;
 	}
-	
+
 	@FunctionalInterface
 	public interface ThrowHappySupplier<T, E extends Exception> {
 		T get() throws E;
@@ -448,7 +450,7 @@ public abstract class Utilities {
 			return supplier.get();
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static <T, E extends Exception> Supplier<T> trying(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
 		return () -> {
@@ -463,11 +465,28 @@ public abstract class Utilities {
 			}
 		};
 	}
-	
+
 	public static <T, E extends Exception> T tri(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
 		return trying(sup, expectedException, exceptionHandler).get();
 	}
-	
+
 	public static <T, E extends Throwable> T thro(E e) throws E { throw e; }
+
+	@SafeVarargs
+	public static <T> Stream<T> one(T... item) {
+		return stream(item);
+	}
+
+	public static <T> T block(Supplier<T> sup) {
+		return sup.get();
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> Stream<T> flatten(Class<T> cls, Object... items) {
+		return stream(items).flatMap(item ->
+			cls.isInstance(item) ? one((T)item) :
+			item instanceof Stream ? (Stream<T>)item : Stream.empty()
+		);
+	}
 
 }
