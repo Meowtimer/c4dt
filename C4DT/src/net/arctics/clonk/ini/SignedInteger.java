@@ -30,9 +30,7 @@ public class SignedInteger extends IniEntryValue implements IConvertibleToPrimit
 				setNumberFromStringValue(input, entryData, context);
 		}
 		catch(final NumberFormatException e) {
-			final IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input));
-			exp.setInnerException(e);
-			throw exp;
+			throw new IniParserException(IMarker.SEVERITY_ERROR, String.format(Messages.IntegerExpected, input), e);
 		}
 	}
 	protected void setNumberFromStringValue(final String input, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {

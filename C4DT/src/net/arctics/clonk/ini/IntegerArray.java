@@ -55,9 +55,7 @@ public class IntegerArray extends IniEntryValue implements IHasChildrenWithConte
 				throw new IniParserException(IMarker.SEVERITY_WARNING, Messages.ExpectedIntegerArray);
 		}
 		catch(final NumberFormatException e) {
-			final IniParserException exp = new IniParserException(IMarker.SEVERITY_ERROR, Messages.ExpectedIntegerArray);
-			exp.setInnerException(e);
-			throw exp;
+			throw new IniParserException(IMarker.SEVERITY_ERROR, Messages.ExpectedIntegerArray, e);
 		}
 	}
 	@Override

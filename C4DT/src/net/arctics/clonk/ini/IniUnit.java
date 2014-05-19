@@ -159,7 +159,7 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 		if (sectionConfig == null)
 			return entry; // don't throw errors in unknown section
 		if (!sectionConfig.hasEntry(entry.key()))
-			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.key()), entry.start(), entry.key().length() + entry.start());
+			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.key()), entry.start(), entry.key().length() + entry.start(), null);
 		final IniDataBase dataItem = sectionConfig.entryForKey(entry.key());
 		if (dataItem instanceof IniEntryDefinition) {
 			final IniEntryDefinition entryConfig = (IniEntryDefinition) dataItem;
@@ -174,8 +174,10 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 					String value = entry.stringValue();
 					if (value == null)
 						value = ""; //$NON-NLS-1$
-					e.setOffset(entry.start() + key.length() + 1);
-					e.setEndOffset(entry.start() + key.length() + 1 + value.length());
+					e.offsets(
+						entry.start() + key.length() + 1,
+						entry.start() + key.length() + 1 + value.length()
+					);
 				}
 				throw e;
 			}
