@@ -293,10 +293,10 @@ public class Target extends DebugElement implements IDebugTarget {
 
 	}
 
-	synchronized void setConnectionObjects(final Socket socket, final PrintWriter socketWriter, final BufferedReader socketReader_) {
+	synchronized void setConnectionObjects(final Socket socket, final PrintWriter socketWriter, final BufferedReader socketReader) {
 		this.socket = socket;
 		this.socketWriter = socketWriter;
-		this.socketReader = socketReader_;
+		this.socketReader = socketReader;
 
 		fireEvent(new DebugEvent(this, DebugEvent.CREATE));
 

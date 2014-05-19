@@ -221,14 +221,14 @@ public class EngineLaunch implements ILaunchesListener2 {
 		synchronized (list) {
 			list.remove(scenarioFolder.getFullPath());
 		}
-		for (final ILaunch l : launches)
-			if (l == launch) {
-				DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
-				try {
-					if (tempFolder != null)
-						Utilities.removeRecursively(tempFolder);
-				} catch (final Exception e) {}
-			}
+		final boolean ownLaunchTerminated = stream(launches).anyMatch(l -> l == launch);
+		if (ownLaunchTerminated) {
+			DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
+			try {
+				if (tempFolder != null)
+					Utilities.removeRecursively(tempFolder);
+			} catch (final Exception e) {}
+		}
 	}
 
 	public void launch(final IProgressMonitor monitor) throws CoreException {
