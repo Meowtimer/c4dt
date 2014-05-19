@@ -1,5 +1,7 @@
 package net.arctics.clonk.index;
 
+import static java.util.Arrays.stream;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,23 +28,20 @@ import org.eclipse.core.runtime.Path;
 public class CPPSourceDeclarationsImporter {
 
 	public boolean overwriteExistingDeclarations = true;
-	
+
 	/**
 	 * Import declarations from a source repository, putting them in the supplied {@link Script} container.
-	 * Source file paths are fetched from the container's engine's settings' {@link EngineSettings#cppSources} 
+	 * Source file paths are fetched from the container's engine's settings' {@link EngineSettings#cppSources}
 	 * @param importsContainer The container to import the declarations into. Usually an {@link Engine}
 	 * @param repository Repository path to prepend to cpp source paths
 	 * @param monitor Monitor used to monitor the progress of the operation.
 	 */
 	public void importFromRepository(final Script importsContainer, final String repository, final IProgressMonitor monitor) {
-		final File pony = new Path(repository).append("scriptdefinitionsources.txt").toFile();
-		String[] sourceFiles;
-		if (pony.exists())
-			sourceFiles = StreamUtil.stringFromFile(pony).split("\n");
-		else
-			sourceFiles = importsContainer.engine().settings().cppSources.split(",");
-		for (final String sourceFile : sourceFiles)
-			readDeclarationsFromSource(importsContainer, repository, sourceFile.trim());
+		final File scriptdefs = new Path(repository).append("scriptdefinitionsources.txt").toFile();
+		final String[] sourceFiles = scriptdefs.exists() ? StreamUtil.stringFromFile(scriptdefs).split("\n") : importsContainer.engine().settings().cppSources.split(",");
+		stream(sourceFiles).forEach(
+			sourceFile -> readDeclarationsFromSource(importsContainer, repository, sourceFile.trim())
+		);
 		if (monitor != null)
 			monitor.done();
 	}
@@ -50,7 +49,7 @@ public class CPPSourceDeclarationsImporter {
 	private void readDeclarationsFromSource(final Script importsContainer, final String repository, final String sourceFilePath) {
 
 		final String origin = sourceFilePath;
-		
+
 		final int SECTION_None = 0;
 		final int SECTION_InitFunctionMap = 1;
 		final int SECTION_C4ScriptConstMap = 2;
@@ -64,9 +63,9 @@ public class CPPSourceDeclarationsImporter {
 				Pattern.compile(settings.constMapPattern).matcher(""),
 				Pattern.compile(settings.fnMapPattern).matcher("")
 			};
-			final Matcher fnMapEntryMatcher = Pattern.compile(settings.fnMapEntryPattern).matcher(""); //$NON-NLS-1$ 
-			final Matcher constMapEntryMatcher = Pattern.compile(settings.constMapEntryPattern).matcher(""); //$NON-NLS-1$ 
-			final Matcher addFuncMatcher = Pattern.compile(settings.addFuncPattern).matcher(""); //$NON-NLS-1$ 
+			final Matcher fnMapEntryMatcher = Pattern.compile(settings.fnMapEntryPattern).matcher(""); //$NON-NLS-1$
+			final Matcher constMapEntryMatcher = Pattern.compile(settings.constMapEntryPattern).matcher(""); //$NON-NLS-1$
+			final Matcher addFuncMatcher = Pattern.compile(settings.addFuncPattern).matcher(""); //$NON-NLS-1$
 			final Matcher fnDeclarationMatcher = Pattern.compile(settings.fnDeclarationPattern).matcher("");
 
 			try {
@@ -144,7 +143,7 @@ public class CPPSourceDeclarationsImporter {
 						}
 						break;
 					}
-					
+
 					if (fnDeclarationMatcher.reset(line).matches()) {
 						int i = 1;
 						final String returnType = fnDeclarationMatcher.group(i++);
