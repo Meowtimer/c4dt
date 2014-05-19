@@ -1,6 +1,5 @@
 package net.arctics.clonk.ui.editors.ini;
 
-import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.ui.editors.ColorManager;
@@ -56,9 +55,9 @@ public class IniScanner extends StructureTextScanner {
 		final CombinedWordRule combinedWordRule = new CombinedWordRule(wordDetector, defaultToken);
 		final CombinedWordRule.WordMatcher wordRule = new CombinedWordRule.WordMatcher();
 		if (engine != null)
-			for (final Variable var : engine.variables())
-				if (var.scope() == Scope.CONST)
-					wordRule.addWord(var.name(), constant);
+			engine.variables().stream()
+				.filter(var -> var.scope() == Scope.CONST)
+				.forEach(var -> wordRule.addWord(var.name(), constant));
 		combinedWordRule.addWordMatcher(wordRule);
 
 		setRules(new IRule[] {

@@ -1,5 +1,7 @@
 package net.arctics.clonk.util;
 
+import static net.arctics.clonk.util.Utilities.eq;
+
 import java.net.URL;
 import java.util.List;
 
@@ -10,15 +12,14 @@ public abstract class PathUtil {
 			? path.substring(ndx+containerPath.length())
 			: null;
 	}
-	
+
 	public static void addURLIfNotDuplicate(final String containerPathIncludingEngine, final URL url, final List<URL> urls) {
 		final String truncatedPath = chopPath(containerPathIncludingEngine, url.getPath());
 		assert(truncatedPath != null);
-		for (final URL oldURL : urls) {
-			final String chopped = chopPath(containerPathIncludingEngine, oldURL.getPath());
-			if (chopped != null && chopped.equals(truncatedPath))
-				return;
-		}
-		urls.add(url);
+		final boolean duplicate = urls.stream()
+			.map(oldURL -> chopPath(containerPathIncludingEngine, oldURL.getPath()))
+			.anyMatch(chopped -> eq(chopped, truncatedPath));
+		if (!duplicate)
+			urls.add(url);
 	}
 }

@@ -56,7 +56,7 @@ public class StackFrame extends DebugElement implements IStackFrame {
 	}
 
 	@Override
-	public String getName() throws DebugException {
+	public String getName() {
 		final Function f = as(function, Function.class);
 		if (f != null)
 			return String.format(NAME_FORMAT, f.script().name(), f.parameterString

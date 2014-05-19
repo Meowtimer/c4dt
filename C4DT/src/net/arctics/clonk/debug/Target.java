@@ -344,7 +344,7 @@ public class Target extends DebugElement implements IDebugTarget {
 
 	public IResource scenario() { return scenario; }
 	@Override
-	public String getName() throws DebugException { return "Clonk DebugTarget"; } //$NON-NLS-1$
+	public String getName() { return "Clonk DebugTarget"; } //$NON-NLS-1$
 	@Override
 	public IProcess getProcess() { return process; }
 	@Override

@@ -25,17 +25,17 @@ import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 
 public class ScriptThread extends DebugElement implements IThread {
-	
+
 	private static final StackFrame[] NO_STACKFRAMES = new StackFrame[0];
-	
+
 	private StackFrame[] stackFrames;
-	
-	private final Map<Script, Function[]> lineToFunctionMaps = new HashMap<Script, Function[]>(); 
-	
+
+	private final Map<Script, Function[]> lineToFunctionMaps = new HashMap<Script, Function[]>();
+
 	private void nullOut() {
 		stackFrames = NO_STACKFRAMES;
 	}
-	
+
 	public Script findScript(final String path, final Index index, final Set<Index> alreadySearched) throws CoreException {
 		if (alreadySearched.contains(index))
 			return null;
@@ -65,7 +65,7 @@ public class ScriptThread extends DebugElement implements IThread {
 		int stillToBeReused = stackFrames != null ? stackFrames.length : 0;
 		for (int i = 0; i < stackTrace.size(); i++) {
 			String sourcePath = stackTrace.get(i);
-			
+
 			if (sourcePath == null) {
 				nullOut();
 				return;
@@ -86,7 +86,7 @@ public class ScriptThread extends DebugElement implements IThread {
 		}
 		stackFrames = newStackFrames;
 	}
-	
+
 	/**
 	 * Return an array that acts as a map mapping line number to function at that line. Used for fast function lookups when only the line number is known.
 	 * @return The pseudo-map for getting the function at some line.
@@ -132,7 +132,7 @@ public class ScriptThread extends DebugElement implements IThread {
 		}
 		return mappingAsList.toArray(new Function[mappingAsList.size()]);
 	}
-	
+
 	private Function funcAtLine(final Script script, int line) {
 		line--;
 		Function[] map = lineToFunctionMaps.get(script);
@@ -159,7 +159,7 @@ public class ScriptThread extends DebugElement implements IThread {
 	}
 
 	@Override
-	public String getName() throws DebugException {
+	public String getName() {
 		return Messages.MainThread;
 	}
 

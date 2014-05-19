@@ -1,5 +1,6 @@
 package net.arctics.clonk.ui.debug;
 
+import static net.arctics.clonk.util.Utilities.block;
 import net.arctics.clonk.debug.Breakpoint;
 import net.arctics.clonk.debug.ScriptThread;
 import net.arctics.clonk.debug.StackFrame;
@@ -17,7 +18,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
 public class ClonkDebugModelPresentation extends LabelProvider implements IDebugModelPresentation {
-	
+
 	public static final String ID = ClonkDebugModelPresentation.class.getName();
 
 	@Override
@@ -49,28 +50,24 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 		}
 		return null;
 	}
-	
+
 	@Override
 	public String getText(final Object element) {
-		try {
-			if (element instanceof ScriptThread)
-				return ((ScriptThread)element).getName();
-			else if (element instanceof StackFrame)
-				return ((StackFrame) element).getName();
-			else if (element instanceof Target)
-				return ((Target) element).getName();
-			else if (element instanceof Breakpoint)
-				return ((Breakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint"); //$NON-NLS-1$
-			else if (element instanceof IWatchExpression) {
+		return
+			element instanceof ScriptThread ? ((ScriptThread)element).getName() :
+			element instanceof StackFrame ? ((StackFrame) element).getName() :
+			element instanceof Target ? ((Target) element).getName() :
+			element instanceof Breakpoint ? ((Breakpoint)element).getMarker().getAttribute(IMarker.MESSAGE, "Breakpoint") : //$NON-NLS-1$
+			element instanceof IWatchExpression ? block(() -> {
 				final IWatchExpression expr = (IWatchExpression) element;
-				return expr.getExpressionText() + " == " + (expr.getValue() != null ? expr.getValue().getValueString() : "<nil>"); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			else
-				return "Empty"; //$NON-NLS-1$
-		} catch (final DebugException e) {
-			e.printStackTrace();
-			return "Fail"; //$NON-NLS-1$
-		}
+				try {
+					return expr.getExpressionText() + " == " + (expr.getValue() != null ? expr.getValue().getValueString() : "<nil>");
+				} catch (final Exception e) {
+					e.printStackTrace();
+					return "Fail";
+				} //$NON-NLS-1$ //$NON-NLS-2$
+			}) :
+			"Empty"; //$NON-NLS-1$
 	}
 
 }
