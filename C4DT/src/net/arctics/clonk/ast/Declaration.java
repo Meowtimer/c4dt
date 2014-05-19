@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -152,7 +154,8 @@ public abstract class Declaration extends ASTNode implements
 	 * @param project
 	 * @return
 	 */
-	public Object[] occurenceScope(final Iterable<Index> indexes) {
+	public Object[] occurenceScope(final Stream<Index> indexes) {
+		final List<Index> indices = indexes.collect(Collectors.toList());
 		final Set<Object> result = new LinkedHashSet<Object>();
 		// first, add the script this declaration is declared in. Matches will most likely be found in there
 		// so it helps to make it the first item to be searched
@@ -164,7 +167,7 @@ public abstract class Declaration extends ASTNode implements
 			// first, add the definition this
 			final Definition def = (Definition)parent;
 			result.add(def);
-			for (final Index index : indexes)
+			indices.forEach(index ->
 				index.allDefinitions(new Sink<Definition>() {
 					@Override
 					public void receive(final Definition item) {
@@ -174,11 +177,11 @@ public abstract class Declaration extends ASTNode implements
 					public boolean filter(final Definition item) {
 						return item.doesInclude(index, def);
 					}
-				});
+				})
+			);
 		}
 		// then add all the scripts, because everything might potentially be accessed from everything
-		for (final Index index : indexes)
-			index.allScripts(item -> result.add(item));
+		indices.forEach(index -> index.allScripts(result::add));
 		return result.toArray();
 	}
 

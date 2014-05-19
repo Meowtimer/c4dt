@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -397,11 +398,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	}
 
 	@Override
-	public Object[] occurenceScope(final Iterable<Index> indexes) {
-		if (parent instanceof Function)
-			return new Object[] {parent};
-		else
-			return super.occurenceScope(indexes);
+	public Object[] occurenceScope(final Stream<Index> indexes) {
+		return parent instanceof Function ? new Object[] {parent} : super.occurenceScope(indexes);
 	}
 
 	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = (varName, scope) -> new Variable(scope, varName);

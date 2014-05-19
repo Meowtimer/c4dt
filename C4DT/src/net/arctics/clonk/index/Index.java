@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -55,7 +56,6 @@ import net.arctics.clonk.index.serialization.replacements.EntityDeclaration;
 import net.arctics.clonk.index.serialization.replacements.EntityId;
 import net.arctics.clonk.index.serialization.replacements.EntityReference;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.ConvertingIterable;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Sink.Decision;
 import net.arctics.clonk.util.Utilities;
@@ -667,8 +667,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param pivot The pivot dictating the perspective of the call
 	 * @return An {@link Iterable} to iterate over this presumably large subset of all the {@link Definition}s managed by the index.
 	 */
-	public Iterable<Definition> definitionsIgnoringRemoteDuplicates(final IResource pivot) {
-		return new ConvertingIterable<List<Definition>, Definition>(from -> Utilities.pickNearest(from, pivot, null), definitions.values());
+	public Stream<Definition> definitionsIgnoringRemoteDuplicates(final IResource pivot) {
+		return definitions.values().stream().map(from -> Utilities.pickNearest(from, pivot, null));
 	}
 
 	/**

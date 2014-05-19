@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Milestones;
@@ -27,7 +28,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ini.CustomIniUnit;
 import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IProject;
@@ -51,8 +51,8 @@ public class ClonkProjectNature implements IProjectNature {
 
 	private final Object lock = new Object();
 
-	public static final IConverter<ClonkProjectNature, Index> SELECT_INDEX = nature -> nature.index();
-	public static final IConverter<IProject, ClonkProjectNature> SELECT_NATURE = project -> get(project);
+	public static final Function<ClonkProjectNature, Index> SELECT_INDEX = nature -> nature.index();
+	public static final Function<IProject, ClonkProjectNature> SELECT_NATURE = project -> get(project);
 
 	public static ClonkProjectNature[] allInWorkspace() {
 		return map(clonkProjectsInWorkspace(), ClonkProjectNature.class, SELECT_NATURE);

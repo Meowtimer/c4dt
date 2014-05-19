@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * String utilty functions.
@@ -33,35 +36,27 @@ public class StringUtil {
 	 * @param enumeration The elements {@link Iterable}
 	 * @return If output is set to null, the resulting string will be returned. Null is returned if there is an output to append the result to.
 	 */
-	public static String writeBlock(
-		Appendable output,
+	public static Appendable writeBlock(
+		final Appendable output0,
 		final CharSequence startBlock, final CharSequence endBlock, final CharSequence delimiter,
-		final Iterable<?> enumeration
+		final Stream<?> enumeration
 	) {
-		final boolean returnString = output == null;
-		if (returnString)
-			output = new StringBuilder();
+		final Appendable output = output0 != null ? output0 : new StringBuilder();
+		final String joined = enumeration.map(o -> o.toString()).collect(Collectors.joining(delimiter, startBlock, endBlock));
 		try {
-			output.append(startBlock);
-			boolean started = false;
-			for (final Object obj : enumeration) {
-				if (obj == null)
-					continue;
-				if (started)
-					output.append(delimiter);
-				else
-					started = true;
-				output.append(obj.toString());
-			}
-			output.append(endBlock);
+			output.append(joined);
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
-		return returnString ? output.toString() : null;
+		return output;
 	}
 
 	public static String blockString(final CharSequence startBlock, final CharSequence endBlock, final CharSequence delimiter, final Iterable<?> enumeration) {
-		return writeBlock(null, startBlock, endBlock, delimiter, enumeration);
+		return writeBlock(null, startBlock, endBlock, delimiter, StreamSupport.stream(enumeration.spliterator(), false)).toString();
+	}
+
+	public static String blockString(final CharSequence startBlock, final CharSequence endBlock, final CharSequence delimiter, final Stream<?> enumeration) {
+		return writeBlock(null, startBlock, endBlock, delimiter, enumeration).toString();
 	}
 
 	/**
@@ -155,36 +150,31 @@ public class StringUtil {
 	}
 
 	public static Iterable<String> lines(final Reader reader) {
-		return new Iterable<String>() {
+		return () -> new Iterator<String>() {
+
+			private final BufferedReader bufferedReader = new BufferedReader(reader);
+			private String line;
+
 			@Override
-			public Iterator<String> iterator() {
-				return new Iterator<String>() {
-
-					private final BufferedReader bufferedReader = new BufferedReader(reader);
-					private String line;
-
-					@Override
-					public boolean hasNext() {
-						try {
-							return (line = bufferedReader.readLine()) != null;
-						} catch (final IOException e) {
-							e.printStackTrace();
-							return false;
-						}
-					}
-
-					@Override
-					public String next() {
-						return line;
-					}
-
-					@Override
-					public void remove() {
-						// ignore
-					}
-
-				};
+			public boolean hasNext() {
+				try {
+					return (line = bufferedReader.readLine()) != null;
+				} catch (final IOException e) {
+					e.printStackTrace();
+					return false;
+				}
 			}
+
+			@Override
+			public String next() {
+				return line;
+			}
+
+			@Override
+			public void remove() {
+				// ignore
+			}
+
 		};
 	}
 
@@ -256,7 +246,7 @@ public class StringUtil {
 	public static boolean nullOrEmpty(String str) {
 		return str == null || str.equals("");
 	}
-	
+
 	public static String join(String joinStr, String... parts) {
 		return blockString("", "", joinStr, iterable(parts));
 	}

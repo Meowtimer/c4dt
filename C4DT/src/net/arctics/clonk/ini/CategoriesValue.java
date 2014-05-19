@@ -1,15 +1,17 @@
 package net.arctics.clonk.ini;
 
+import static net.arctics.clonk.util.ArrayUtil.map;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.function.Function;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
 
 import org.eclipse.core.resources.IMarker;
 
@@ -50,13 +52,13 @@ public class CategoriesValue extends IniEntryValue {
 		}
 	}
 
-	private static final IConverter<Variable, String> NAME_MAPPER = from -> from.name();
+	private static final Function<Variable, String> NAME_MAPPER = from -> from.name();
 
 	private void tryConstantInput(final String input, final String[] parts, final Engine engine, final String constantsPrefix) throws IniParserException {
 		constants = new ArrayList<String>(4);
 		if (constantsPrefix != null) {
 			final Variable[] vars = engine.variablesWithPrefix(constantsPrefix);
-			final String[] varNames = ArrayUtil.map(vars, String.class, NAME_MAPPER);
+			final String[] varNames = map(vars, String.class, NAME_MAPPER);
 			for (String part : parts) {
 				part = part.trim();
 				if (ArrayUtil.indexOf(varNames, part) == -1)

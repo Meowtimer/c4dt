@@ -1,11 +1,13 @@
 package net.arctics.clonk.ui.editors.actions.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.convertArray;
+import static net.arctics.clonk.util.ArrayUtil.map;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,8 +21,6 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.ui.editors.EntityHyperlink;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
-import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
@@ -47,7 +47,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		private final Pattern[] patterns;
 		public Filter() {
 			super();
-			patterns = ArrayUtil.map(((Text)getPatternControl()).getText().split(" "), Pattern.class, CASEINSENSITIVE_PATTERNS_FROM_STRINGS);
+			patterns = map(((Text)getPatternControl()).getText().split(" "), Pattern.class, CASEINSENSITIVE_PATTERNS_FROM_STRINGS);
 		}
 		@Override
 		public boolean equalsFilter(final ItemsFilter filter) {
@@ -126,7 +126,7 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		return null;
 	}
 
-	private static IConverter<String, Pattern> CASEINSENSITIVE_PATTERNS_FROM_STRINGS = from -> StringUtil.patternFromRegExOrWildcard(from);
+	private static Function<String, Pattern> CASEINSENSITIVE_PATTERNS_FROM_STRINGS = from -> StringUtil.patternFromRegExOrWildcard(from);
 
 	@Override
 	protected ItemsFilter createFilter() { return new Filter(); }

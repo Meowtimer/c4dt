@@ -831,7 +831,7 @@ public abstract class SpecialEngineRules {
 					break;
 				}
 			if (extensionWildcardNeeded)
-				name += "\\." + StringUtil.writeBlock(null, "(", ")", "|", engine.settings().supportedSoundFileExtensions());
+				name += "\\." + StringUtil.writeBlock(null, "(", ")", "|", engine.settings().supportedSoundFileExtensions().stream());
 			final Matcher nameMatcher = Pattern.compile(name).matcher("");
 			final String soundGroupName = "Sound."+engine.settings().canonicalToConcreteExtension().get(FileExtension.ResourceGroup);
 			final IResource r = script.resource();

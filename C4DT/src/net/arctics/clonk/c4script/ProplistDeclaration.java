@@ -218,7 +218,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	@Override
 	public String toString() {
-		return StringUtil.writeBlock(null, "{", "}", ", ", components);
+		return StringUtil.writeBlock(null, "{", "}", ", ", components.stream()).toString();
 	}
 
 	/**

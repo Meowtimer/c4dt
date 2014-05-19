@@ -122,7 +122,7 @@ public class ProjectSettings extends SettingsBase {
 	public void setDisabledErrorsSet(final Set<Problem> errorCodes) {
 		this.disabledErrorsSet = errorCodes;
 		if (errorCodes != null)
-			this.disabledErrors = StringUtil.writeBlock(null, "", "", ",", errorCodes);
+			this.disabledErrors = StringUtil.writeBlock(null, "", "", ",", errorCodes.stream()).toString();
 	}
 
 	public String disabledErrorsString() { return disabledErrors; }

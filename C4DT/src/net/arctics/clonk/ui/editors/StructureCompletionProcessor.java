@@ -123,8 +123,9 @@ public abstract class StructureCompletionProcessor<StateClass
 	protected IFile pivotFile() { return state().structure().file(); }
 
 	protected void proposalsForIndexedDefinitions(final ProposalsSite site, final Index index) {
-		for (final Definition obj : index.definitionsIgnoringRemoteDuplicates(pivotFile()))
-			proposalForDefinition(site, obj);
+		index.definitionsIgnoringRemoteDuplicates(pivotFile()).forEach(
+			obj -> proposalForDefinition(site, obj)
+		);
 	}
 
 	protected boolean stringMatchesPrefix(final String name, final String lowercasedPrefix) {

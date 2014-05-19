@@ -1,7 +1,10 @@
 package net.arctics.clonk.c4script;
 
-import static net.arctics.clonk.util.ArrayUtil.iterable;
-import static net.arctics.clonk.util.ArrayUtil.map;
+import static java.util.Arrays.stream;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -101,12 +104,12 @@ public abstract class Conf {
 	 * @param blockEnd End of block (")", "]", ...)
 	 */
 	public static void printNodeList(final ASTNodePrinter output, final ASTNode[] params, final int depth, String blockStart, String blockEnd) {
-		final Iterable<String> parmStrings = map(iterable(params), from -> from.printed(depth+(braceStyle==BraceStyleType.NewLine?1:0)).trim());
-		int len = 0;
-		for (final String ps : parmStrings)
-			len += ps.length();
+		final List<String> parmStrings = stream(params)
+			.map(from -> from.printed(depth+(braceStyle==BraceStyleType.NewLine?1:0)).trim())
+			.collect(Collectors.toList());
+		final int len = parmStrings.stream().mapToInt(ps -> ps.length()).sum();
 		if (len < 80)
-			StringUtil.writeBlock(output, blockStart, blockEnd, ", ", parmStrings);
+			StringUtil.writeBlock(output, blockStart, blockEnd, ", ", parmStrings.stream());
 		else {
 			final String indent = "\n"+StringUtil.multiply(indentString, depth+1);
 			switch (braceStyle) {
@@ -117,7 +120,7 @@ public abstract class Conf {
 			default:
 				break;
 			}
-			StringUtil.writeBlock(output, blockStart, blockEnd, ","+indent, parmStrings);
+			StringUtil.writeBlock(output, blockStart, blockEnd, ","+indent, parmStrings.stream());
 		}
 	}
 

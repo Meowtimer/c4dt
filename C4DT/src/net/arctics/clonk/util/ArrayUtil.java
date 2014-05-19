@@ -13,8 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import net.arctics.clonk.util.Sink.Decision;
 
@@ -77,7 +80,7 @@ public class ArrayUtil {
 		}
 		return array;
 	}
-	
+
 	public static <T> T[] removeElement(T[] array, int ndx) {
 		if (ndx < 0 || ndx >= array.length)
 			throw new IllegalArgumentException();
@@ -185,10 +188,10 @@ public class ArrayUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <From, To> To[] map(final From[] elms, final Class<To> toClass, final IConverter<From, To> converter) {
+	public static <From, To> To[] map(final From[] elms, final Class<To> toClass, final Function<From, To> converter) {
 		final To[] result = (To[]) Array.newInstance(toClass, elms.length);
 		for (int i = 0; i < result.length; i++)
-			result[i] = converter.convert(elms[i]);
+			result[i] = converter.apply(elms[i]);
 		return result;
 	}
 
@@ -199,8 +202,8 @@ public class ArrayUtil {
 		return result;
 	}
 
-	public static <From, To> Iterable<To> map(final Iterable<? extends From> source, final IConverter<From, To> converter) {
-		return new ConvertingIterable<From, To>(converter, source);
+	public static <From, To> Stream<To> map(final Iterable<? extends From> source, final Function<From, To> converter) {
+		return StreamSupport.stream(source.spliterator(), false).map(converter);
 	}
 
 	/**

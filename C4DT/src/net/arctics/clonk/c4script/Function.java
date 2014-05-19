@@ -51,7 +51,6 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
 
@@ -424,11 +423,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	private void printParametersString(final ASTNodePrinter output, final PrintParametersOptions options) {
 		if (numParameters() > 0)
-			StringUtil.writeBlock(output, "", "", ", ", map(parameters(), new IConverter<Variable, String>() {
+			StringUtil.writeBlock(output, "", "", ", ", map(parameters(), new java.util.function.Function<Variable, String>() {
 				final Function.Typing typing = options.typing;
 				int i = -1;
 				@Override
-				public String convert(final Variable par) {
+				public String apply(final Variable par) {
 					++i;
 					final IType type = options.engineCompatible ?
 						(par.staticallyTyped() ? par.type().simpleType() : PrimitiveType.ANY)

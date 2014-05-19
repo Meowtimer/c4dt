@@ -1,6 +1,7 @@
 package net.arctics.clonk.ui;
 
 import java.util.Comparator;
+import java.util.function.Function;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -9,7 +10,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.IConverter;
 import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.resources.IProject;
@@ -34,9 +34,9 @@ public class OpenDefinitionDialog extends EntityChooser {
 	public static final String DIALOG_SETTINGS = "OpenDefinitionDialogSettings"; //$NON-NLS-1$
 
 	private final Object selection;
-	private IConverter<Definition, Image> imageStore;
+	private Function<Definition, Image> imageStore;
 
-	public void setImageStore(final IConverter<Definition, Image> imageStore) {
+	public void setImageStore(final Function<Definition, Image> imageStore) {
 		this.imageStore = imageStore;
 	}
 
@@ -54,10 +54,7 @@ public class OpenDefinitionDialog extends EntityChooser {
 		}
 		@Override
 		public Image getImage(final Object element) {
-			if (imageStore != null && element instanceof Definition)
-				return imageStore.convert((Definition)element);
-			else
-				return null;
+			return imageStore != null && element instanceof Definition ? imageStore.apply((Definition)element) : null;
 		}
 	}
 

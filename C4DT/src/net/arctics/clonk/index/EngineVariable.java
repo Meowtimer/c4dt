@@ -1,10 +1,9 @@
 package net.arctics.clonk.index;
 
-import static net.arctics.clonk.util.ArrayUtil.filter;
-import static net.arctics.clonk.util.ArrayUtil.iterable;
-import static net.arctics.clonk.util.ArrayUtil.map;
+import static java.util.Arrays.stream;
 
 import java.io.Serializable;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -31,10 +30,8 @@ public class EngineVariable extends Variable implements IReplacedWhenSaved {
 	@Override
 	public Object saveReplacement(final Index context) { return new Ticket(name()); }
 	@Override
-	public Object[] occurenceScope(final Iterable<Index> indexes) {
-		return super.occurenceScope(iterable(filter(
-			map(ClonkProjectNature.allInWorkspace(), Index.class, ClonkProjectNature.SELECT_INDEX),
-			item -> item.engine() == EngineVariable.this.engine())
-		));
+	public Object[] occurenceScope(final Stream<Index> indexes) {
+		return super.occurenceScope(stream(ClonkProjectNature.allInWorkspace()).map(ClonkProjectNature.SELECT_INDEX)
+			.filter(item -> item.engine() == EngineVariable.this.engine()));
 	}
 }

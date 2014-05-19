@@ -1,10 +1,10 @@
 package net.arctics.clonk.c4script.ast;
 
+import static java.util.Arrays.stream;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.ASTNodeWithSubElementsArray;
-import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StringUtil;
 
 public class Tuple extends ASTNodeWithSubElementsArray {
@@ -17,7 +17,7 @@ public class Tuple extends ASTNodeWithSubElementsArray {
 
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
-		StringUtil.writeBlock(output, "(", ")", ", ", ArrayUtil.iterable(elements));
+		StringUtil.writeBlock(output, "(", ")", ", ", stream(elements));
 	}
 
 }
