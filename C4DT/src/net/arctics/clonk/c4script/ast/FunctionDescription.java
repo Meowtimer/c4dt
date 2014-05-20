@@ -1,7 +1,8 @@
 package net.arctics.clonk.c4script.ast;
 
+import static java.util.Arrays.stream;
+
 import java.io.Serializable;
-import java.util.Arrays;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -38,7 +39,7 @@ public class FunctionDescription extends Statement implements Serializable {
 	}
 	@SuppressWarnings("unchecked")
 	public Pair<String, String>[] splitContents() {
-		return Arrays.stream(contents.split("\\|")).map(c -> {
+		return stream(contents.split("\\|")).map(c -> {
 			final String[] s = c.split("=");
 			return Pair.pair(s.length > 1 ? s[0] : null, s[s.length > 1 ? 1 : 0]);
 		}).toArray(l -> new Pair[l]);

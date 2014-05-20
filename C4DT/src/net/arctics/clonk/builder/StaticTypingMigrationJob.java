@@ -1,9 +1,9 @@
 package net.arctics.clonk.builder;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -29,7 +29,7 @@ final class StaticTypingMigrationJob extends TypingMigrationJob {
 	protected IStatus run(final IProgressMonitor monitor) {
 		monitor.beginTask("Static Typing Migration", parsers.length);
 		runWithoutAutoBuild(() -> {
-			Arrays.stream(parsers)
+			stream(parsers)
 				.filter(parser -> parser != null && parser.script() != null && parser.script().file() != null)
 				.forEach(this::insertTypeAnnotations);
 			monitor.worked(1);

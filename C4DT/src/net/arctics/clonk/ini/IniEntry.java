@@ -1,6 +1,7 @@
 package net.arctics.clonk.ini;
 
-import java.util.Arrays;
+import static java.util.Arrays.stream;
+
 import java.util.Collection;
 
 import net.arctics.clonk.Core;
@@ -93,7 +94,7 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 		else if (val instanceof NamedReference)
 			return new StringLiteral(((NamedReference)val).value());
 		else if (val instanceof IntegerArray) {
-			final ASTNode[] ints = Arrays.stream(((IntegerArray)val).values()).map(c -> new IntegerLiteral(c.summedValue())).toArray(l -> new ASTNode[l]);
+			final ASTNode[] ints = stream(((IntegerArray)val).values()).map(c -> new IntegerLiteral(c.summedValue())).toArray(l -> new ASTNode[l]);
 			return new ArrayExpression(ints);
 		}
 		else if (val instanceof Boolean)

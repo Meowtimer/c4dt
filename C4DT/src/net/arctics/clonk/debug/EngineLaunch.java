@@ -10,7 +10,6 @@ import static net.arctics.clonk.util.Utilities.walk;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -73,7 +72,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 			if (list.isEmpty())
 				return;
 		}
-		Arrays.stream(scripts).forEach(s -> {
+		stream(scripts).forEach(s -> {
 			final Scenario scen = s.scenario();
 			final EngineLaunch l = scen != null ? get(scen.resource().getFullPath()) : null;
 			if (l != null)
@@ -163,7 +162,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 				.flatMap(c -> {
 					final IResource[] mems = tri(() -> c.members(), CoreException.class, e -> e.printStackTrace());
 					return mems != null
-						? Arrays.stream(mems)
+						? stream(mems)
 							.filter(res -> {
 								final FileExtension ext = engine.extensionForFileName(res.getName());
 								return
@@ -203,7 +202,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 				);
 				return custom != null
 					// FIXME: doesn't take into account '\ ' and such..
-					? Arrays.stream(custom.split(" "))
+					? stream(custom.split(" "))
 					: Stream.empty();
 			})
 		).collect(Collectors.toList());

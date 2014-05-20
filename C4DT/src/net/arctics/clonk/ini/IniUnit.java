@@ -1,5 +1,6 @@
 package net.arctics.clonk.ini;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -7,7 +8,6 @@ import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -546,7 +546,7 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	@Override
 	public void setSubElements(ASTNode[] elms) {
 		clear();
-		ofType(Arrays.stream(elms), Declaration.class).forEach(this::addDeclaration);
+		ofType(stream(elms), Declaration.class).forEach(this::addDeclaration);
 	}
 
 	public String nameEntryName(final IniSection section) { return null; }

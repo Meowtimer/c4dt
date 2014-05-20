@@ -1,6 +1,7 @@
 package net.arctics.clonk.command;
 
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.StringUtil.multiply;
 
@@ -13,7 +14,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -99,17 +99,17 @@ public class Command {
 		public Object invoke(final IEvaluationContext context) {
 			final Object[] args = new Object[method.getParameterTypes().length];
 			args[0] = context;
-			final Object[] evaluatedArgs = Arrays.stream(context.arguments()).map(ASTNode::evaluateVariable).toArray();
+			final Object[] evaluatedArgs = stream(context.arguments()).map(ASTNode::evaluateVariable).toArray();
 			System.arraycopy(evaluatedArgs, 0, args, 1, context.arguments().length);
 			try {
 				return method.invoke(context, args);
 			} catch (final IllegalArgumentException iae) {
 				System.out.println(String.format("Function: %s; Passed: %s; Expected: %s",
 					method.getName(),
-					Arrays.stream(args)
+					stream(args)
 						.map(a -> a != null ? a.getClass().getSimpleName() : "null")
 						.collect(Collectors.joining(", ")),
-					Arrays.stream(method.getParameterTypes())
+					stream(method.getParameterTypes())
 						.map(t -> t.getSimpleName())
 						.collect(Collectors.joining(", "))
 				));

@@ -1,5 +1,7 @@
 package net.arctics.clonk;
 
+import static java.util.Arrays.stream;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -73,10 +75,10 @@ public class CLI implements IApplication, AutoCloseable {
 			} catch (final IllegalArgumentException iae) {
 				System.out.println(String.format("Function: %s; Passed: %s; Expected: %s",
 					method.getName(),
-					Arrays.stream(context.arguments())
+					stream(context.arguments())
 						.map(a -> a != null ? a.getClass().getSimpleName() : "null")
 						.collect(Collectors.joining(", ")),
-					Arrays.stream(method.getParameterTypes())
+					stream(method.getParameterTypes())
 						.map(t -> t.getSimpleName())
 						.collect(Collectors.joining(", "))
 				));
@@ -165,7 +167,7 @@ public class CLI implements IApplication, AutoCloseable {
 		if (methodIndex == args.length)
 			throw new IllegalArgumentException("Missing command");
 		final String methodName = args[methodIndex];
-		final Method method = Arrays.stream(getClass().getMethods())
+		final Method method = stream(getClass().getMethods())
 			.filter(m -> m.getName().equals(methodName) && m.getAnnotation(Callable.class) != null)
 			.findFirst().orElse(null);
 		if (method != null)
@@ -341,7 +343,7 @@ public class CLI implements IApplication, AutoCloseable {
 			//"MetalMagic.c4d",
 			//"Western.c4d"
 		};
-		Arrays.stream(packs).forEach(p -> link(cr, crFolder, p, npm));
+		stream(packs).forEach(p -> link(cr, crFolder, p, npm));
 		cr.refreshLocal(IResource.DEPTH_INFINITE, npm);
 
 		desc = cr.getDescription();

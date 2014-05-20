@@ -1,13 +1,13 @@
 package net.arctics.clonk.ast;
 
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -188,7 +188,7 @@ public class MatchingPlaceholder extends Placeholder {
 				"%s.ast.%s",
 				"%s.%s"
 			};
-			final Class<?extends ASTNode> result = Arrays.stream(packageFormats)
+			final Class<?extends ASTNode> result = stream(packageFormats)
 				.map(pkgFormat -> {
 					try {
 						return (Class<? extends ASTNode>) ASTNode.class.getClassLoader().loadClass(String.format(pkgFormat, Core.PLUGIN_ID, className));
@@ -424,7 +424,7 @@ public class MatchingPlaceholder extends Placeholder {
 			return null;
 
 		if (property != null)
-			n = Arrays.stream(n).map(v -> {
+			n = stream(n).map(v -> {
 				try {
 					return v == null ? null : v.getClass().getMethod(property).invoke(v);
 				} catch (final Exception e) {
@@ -434,7 +434,7 @@ public class MatchingPlaceholder extends Placeholder {
 			}).toArray(l -> new Object[l]);
 
 		if (code != null)
-			n = Arrays.stream(n).map(v -> {
+			n = stream(n).map(v -> {
 				try {
 					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), context));
 				} catch (final Exception e) {
@@ -443,7 +443,7 @@ public class MatchingPlaceholder extends Placeholder {
 				}
 			}).toArray(l -> new Object[l]);
 
-		return Arrays.stream(n).map(item ->
+		return stream(n).map(item ->
 			item instanceof ASTNode ? (ASTNode)item :
 			item instanceof String ?
 				subElements().length > 0 ? new CallDeclaration((String)item, subElements()) :

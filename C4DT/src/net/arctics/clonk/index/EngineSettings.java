@@ -1,5 +1,7 @@
 package net.arctics.clonk.index;
 
+import static java.util.Arrays.stream;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -161,7 +163,7 @@ public class EngineSettings extends SettingsBase {
 	 */
 	public Map<String, FileExtension> concreteToCanonicalExtension() {
 		if (concreteToCanonicalExtension == null) {
-			concreteToCanonicalExtension = Arrays.stream(extensionMap.split(","))
+			concreteToCanonicalExtension = stream(extensionMap.split(","))
 				.map(seg -> seg.split("->"))
 				.filter(elms -> elms.length == 2)
 				.collect(Collectors.toMap(elms -> elms[0], elms -> FileExtension.valueOf(elms[1])));

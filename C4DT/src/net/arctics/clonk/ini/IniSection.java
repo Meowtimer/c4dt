@@ -1,10 +1,10 @@
 package net.arctics.clonk.ini;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -88,7 +88,7 @@ public class IniSection
 	@Override
 	public void setSubElements(ASTNode[] elms) {
 		list.clear();
-		Arrays.stream(elms)
+		stream(elms)
 			.filter(e -> e instanceof Declaration)
 			.map(e -> (Declaration)e)
 			.forEach(i -> this.addDeclaration(i));

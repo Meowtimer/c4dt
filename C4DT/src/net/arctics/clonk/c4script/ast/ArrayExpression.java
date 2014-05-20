@@ -1,9 +1,9 @@
 package net.arctics.clonk.c4script.ast;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.c4script.Conf.printNodeList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -25,7 +25,7 @@ public class ArrayExpression extends ASTNodeWithSubElementsArray {
 	}
 	@Override
 	public boolean isConstant() {
-		return !Arrays.stream(subElements()).anyMatch(e -> e != null && !e.isConstant());
+		return !stream(subElements()).anyMatch(e -> e != null && !e.isConstant());
 	}
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {

@@ -18,7 +18,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1345,7 +1344,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public void setSubElements(ASTNode[] elms) {
 		this.clearDeclarations();
 		// FIXME: dropping non-declarations here
-		ofType(Arrays.stream(elms), Declaration.class).forEach(this::addDeclaration);
+		ofType(stream(elms), Declaration.class).forEach(this::addDeclaration);
 	}
 
 	@Override

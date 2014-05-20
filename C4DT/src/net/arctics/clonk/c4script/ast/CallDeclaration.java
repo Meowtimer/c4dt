@@ -1,5 +1,6 @@
 package net.arctics.clonk.c4script.ast;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.c4script.Conf.alwaysConvertObjectCalls;
 import static net.arctics.clonk.c4script.Conf.printNodeList;
 import static net.arctics.clonk.util.ArrayUtil.indexOf;
@@ -7,7 +8,6 @@ import static net.arctics.clonk.util.ArrayUtil.set;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -278,7 +278,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		final Object self = evaluateVariable(predecessor() != null ? predecessor().evaluate(context) : context.self());
-		final Object[] args = Arrays.stream(params())
+		final Object[] args = stream(params())
 			.map(par -> par != null ? evFailsafe(par, context) : null)
 			.toArray(l -> new Object[l]);
 		final Function f = as(declaration, Function.class);
@@ -287,7 +287,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		else if (self != null) {
 			final Object varEv = evaluateVariable(context.variable(this, self));
 			if (varEv instanceof Class)
-				return Arrays.stream(((Class<?>)varEv).getConstructors())
+				return stream(((Class<?>)varEv).getConstructors())
 					.map(m -> {
 						try {
 							return m.newInstance(args);
@@ -298,7 +298,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 					.filter(r -> r != null)
 					.findFirst().orElse(null);
 			else
-				return Arrays.stream(self.getClass().getMethods())
+				return stream(self.getClass().getMethods())
 					.filter(m -> m.getName().equals(declarationName))
 					.map(m -> {
 						try {

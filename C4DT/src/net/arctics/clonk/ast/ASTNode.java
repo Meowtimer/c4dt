@@ -1,6 +1,6 @@
 package net.arctics.clonk.ast;
 
-import static net.arctics.clonk.util.ArrayUtil.filter;
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.ArrayUtil.indexOf;
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.ArrayUtil.removeElement;
@@ -9,7 +9,6 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.security.InvalidParameterException;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -194,7 +193,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	public boolean allowsSequenceSuccessor(final ASTNode successor) { return true; }
 
 	public boolean hasSideEffects() {
-		return Arrays.stream(subElements()).anyMatch(e -> e.hasSideEffects());
+		return stream(subElements()).anyMatch(e -> e.hasSideEffects());
 	}
 
 	@Override
@@ -403,7 +402,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @return Sub element containing elm or null.
 	 */
 	public ASTNode findSubElementContaining(final ASTNode elm) {
-		return Arrays.stream(traversalSubElements())
+		return stream(traversalSubElements())
 			.filter(s -> s != null && elm.containedIn(s))
 			.findFirst()
 			.orElse(null);

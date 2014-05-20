@@ -1,8 +1,9 @@
 package net.arctics.clonk.util;
 
+import static java.util.Arrays.stream;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -348,7 +349,7 @@ public class ArrayUtil {
 	@SuppressWarnings("unchecked")
 	@SafeVarargs
 	public static <T> T[] nonNulls(T... items) {
-		return Arrays.stream(items)
+		return stream(items)
 			.filter(x -> x != null)
 			.toArray(l -> (T[])Array.newInstance(items.getClass().getComponentType(), l));
 	}

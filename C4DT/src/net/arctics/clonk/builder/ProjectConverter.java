@@ -2,6 +2,7 @@ package net.arctics.clonk.builder;
 
 import static java.lang.String.format;
 import static java.lang.System.out;
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -125,7 +126,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				final IFolder targetFolder = as(target, IFolder.class);
 				final Map<IFile, FileConversion> sub = new HashMap<>();
 				if (originFolder != null && targetFolder != null)
-					Arrays.stream(originFolder.members(IResource.FILE)).filter(r -> r instanceof IFile).forEach(res -> {
+					stream(originFolder.members(IResource.FILE)).filter(r -> r instanceof IFile).forEach(res -> {
 						final IFile file = (IFile)res;
 						final Structure struct = Structure.pinned(file, false, false);
 						if (struct != null) {
@@ -183,7 +184,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 							.map(d -> new Variable(
 								null,
 								d.first().name(), new PropListExpression(new ProplistDeclaration(
-									Arrays.stream(d.second().splitContents())
+									stream(d.second().splitContents())
 										.map(p -> {
 											final String n = defaulting(p.first(), "Desc");
 											ASTNode v;

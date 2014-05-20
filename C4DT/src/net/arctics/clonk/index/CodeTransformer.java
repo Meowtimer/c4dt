@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.ArrayUtil.indexOfItemSatisfying;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.StringUtil.blockString;
@@ -154,7 +155,7 @@ public class CodeTransformer extends CodeConverter {
 			final ASTNode objPar = objParIndex != -1 && objParIndex < call.params().length ? call.params()[objParIndex] : null;
 			final ASTNode defPar = defParIndex != -1 && defParIndex < call.params().length ? call.params()[defParIndex] : null;
 			if (objPar != null || defPar != null) {
-				final ASTNode[] reducedParms = Arrays.stream(call.params()).filter(n -> n != objPar && n != defPar).toArray(l -> new ASTNode[l]);
+				final ASTNode[] reducedParms = stream(call.params()).filter(n -> n != objPar && n != defPar).toArray(l -> new ASTNode[l]);
 				final CallDeclaration c = new CallDeclaration(targetFunction, reducedParms);
 				c.setParent(call.parent());
 				// prefer to target definition - FIXME?

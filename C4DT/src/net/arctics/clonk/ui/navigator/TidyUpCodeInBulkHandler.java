@@ -8,7 +8,6 @@ import static net.arctics.clonk.util.Utilities.printingException;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,14 +53,14 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 			obj instanceof IProject ? block(() -> {
 				try {
 					final IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
-					return ofType(Arrays.stream(selectedResources), IContainer.class).filter(s -> !s.getName().startsWith(".")); //$NON-NLS-1$
+					return ofType(stream(selectedResources), IContainer.class).filter(s -> !s.getName().startsWith(".")); //$NON-NLS-1$
 				}
 				catch (final CoreException ex) {
 					ex.printStackTrace();
 					return Stream.empty();
 				}
 			}) :
-			obj instanceof IContainer ? Arrays.stream(new IContainer[] { (IContainer)obj }) :
+			obj instanceof IContainer ? stream(new IContainer[] { (IContainer)obj }) :
 			Stream.empty()
 		).collect(Collectors.toList());
 		if (!selectedContainers.isEmpty()) {

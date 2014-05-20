@@ -1,8 +1,8 @@
 package net.arctics.clonk.builder;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.as;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -76,7 +76,7 @@ public final class NullProblemReportingStrategy extends ProblemReportingStrategy
 	@Override
 	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
 		super.initialize(markers, progressMonitor, scripts);
-		this.functions = Arrays.stream(scripts).flatMap(s -> s.functions().stream()).collect(Collectors.toSet());
+		this.functions = stream(scripts).flatMap(s -> s.functions().stream()).collect(Collectors.toSet());
 		return this;
 	}
 	@Override
