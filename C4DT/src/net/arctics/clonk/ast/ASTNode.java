@@ -1,6 +1,8 @@
 package net.arctics.clonk.ast;
 
+import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.ArrayUtil.indexOf;
+import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.ArrayUtil.removeElement;
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -19,7 +21,6 @@ import net.arctics.clonk.c4script.Script.Typings;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Herbert;
 import net.arctics.clonk.util.IPrintable;
 
@@ -79,7 +80,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	public ASTNode clone() {
 		ASTNode clone;
 		clone = (ASTNode) super.clone();
-		final ASTNode[] clonedElms = ArrayUtil.map(subElements(), ASTNode.class, from -> from != null ? from.clone() : null);
+		final ASTNode[] clonedElms = map(subElements(), ASTNode.class, from -> from != null ? from.clone() : null);
 		clone.setSubElements(clonedElms);
 		return clone;
 	}
@@ -279,7 +280,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 		if (differentSubElms) {
 			final ASTNode replacement = this.clone();
 			if (removal)
-				newSubElms = ArrayUtil.filter(newSubElms, ITransformer.FILTER_REMOVE);
+				newSubElms = filter(newSubElms, ITransformer.FILTER_REMOVE);
 			replacement.setSubElements(newSubElms);
 			replacement.assignParentToSubElements();
 			return replacement;

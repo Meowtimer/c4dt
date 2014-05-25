@@ -335,45 +335,6 @@ public class ArrayUtil {
 		return Decision.Continue;
 	}
 
-	public static <T> boolean elementsEqual(final T[] a, final T[] b) {
-		if (a.length != b.length)
-			return false;
-		for (int i = 0; i < a.length; i++)
-			if (!Utilities.eq(a[i], b[i]))
-				return false;
-		return true;
-	}
-
-	public static <T> int pack(final T[] array) {
-		int i, j;
-		for (i = 0, j = 0; i < array.length; i++)
-			if (array[i] != null)
-				array[j++] = array[i];
-		return j;
-	}
-
-	@FunctionalInterface
-	public interface Folder<T, Y extends T> {
-		Y fold(T interim, T next, int index);
-	}
-
-	public static <T, Y extends T> Y foldl(final Iterable<? extends T> iterable, final Folder<T, Y> folder) {
-		Y interim = null;
-		T first = null;
-		int i = 0;
-		for (final T item : iterable) {
-			if (interim == null) {
-				if (first != null)
-					interim = folder.fold(first, item, i);
-				else
-					first = item;
-			} else
-				interim = folder.fold(interim, item, i);
-			i++;
-		}
-		return interim;
-	}
-
 	public static <T> Sink<? super T> collectionSink(final Collection<? super T> collection) {
 		return item -> collection.add(item);
 	}

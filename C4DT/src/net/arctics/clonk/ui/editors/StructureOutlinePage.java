@@ -1,7 +1,9 @@
 package net.arctics.clonk.ui.editors;
 
-import static net.arctics.clonk.util.ArrayUtil.map;
+import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.ArrayUtil.list;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.block;
 
 import java.util.List;
 
@@ -11,7 +13,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.ui.navigator.WeakReferencingContentProvider;
-import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.runtime.IAdaptable;
@@ -48,30 +49,22 @@ public class StructureOutlinePage extends ContentOutlinePage {
 	public StructureTextEditor editor() { return editor; }
 
 	private void openForeignDeclarations() {
-		final IStructuredSelection sel = (IStructuredSelection)getTreeViewer().getSelection();
-		for (final IIndexEntity entity : map(sel.toArray(), IIndexEntity.class, from -> {
-				if (from instanceof IAdaptable)
-					from = ((IAdaptable)from).getAdapter(Declaration.class);
-				if (from instanceof IIndexEntity)
-					return (IIndexEntity)from;
-				else if (from instanceof Declaration)
-					return ((Declaration)from).parent(IIndexEntity.class);
-				else
-					return null;
-		}))
-			if (entity != null) {
-				List<? extends IIndexEntity> entities;
-				if (entity instanceof Directive) {
-					final Directive d = (Directive)entity;
-					final Iterable<? extends Definition> defs = editor.structure().index().definitionsWithID(d.contentAsID());
-					if (defs != null)
-						entities = ArrayUtil.list(defs);
-					else
-						entities = ArrayUtil.list(entity);
-				} else
-					entities = ArrayUtil.list(entity);
+		stream(((IStructuredSelection)getTreeViewer().getSelection()).toArray())
+			.map(from ->
+				from instanceof IAdaptable ? (IIndexEntity)((IAdaptable)from).getAdapter(Declaration.class) :
+				from instanceof IIndexEntity ? (IIndexEntity)from :
+				from instanceof Declaration ? ((Declaration)from).parent(IIndexEntity.class) : null)
+			.filter(e -> e != null)
+			.forEach(entity -> {
+				final List<? extends IIndexEntity> entities =
+					entity instanceof Directive ? block(() -> {
+						final Directive d = (Directive)entity;
+						final Iterable<? extends Definition> defs =
+							editor.structure().index().definitionsWithID(d.contentAsID());
+						return defs != null ? list(defs) : list(entity);
+					}) : list(entity);
 				new EntityHyperlink(null, entities).open();
-			}
+			});
 	}
 
 	/* (non-Javadoc)
@@ -101,10 +94,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 						return true;
 					if (element instanceof Declaration) {
 						final Object[] subDecs = ((Declaration)element).subDeclarationsForOutline();
-						if (subDecs != null)
-							for (final Object sd : subDecs)
-								if (select(viewer, element, sd))
-									return true;
+						return subDecs != null && stream(subDecs).anyMatch(sd -> select(viewer, element, sd));
 					}
 					return false;
 				}
@@ -138,14 +128,11 @@ public class StructureOutlinePage extends ContentOutlinePage {
 	private final ViewerSorter DECLARATION_SORTER = new ViewerSorter() {
 		@Override
 		public int category(final Object element) {
-			int multiplier = 1;
 			if (element instanceof Declaration) {
 				final Declaration d = (Declaration)element;
-				if (!d.containedIn(editor.structure()))
-					multiplier = 1000;
-				return d.sortCategory() * multiplier;
-			}
-			return 10000;
+				return d.sortCategory() * (d.containedIn(editor.structure()) ? 1 : 1000);
+			} else
+				return 10000;
 		}
 	};
 

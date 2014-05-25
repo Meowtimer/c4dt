@@ -28,8 +28,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -1063,7 +1063,6 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Collection<? extends INode> childCollection() {
 		return stream(subDeclarationsForOutline()).collect(Collectors.toList());
 	}

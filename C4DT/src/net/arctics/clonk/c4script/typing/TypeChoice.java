@@ -1,6 +1,5 @@
 package net.arctics.clonk.c4script.typing;
 
-import static net.arctics.clonk.util.ArrayUtil.foldl;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
@@ -93,11 +92,8 @@ public class TypeChoice implements IType {
 	 * @return
 	 */
 	public static IType make(final Collection<? extends IType> types) {
-		if (types.size() == 0)
-			return null;
-		else if (types.size() == 1)
-			return types.iterator().next();
-		else return foldl(types, (interim, next, index) -> new TypeChoice(interim, next)).removeDuplicates();
+		return types.isEmpty() ? null : types.size() == 1 ? types.iterator().next() :
+			((TypeChoice)types.stream().reduce(TypeChoice::new).get()).removeDuplicates();
 	}
 
 	protected TypeChoice(final IType left, final IType right) {

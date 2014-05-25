@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
+import static java.util.Arrays.stream;
+
 import java.util.ResourceBundle;
 
 import net.arctics.clonk.Core;
@@ -372,15 +374,14 @@ public class StructureTextEditor extends TextEditor {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends StructureTextEditor> T getEditorForSourceViewer(final ISourceViewer sourceViewer, final Class<T> cls) {
-		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
-			for (final IWorkbenchPage page : window.getPages())
-				for (final IEditorReference reference : page.getEditorReferences()) {
-					final IEditorPart editor = reference.getEditor(false);
-					if (editor != null && cls.isAssignableFrom(editor.getClass()))
-						if (((StructureTextEditor) editor).getSourceViewer().equals(sourceViewer))
-							return (T) editor;
-				}
-		return null;
+		return stream(PlatformUI.getWorkbench().getWorkbenchWindows())
+			.flatMap(w -> stream(w.getPages()))
+			.flatMap(p -> stream(p.getEditorReferences()))
+			.map(r -> r.getEditor(false))
+			.filter(e -> e != null && cls.isInstance(e) && ((StructureTextEditor)e).getSourceViewer().equals(sourceViewer))
+			.map(e -> (T)e)
+			.findFirst()
+			.orElse(null);
 	}
 
 	/**
