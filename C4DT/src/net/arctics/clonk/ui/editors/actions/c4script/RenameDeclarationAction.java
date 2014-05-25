@@ -59,8 +59,7 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 			final ProgressMonitorDialog progressMonitor = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 			try {
 				progressMonitor.run(false, false, monitor ->
-					EditorUtil.editorPartsToBeSaved().forEach(part -> part.doSave(monitor))
-				);
+					EditorUtil.editorPartsToBeSaved().forEach(part -> part.doSave(monitor)));
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}

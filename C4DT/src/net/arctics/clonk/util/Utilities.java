@@ -395,5 +395,5 @@ public abstract class Utilities {
 			item instanceof Stream ? (Stream<T>)item : Stream.empty()
 		);
 	}
-
+	
 }

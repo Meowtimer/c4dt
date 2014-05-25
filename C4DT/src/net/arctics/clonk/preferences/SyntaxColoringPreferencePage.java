@@ -1,11 +1,11 @@
 package net.arctics.clonk.preferences;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.EditorUtil;
-import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 import net.arctics.clonk.ui.editors.ColorManager.SyntaxElementStyle;
+import net.arctics.clonk.ui.editors.EditorUtil;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 
 import org.eclipse.jface.preference.ColorFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -102,8 +102,8 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 	public boolean performOk() {
 		if (super.performOk()) {
 			ScannerPerEngine.refreshScanners();
-			for (final StructureTextEditor part : EditorUtil.clonkTextEditors(StructureTextEditor.class, false))
-				part.reconfigureSourceViewer();
+			EditorUtil.clonkTextEditors(StructureTextEditor.class, false)
+				.forEach(StructureTextEditor::reconfigureSourceViewer);
 			return true;
 		} else
 			return false;
