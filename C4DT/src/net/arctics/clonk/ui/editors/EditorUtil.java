@@ -1,10 +1,11 @@
 package net.arctics.clonk.ui.editors;
 
-import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
 
@@ -41,7 +42,7 @@ public class EditorUtil {
 				}
 		return editors;
 	}
-	public static Iterable<IEditorPart> editorPartsToBeSaved() {
-		return filter(clonkTextEditors(false), item -> item.isDirty());
+	public static Stream<IEditorPart> editorPartsToBeSaved() {
+		return StreamSupport.stream(clonkTextEditors(false).spliterator(), false).filter(item -> item.isDirty());
 	}
 }

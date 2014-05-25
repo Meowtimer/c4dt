@@ -14,7 +14,6 @@ import net.arctics.clonk.ui.refactoring.ClonkRenameRefactoringWizard;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.ltk.core.refactoring.participants.RenameRefactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -59,10 +58,9 @@ public class RenameDeclarationAction extends ClonkTextEditorAction {
 		if (anyModified) {
 			final ProgressMonitorDialog progressMonitor = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 			try {
-				progressMonitor.run(false, false, monitor -> {
-					for (final IEditorPart part : EditorUtil.editorPartsToBeSaved())
-						part.doSave(monitor);
-				});
+				progressMonitor.run(false, false, monitor ->
+					EditorUtil.editorPartsToBeSaved().forEach(part -> part.doSave(monitor))
+				);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}

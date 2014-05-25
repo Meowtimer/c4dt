@@ -279,7 +279,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 		if (differentSubElms) {
 			final ASTNode replacement = this.clone();
 			if (removal)
-				newSubElms = filter(newSubElms, ITransformer.FILTER_REMOVE);
+				newSubElms = stream(newSubElms).filter(x -> x != ITransformer.REMOVE).collect(ArrayUtil.toArray(ASTNode.class));
 			replacement.setSubElements(newSubElms);
 			replacement.assignParentToSubElements();
 			return replacement;

@@ -3,12 +3,12 @@ package net.arctics.clonk.c4script;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.ArrayUtil.addAllSynchronized;
 import static net.arctics.clonk.util.ArrayUtil.copyListOrReturnDefaultList;
-import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.ArrayUtil.purgeNullEntries;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
 import static net.arctics.clonk.util.Utilities.pickNearest;
@@ -324,14 +324,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			String effectName = null;
 			for (int i = nextCamelBack(s, 0); i < s.length(); i = nextCamelBack(s, i)) {
 				final String sub = s.substring(0, i);
-				final List<EffectFunction> matching = filter(allEffectFunctions, item -> {
+				final List<EffectFunction> matching = allEffectFunctions.stream().filter(item -> {
 					try {
 						return item.name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length(), EffectFunction.FUNCTION_NAME_PREFIX.length()+sub.length()).equals(sub);
 					} catch (final StringIndexOutOfBoundsException e) {
 						return false;
 					}
-				});
-				if (matching.size() == 0)
+				}).collect(Collectors.toList());
+				if (matching.isEmpty())
 					break;
 				effectName = sub;
 				effectCandidates = matching;
@@ -351,13 +351,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	protected void populateDictionary(final List<Script> conglomerate) {
-		if (dictionary != null)
-			dictionary.clear();
-		else
-			dictionary = new HashSet<String>();
-		for (final Script s : conglomerate)
-			for (final Declaration d : s.subDeclarations(index(), DeclMask.ALL))
-				dictionary.add(d.name());
+		dictionary = conglomerate.stream()
+			.flatMap(s -> s.subDeclarations(index(), DeclMask.ALL).stream())
+			.map(d -> d.name())
+			.collect(Collectors.toSet());
 	}
 
 	protected final void populateDictionary() { populateDictionary(conglomerate()); }
@@ -368,17 +365,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public int strictLevel() {
 		requireLoaded();
-		long level = engine() != null ? engine().settings().strictDefaultLevel : -1;
-		for (final Directive d : this.directives())
-			if (d.type() == DirectiveType.STRICT)
+		return this.directives().stream()
+			.filter(d -> d.type() == DirectiveType.STRICT)
+			.mapToInt(d -> {
 				try {
-					level = Math.max(level, Integer.parseInt(d.contents()));
+					return Integer.parseInt(d.contents());
 				}
 				catch (final NumberFormatException e) {
-					if (level < 1)
-						level = 1;
+					return 1;
 				}
-		return (int)level;
+			})
+			.reduce((int)(engine() != null ? engine().settings().strictDefaultLevel : -1), Math::max);
 	}
 
 	/**
@@ -387,10 +384,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public Directive[] includeDirectives() {
 		requireLoaded();
-		final List<Directive> result = new ArrayList<Directive>();
-		for (final Directive d : directives())
-			if (d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO)
-				result.add(d);
+		final List<Directive> result = directives().stream()
+			.filter(d -> d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO)
+			.collect(Collectors.toList());
 		return result.toArray(new Directive[result.size()]);
 	}
 
@@ -448,30 +444,24 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 * @return The includes
 	 */
 	public Collection<Script> includes(final int options) {
-		if (index() == null)
-			return Collections.emptySet();
-		else
-			return includes(index(), this, options);
+		final Index ndx = index();
+		return ndx == null ? Collections.emptySet() : includes(ndx, this, options);
 	}
 
 	@Override
 	public Collection<Script> includes(final Index index, final Script origin, final int options) {
-		final Index ndx = index;
-		if (ndx != null)
-			return ndx.includes(new IncludesParameters(this, origin, options));
-		else {
-			final HashSet<Script> result = new HashSet<Script>();
-			gatherIncludes(ndx, origin, result, options);
-			result.remove(this);
-			return result;
-		}
+		return index != null
+			? index.includes(new IncludesParameters(this, origin, options))
+			: block(() -> {
+				final HashSet<Script> result = new HashSet<Script>();
+				gatherIncludes(index, origin, result, options);
+				result.remove(this);
+				return result;
+			});
 	}
 
 	public boolean directlyIncludes(final Definition other) {
-		for (final Directive d : directives())
-			if (d.refersTo(other))
-				return true;
-		return false;
+		return directives().stream().anyMatch(d -> d.refersTo(other));
 	}
 
 	/**
@@ -481,10 +471,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public Directive directiveIncludingDefinition(final Definition definition) {
 		requireLoaded();
-		for (final Directive d : includeDirectives())
-			if ((d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == definition)
-				return d;
-		return null;
+		return stream(includeDirectives()).filter(
+			d ->
+				(d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) &&
+				nearestDefinitionWithId(d.contentAsID()) == definition
+		).findFirst().orElse(null);
 	}
 
 	/**

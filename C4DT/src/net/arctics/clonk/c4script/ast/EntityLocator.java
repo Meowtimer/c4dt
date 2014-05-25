@@ -1,6 +1,5 @@
 package net.arctics.clonk.c4script.ast;
 
-import static net.arctics.clonk.util.ArrayUtil.filter;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
@@ -9,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -25,7 +25,6 @@ import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectResource;
 
@@ -64,13 +63,13 @@ public class EntityLocator extends ExpressionLocator<Void> {
 		script.traverse(this, null);
 		if (exprAtRegion != null) {
 			final EntityRegion declRegion = exprAtRegion.entityAt(exprRegion.getOffset()-exprAtRegion.absolute().getOffset(), this);
-			initializeProposedDeclarations(script, declRegion, exprAtRegion);
+			initializePotentialEntities(script, declRegion, exprAtRegion);
 		}
 	}
 
-	public void initializeProposedDeclarations(final Script script, final EntityRegion declRegion, final ASTNode exprAtRegion) {
+	public void initializePotentialEntities(final Script script, final EntityRegion declRegion, final ASTNode exprAtRegion) {
 		boolean setRegion;
-		if (declRegion != null && declRegion.potentialEntities() != null && declRegion.potentialEntities().size() > 0) {
+		if (declRegion != null && declRegion.potentialEntities() != null && !declRegion.potentialEntities().isEmpty()) {
 			// region denotes multiple declarations - set proposed declarations to those
 			this.potentialEntities = new HashSet<IIndexEntity>();
 			this.potentialEntities.addAll(declRegion.potentialEntities());
@@ -101,21 +100,18 @@ public class EntityLocator extends ExpressionLocator<Void> {
 			List<IIndexEntity> projectDeclarations = new LinkedList<IIndexEntity>();
 			final String declarationName = access.name();
 			// load scripts that contain the declaration name in their dictionary which is available regardless of loaded state
-			//final IType ty = defaulting(access.predecessorInSequence() != null ? access.predecessorInSequence().typingSnapshot() : null, PrimitiveType.UNKNOWN);
-			//for (final IType t : ty)
-				//if (t == PrimitiveType.OBJECT || t == PrimitiveType.ANY || t == PrimitiveType.UNKNOWN || t == PrimitiveType.ID) {
-					for (final Index i : script.index().relevantIndexes())
-						i.loadScriptsContainingDeclarationsNamed(declarationName);
-					for (final Index i : script.index().relevantIndexes()) {
-						final List<Declaration> decs = i.declarationMap().get(declarationName);
-						if (decs != null)
-							projectDeclarations.addAll(decs);
-					}
-				//	break;
-			//	}
+			script.index().relevantIndexes().stream().forEach(
+				i -> i.loadScriptsContainingDeclarationsNamed(declarationName)
+			);
+			script.index().relevantIndexes().stream()
+				.map(i -> i.declarationMap().get(declarationName))
+				.filter(x -> x != null)
+				.forEach(projectDeclarations::addAll);
 
 			if (projectDeclarations != null)
-				projectDeclarations = filter(projectDeclarations, item -> access.declarationClass().isInstance(item));
+				projectDeclarations = projectDeclarations.stream().filter(
+					item -> access.declarationClass().isInstance(item)
+				).collect(Collectors.toList());
 
 			final Function engineFunc = exprAtRegion.parent(Script.class).engine().findFunction(declarationName);
 			if (projectDeclarations != null || engineFunc != null) {
@@ -125,13 +121,10 @@ public class EntityLocator extends ExpressionLocator<Void> {
 				// only add engine func if not overloaded by any global function
 				if (engineFunc != null && !potentialEntities.stream().anyMatch(IS_GLOBAL))
 					potentialEntities.add(engineFunc);
-				if (potentialEntities.size() == 0)
+				if (potentialEntities.isEmpty())
 					potentialEntities = null;
 				else if (potentialEntities.size() == 1)
-					for (final IIndexEntity e : potentialEntities) {
-						this.entity = e;
-						break;
-					}
+					this.entity = potentialEntities.iterator().next();
 				setRegion = potentialEntities != null;
 			}
 			else

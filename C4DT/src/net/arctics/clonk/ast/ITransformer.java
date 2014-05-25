@@ -1,6 +1,5 @@
 package net.arctics.clonk.ast;
 
-import java.util.function.Predicate;
 
 /**
  * Interface for transforming an element in an expression.
@@ -13,10 +12,6 @@ public interface ITransformer {
 	 * instead of being replaced.
 	 */
 	static final ASTNode REMOVE = new ASTNode();
-	/**
-	 * {@link Predicate} filtering out references to {@link #REMOVE}.
-	 */
-	static final Predicate<ASTNode> FILTER_REMOVE = item -> item != REMOVE;
 	/**
 	 * Transform the passed expression. For various purposes some context is supplied as well so the transformer can
 	 * see the last expression it was passed and what it transformed it to.

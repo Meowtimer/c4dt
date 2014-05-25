@@ -6,6 +6,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -13,9 +14,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -107,23 +112,21 @@ public class ArrayUtil {
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <T> T[] filter(final T[] array, final Predicate<T> filter) {
-		try {
-			final List<T> list = filter(iterable(array), filter);
-			return list.toArray((T[]) Array.newInstance(array.getClass().getComponentType(), list.size()));
-		} catch (final Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	public static <T> List<T> filter(final Iterable<? extends T> iterable, final Predicate<T> filter) {
-		final List<T> result = new LinkedList<T>();
-		for (final T elm : iterable)
-			if (filter.test(elm))
-				result.add(elm);
-		return result;
+	public static <T> Collector<T, LinkedList<T>, T[]> toArray(Class<T> cls) {
+		return new Collector<T, LinkedList<T>, T[]>() {
+			final Set<Characteristics> characteristics = EnumSet.noneOf(Characteristics.class);
+			@Override
+			public Supplier<LinkedList<T>> supplier() { return () -> new LinkedList<T>(); }
+			@Override
+			public BiConsumer<LinkedList<T>, T> accumulator() { return LinkedList<T>::add; }
+			@Override
+			public BinaryOperator<LinkedList<T>> combiner() { return (a, b) -> { a.addAll(b); return a; }; }
+			@SuppressWarnings("unchecked")
+			@Override
+			public Function<LinkedList<T>, T[]> finisher() { return l -> l.toArray((T[]) Array.newInstance(cls, l.size())); }
+			@Override
+			public Set<java.util.stream.Collector.Characteristics> characteristics() { return characteristics; }
+		};
 	}
 
 	@SuppressWarnings("unchecked")

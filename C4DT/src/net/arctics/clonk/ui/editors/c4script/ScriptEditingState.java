@@ -844,7 +844,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	public IIndexEntity mergeFunctions(final int offset, final ScriptEditingState.Call call) {
 		IIndexEntity entity = null;
-		call.locator.initializeProposedDeclarations(structure(), null, (ASTNode)call.callFunc);
+		call.locator.initializePotentialEntities(structure(), null, (ASTNode)call.callFunc);
 		Function commono = null;
 		final Set<? extends IIndexEntity> potentials = call.locator.potentialEntities();
 		if (potentials != null)

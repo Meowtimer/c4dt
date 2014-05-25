@@ -1,6 +1,8 @@
 package net.arctics.clonk.cli;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.printingException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,7 +14,6 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import net.arctics.clonk.Core;
@@ -40,11 +41,11 @@ import net.arctics.clonk.ui.editors.c4script.ReplacementStatement;
 import net.arctics.clonk.util.StreamUtil;
 
 public class C4ScriptToCPPConverter {
-	
+
 	private final Map<String, String> stringConstants = new HashMap<String, String>();
 	private final Set<Function> globalFunctionsUsed = new HashSet<Function>();
 	private final Set<Variable> globalConstantsUsed = new HashSet<Variable>();
-	
+
 	private String regString(final String text) {
 		String ident = stringConstants.get(text);
 		if (ident == null) {
@@ -53,12 +54,12 @@ public class C4ScriptToCPPConverter {
 		}
 		return ident;
 	}
-	
+
 	public void printExprElement(final Function function, final ASTNode element, final Writer output, final int depth) {
 		element.print(new AppendableBackedExprWriter(output) {
-			
+
 			boolean prelude = true;
-			
+
 			@Override
 			public boolean doCustomPrinting(final ASTNode elm, final int depth) {
 				if (prelude && elm instanceof Block) {
@@ -157,26 +158,26 @@ public class C4ScriptToCPPConverter {
 		output.append("\n");
 		this.printExprElement(function, body, output, 0);
 	}
-	
+
 	public void printScript(final Script script, final Writer output) throws IOException {
-		
+
 		printHeader(output);
-		
+
 		output.append("namespace\n{\n");
-		
+
 		final StringWriter scriptWriter = new StringWriter();
-		for (final Function f : script.functions()) {			
+		for (final Function f : script.functions()) {
 			printFunction(f, f.body(), scriptWriter);
 			scriptWriter.append('\n');
 			scriptWriter.append('\n');
 		}
-		
+
 		printStringTable(output);
 		printFunctionTable(output);
-		
+
 		output.append(scriptWriter.getBuffer());
 	}
-	
+
 	private void printHeader(final Writer output) throws IOException {
 		final String[] includes = new String[] {
 			"C4Include.h",
@@ -184,18 +185,21 @@ public class C4ScriptToCPPConverter {
 			"C4Aul.h",
 			"C4Object.h",
 			"C4Def.h",
-			"C4AulDefFunc.h"
+			"C4AulDefFunc.h",
+			"C4NativeDef.h"
 		};
-		for (final String include : includes)
-			output.append(String.format("#include \"%s\"\n", include));
+		stream(includes)
+			.map(include -> String.format("#include \"%s\"\n", include))
+			.forEach(printingException(output::append, IOException.class));
 		output.append("\n");
 	}
 
 	private void printStringTable(final Writer output) throws IOException {
-		for (final Entry<String, String> entry : stringConstants.entrySet())
-			output.append(String.format("C4String* %s = ::Strings.RegString(\"%s\");\n", entry.getValue(), entry.getKey()));
+		stringConstants.entrySet().stream().map(
+			entry -> String.format("C4String* %s = ::Strings.RegString(\"%s\");\n", entry.getValue(), entry.getKey())
+		).forEach(printingException(output::append, IOException.class));
 	}
-	
+
 	private void printFunctionTable(final Writer output) throws IOException {
 		for (final Function f : globalFunctionsUsed)
 			output.append(String.format("C4AulFunc *engine%s;\n", f.name()));
@@ -212,7 +216,7 @@ public class C4ScriptToCPPConverter {
 		output.append("}\n");
 		output.append("}\n\n");
 	}
-	
+
 	public static void main(final String[] args) throws IOException, ProblemException {
 		if (args.length < 3) {
 			help();
