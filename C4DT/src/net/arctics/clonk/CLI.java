@@ -29,6 +29,7 @@ import net.arctics.clonk.c4script.Function.Invocation;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.typing.Typing;
+import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.cli.C4ScriptToCPPConverter;
 import net.arctics.clonk.command.Command;
 import net.arctics.clonk.command.CommandFunction;
@@ -39,6 +40,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Index.Built;
+import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
@@ -286,7 +288,7 @@ public class CLI implements IApplication, AutoCloseable {
 		System.out.println(parser.script().printed());
 	}
 	@Callable
-	public void scriptToCPP(final String fileName) throws ProblemException, IOException {
+	public void c4script2cpp(final String fileName) throws ProblemException, IOException {
 		final String scriptText = fileName != null ? StreamUtil.stringFromFile(new File(fileName)) : readFile();
 		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, scriptText, new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -296,6 +298,14 @@ public class CLI implements IApplication, AutoCloseable {
 			}
 		}));
 		parser.parse();
+		final DabbleInference inf = new DabbleInference();
+		inf.configure(parser.script().index(), "");
+		inf.steer(() -> {
+			inf.initialize(new Markers(), new NullProgressMonitor(), new Script[] { parser.script() });
+			inf.run();
+			inf.apply();
+			inf.run2();
+		});
 		final C4ScriptToCPPConverter converter = new C4ScriptToCPPConverter();
 		try (PrintWriter output = new PrintWriter(System.out)) {
 			converter.printScript(parser.script(), output);
