@@ -20,6 +20,7 @@ import net.arctics.clonk.c4script.Script.Typings;
 import net.arctics.clonk.c4script.ast.evaluate.IVariable;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Herbert;
 import net.arctics.clonk.util.IPrintable;
 
