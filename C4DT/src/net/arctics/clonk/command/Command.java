@@ -5,7 +5,6 @@ import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.StringUtil.multiply;
 
-import java.awt.datatransfer.Clipboard;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -57,6 +56,10 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -378,9 +381,8 @@ public class Command {
 			final StringWriter swriter = new StringWriter();
 			final PrintWriter output = new PrintWriter(swriter);
 			Template.printScript(ed.script().index(), ed.script(), output);
-			final java.awt.datatransfer.StringSelection sel = new java.awt.datatransfer.StringSelection(swriter.toString());
-			final Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
-			clipboard.setContents(sel, sel);
+			final Clipboard clipboard = new Clipboard(Display.getCurrent());
+			clipboard.setContents(new Object[] { swriter.toString() }, new Transfer[] { TextTransfer.getInstance() });
 		}
 	}
 
