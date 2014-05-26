@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import net.arctics.clonk.ast.ASTNode;
@@ -27,18 +28,22 @@ import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SynthesizedFunction;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.ArrayElementExpression;
 import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
+import net.arctics.clonk.c4script.ast.Ellipsis;
 import net.arctics.clonk.c4script.ast.ForStatement;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.Nil;
+import net.arctics.clonk.c4script.ast.ReturnStatement;
 import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.ast.VarDeclarationStatement;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.StringUtil;
@@ -111,12 +116,130 @@ public class Template {
 		return stream(streams).reduce(Stream::concat).orElseGet(Stream::empty);
 	}
 
+	static String unclashKeyword(String name) {
+		switch (name) {
+		case "alignas":
+		case "alignof":
+		case "and":
+		case "and_eq":
+		case "asm":
+		case "auto":
+		case "bitand":
+		case "bitor":
+		case "bool":
+		case "break":
+		case "case":
+		case "catch":
+		case "char":
+		case "char16_t":
+		case "char32_t":
+		case "class":
+		case "compl":
+		case "const":
+		case "constexpr":
+		case "const_cast":
+		case "continue":
+		case "decltype":
+		case "default":
+		case "delete":
+		case "do":
+		case "double":
+		case "dynamic_cast":
+		case "else":
+		case "enum":
+		case "explicit":
+		case "export":
+		case "extern":
+		case "false":
+		case "float":
+		case "for":
+		case "friend":
+		case "goto":
+		case "if":
+		case "inline":
+		case "int":
+		case "long":
+		case "mutable":
+		case "namespace":
+		case "new":
+		case "noexcept":
+		case "not":
+		case "not_eq":
+		case "nullptr":
+		case "operator":
+		case "or":
+		case "or_eq":
+		case "private":
+		case "protected":
+		case "public":
+		case "register":
+		case "reinterpret_cast":
+		case "return":
+		case "short":
+		case "signed":
+		case "sizeof":
+		case "static":
+		case "static_assert":
+		case "static_cast":
+		case "struct":
+		case "switch":
+		case "template":
+		case "this":
+		case "thread_local":
+		case "throw":
+		case "true":
+		case "try":
+		case "typedef":
+		case "typeid":
+		case "typename":
+		case "union":
+		case "unsigned":
+		case "using":
+		case "virtual":
+		case "void":
+		case "volatile":
+		case "wchar_t":
+		case "while":
+		case "xor":
+		case "xor_eq":
+			return name + "_";
+		default:
+			return name;
+		}
+	}
+
 	static class LeftRightType {
 		public final IType left, right;
 		public LeftRightType(IType left, IType right) {
 			super();
 			this.left = left;
 			this.right = right;
+		}
+	}
+
+	static class NumberedFunction {
+		public final Function function;
+		public final int number;
+		public NumberedFunction(Function function, int number) {
+			super();
+			this.function = function;
+			this.number = number;
+		}
+		public String name() {
+			return number > 0 ? format("%s%d", function.name(), number) : function.name();
+		}
+	}
+
+	static final class TypedIdentifier {
+		public final String name;
+		public final IType type;
+		public String name() { return name; }
+		public String unclashedName() { return unclashKeyword(name); }
+		public IType type() { return type; }
+		public TypedIdentifier(String name, IType type) {
+			super();
+			this.name = name;
+			this.type = type;
 		}
 	}
 
@@ -131,7 +254,7 @@ public class Template {
 	String parmsString(Function f, boolean comma) {
 		return f.parameters().isEmpty() ? "" : (
 			(comma ? ", " : "") + f.parameters().stream().map(
-				p -> format("%s %s", cppTypeString(p.type()), p.name())
+				p -> format("%s %s", cppTypeString(p.type()), unclashKeyword(p.name()))
 			).collect(Collectors.joining(", "))
 		);
 	}
@@ -171,7 +294,7 @@ public class Template {
 								init.print(this, depth+1);
 								printConversionSuffix(var.type(), init);
 							}
-							append(";");
+							append(";\n");
 						});
 						return true;
 					}),
@@ -244,6 +367,37 @@ public class Template {
 							new AccessVar(format("return C4Value()%s;", valueConversionSuffix(body.owner().returnType())))),
 							this, depth);
 						return true;
+					}),
+					caze(ReturnStatement.class, ret -> {
+						if (ret.returnExpr() == null) {
+							output.append("return {};");
+							return true;
+						} else
+							return false;
+					}),
+					caze(ArrayElementExpression.class, ee -> {
+						if (ee.predecessor() != null && ee.argument() != null) {
+							if (ee.argument().ty().simpleType() == PrimitiveType.STRING) {
+								printConversionSuffix(PrimitiveType.PROPLIST, ee.predecessor());
+								output.append("->GetPropertyByS(");
+								ee.argument().print(this, depth);
+								printConversionSuffix(PrimitiveType.STRING, ee.argument());
+								output.append(")");
+							} else {
+								printConversionSuffix(PrimitiveType.ARRAY, ee.predecessor());
+								output.append("->GetItem(");
+								ee.argument().print(this, depth);
+								printConversionSuffix(PrimitiveType.INT, ee.argument());
+								output.append(")");
+							}
+							return true;
+						} else
+							return false;
+					}),
+					caze(Ellipsis.class, ell -> {
+						final Function f = ell.parent(Function.class);
+						output.append(f.parameters().stream().map(Variable::name).map(Template::unclashKeyword).collect(Collectors.joining(", ")));
+						return true;
 					})
 				), Boolean.FALSE);
 			}
@@ -256,67 +410,89 @@ public class Template {
 			.declarations(script, s -> s.functions().stream())
 			.filter(f -> f.code() != null && !(f instanceof SynthesizedFunction))
 			.collect(Collectors.toList());
-		final List<Variable> fields = new DeclarationsStreamer(index, script)
-			.declarations(script, s -> s.variables().stream())
+		final List<String> uniqueFuncNames = functions.stream().map(f -> f.name()).distinct().collect(Collectors.toList());
+		final Map<String, List<Function>> functionsByName = functions.stream().collect(Collectors.groupingBy(f -> f.name()));
+		final List<NumberedFunction> numberedFunctions = functionsByName.entrySet().stream()
+			.flatMap(e -> IntStream.range(0, e.getValue().size())
+				.<NumberedFunction>mapToObj(x -> new NumberedFunction(e.getValue().get(x), x)))
 			.collect(Collectors.toList());
 
-		final Set<Function> referencedGlobalFunctions =
+		final List<TypedIdentifier> fields = new DeclarationsStreamer(index, script)
+			.declarations(script, s -> s.variables().stream())
+			.collect(Collectors.groupingBy(f -> f.name()))
+			.entrySet().stream().map(e -> new TypedIdentifier(
+				e.getKey(),
+				e.getValue().stream().map(Variable::type).reduce(Typing.INFERRED::unify).orElse(PrimitiveType.ANY)
+			))
+			.collect(Collectors.toList());
+
+		final Set<String> referencedGlobalFunctions =
 			ofType(functions.stream().flatMap(f -> f.recursiveNodesStream()), CallDeclaration.class)
 				.filter(call -> call.predecessor() == null)
 				.map(call -> call.function())
 				.filter(f -> f != null)
+				.map(f -> f.name())
+				.distinct()
 				.collect(Collectors.toSet());
 
 		final AtomicInteger counter = new AtomicInteger();
 		final Map<String, Integer> strTable =
 			concatMultiple(
+				// direct string literals
 				ofType(functions.stream().flatMap(f -> f.recursiveNodesStream()), StringLiteral.class).map(l -> l.stringValue()),
+				// names of functions from target calls or not resolved
 				ofType(functions.stream().flatMap(f -> f.recursiveNodesStream()), CallDeclaration.class)
-					.filter(c -> c.predecessor() != null)
+					.filter(c -> c.predecessor() != null || c.function() == null)
 					.map(c -> c.name()),
+				// target variables accesses
 				ofType(functions.stream().flatMap(f -> f.recursiveNodesStream()), AccessVar.class)
-					.filter(av -> av.proxiedDefinition() == null)
+					.filter(av -> av.proxiedDefinition() == null && av.predecessor() != null)
 					.map(av -> av.name())
 			)
 				.distinct()
 				.collect(Collectors.toMap(s -> s, s -> counter.incrementAndGet()));
+
 		final Set<Definition> idRefs =
 			ofType(functions.stream().flatMap(f -> f.recursiveNodesStream()), AccessVar.class)
 				.map(av -> av.proxiedDefinition())
 				.filter(def -> def != null)
 				.collect(Collectors.toSet());
 
-		this.globals = referencedGlobalFunctions.stream().map(f -> format("C4AulFunc* %s;", f.name()));
-		this.assignGlobals = referencedGlobalFunctions.stream().map(f -> format("%1$s = def.GetFunc(\"%1$s\");", f.name()));
-		this.locals = fields.stream().map(l -> format("C4String* %s;", l.name()));
-		this.assignLocals = fields.stream().map(l -> format("%1$s = Strings.RegString(\"%1$s\");", l.name()));
-		this.funcs = functions.stream().map(f -> format("C4String* %s;", f.name()));
-		this.assignFuncs = functions.stream().map(f -> format("%1$s = Strings.RegString(\"%1$s\");", f.name()));
-		this.natives = functions.stream().map(f -> format("C4AulFunc* %s;", f.name()));
-		this.nativeWrappers = functions.stream().map(f -> format(
-			"static %s %s(%s* target%s) { return target->s_%2$s(%s); }",
-			cppTypeString(f.returnType()),
-			f.name(),
-			script.name(),
-			parmsString(f, true),
-			f.parameters().stream().map(p -> p.name()).collect(Collectors.joining(", "))
-		));
-		this.assignNatives = functions.stream().map(f -> format("%s = AddFunc(&def.Script, \"%1$s\", W::%1$s);", f.name()));
+		this.globals = referencedGlobalFunctions.stream().map(n -> format("C4AulFunc* %s;", n));
+		this.assignGlobals = referencedGlobalFunctions.stream().map(n -> format("%1$s = def.GetFunc(\"%1$s\");", n));
+		this.locals = fields.stream().map(l -> format("C4String* %s;", l.unclashedName()));
+		this.assignLocals = fields.stream().map(l -> format("%s = Strings.RegString(\"%s\");", l.unclashedName(), l.name()));
+		this.funcs = uniqueFuncNames.stream().map(fn -> format("C4String* %s;", fn));
+		this.assignFuncs = uniqueFuncNames.stream().map(fn -> format("%1$s = Strings.RegString(\"%1$s\");", fn));
+		this.natives = uniqueFuncNames.stream().map(fn -> format("C4AulFunc* %s;", fn));
+		this.nativeWrappers = numberedFunctions.stream()
+			.map(nf -> {
+				final Function f = nf.function;
+				return format(
+					"static %s %s(%s* __this__%s) { return __this__->s_%2$s(%s); }",
+					cppTypeString(f.returnType()),
+					nf.name(),
+					script.name(),
+					parmsString(f, true),
+					f.parameters().stream().map(Variable::name).map(Template::unclashKeyword).collect(Collectors.joining(", "))
+				);
+			});
+		this.assignNatives = uniqueFuncNames.stream().map(n -> format("%s = AddFunc(&def.Script, \"%1$s\", W::%1$s);", n));
 		this.stringTable = strTable.entrySet().stream().map(e -> format("C4String* _%d;", e.getValue()));
 		this.assignStringTable = strTable.entrySet().stream()
 			.sorted((a, b) -> a.getValue().compareTo(b.getValue()))
 			.map(e -> format("_%d = Strings.RegString(\"%s\");", e.getValue(), e.getKey()));
-		this.instanceFields = fields.stream().map(f -> format("%s %s;", cppTypeString(f.type()), f.name()));
-		this.instanceFuncs = functions.stream().map(f -> format(
+		this.instanceFields = fields.stream().map(f -> format("%s %s;", cppTypeString(f.type()), unclashKeyword(f.name())));
+		this.instanceFuncs = numberedFunctions.stream().map(f -> format(
 			"%s s_%s(%s);",
-			cppTypeString(f.returnType()),
+			cppTypeString(f.function.returnType()),
 			f.name(),
-			parmsString(f, false)
+			parmsString(f.function, false)
 		));
-		this.getPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { *pResult = C4Value(%1$s); return true; }", f.name()));
-		this.addNativeFields = fields.stream().map(f -> format("(*properties)[i++] = C4Value(%s);", f.name()));
-		this.setPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = to%s; return; }", f.name(), valueConversionSuffix(f.type())));
-		this.resetProperty = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = {}; return; }", f.name()));
+		this.getPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { *pResult = C4Value(%1$s); return true; }", f.unclashedName()));
+		this.addNativeFields = fields.stream().map(f -> format("(*properties)[i++] = C4Value(%s);", f.unclashedName()));
+		this.setPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = to%s; return; }", f.unclashedName(), valueConversionSuffix(f.type())));
+		this.resetProperty = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = {}; return; }", f.unclashedName()));
 		this.idTable = idRefs.stream().map(id -> format("C4Def* %s;", id.name()));
 		this.assignIDTable = idRefs.stream().map(id -> format("%s = Definitions.GetByName(StdStrBuf(\"%1$s\"));", id.name()));
 
@@ -394,11 +570,11 @@ public class Template {
 			"		virtual void AddNatives()",
 			"		{",
 			"			C4NativeDef::AddNatives();",
-			"			G.Assign(*this);",
 			"			L.Assign();",
 			"			F.Assign();",
 			"			N.Assign(*this);",
 			"			S.Assign();",
+			"			G.Assign(*this);",
 			"		}",
 			"	};",
 			"	static Def D;",
