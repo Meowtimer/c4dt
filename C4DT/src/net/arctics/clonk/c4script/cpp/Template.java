@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.c4script.cpp.DispatchCase.caze;
 import static net.arctics.clonk.c4script.cpp.DispatchCase.dispatch;
+import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -21,11 +22,17 @@ import java.util.stream.Stream;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.AppendableBackedExprWriter;
 import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.SynthesizedFunction;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.BinaryOp;
+import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.ForStatement;
+import net.arctics.clonk.c4script.ast.FunctionBody;
+import net.arctics.clonk.c4script.ast.Literal;
 import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.Nil;
 import net.arctics.clonk.c4script.ast.StringLiteral;
@@ -61,16 +68,56 @@ public class Template {
 		}
 	}
 
-	static String cppTypeString(IType type) {
+	static String primitiveDispatch(IType type, java.util.function.Function<PrimitiveType, String> pfn) {
 		return
-			type instanceof PrimitiveType ? cppTypeString((PrimitiveType)type) :
-			type.simpleType() instanceof PrimitiveType ? cppTypeString((PrimitiveType)type.simpleType()) :
+			type instanceof PrimitiveType ? pfn.apply((PrimitiveType)type) :
+			type.simpleType() instanceof PrimitiveType ? pfn.apply((PrimitiveType)type.simpleType()) :
 			format("any /* %s: %s */", type.typeName(true), type.getClass().getSimpleName());
+	}
+
+	static String cppTypeString(IType type) {
+		return primitiveDispatch(type, Template::cppTypeString);
+	}
+
+	static String valueConversionSuffix(PrimitiveType targetType) {
+		switch (targetType) {
+		case ARRAY:
+			return ".getArray()";
+		case BOOL:
+			return ".getBool()";
+		case FUNCTION:
+			return ".getFunction()";
+		case ID:
+			return ".getDef()";
+		case INT:
+			return ".getInt()";
+		case OBJECT:
+			return ".getObj()";
+		case PROPLIST:
+			return ".getPropList()";
+		case STRING:
+			return ".getStr()";
+		default:
+			return "";
+		}
+	}
+
+	static String valueConversionSuffix(IType targetType) {
+		return primitiveDispatch(targetType, Template::valueConversionSuffix);
 	}
 
 	@SafeVarargs
 	static <T> Stream<T> concatMultiple(Stream<T>... streams) {
 		return stream(streams).reduce(Stream::concat).orElseGet(Stream::empty);
+	}
+
+	static class LeftRightType {
+		public final IType left, right;
+		public LeftRightType(IType left, IType right) {
+			super();
+			this.left = left;
+			this.right = right;
+		}
 	}
 
 	private final List<Object> skeleton;
@@ -90,13 +137,25 @@ public class Template {
 	}
 	public String printNode(Map<String, Integer> strTable, final Function function, final ASTNode node) {
 		final StringWriter output = new StringWriter();
+		final java.util.function.Function<String, Integer> strNum = s -> defaulting(strTable.get(s), -1);
 		node.print(new AppendableBackedExprWriter(output) {
+			private void printConversionSuffix(IType targetType, ASTNode node) {
+				final IType ty = node.ty();
+				final String suffix = !(node instanceof Literal || node instanceof AccessVar)
+					? valueConversionSuffix(ty) : null;
+				if (suffix != null)
+					output.append(suffix);
+			}
+			private LeftRightType leftRightTypes(BinaryOp bop) {
+				return
+					bop.operator() == Operator.Assign ? new LeftRightType(bop.leftSide().ty(), bop.leftSide().ty()) :
+					new LeftRightType(bop.operator().firstArgType(), bop.operator().secondArgType());
+			}
 			@Override
 			public boolean doCustomPrinting(final ASTNode node, final int depth) {
 				return defaulting(dispatch(node,
 					caze(StringLiteral.class, lit -> {
-						System.out.println("le string");
-						append(String.format("s_%d", strTable.get(lit.stringValue())));
+						append(String.format("D.S._%d", strNum.apply(lit.stringValue())));
 						return true;
 					}),
 					caze(VarDeclarationStatement.class, statement -> {
@@ -106,20 +165,21 @@ public class Template {
 							append(cppTypeString(var.type()));
 							append(" ");
 							append(var.name());
-							if (var.initializationExpression() != null) {
+							final ASTNode init = var.initializationExpression();
+							if (init != null) {
 								append(" = "); //$NON-NLS-1$
-								var.initializationExpression().print(this, depth+1);
+								init.print(this, depth+1);
+								printConversionSuffix(var.type(), init);
 							}
 							append(";");
 						});
 						return true;
 					}),
 					caze(CallDeclaration.class, call -> {
-						final Function f = call.function();
-						if (f != null && call.predecessor() == null)
-							append(format("Exec(D.G.%s", f.name()));
+						if (call.function() != null && call.predecessor() == null)
+							append(format("Exec(D.G.%s", call.name()));
 						else
-							append(format("Exec(D.S._%d", strTable.get(f.name())));
+							append(format("Exec(D.S._%d", strNum.apply(call.name())));
 						if (call.params().length > 0)
 							stream(call.params()).forEach(par -> {
 								append(", ");
@@ -138,7 +198,7 @@ public class Template {
 							append(format("D.ID.%s", av.name()));
 							return true;
 						} else if (av.predecessor() != null) {
-							append(format("GetPropertyByS(D.S._%d)", strTable.get(av.name())));
+							append(format("GetPropertyByS(D.S._%d)", strNum.apply(av.name())));
 							return true;
 						}
 						else
@@ -146,6 +206,43 @@ public class Template {
 					}),
 					caze(MemberOperator.class, mo -> {
 						append("->");
+						return true;
+					}),
+					caze(BinaryOp.class, bop -> {
+						final ASTNode leftSide = bop.leftSide();
+						final ASTNode rightSide = bop.rightSide();
+						final Operator operator = bop.operator();
+						boolean needsBrackets = leftSide instanceof BinaryOp && operator.priority() > ((BinaryOp)leftSide).operator().priority();
+						if (needsBrackets)
+							output.append("("); //$NON-NLS-1$
+						leftSide.print(this, depth);
+						final LeftRightType lr = leftRightTypes(bop);
+						printConversionSuffix(lr.left, leftSide);
+
+						if (needsBrackets)
+							output.append(")"); //$NON-NLS-1$
+
+						output.append(" "); //$NON-NLS-1$
+						output.append(operator.operatorName());
+
+						needsBrackets = rightSide instanceof BinaryOp && operator.priority() > ((BinaryOp)rightSide).operator().priority();
+						if (needsBrackets)
+							output.append(" ("); //$NON-NLS-1$
+						else {
+							final String printed = rightSide.printed(depth);
+							if (!printed.startsWith("\n"))
+								output.append(" ");
+							rightSide.print(this, depth);
+							printConversionSuffix(lr.right, rightSide);
+						}
+						if (needsBrackets)
+							output.append(")"); //$NON-NLS-1$
+						return true;
+					}),
+					caze(FunctionBody.class, body -> {
+						Block.printBlock(concat(body.statements(),
+							new AccessVar(format("return C4Value()%s;", valueConversionSuffix(body.owner().returnType())))),
+							this, depth);
 						return true;
 					})
 				), Boolean.FALSE);
@@ -157,7 +254,7 @@ public class Template {
 
 		final List<Function> functions = new DeclarationsStreamer(index, script)
 			.declarations(script, s -> s.functions().stream())
-			.filter(f -> f.code() != null)
+			.filter(f -> f.code() != null && !(f instanceof SynthesizedFunction))
 			.collect(Collectors.toList());
 		final List<Variable> fields = new DeclarationsStreamer(index, script)
 			.declarations(script, s -> s.variables().stream())
@@ -218,7 +315,7 @@ public class Template {
 		));
 		this.getPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { *pResult = C4Value(%1$s); return true; }", f.name()));
 		this.addNativeFields = fields.stream().map(f -> format("(*properties)[i++] = C4Value(%s);", f.name()));
-		this.setPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = to; return; }", f.name()));
+		this.setPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = to%s; return; }", f.name(), valueConversionSuffix(f.type())));
 		this.resetProperty = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = {}; return; }", f.name()));
 		this.idTable = idRefs.stream().map(id -> format("C4Def* %s;", id.name()));
 		this.assignIDTable = idRefs.stream().map(id -> format("%s = Definitions.GetByName(StdStrBuf(\"%1$s\"));", id.name()));
@@ -234,7 +331,7 @@ public class Template {
 		);
 
 		this.skeleton = Arrays.<Object>asList(
-			"class "+script.name()+" : public NativeObject",
+			"class "+script.name()+" : public C4Object",
 			"{",
 			"public:",
 			"	// meta",
