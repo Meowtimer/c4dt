@@ -139,7 +139,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 			final String printed = rightSide.printed(depth);
 			if (!printed.startsWith("\n"))
 				output.append(" ");
-			output.append(printed);
+			rightSide.print(output, depth);
 		}
 		if (needsBrackets)
 			output.append(")"); //$NON-NLS-1$
@@ -265,7 +265,7 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
-		Object leftEv = evaluateVariable(leftSide().evaluate(context));
+		final Object leftEv = evaluateVariable(leftSide().evaluate(context));
 		switch (operator()) {
 		case Or:
 			if (eq(Boolean.TRUE, leftEv))

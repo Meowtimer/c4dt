@@ -5,12 +5,15 @@ import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.StringUtil.multiply;
 
+import java.awt.datatransfer.Clipboard;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -35,6 +38,7 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
+import net.arctics.clonk.c4script.cpp.Template;
 import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.StaticTypingUtil;
@@ -46,12 +50,14 @@ import net.arctics.clonk.index.XMLDocImporter;
 import net.arctics.clonk.index.XMLDocImporter.ExtractedDeclarationDocumentation;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.ui.editors.EntityHyperlink;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.SelfcontainedStorage;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Macro execution engine based on the C4Script parser. Naturally, macros are written in C4Script.
@@ -364,6 +370,17 @@ public class Command {
 			final List<String> defs = new LinkedList<>();
 			cpn.index().allDefinitions((Definition item) -> defs.add(String.format(format, item.id().stringValue())));
 			System.out.println(blockString("", "", ";", defs));
+		}
+
+		@CommandFunction
+		public static void ToCPP(final Object context) {
+			final C4ScriptEditor ed = (C4ScriptEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+			final StringWriter swriter = new StringWriter();
+			final PrintWriter output = new PrintWriter(swriter);
+			Template.printScript(ed.script().index(), ed.script(), output);
+			final java.awt.datatransfer.StringSelection sel = new java.awt.datatransfer.StringSelection(swriter.toString());
+			final Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
+			clipboard.setContents(sel, sel);
 		}
 	}
 

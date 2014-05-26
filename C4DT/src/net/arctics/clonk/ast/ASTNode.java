@@ -13,6 +13,7 @@ import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Script;
@@ -309,6 +310,13 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 
 	public final <T> TraversalContinuation traverse(final IASTVisitorNoContext visitor) {
 		return traverse(visitor, null);
+	}
+
+	public Stream<ASTNode> recursiveNodesStream() {
+		return Stream.concat(
+			stream(new ASTNode[] {this}),
+			stream(subElements()).flatMap(s -> s != null ? s.recursiveNodesStream() : Stream.empty())
+		);
 	}
 
 	/**
