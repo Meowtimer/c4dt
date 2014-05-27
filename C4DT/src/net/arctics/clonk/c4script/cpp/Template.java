@@ -2,9 +2,9 @@ package net.arctics.clonk.c4script.cpp;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
-import static net.arctics.clonk.c4script.cpp.DispatchCase.caze;
-import static net.arctics.clonk.c4script.cpp.DispatchCase.dispatch;
 import static net.arctics.clonk.util.ArrayUtil.concat;
+import static net.arctics.clonk.util.DispatchCase.caze;
+import static net.arctics.clonk.util.DispatchCase.dispatch;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
