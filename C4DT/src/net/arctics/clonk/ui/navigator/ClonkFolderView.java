@@ -24,7 +24,6 @@ import net.arctics.clonk.util.Utilities;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -365,7 +364,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 								return header.entryName().equals("DefCore.txt"); //$NON-NLS-1$
 							}
 							@Override
-							public void processGroupItem(final C4GroupItem item) throws CoreException {
+							public void processGroupItem(final C4GroupItem item) {
 								final C4GroupFile file = as(item, C4GroupFile.class);
 								if (file != null) {
 									final String s = file.getContentsAsString();

@@ -1,5 +1,9 @@
 package net.arctics.clonk.c4group;
 
+import static net.arctics.clonk.util.DispatchCase.caze;
+import static net.arctics.clonk.util.Utilities.block;
+import static net.arctics.clonk.util.Utilities.tri;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -8,12 +12,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.util.DispatchCase;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.ITreeNode;
 
@@ -39,13 +46,14 @@ import org.eclipse.core.runtime.SubProgressMonitor;
  */
 public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
+	@FunctionalInterface
 	public interface StreamReadCallback {
 		public void readStream(InputStream stream);
 	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
-	public synchronized void readFromStream(final C4GroupItem whoWantsThat, final long pos, final StreamReadCallback callback) throws IOException {
+	public void readFromStream(final C4GroupItem whoWantsThat, final long pos, final StreamReadCallback callback) throws IOException {
 		parentGroup().readFromStream(whoWantsThat, pos, callback);
 	}
 
@@ -73,40 +81,34 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	private boolean hasChildren;
 	private C4GroupHeader header;
 	private C4GroupEntryHeader entryHeader;
-	private C4Group parentGroup;
+	private final C4Group parentGroup;
 	private int offset;
 
 	private long originModifiedAtLoadTime;
 	private File origin;
 
 	public int baseOffset() {
-		int result = 0;
-		if (parentGroup() != null)
-			result += parentGroup().baseOffset();
-		result += offset + C4GroupHeader.STORED_SIZE + C4GroupEntryHeader.STORED_SIZE * header.getEntries();
-		return result;
+		final C4Group pg = parentGroup();
+		return
+			(pg != null ? pg.baseOffset() : 0) +
+			offset + C4GroupHeader.STORED_SIZE + C4GroupEntryHeader.STORED_SIZE * header.getEntries();
 	}
 
 	public File origin() {
 		return origin;
 	}
 
-	/**
-	 * Constructor for nested groups
-	 * @param parent
-	 * @param file
-	 */
 	protected C4Group(final C4Group parent, final String name, final File file) {
-		parentGroup = parent;
-		entryName = name;
-		origin = file;
-		if (file != null)
-			originModifiedAtLoadTime = file.lastModified();
+		this.parentGroup = parent;
+		this.entryName = name;
+		this.origin = file;
+		this.originModifiedAtLoadTime = file != null ? file.lastModified() : 0;
 	}
 
 	protected C4Group(final String name, final C4GroupHeader header) {
-		entryName = name;
-		childEntries = new LinkedList<C4GroupItem>();
+		this.entryName = name;
+		this.childEntries = new LinkedList<C4GroupItem>();
+		this.parentGroup = null;
 		this.header = header;
 	}
 
@@ -163,104 +165,92 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
      * @throws CoreException
      */
 	@Override
-	public void readIntoMemory(final boolean recursively, final C4GroupHeaderFilterBase filter, InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException {
+	public void readIntoMemory(final boolean recursively, final C4GroupHeaderFilterBase filter, InputStream stream0) {
 
-		if (stream == null)
-			stream = stream();
+		final InputStream stream = stream0 != null ? stream0 : stream();
+		final String[] files;
 
-		String[] files;
-
-		// compressed
-		if (stream != null) {
-
-			// read all items before this one in the parent group so the stream offset is right
-			/*if (parentGroup != null && parentGroup.getChildren().get(0) != this) {
-				C4GroupItem predecessor = parentGroup.getChildren().get(parentGroup.getChildren().indexOf(this) - 1);
-				predecessor.readIntoMemory(true, filter);
-			}*/
-
-			if (!loaded) {
-
-				loaded = true;
-				header = C4GroupHeader.createFromStream(stream);
-
-				childEntries = new ArrayList<C4GroupItem>(header.getEntries());
-				final List<Object> readObjects = new ArrayList<Object>(header.getEntries());
-
-				// populate readObjects with either C4GroupHeader (meaning the file this header describes is to be skipped) or C4GroupItem (meaning this item is to be added to child list of the calling group)
-				for (int i = 0; i < header.getEntries(); i++) {
-					hasChildren = true;
-					final C4GroupEntryHeader entryHeader = C4GroupEntryHeader.createFromStream(stream);
-					if (!(filter.accepts(entryHeader, this) || entryHeader.isGroup()))
-						// FIXME: skipping groups will not work at this time
-						readObjects.add(entryHeader);
-					else {
-						C4GroupItem entry;
-						if (entryHeader.isGroup()) {
-							final C4Group group = new C4Group(this, entryHeader.entryName(), null); // a group does not need all header information
-							group.offset = entryHeader.offset();
-							entry = group;
-						} else
-							entry = new C4GroupFile(this, entryHeader);
-						filter.notifyAboutCreatedItem(entryHeader, entry);
-						readObjects.add(entry);
-					}
-				}
-
-				// process group before processing child items
-				filter.processGroupItem(this);
-
-				if (recursively) {
+		if (!loaded) {
+			loaded = true;
+			// compressed
+			childEntries =
+				stream != null ? block(() -> {
+					header = tri(() -> C4GroupHeader.createFromStream(stream), Exception.class, Exception::printStackTrace);
+					if (header == null)
+						return null;
+					final List<Object> readObjects = IntStream.range(0,  header.getEntries())
+						.mapToObj(i -> {
+							final C4GroupEntryHeader entryHeader = tri(() -> C4GroupEntryHeader.createFromStream(stream), C4GroupInvalidDataException.class, Exception::printStackTrace);
+							return !(filter.accepts(entryHeader, this) || entryHeader.isGroup())
+								? entryHeader
+								: block(() -> {
+									final C4GroupItem entry = entryHeader.isGroup()
+										? block(() -> {
+											final C4Group group = new C4Group(this, entryHeader.entryName(), null); // a group does not need all header information
+											group.offset = entryHeader.offset();
+											return group;
+										}) : new C4GroupFile(this, entryHeader);
+									filter.notifyAboutCreatedItem(entryHeader, entry);
+									return entry;
+								});
+						})
+						.collect(Collectors.toList());
+					// process group before processing child items
+					filter.processGroupItem(this);
 					// open (read into memory or process in a way defined by the filter) or skip
-					for (final Object o : readObjects)
-						if (o instanceof C4GroupEntryHeader)
-							((C4GroupEntryHeader)o).skipData(stream);
-						else if (o instanceof C4GroupItem) {
-							final C4GroupItem item = (C4GroupItem) o;
-							childEntries.add(item);
-							item.readIntoMemory(true, filter, stream);
-						}
-				} else
-					for (final Object o : readObjects)
-						if (o instanceof C4GroupItem) {
-							childEntries.add((C4GroupItem) o);
-							// not recursive: only read files
-							if (o instanceof C4GroupFile)
-								((C4GroupFile)o).readIntoMemory(false, filter, stream);
-						}
-
-			}
-
-		}
-
-		// not compressed
-		else if (origin != null && (files = origin.list()) != null) {
-			childEntries = new ArrayList<C4GroupItem>(files.length);
-			for (final String childFileName : files) {
-				final File child = new File(origin, childFileName);
-				final C4GroupEntryHeader header = new C4GroupEntryHeader(child);
-				if (filter.accepts(header, this)) {
-					final boolean isFile = !header.isGroup();
-					final C4GroupItem childItem =
-						isFile
+					return readObjects.stream().map(x -> DispatchCase.<Object, C4GroupItem>dispatch(
+						x,
+						caze(C4GroupEntryHeader.class, header -> {
+							try {
+								header.skipData(stream);
+							} catch (final Exception e) {
+								e.printStackTrace();
+							}
+							return null;
+						}),
+						caze(C4GroupItem.class, item -> {
+							try {
+								if (recursively || item instanceof C4GroupFile)
+									item.readIntoMemory(true, filter, stream);
+							} catch (final Exception e) {
+								e.printStackTrace();
+							}
+							return item;
+						})
+					)).collect(Collectors.toList());
+				}) :
+				// uncompressed
+				origin != null && (files = origin.list()) != null ? Arrays.stream(files).map(childFileName -> {
+					final File child = new File(origin, childFileName);
+					final C4GroupEntryHeader header = new C4GroupEntryHeader(child);
+					return filter.accepts(header, this) ? block(() -> {
+						final boolean isFile = !header.isGroup();
+						final C4GroupItem childItem =
+							isFile
 							? new C4GroupFile(this, header)
-							: child.isDirectory()
-								? new C4GroupUncompressed(this, child.getName(), child)
-								: new C4GroupTopLevelCompressed(this, child.getName(), child);
-					if (isFile)
-						stream = new FileInputStream(child);
-					try {
-						childEntries.add(childItem);
-						if (recursively || !(childItem instanceof C4Group))
-							childItem.readIntoMemory(true, filter, stream);
-					} finally {
-						if (isFile) {
-							stream.close();
-							stream = null;
+						: child.isDirectory()
+						? new C4GroupUncompressed(this, child.getName(), child)
+							: new C4GroupTopLevelCompressed(this, child.getName(), child);
+						final InputStream fstream = isFile ? tri(() -> new FileInputStream(child), IOException.class, Exception::printStackTrace) : stream;
+						try {
+							if (fstream != null && recursively || !(childItem instanceof C4Group))
+								childItem.readIntoMemory(true, filter, fstream);
+						} catch (final Exception e) {
+							e.printStackTrace();
 						}
-					}
-				}
-			}
+						finally {
+							if (isFile && fstream != null)
+								try {
+									fstream.close();
+								} catch (final Exception e) {
+									e.printStackTrace();
+								}
+						}
+						return childItem;
+					}) : null;
+				}).filter(x -> x != null).collect(Collectors.toList())
+				// wa?
+				: null;
 		}
 
 	}
@@ -347,10 +337,6 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 						}
 					});
 			} catch (final IOException e) {
-				e.printStackTrace();
-			} catch (final C4GroupInvalidDataException e) {
-				e.printStackTrace();
-			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
 		return childEntries;

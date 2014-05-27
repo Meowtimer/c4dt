@@ -67,43 +67,22 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 			}
 		}
 	}
-
 	private static final EntryCache CACHE = new EntryCache();
-
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private static final String[] NO_CHILDNAMES = new String[0];
-
 	public static final int STORED_SIZE = 316;
 
-	private transient C4GroupEntryHeader header;
-	private transient C4Group parentGroup;
-	private transient boolean completed;
+	private final transient C4GroupEntryHeader header;
+	private final transient C4Group parentGroup;
 	private byte[] contents;
-
-	private transient File exportFromFile;
 
 	public C4GroupFile(final C4Group parentGroup, final C4GroupEntryHeader header) {
 		this.parentGroup = parentGroup;
 		this.header = header;
 	}
 
-	protected C4GroupFile() {
-		completed = true;
-	}
-
-	public static C4GroupFile makeEntry(final C4Group parent, final C4GroupEntryHeader header, final File exportFromFile) {
-		final C4GroupFile entry = new C4GroupFile();
-		entry.parentGroup = parent;
-		entry.header = header;
-		entry.contents = null;
-		entry.exportFromFile = exportFromFile;
-		return entry;
-	}
-
 	@Override
 	public void readIntoMemory(final boolean recursively, final C4GroupHeaderFilterBase filter, final InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException {
-		if (completed) return;
-		completed = true;
 
 		if ((filter.flagsForEntry(this) & C4GroupHeaderFilterBase.READINTOMEMORY) != 0)
 			fetchContents(stream);
@@ -116,7 +95,6 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	}
 
 	private void fetchContents(final InputStream stream) {
-		//System.out.println("Fetching contents of " + this);
 		contents = new byte[getSize()];
 		try {
 			for (
@@ -133,9 +111,9 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	public ByteArrayInputStream getContents() throws CoreException {
 		if (contents == null)
 			try {
-				parentGroup().readFromStream(this, parentGroup().baseOffset() + header.offset(), stream -> fetchContents(stream));
+				parentGroup().readFromStream(this, parentGroup().baseOffset() + header.offset(), this::fetchContents);
 				try {
-					return new ByteArrayInputStream(getContentsAsArray());
+					return new ByteArrayInputStream(contents);
 				} finally {
 					contents = null; // don't store
 				}
@@ -214,18 +192,11 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	}
 
 	/**
-	 * @return the contents
-	 */
-	public byte[] getContentsAsArray() {
-		return contents;
-	}
-
-	/**
 	 * Return the contents of this entry as a string
 	 * @return the contents of this entry as string
 	 */
 	public String getContentsAsString() {
-		return new String(getContentsAsArray());
+		return new String(contents);
 	}
 
 	@Override
@@ -250,7 +221,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	 */
 	@Override
 	public void releaseData() {
-		setContents(null);
+		contents = null;
 	}
 
 	@Override
@@ -274,10 +245,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 
 	@Override
 	public int computeSize() {
-		if (completed)
-			return contents.length;
-		else
-			return header.size();
+		return contents != null ? contents.length : header != null ? header.size() : 0;
 	}
 
 	@Override
@@ -287,8 +255,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 
 	@Override
 	public void writeTo(final OutputStream stream) throws IOException {
-		final InputStream inStream = new java.io.FileInputStream(exportFromFile);
-		try {
+		try (final InputStream inStream = new ByteArrayInputStream(contents)) {
 			final byte[] buffer = new byte[1024];
 			int read = 0;
 			try {
@@ -297,8 +264,6 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 			} catch (final IOException e) {
 				e.printStackTrace();
 			}
-		} finally {
-			inStream.close();
 		}
 	}
 
