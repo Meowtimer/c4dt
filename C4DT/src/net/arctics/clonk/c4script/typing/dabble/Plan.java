@@ -63,15 +63,16 @@ class Plan {
 						if (i.shouldTypeFromCalls(fn)) {
 							final List<CallDeclaration> calls = inference.index().callsTo(fn.name());
 							if (calls != null)
-								calls.stream()
-									.filter(c -> c.params().length == numParameters)
-									.map(call -> {
-										final Function caller = call.parent(Function.class);
-										return visits.get(caller.name());
-									})
-									.filter(x -> x != null)
-									.flatMap(cvs -> cvs.stream())
-									.forEach(cv -> addEdge(cv, v));
+								for (final CallDeclaration call : calls) {
+									if (call.params().length != numParameters)
+										continue;
+									final Function caller = call.parent(Function.class);
+									final List<Visit> callerVisits = visits.get(caller.name());
+									if (callerVisits != null)
+										for (final Visit callerVisit : callerVisits)
+											if (callerVisit.function == caller)
+												addEdge(callerVisit, v);
+								}
 						}
 					});
 		}
