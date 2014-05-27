@@ -50,6 +50,8 @@ import net.arctics.clonk.util.StringUtil;
 
 public class CPPTemplate {
 
+	private static final String NIL = "C4VNull";
+
 	static String cppTypeString(PrimitiveType type) {
 		switch ((type)) {
 		case ARRAY:
@@ -264,14 +266,14 @@ public class CPPTemplate {
 		node.print(new AppendableBackedExprWriter(output) {
 			private void printConversionSuffix(IType targetType, ASTNode node) {
 				final IType ty = node.ty();
-				final String suffix = !(node instanceof Literal || node instanceof AccessVar)
+				final String suffix = !(node instanceof Literal || node instanceof AccessVar || node instanceof Nil)
 					? valueConversionSuffix(ty) : null;
 				if (suffix != null)
 					output.append(suffix);
 			}
 			private LeftRightType leftRightTypes(BinaryOp bop) {
 				return
-					bop.operator() == Operator.Assign ? new LeftRightType(bop.leftSide().ty(), bop.leftSide().ty()) :
+					bop.operator() == Operator.Assign ? new LeftRightType(bop.leftSide().ty(), bop.rightSide().ty()) :
 					new LeftRightType(bop.operator().firstArgType(), bop.operator().secondArgType());
 			}
 			@Override
@@ -305,15 +307,29 @@ public class CPPTemplate {
 							append(format("Exec(D.S._%d", strNum.apply(call.name())));
 						if (call.params().length > 0)
 							stream(call.params()).forEach(par -> {
-								append(", ");
-								if (par != null)
-									par.print(this, depth);
+								if (par instanceof Ellipsis) {
+									final Function f = call.parent(Function.class);
+									final String ellipsisExpansion = f.parameters().stream()
+										.map(Variable::name)
+										.map(CPPTemplate::unclashKeyword)
+										.collect(Collectors.joining(", "));
+									if (ellipsisExpansion.length() > 0) {
+										append(", ");
+										append(ellipsisExpansion);
+									}
+								} else {
+									append(", ");
+									if (par != null)
+										par.print(this, depth);
+									else
+										append(NIL);
+								}
 							});
 						append(")");
 						return true;
 					}),
 					caze(Nil.class, nil -> {
-						append("nullptr");
+						append(NIL);
 						return true;
 					}),
 					caze(AccessVar.class, av -> {
@@ -393,11 +409,6 @@ public class CPPTemplate {
 							return true;
 						} else
 							return false;
-					}),
-					caze(Ellipsis.class, ell -> {
-						final Function f = ell.parent(Function.class);
-						output.append(f.parameters().stream().map(Variable::name).map(CPPTemplate::unclashKeyword).collect(Collectors.joining(", ")));
-						return true;
 					})
 				), Boolean.FALSE);
 			}
