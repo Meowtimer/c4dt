@@ -48,7 +48,7 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.StringUtil;
 
-public class Template {
+public class CPPTemplate {
 
 	static String cppTypeString(PrimitiveType type) {
 		switch ((type)) {
@@ -81,7 +81,7 @@ public class Template {
 	}
 
 	static String cppTypeString(IType type) {
-		return primitiveDispatch(type, Template::cppTypeString);
+		return primitiveDispatch(type, CPPTemplate::cppTypeString);
 	}
 
 	static String valueConversionSuffix(PrimitiveType targetType) {
@@ -108,7 +108,7 @@ public class Template {
 	}
 
 	static String valueConversionSuffix(IType targetType) {
-		return primitiveDispatch(targetType, Template::valueConversionSuffix);
+		return primitiveDispatch(targetType, CPPTemplate::valueConversionSuffix);
 	}
 
 	@SafeVarargs
@@ -396,7 +396,7 @@ public class Template {
 					}),
 					caze(Ellipsis.class, ell -> {
 						final Function f = ell.parent(Function.class);
-						output.append(f.parameters().stream().map(Variable::name).map(Template::unclashKeyword).collect(Collectors.joining(", ")));
+						output.append(f.parameters().stream().map(Variable::name).map(CPPTemplate::unclashKeyword).collect(Collectors.joining(", ")));
 						return true;
 					})
 				), Boolean.FALSE);
@@ -404,7 +404,7 @@ public class Template {
 		}, 0);
 		return output.toString();
 	}
-	public Template(Index index, Script script) {
+	public CPPTemplate(Index index, Script script) {
 
 		final List<Function> functions = new DeclarationsStreamer(index, script)
 			.declarations(script, s -> s.functions().stream())
@@ -426,7 +426,7 @@ public class Template {
 			))
 			.collect(Collectors.toList());
 
-		final Set<String> referencedGlobalFunctions =
+		final Set<String> referencedGlobalFunctionNames =
 			ofType(functions.stream().flatMap(f -> f.recursiveNodesStream()), CallDeclaration.class)
 				.filter(call -> call.predecessor() == null)
 				.map(call -> call.function())
@@ -458,8 +458,8 @@ public class Template {
 				.filter(def -> def != null)
 				.collect(Collectors.toSet());
 
-		this.globals = referencedGlobalFunctions.stream().map(n -> format("C4AulFunc* %s;", n));
-		this.assignGlobals = referencedGlobalFunctions.stream().map(n -> format("%1$s = def.GetFunc(\"%1$s\");", n));
+		this.globals = referencedGlobalFunctionNames.stream().map(n -> format("C4AulFunc* %s;", n));
+		this.assignGlobals = referencedGlobalFunctionNames.stream().map(n -> format("%1$s = def.GetFunc(\"%1$s\");", n));
 		this.locals = fields.stream().map(l -> format("C4String* %s;", l.unclashedName()));
 		this.assignLocals = fields.stream().map(l -> format("%s = Strings.RegString(\"%s\");", l.unclashedName(), l.name()));
 		this.funcs = uniqueFuncNames.stream().map(fn -> format("C4String* %s;", fn));
@@ -474,7 +474,7 @@ public class Template {
 					nf.name(),
 					script.name(),
 					parmsString(f, true),
-					f.parameters().stream().map(Variable::name).map(Template::unclashKeyword).collect(Collectors.joining(", "))
+					f.parameters().stream().map(Variable::name).map(CPPTemplate::unclashKeyword).collect(Collectors.joining(", "))
 				);
 			});
 		this.assignNatives = uniqueFuncNames.stream().map(n -> format("%s = AddFunc(&def.Script, \"%1$s\", W::%1$s);", n));
@@ -645,8 +645,8 @@ public class Template {
 		);
 	}
 
-	public static void printScript(Index index, Script script, PrintWriter output) {
-		new Template(index, script).flatten().forEach(s -> {
+	public static void render(Index index, Script script, PrintWriter output) {
+		new CPPTemplate(index, script).flatten().forEach(s -> {
 			output.append(s);
 			output.append("\n");
 		});

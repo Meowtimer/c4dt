@@ -28,7 +28,7 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.Invocation;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
-import net.arctics.clonk.c4script.cpp.Template;
+import net.arctics.clonk.c4script.cpp.CPPTemplate;
 import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.command.Command;
@@ -307,7 +307,7 @@ public class CLI implements IApplication, AutoCloseable {
 			inf.run2();
 		});
 		try (PrintWriter output = new PrintWriter(System.out)) {
-			Template.printScript(parser.script().index(), parser.script(), output);
+			CPPTemplate.render(parser.script().index(), parser.script(), output);
 		}
 	}
 	@Callable

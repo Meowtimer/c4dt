@@ -37,7 +37,7 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
-import net.arctics.clonk.c4script.cpp.Template;
+import net.arctics.clonk.c4script.cpp.CPPTemplate;
 import net.arctics.clonk.c4script.typing.ITypeable;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.StaticTypingUtil;
@@ -380,7 +380,7 @@ public class Command {
 			final C4ScriptEditor ed = (C4ScriptEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 			final StringWriter swriter = new StringWriter();
 			final PrintWriter output = new PrintWriter(swriter);
-			Template.printScript(ed.script().index(), ed.script(), output);
+			CPPTemplate.render(ed.script().index(), ed.script(), output);
 			final Clipboard clipboard = new Clipboard(Display.getCurrent());
 			clipboard.setContents(new Object[] { swriter.toString() }, new Transfer[] { TextTransfer.getInstance() });
 		}
