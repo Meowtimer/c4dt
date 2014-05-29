@@ -2540,10 +2540,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	public int sectionOffset() {
 		final Function f = currentFunction;
-		if (f != null && f.bodyLocation() != null)
-			return f.bodyLocation().start();
-		else
-			return 0;
+		return f != null && f.bodyLocation() != null ? f.bodyLocation().start() : 0;
 	}
 
 	/**

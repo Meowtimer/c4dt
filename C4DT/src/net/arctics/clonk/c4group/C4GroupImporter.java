@@ -48,11 +48,11 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 	 * When importing a group inside the project folder the group file needs to be moved to some temporary location first and after importing deleted
 	 */
 	private void determineWhatGroupsNeedToBeMovedAndDeleted() {
-		final File destinationFile = new File(destination.getLocation().toOSString());
+		final File destinationFolder = new File(destination.getLocation().toOSString());
 		File importingFolder = null;
 		for (int i = 0; i < groupFiles.length; i++) {
 			final File gf = groupFiles[i];
-			if (new File(destinationFile, gf.getName()).equals(gf)) {
+			if (new File(destinationFolder, gf.getName()).equals(gf)) {
 				if (importingFolder == null)
 					importingFolder = Core.instance().requestFolderInStateLocation(IMPORTING_FOLDER);
 				final File fileMoveDestination = new File(importingFolder, gf.getName());

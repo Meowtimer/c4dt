@@ -4,10 +4,7 @@ import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.tri;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import net.arctics.clonk.builder.ClonkProjectNature;
 
