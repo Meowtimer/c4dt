@@ -61,18 +61,6 @@ public class Markers implements Iterable<Marker> {
 	public Marker last() { return last; }
 	public Marker first() { return first; }
 
-	public void discardFrom(final Marker start) {
-		if (start == null) {
-			clear();
-			return;
-		}
-		if (start.prev != null)
-			start.prev.next = null;
-		else
-			first = null;
-		last = start.prev;
-	}
-
 	public synchronized void deploy() {
 		if (Core.runsHeadless())
 			return;
