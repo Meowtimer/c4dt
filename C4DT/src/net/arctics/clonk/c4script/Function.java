@@ -432,7 +432,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					final IType type = options.engineCompatible ?
 						(par.staticallyTyped() ? par.type().simpleType() : PrimitiveType.ANY)
 						: typing != null && typing.parameterTypes.length > i ? typing.parameterTypes[i] : par.type();
-					if (options.engineCompatible && !par.isActualParm())
+					if (options.engineCompatible && par.isEllipsis())
 						return null;
 					final String comment = par.userDescription() != null && options.parameterComments ? ("/* " + par.userDescription().trim() + " */ ") : "";
 					final boolean includeType =
@@ -801,7 +801,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public boolean tooManyParameters(final int num) {
 		synchronized (parameters) {
 			return
-				(parameters.size() == 0 || parameters.get(parameters.size()-1).isActualParm()) &&
+				(parameters.size() == 0 || !parameters.get(parameters.size()-1).isEllipsis()) &&
 				num > parameters.size();
 		}
 	}

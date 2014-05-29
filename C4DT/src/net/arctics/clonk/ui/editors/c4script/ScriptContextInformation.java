@@ -40,7 +40,7 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 	@Override
 	public int getContextInformationPosition() { return parmsStart(); }
 	public boolean hasVarParms() {
-		return function.numParameters() > 0 && !function.parameter(function.numParameters()-1).isActualParm();
+		return function.numParameters() > 0 && function.parameter(function.numParameters()-1).isEllipsis();
 	}
 
 	@Override

@@ -46,7 +46,7 @@ public class StackFrame extends DebugElement implements IStackFrame {
 			final Function f = (Function) function;
 			final List<DebugVariable> l = new LinkedList<DebugVariable>();
 			for (final Variable parm : f.parameters())
-				if (parm.isActualParm())
+				if (!parm.isEllipsis())
 					l.add(new DebugVariable(this, parm));
 			for (final Variable local : f.locals())
 				l.add(new DebugVariable(StackFrame.this, local));

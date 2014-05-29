@@ -272,18 +272,12 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public ASTNode initializationExpression() { return initializationExpression; }
 
 	public IRegion initializationExpressionLocation() {
-		if (initializationExpression instanceof ASTNode)
-			return initializationExpression;
-		else
-			return null; // const value not sufficient
+		return initializationExpression instanceof ASTNode ? initializationExpression : null;
 	}
 
 	public Object evaluateInitializationExpression(final IEvaluationContext context) {
 		final ASTNode e = initializationExpression();
-		if (e != null)
-			return e.evaluateStatic(context);
-		else
-			return null;
+		return e != null ? e.evaluateStatic(context) : null;
 	}
 
 	public void setInitializationExpression(final ASTNode initializationExpression) {
@@ -318,7 +312,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * Returns whether this variable is an actual explicitly declared parameter and not some crazy hack thingie like '...'
 	 * @return look above and feel relieved that redundancy is lifted from you
 	 */
-	public boolean isActualParm() { return !name().equals("..."); } //$NON-NLS-1$
+	public boolean isEllipsis() { return !name().equals("..."); } //$NON-NLS-1$
 	@Override
 	public IASTSection section() { return null; /* variables are always absolute because of the reasons */ }
 
@@ -374,15 +368,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return Return the parameter index or -1 if the variable is not a function parameter.
 	 */
 	public int parameterIndex() {
-		if (parent instanceof Function) {
-			int i = 0;
-			for (final Variable v : ((Function)parent).parameters())
-				if (v == this)
-					return i;
-				else
-					i++;
-		}
-		return -1;
+		final Function f = as(parent, Function.class);
+		return f != null ? f.parameters().indexOf(this) : -1;
 	}
 
 	@Override

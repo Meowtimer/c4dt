@@ -201,7 +201,7 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 			final IntegerLiteral number = params.length > 0 ? (IntegerLiteral) params[0] : IntegerLiteral.ZERO;
 			final Function func = this.parent(Function.class);
 			if (func != null)
-				if (number.intValue() >= 0 && number.intValue() < func.numParameters() && func.parameter(number.intValue()).isActualParm())
+				if (number.intValue() >= 0 && number.intValue() < func.numParameters() && !func.parameter(number.intValue()).isEllipsis())
 					return new AccessVar(parent(Function.class).parameter(number.intValue()).name());
 		}
 
