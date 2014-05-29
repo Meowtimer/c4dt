@@ -2,6 +2,7 @@ package net.arctics.clonk.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.io.Serializable;
@@ -55,8 +56,12 @@ import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.index.ProjectResource;
 import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.ini.Action;
 import net.arctics.clonk.ini.CategoriesValue;
+import net.arctics.clonk.ini.DefinitionPack;
+import net.arctics.clonk.ini.FunctionEntry;
 import net.arctics.clonk.ini.IDArray;
+import net.arctics.clonk.ini.IconSpec;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.ini.IniData.IniSectionDefinition;
@@ -64,6 +69,8 @@ import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniSection;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniUnitWithNamedSections;
+import net.arctics.clonk.ini.IntegerArray;
+import net.arctics.clonk.ini.MaterialArray;
 import net.arctics.clonk.ini.ParticleUnit;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.ini.SignedInteger;
@@ -924,31 +931,33 @@ public abstract class SpecialEngineRules {
 					callFunc.params()[1] instanceof StringLiteral ?
 						((StringLiteral)callFunc.params()[1]).stringValue() : null;
 				final IniConfiguration conf = processor.script().engine().iniConfigurations().configurationFor("Scenario.txt");
-				IniEntryDefinition entry = null;
-				for (final IniSectionDefinition def : conf.sections().values())
-					if (sectionName != null && sectionName.equals(def.sectionName())) {
-						final IniEntryDefinition trueEntry = as(def.entries().get(entryName), IniEntryDefinition.class);
-						if (trueEntry != null) {
-							entry = trueEntry;
-							break;
-						}
-					}
-					else {
-						final IniEntryDefinition ersatz = as(def.entries().get(entryName), IniEntryDefinition.class);
-						if (ersatz != null)
-							entry = ersatz;
-					}
+				final IniSectionDefinition primarySection = conf.sections().get(sectionName);
+				final IniEntryDefinition trueEntry = as(primarySection.entries().get(entryName), IniEntryDefinition.class);
+				final IniEntryDefinition entry = defaulting(trueEntry, () -> conf.sections().values().stream()
+					.map(def -> as(def.entries().get(entryName), IniEntryDefinition.class))
+					.filter(x -> x != null)
+					.findFirst().orElse(null));
 				if (entry != null)
 					return typeFromEntryClass(entry.entryClass());
 			}
 			return PrimitiveType.ANY;
 		}
 		private IType typeFromEntryClass(final Class<?> cls) {
-			if (SignedInteger.class.isAssignableFrom(cls))
-				return PrimitiveType.INT;
-			if (IDArray.class == cls)
-				return TypeChoice.make(PrimitiveType.ID, PrimitiveType.INT);
-			return PrimitiveType.ANY;
+			return
+				Action.class.isAssignableFrom(cls) ? PrimitiveType.STRING :
+				Boolean.class.isAssignableFrom(cls) ? PrimitiveType.BOOL :
+				CategoriesValue.class.isAssignableFrom(cls) ? PrimitiveType.INT :
+				DefinitionPack.class.isAssignableFrom(cls) ? PrimitiveType.STRING :
+				Enum.class.isAssignableFrom(cls) ? PrimitiveType.STRING :
+				FunctionEntry.class.isAssignableFrom(cls) ? PrimitiveType.STRING :
+				ID.class.isAssignableFrom(cls) ? PrimitiveType.ID :
+				IDArray.class.isAssignableFrom(cls) ? TypeChoice.make(PrimitiveType.ID, PrimitiveType.INT) :
+				IconSpec.class.isAssignableFrom(cls) ? PrimitiveType.STRING :
+				IntegerArray.class.isAssignableFrom(cls) ? PrimitiveType.INT :
+				MaterialArray.class.isAssignableFrom(cls) ? TypeChoice.make(PrimitiveType.STRING, PrimitiveType.INT) :
+				SignedInteger.class.isAssignableFrom(cls) ? PrimitiveType.INT :
+				java.lang.String.class.isAssignableFrom(cls) ? PrimitiveType.STRING :
+				PrimitiveType.ANY;
 		}
 	};
 
