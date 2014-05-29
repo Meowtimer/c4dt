@@ -932,7 +932,7 @@ public abstract class SpecialEngineRules {
 						((StringLiteral)callFunc.params()[1]).stringValue() : null;
 				final IniConfiguration conf = processor.script().engine().iniConfigurations().configurationFor("Scenario.txt");
 				final IniSectionDefinition primarySection = conf.sections().get(sectionName);
-				final IniEntryDefinition trueEntry = as(primarySection.entries().get(entryName), IniEntryDefinition.class);
+				final IniEntryDefinition trueEntry = primarySection != null ? as(primarySection.entries().get(entryName), IniEntryDefinition.class) : null;
 				final IniEntryDefinition entry = defaulting(trueEntry, () -> conf.sections().values().stream()
 					.map(def -> as(def.entries().get(entryName), IniEntryDefinition.class))
 					.filter(x -> x != null)
