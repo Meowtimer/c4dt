@@ -3,6 +3,7 @@ package net.arctics.clonk.c4group;
 import static net.arctics.clonk.util.DispatchCase.caze;
 import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.tri;
+import static net.arctics.clonk.util.Utilities.walk;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -355,20 +356,17 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 
 	public C4GroupItem findChild(final String itemName) {
-		for (final C4GroupItem item : children())
-			if (item.getName().equalsIgnoreCase(itemName))
-				return item;
-		return null;
+		return children().stream()
+			.filter(item -> item.getName().equalsIgnoreCase(itemName))
+			.findFirst().orElse(null);
 	}
 
 	public C4GroupItem findChild(final IPath path) {
 		final C4GroupItem item = findChild(path.segment(0));
-		if (item != null)
-			if (path.segmentCount() == 1)
-				return item;
-			else if (item instanceof C4Group)
-				return ((C4Group)item).findChild(path.removeFirstSegments(1));
-		return null;
+		return
+			path.segmentCount() == 1 ? item :
+			item instanceof C4Group ? ((C4Group)item).findChild(path.removeFirstSegments(1)) :
+			null;
 	}
 
 	/**
@@ -447,9 +445,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 
 	public C4Group masterGroup() {
-		C4Group result;
-		for (result = this; result.parentGroup() != null; result = result.parentGroup());
-		return result;
+		return walk(this, C4Group::parentGroup).reduce((a, b) -> b).orElse(null);
 	}
 
 	@Override
