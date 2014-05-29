@@ -596,7 +596,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		final ProposalsSite site = new ProposalsSite(
 			null, expression != null ? expression.end() : 0,
 			0, document, "", result, function.index(), function, function.script(),
-			expression, expression.parent(Sequence.class), PrimitiveType.UNKNOWN
+			expression, expression != null ? expression.parent(Sequence.class) : null, PrimitiveType.UNKNOWN
 		);
 		try {
 			processor.innerProposalsInFunction(site);

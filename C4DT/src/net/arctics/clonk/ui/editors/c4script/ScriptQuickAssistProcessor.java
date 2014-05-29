@@ -1,15 +1,23 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.StreamUtil.ofType;
+import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
+import static net.arctics.clonk.util.Utilities.tri;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
@@ -40,8 +48,8 @@ import net.arctics.clonk.c4script.ast.BinaryOp;
 import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.BunchOfStatements;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
-import net.arctics.clonk.c4script.ast.Comment;
 import net.arctics.clonk.c4script.ast.ConditionalStatement;
+import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.c4script.ast.IntegerLiteral;
 import net.arctics.clonk.c4script.ast.MemberOperator;
 import net.arctics.clonk.c4script.ast.ReturnStatement;
@@ -62,6 +70,7 @@ import net.arctics.clonk.ui.editors.ProposalsSite;
 import net.arctics.clonk.ui.editors.StructureEditingState;
 import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 
@@ -75,6 +84,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
@@ -107,36 +117,15 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	@Override
 	public boolean canAssist(final IQuickAssistInvocationContext invocationContext) { return true; }
 
-	private static final Set<Problem> fixableParserErrorCodes = ArrayUtil.set(
-		Problem.VariableCalled,
-		Problem.NeverReached,
-		Problem.NotFinished,
-		Problem.UndeclaredIdentifier,
-		Problem.IncompatibleTypes,
-		Problem.NoSideEffects,
-		Problem.NoAssignment,
-		Problem.NoInheritedFunction,
-		Problem.ReturnAsFunction,
-		Problem.Unused,
-		Problem.Garbage,
-		Problem.MemberOperatorWithTildeNoSpace,
-		Problem.KeywordInWrongPlace
-	);
-
 	@Override
 	public boolean canFix(final Annotation annotation) {
-		if (annotation instanceof MarkerAnnotation) {
-			final MarkerAnnotation ma = (MarkerAnnotation)annotation;
-			String ty;
-			try {
-				ty = ma.getMarker().getType();
-			} catch (final CoreException e) {
-				return false;
-			}
-			if (ty.equals(Core.MARKER_C4SCRIPT_ERROR))
-				return fixableParserErrorCodes.contains(Markers.problem(ma.getMarker()));
-		}
-		return false;
+		return
+			annotation instanceof MarkerAnnotation &&
+			Core.MARKER_C4SCRIPT_ERROR.equals(tri(
+				((MarkerAnnotation)annotation).getMarker()::getType,
+				CoreException.class, e -> {}
+			)) &&
+			fixes.keySet().contains(Markers.problem(((MarkerAnnotation)annotation).getMarker()));
 	}
 
 	private static boolean isAtPosition(final int offset, final Position pos) {
@@ -165,41 +154,25 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	public static final class ParameterizedProposalMarkerResolution extends WorkbenchMarkerResolution {
-
 		private final ParameterizedProposal proposal;
 		private final IMarker originalMarker;
-
 		public ParameterizedProposalMarkerResolution(final ParameterizedProposal proposal, final IMarker originalMarker) {
 			this.proposal = proposal;
 			this.originalMarker = originalMarker;
 		}
-
 		@Override
-		public String getDescription() {
-			return proposal.getDisplayString();
-		}
-
+		public String getDescription() { return proposal.getDisplayString(); }
 		@Override
-		public Image getImage() {
-			return proposal.getImage();
-		}
-
+		public Image getImage() { return proposal.getImage(); }
 		@Override
-		public String getLabel() {
-			return proposal.getDisplayString();
-		}
-
+		public String getLabel() { return proposal.getDisplayString(); }
 		@Override
-		public void run(final IMarker marker) {
-			proposal.runOnMarker(marker);
-		}
-
+		public void run(final IMarker marker) { proposal.runOnMarker(marker); }
 		private boolean relevant(final IMarker marker) {
 			return
 				!marker.equals(this.originalMarker) &&
 				Markers.problem(marker) == Markers.problem(originalMarker);
 		}
-
 		@Override
 		public IMarker[] findOtherMarkers(final IMarker[] markers) {
 			final List<IMarker> result = new ArrayList<IMarker>(markers.length);
@@ -208,10 +181,9 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					result.add(m);
 			return result.toArray(new IMarker[result.size()]);
 		}
-
 	}
 
-	public final class ParameterizedProposal extends DeclarationProposal {
+	public static final class ParameterizedProposal extends DeclarationProposal {
 		private final Replacement replacement;
 		private final int tabIndentation;
 		private final ScriptParser parser;
@@ -366,14 +338,17 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			if (regionSpecified != null)
 				newOne.regionToBeReplacedSpecifiedByReplacementExpression = regionSpecified;
 			// don't add duplicates
-			for (final Replacement existing : this)
-				if (existing.equals(newOne))
-					return existing;
-			for (final ICompletionProposal prop : existingList)
-				if (prop instanceof ParameterizedProposal && ((ParameterizedProposal)prop).createdFrom(newOne))
-					return ((ParameterizedProposal)prop).replacement();
-			this.add(newOne);
-			return newOne;
+			return this.stream()
+				.filter(newOne::equals)
+				.findFirst()
+				.orElseGet(() -> ofType(existingList.stream(), ParameterizedProposal.class)
+					.filter(prop -> prop.createdFrom(newOne))
+					.map(ParameterizedProposal::replacement)
+					.findFirst().orElseGet(() -> {
+						this.add(newOne);
+						return newOne;
+					})
+				);
 		}
 		public Replacement add(final String replacement, final ASTNode elm, final ASTNode... specifiable) {
 			return add(replacement, elm, true, null, specifiable);
@@ -391,15 +366,10 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	private static String parmNameFromExpression(final ASTNode expression, final int index) {
 		final String exprString = expression.toString();
 		final Matcher m = validIdentifierPattern.matcher(exprString);
-		if (m.matches())
-			return m.group();
-		else
-			return "par"+index; //$NON-NLS-1$
+		return m.matches() ? m.group() : "par"+index; //$NON-NLS-1$
 	}
 
 	public void collectProposals(final IMarker marker, final Position position, final List<ICompletionProposal> proposals, IDocument document, final C4ScriptEditor editor) {
-		if (document == null)
-			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		if (document == null)
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 		final ScriptEditingState state = editor.state();
@@ -425,325 +395,327 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			}, false);
 	}
 
-	private void internalCollectProposals(final IMarker marker, final Position position, final List<ICompletionProposal> proposals, final IDocument document, final Script script) {
-		final Problem errorCode = Markers.problem(marker);
-		IRegion expressionRegion = new SourceLocation(marker.getAttribute(IMarker.CHAR_START, 0),  marker.getAttribute(IMarker.CHAR_END, 0));
-		if (expressionRegion.getOffset() == -1)
-			return;
-		if (script == null || document == null)
-			return;
-		final Function func = script.funcAt(position.getOffset());
-		final int tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion.getOffset(), BufferedScanner.TABINDENTATIONMODE);
-		final ExpressionLocator<ScriptQuickAssistProcessor> locator = new ExpressionLocator<ScriptQuickAssistProcessor>(position.getOffset()-func.bodyLocation().start());
-		func.traverse(locator, this);
-		final FunctionFragmentParser parser = new FunctionFragmentParser(document, script, func, null);
-		final ASTNode offendingExpression = locator.expressionAtRegion();
-		final Statement topLevel = offendingExpression != null ? offendingExpression.parent(Statement.class) : null;
-
-		if (offendingExpression != null && topLevel != null) {
-			expressionRegion = offendingExpression.absolute();
-			final ReplacementsList replacements = new ReplacementsList(offendingExpression, proposals);
-			switch (errorCode) {
-			case VariableCalled:
-				assert(offendingExpression instanceof CallDeclaration);
-				replacements.add(
-					Messages.ClonkQuickAssistProcessor_RemoveBrackets,
-					topLevel.replaceSubElement(offendingExpression, new AccessVar(((CallDeclaration)offendingExpression).name()), 0)
+	static class Site {
+		final IDocument document;
+		final Script script;
+		final IMarker marker;
+		final Problem problem;
+		final IRegion expressionRegion0;
+		final Function func;
+		final int tabIndentation;
+		final FunctionFragmentParser parser;
+		final ASTNode offendingExpression;
+		final Statement topLevel;
+		final IRegion expressionRegion;
+		final ReplacementsList replacements;
+		Replacement addRemoveReplacement() {
+			final Replacement result = replacements.add(
+				Messages.ClonkQuickAssistProcessor_Remove,
+				new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()), //$NON-NLS-1$
+				false, true
+			);
+			return result;
+		}
+		Site(final List<ICompletionProposal> proposals, final IDocument document, final Script script, final Position position, final IMarker marker) {
+			this.document = document;
+			this.script = script;
+			this.marker = marker;
+			this.problem = Markers.problem(marker);
+			this.expressionRegion0 = new SourceLocation(marker.getAttribute(IMarker.CHAR_START, 0),  marker.getAttribute(IMarker.CHAR_END, 0));
+			if (expressionRegion0.getOffset() == -1 || script == null || document == null)
+				throw new IllegalStateException();
+			this.func = script.funcAt(position.getOffset());
+			this.tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion0.getOffset(), BufferedScanner.TABINDENTATIONMODE);
+			final ExpressionLocator<Site> locator = new ExpressionLocator<Site>(position.getOffset()-func.bodyLocation().start());
+			this.func.traverse(locator, this);
+			this.parser = new FunctionFragmentParser(document, script, func, null);
+			this.offendingExpression = locator.expressionAtRegion();
+			this.topLevel = offendingExpression != null ? offendingExpression.parent(Statement.class) : null;
+			this.expressionRegion = offendingExpression != null && topLevel != null ? offendingExpression.absolute() : expressionRegion0;
+			if (offendingExpression == null || topLevel == null)
+				throw new IllegalStateException();
+			this.replacements = new ReplacementsList(offendingExpression, proposals);
+		}
+		void commitReplacements() {
+			replacements.stream().map(replacement -> {
+				final String replacementAsString = "later"; //$NON-NLS-1$
+				final IRegion r =  replacement.regionToBeReplacedSpecifiedByReplacementExpression
+					? new Region(
+						func.bodyLocation().getOffset() + replacement.replacementExpression().start(),
+						replacement.replacementExpression().getLength()
+					)
+					: new Region(
+						expressionRegion.getOffset(),
+						replacement.replacementExpression() instanceof Statement
+							? topLevel.getLength()
+							: expressionRegion.getLength()
+					);
+				return new ParameterizedProposal(
+					null, replacementAsString, r.getOffset(), r.getLength(),
+					replacementAsString.length(), null, replacement.title(), null, null, null, null,
+					replacement, tabIndentation, parser, func
 				);
-				break;
-			case NeverReached:
-				{
-					final String s = topLevel.toString();
-					try {
-						replacements.add(
-							Messages.ClonkQuickAssistProcessor_CommentOutStatement,
-							new Comment(document.get(expressionRegion.getOffset()+func.bodyLocation().start(), expressionRegion.getLength()),
-								s.contains("\n"), false) //$NON-NLS-1$
-						);
-					} catch (final BadLocationException e) {
-						e.printStackTrace();
-					}
-					addRemoveReplacement(document, expressionRegion, replacements, func);
-					break;
-				}
-			case KeywordInWrongPlace:
-				addRemoveReplacement(document, expressionRegion, replacements, func);
-				break;
-			case NotFinished:
-				if (topLevel instanceof Unfinished) {
-					final boolean arrayElement = topLevel.parent() instanceof ArrayExpression;
-					replacements.add(
-						arrayElement ? Messages.C4ScriptQuickAssistProcessor_AddMissingComma : Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
-						new ASTNode() {
-							private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-							@Override
-							public void doPrint(final ASTNodePrinter output, final int depth) {
-								SimpleStatement.unwrap(topLevel).print(output, depth);
-								output.append(arrayElement ? ',' : ';');
-							}
-						}, false, true
-					);
-				}
-				break;
-			case UndeclaredIdentifier:
-				if (offendingExpression instanceof AccessVar && offendingExpression.parent() instanceof BinaryOp) {
-					final AccessVar var = (AccessVar) offendingExpression;
-					final BinaryOp op = (BinaryOp) offendingExpression.parent();
-					if (topLevel == op.parent() && op.operator() == Operator.Assign && op.leftSide() == offendingExpression)
-						replacements.add(
-							Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
-							new VarDeclarationStatement(var.name(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
-						);
-				}
-				if (offendingExpression instanceof CallDeclaration)
-					if (offendingExpression.predecessor() instanceof MemberOperator && !((MemberOperator)offendingExpression.predecessor()).hasTilde()) {
-						final MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)offendingExpression.predecessor()).id(), 3);
-						opWithTilde.setLocation(offendingExpression.predecessor());
-						replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
-					}
-				if (offendingExpression instanceof AccessDeclaration && offendingExpression.predecessor() == null) {
-					final AccessDeclaration accessDec = (AccessDeclaration) offendingExpression;
+			}).forEach(replacements.existingList::add);
+		}
+	}
 
-					// create new variable or function
-					final Replacement createNewDeclarationReplacement = replacements.add(
-						String.format(offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.name()),
-						ASTNode.NULL_EXPR,
-						false, false
-					);
-					final List<Declaration> decs = createNewDeclarationReplacement.additionalDeclarations();
-					if (accessDec instanceof AccessVar)
-						decs.add(new Variable(Scope.LOCAL, accessDec.name()));
-					else {
-						final CallDeclaration callFunc = (CallDeclaration) accessDec;
-						Function function;
-						decs.add(function = new Function(accessDec.name(), FunctionScope.PUBLIC));
-						final List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
-						int p = 0;
-						for (final ASTNode parm : callFunc.params())
-							parms.add(new Variable(parmNameFromExpression(parm, ++p), script.typings().get(parm)));
-						function.setParameters(parms);
-					}
+	@FunctionalInterface
+	interface ProblemFixer {
+		void contribute(Site site);
+	}
 
-					// gather proposals through ScriptCompletionProcessor and propose those with a similar name
-					ASTNode expr;
-					if (offendingExpression.parent() instanceof Sequence) {
-						final Sequence sequence = (Sequence) offendingExpression.parent();
-						expr = sequence.subSequenceUpTo(offendingExpression);
-					} else
-						expr = offendingExpression;
-					final List<ICompletionProposal> possible = ScriptCompletionProcessor.computeProposalsForExpression
-						(document, func, expr);
-					for (final ICompletionProposal p : possible)
-						if (p instanceof DeclarationProposal) {
-							final DeclarationProposal clonkProposal = (DeclarationProposal) p;
-							final Declaration dec = clonkProposal.declaration();
-							if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
-								continue;
-							final int similarity = StringUtil.similarityOf(dec.name(), accessDec.name());
-							if (similarity > 0) {
-								// always create AccessVar and set its region such that only the identifier part of the AccessDeclaration object
-								// will be replaced -> no unnecessary tidy-up of CallFunc parameters
-								final ASTNode repl = identifierReplacement(accessDec, dec.name());
-								replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()), repl, false, true);
-							}
+	static Pair<Problem[], ProblemFixer> fix(ProblemFixer fixer, Problem... problems) {
+		return Pair.pair(problems, fixer);
+	}
+
+	static class Problems {
+		final Problem[] problems;
+		Problems(Problem[] problems) {
+			super();
+			this.problems = problems;
+		}
+		Stream<Pair<Problem, ProblemFixer>> fixedBy(ProblemFixer fixer) {
+			return stream(problems).map(p -> Pair.pair(p, fixer));
+		}
+	}
+
+	static Problems problems(Problem... probs) {
+		return new Problems(probs);
+	}
+
+	private final Map<Problem, ProblemFixer> fixes = Arrays.asList(
+
+		problems(Problem.KeywordInWrongPlace).fixedBy(site -> {
+			site.addRemoveReplacement();
+		}),
+		problems(Problem.NotFinished).fixedBy(site -> {
+			if (site.topLevel instanceof Unfinished) {
+				final boolean arrayElement = site.topLevel.parent() instanceof ArrayExpression;
+				site.replacements.add(
+					arrayElement ? Messages.C4ScriptQuickAssistProcessor_AddMissingComma : Messages.ClonkQuickAssistProcessor_AddMissingSemicolon,
+					new ASTNode() {
+						private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+						@Override
+						public void doPrint(final ASTNodePrinter output, final int depth) {
+							SimpleStatement.unwrap(site.topLevel).print(output, depth);
+							output.append(arrayElement ? ',' : ';');
 						}
+					}, false, true
+				);
+			}
+		}),
+		problems(Problem.UndeclaredIdentifier, Problem.DeclarationNotFound).fixedBy(site -> {
+			if (site.offendingExpression instanceof AccessVar && site.offendingExpression.parent() instanceof BinaryOp) {
+				final AccessVar var = (AccessVar) site.offendingExpression;
+				final BinaryOp op = (BinaryOp) site.offendingExpression.parent();
+				if (site.topLevel == op.parent() && op.operator() == Operator.Assign && op.leftSide() == site.offendingExpression)
+					site.replacements.add(
+						Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
+						new VarDeclarationStatement(var.name(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
+					);
+			}
+			if (site.offendingExpression instanceof CallDeclaration)
+				if (site.offendingExpression.predecessor() instanceof MemberOperator && !((MemberOperator)site.offendingExpression.predecessor()).hasTilde()) {
+					final MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)site.offendingExpression.predecessor()).id(), 3);
+					opWithTilde.setLocation(site.offendingExpression.predecessor());
+					site.replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
+				}
+			if (site.offendingExpression instanceof AccessDeclaration && site.offendingExpression.predecessor() == null) {
+				final AccessDeclaration accessDec = (AccessDeclaration) site.offendingExpression;
 
-					// propose adding projects to the referenced projects which contain a definition with a matching name
-					if (accessDec.parent() instanceof CallDeclaration) {
-						final Variable parm = ((CallDeclaration)accessDec.parent()).parmDefinitionForParmExpression(accessDec);
-						if (parm != null && script.typing().compatible(parm.type(), PrimitiveType.ID)) {
-							final IProject p = marker.getResource().getProject();
-							IProject[] referencedProjects;
-							try {
-								referencedProjects = p.getReferencedProjects();
-							} catch (final CoreException e) {
-								e.printStackTrace();
-								break;
-							}
-							final ID defId = ID.get(accessDec.name());
-							for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
-								if (ArrayUtil.indexOf(proj, referencedProjects) == -1) {
-									final ClonkProjectNature nat = ClonkProjectNature.get(proj);
-									if (nat.index().definitionsWithID(defId) != null && eq(nat.index().engine(), script.engine()))
-										replacements.add(new Replacement(String.format(Messages.ClonkQuickAssistProcessor_AddProjectToReferencedProjects, nat.getProject().getName()), accessDec) {
-											@Override
-											public void performAdditionalActionsBeforeDoingReplacements() {
-												IProjectDescription desc;
+				// create new variable or function
+				final Replacement createNewDeclarationReplacement = site.replacements.add(
+					String.format(site.offendingExpression instanceof AccessVar ? Messages.ClonkQuickAssistProcessor_CreateLocalVar : Messages.ClonkQuickAssistProcessor_CreateLocalFunc, accessDec.name()),
+					ASTNode.NULL_EXPR,
+					false, false
+				);
+				final List<Declaration> decs = createNewDeclarationReplacement.additionalDeclarations();
+				if (accessDec instanceof AccessVar)
+					decs.add(new Variable(Scope.LOCAL, accessDec.name()));
+				else {
+					final CallDeclaration callFunc = (CallDeclaration) accessDec;
+					final Function function = new Function(accessDec.name(), FunctionScope.PUBLIC);
+					function.setParent(site.script);
+					function.storeBody(new FunctionBody(function), "");
+					decs.add(function);
+					final List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
+					int p = 0;
+					for (final ASTNode parm : callFunc.params())
+						parms.add(new Variable(parmNameFromExpression(parm, ++p), site.script.typings().get(parm)));
+					function.setParameters(parms);
+				}
+
+				// gather proposals through ScriptCompletionProcessor and propose those with a similar name
+				final ASTNode expr = site.offendingExpression.parent() instanceof Sequence
+					? ((Sequence) site.offendingExpression.parent()).subSequenceUpTo(site.offendingExpression)
+					: site.offendingExpression;
+				final List<ICompletionProposal> possible = ScriptCompletionProcessor.computeProposalsForExpression
+					(site.document, site.func, expr);
+				ofType(possible.stream(), DeclarationProposal.class).forEach(clonkProposal -> {
+					final Declaration dec = clonkProposal.declaration();
+					if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
+						return;
+					final int similarity = StringUtil.similarityOf(dec.name(), accessDec.name());
+					if (similarity > 0)
+						site.replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()),
+							identifierReplacement(accessDec, dec.name()), false, true);
+				});
+
+				// propose adding projects to the referenced projects which contain a definition with a matching name
+				if (accessDec.parent() instanceof CallDeclaration) {
+					final Variable parm = ((CallDeclaration)accessDec.parent()).parmDefinitionForParmExpression(accessDec);
+					final boolean isIDPar = parm != null && site.script.typing().compatible(parm.type(), PrimitiveType.ID);
+					if (isIDPar) {
+						final IProject p = site.script.resource().getProject();
+						final List<IProject> referencedProjects = tri(
+							() -> asList(p.getReferencedProjects()), CoreException.class, Exception::printStackTrace
+						);
+						final ID defId = ID.get(accessDec.name());
+						if (referencedProjects != null)
+							stream(ClonkProjectNature.clonkProjectsInWorkspace())
+								.filter(proj -> referencedProjects.indexOf(proj) == -1)
+								.map(ClonkProjectNature::get)
+								.filter(nat -> nat.index().definitionsWithID(defId) != null && eq(nat.index().engine(), site.script.engine()))
+								.forEach(nat -> {
+									site.replacements.add(new Replacement(String.format(Messages.ClonkQuickAssistProcessor_AddProjectToReferencedProjects, nat.getProject().getName()), accessDec) {
+										@Override
+										public void performAdditionalActionsBeforeDoingReplacements() {
+											final IProjectDescription desc = tri(p::getDescription, CoreException.class, Exception::printStackTrace);
+											if (desc != null)
 												try {
-													desc = p.getDescription();
-												} catch (final CoreException e) {
-													e.printStackTrace();
-													return;
-												}
-												desc.setReferencedProjects(ArrayUtil.concat(desc.getReferencedProjects(), proj));
-												try {
+													desc.setReferencedProjects(ArrayUtil.concat(desc.getReferencedProjects(), nat.getProject()));
 													p.setDescription(desc, null);
 												} catch (final CoreException e) {
 													e.printStackTrace();
 												}
-											}
-										});
-								}
-						}
+										}
+									});
+								});
 					}
 				}
-				break;
-			case IncompatibleTypes:
-				final PrimitiveType t = Markers.expectedType(marker);
-				if (eq(t, PrimitiveType.STRING)) {
-					final StringLiteral str = new StringLiteral(offendingExpression.toString());
-					str.setLocation(offendingExpression);
-					replacements.add(
-						Messages.ClonkQuickAssistProcessor_QuoteExpression,
-						str,
-						false, true
-					);
-				}
-				if (
-					isAnyOf(t, PrimitiveType.NILLABLES) &&
-					(offendingExpression instanceof IntegerLiteral && ((IntegerLiteral)offendingExpression).longValue() == 0)
-				)
-					replacements.add(
-						Messages.C4ScriptQuickAssistProcessor_Replace0WithNil,
-						new AccessVar(Keywords.Nil),
-						false, false
-					);
-				break;
-			case NoSideEffects:
-				if (topLevel instanceof SimpleStatement) {
-					final SimpleStatement statement = (SimpleStatement) topLevel;
-					replacements.add(
-						Messages.ClonkQuickAssistProcessor_ConvertToReturn,
-						new ReturnStatement((statement.expression()))
-					);
-					addRemoveReplacement(document, expressionRegion, replacements, func);
-					final CallDeclaration callFunc = new CallDeclaration(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.expression());
-					replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
-				}
-				break;
-			case NoAssignment:
-				if (topLevel instanceof SimpleStatement) {
-					final SimpleStatement statement = (SimpleStatement) topLevel;
-
-					if (statement.expression() instanceof BinaryOp) {
-						final BinaryOp binaryOp = (BinaryOp) statement.expression();
-						if (binaryOp.operator() == Operator.Equal)
-							replacements.add(
-								Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
-								new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())
-							);
-					}
-				}
-				break;
-			case NoInheritedFunction:
-				if (offendingExpression instanceof CallDeclaration && ((CallDeclaration)offendingExpression).name().equals(Keywords.Inherited))
-					replacements.add(
-						String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
-						identifierReplacement((AccessDeclaration) offendingExpression, Keywords.SafeInherited),
-						false, true
-					);
-				break;
-			case ReturnAsFunction:
-				if (offendingExpression instanceof Tuple) {
-					final Tuple tuple = (Tuple) offendingExpression;
-					final ASTNode[] elms = tuple.subElements();
-					if (elms.length >= 2) {
-						final ASTNode returnExpr = elms[0];
-						final ASTNode[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ASTNode.class);
-						final Statement[] statements = ArrayUtil.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr));
-						Block reordered;
-						if (tuple.parent().parent() instanceof ConditionalStatement && ((ConditionalStatement)tuple.parent().parent()).body() == tuple.parent())
-							reordered = new Block(statements);
-						else
-							reordered = new BunchOfStatements(statements);
-						reordered.setLocation(tuple.parent()); // return statement
-						replacements.add(
-							Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
-							reordered,
-							false,
-							true
-						);
-					}
-				}
-				break;
-			case Unused:
-				if (offendingExpression instanceof VarInitialization) {
-					final MutableRegion regionToDelete = new MutableRegion(0, expressionRegion.getLength());
-					final VarInitialization cur = (VarInitialization) offendingExpression;
-					final VarInitialization next = cur.succeedingInitialization();
-					final VarInitialization previous = cur.precedingInitialization();
-					final String replacementString = ""; //$NON-NLS-1$
-					if (next == null) {
-						if (previous != null) {
-							// removing last initialization -> change ',' before it to ';'
-							parser.seek(previous.end());
-							parser.eatWhitespace();
-							if (parser.peek() == ',')
-								regionToDelete.setStartAndEnd(parser.tell(), cur.end());
-						} else {
-							addRemoveReplacement(document, offendingExpression.parent(), replacements, func).setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
-							break;
-						}
-					} else
-						regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
-					replacements.add(
-						Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
-						new ReplacementStatement(replacementString, regionToDelete, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()),
-						false, true
-					);
-				}
-				break;
-			case Garbage:
-				addRemoveReplacement(document, expressionRegion, replacements, func);
-				break;
-			case MemberOperatorWithTildeNoSpace:
-				// just print out topLevel, space will be removed automatically
-				replacements.add(Messages.ClonkQuickAssistProcessor_RemoveSpace, topLevel);
-				break;
-			default:
-				break;
 			}
-
-			try {
-				replacements.add(
-					Messages.ClonkQuickAssistProcessor_TidyUp,
-					new Tidy(script, script.strictLevel()).tidyExhaustive(topLevel),
+		}),
+		problems(Problem.IncompatibleTypes).fixedBy(site -> {
+			final PrimitiveType t = Markers.expectedType(site.marker);
+			if (eq(t, PrimitiveType.STRING)) {
+				final StringLiteral str = new StringLiteral(site.offendingExpression.toString());
+				str.setLocation(site.offendingExpression);
+				site.replacements.add(
+					Messages.ClonkQuickAssistProcessor_QuoteExpression,
+					str,
 					false, true
 				);
-			} catch (final CloneNotSupportedException e) {
-				e.printStackTrace();
 			}
-
-			for (final Replacement replacement : replacements) {
-				final String replacementAsString = "later"; //$NON-NLS-1$
-				int offset = func.bodyLocation().getOffset();
-				int length;
-				if (replacement.regionToBeReplacedSpecifiedByReplacementExpression) {
-					offset += replacement.replacementExpression().start();
-					length = replacement.replacementExpression().getLength();
-				} else {
-					offset = expressionRegion.getOffset();
-					if (replacement.replacementExpression() instanceof Statement)
-						// if the replacement expression is a statement, replace the whole statement the erroneous expression resided in
-						length = topLevel.getLength();
-					else
-						length = expressionRegion.getLength();
+			final IntegerLiteral ntgr = as(site.offendingExpression, IntegerLiteral.class);
+			if (isAnyOf(t, PrimitiveType.NILLABLES) && ntgr != null && ntgr.longValue() == 0)
+				site.replacements.add(
+					Messages.C4ScriptQuickAssistProcessor_Replace0WithNil,
+					new AccessVar(Keywords.Nil),
+					false, false
+				);
+		}),
+		problems(Problem.NoSideEffects).fixedBy(site -> {
+			if (site.topLevel instanceof SimpleStatement) {
+				final SimpleStatement statement = (SimpleStatement) site.topLevel;
+				site.replacements.add(
+					Messages.ClonkQuickAssistProcessor_ConvertToReturn,
+					new ReturnStatement((statement.expression()))
+				);
+				site.addRemoveReplacement();
+				final CallDeclaration callFunc = new CallDeclaration(Messages.ClonkQuickAssistProcessor_FunctionToBeCalled, statement.expression());
+				site.replacements.add(Messages.ClonkQuickAssistProcessor_WrapWithFunctionCall, callFunc, callFunc);
+			}
+		}),
+		problems(Problem.NoAssignment).fixedBy(site -> {
+			if (site.topLevel instanceof SimpleStatement) {
+				final SimpleStatement statement = (SimpleStatement) site.topLevel;
+				if (statement.expression() instanceof BinaryOp) {
+					final BinaryOp binaryOp = (BinaryOp) statement.expression();
+					if (binaryOp.operator() == Operator.Equal)
+						site.replacements.add(
+							Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
+							new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())
+						);
 				}
-				proposals.add(new ParameterizedProposal(null, replacementAsString, offset, length,
-						replacementAsString.length(), null, replacement.title(), null, null, null, null,
-						replacement, tabIndentation, parser, func));
 			}
-		}
+		}),
+		problems(Problem.NoInheritedFunction).fixedBy(site -> {
+			if (site.offendingExpression instanceof CallDeclaration && ((CallDeclaration)site.offendingExpression).name().equals(Keywords.Inherited))
+				site.replacements.add(
+					String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
+					identifierReplacement((AccessDeclaration) site.offendingExpression, Keywords.SafeInherited),
+					false, true
+				);
+		}),
+		problems(Problem.ReturnAsFunction).fixedBy(site -> {
+			if (site.offendingExpression instanceof Tuple) {
+				final Tuple tuple = (Tuple) site.offendingExpression;
+				final ASTNode[] elms = tuple.subElements();
+				if (elms.length >= 2) {
+					final ASTNode returnExpr = elms[0];
+					final ASTNode[] rest = ArrayUtil.arrayRange(elms, 1, elms.length-1, ASTNode.class);
+					final Statement[] statements = ArrayUtil.concat(SimpleStatement.wrapExpressions(rest), new ReturnStatement(returnExpr));
+					final ConditionalStatement cond = as(tuple.parent().parent(), ConditionalStatement.class);
+					final Block reordered = cond != null && cond.body() == tuple.parent()
+						? new Block(statements) : new BunchOfStatements(statements);
+					reordered.setLocation(tuple.parent()); // return statement
+					site.replacements.add(
+						Messages.ClonkQuickAssistProcessor_RearrangeReturnStatement,
+						reordered,
+						false,
+						true
+					);
+				}
+			}
+		}),
+		problems(Problem.Unused).fixedBy(site -> {
+			if (site.offendingExpression instanceof VarInitialization) {
+				final MutableRegion regionToDelete = new MutableRegion(0, site.expressionRegion.getLength());
+				final VarInitialization cur = (VarInitialization) site.offendingExpression;
+				final VarInitialization next = cur.succeedingInitialization();
+				final VarInitialization previous = cur.precedingInitialization();
+				final String replacementString = ""; //$NON-NLS-1$
+				if (next == null) {
+					if (previous != null) {
+						// removing last initialization -> change ',' before it to ';'
+						site.parser.seek(previous.end());
+						site.parser.eatWhitespace();
+						if (site.parser.peek() == ',')
+							regionToDelete.setStartAndEnd(site.parser.tell(), cur.end());
+					} else
+						site.addRemoveReplacement().setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
+				} else
+					regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
+				site.replacements.add(
+					Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
+					new ReplacementStatement(replacementString, regionToDelete, site.document, site.expressionRegion.getOffset(), site.func.bodyLocation().getOffset()),
+					false, true
+				);
+			}
+		}),
+		problems(Problem.Garbage).fixedBy(site -> {
+			site.addRemoveReplacement();
+		}),
+		problems(Problem.MemberOperatorWithTildeNoSpace).fixedBy(site -> {
+			// just print out site.topLevel, space will be removed automatically
+			site.replacements.add(Messages.ClonkQuickAssistProcessor_RemoveSpace, site.topLevel);
+		})
+	).stream().flatMap(x -> x).collect(Collectors.toMap(p -> p.first(), p -> p.second()));
 
-	}
+	private void internalCollectProposals(final IMarker marker, final Position position, final List<ICompletionProposal> proposals, final IDocument document, final Script script) {
+		final Site site = new Site(proposals, document, script, position, marker);
+		final ProblemFixer fixer = fixes.get(site.problem);
+		if (fixer != null)
+			fixer.contribute(site);
+		try {
+			site.replacements.add(
+				Messages.ClonkQuickAssistProcessor_TidyUp,
+				new Tidy(script, script.strictLevel()).tidyExhaustive(site.topLevel),
+				false, true
+			);
+		} catch (final CloneNotSupportedException e) {}
+		site.commitReplacements();
 
-	private Replacement addRemoveReplacement(final IDocument document, final IRegion expressionRegion, final ReplacementsList replacements, final Function func) {
-		final Replacement result = replacements.add(
-			Messages.ClonkQuickAssistProcessor_Remove,
-			new ReplacementStatement("", expressionRegion, document, expressionRegion.getOffset(), func.bodyLocation().getOffset()), //$NON-NLS-1$
-			false, true
-		);
-		return result;
 	}
 
 	@Override
