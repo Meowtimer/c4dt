@@ -426,7 +426,8 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			if (expressionRegion0.getOffset() == -1 || script == null || document == null)
 				throw new IllegalStateException();
 			this.func = script.funcAt(position.getOffset());
-			this.tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(), func.bodyLocation().getOffset()+expressionRegion0.getOffset(), BufferedScanner.TABINDENTATIONMODE);
+			this.tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(),
+				func.bodyLocation().getOffset()+expressionRegion0.getOffset(), BufferedScanner.TABINDENTATIONMODE);
 			final ExpressionLocator<Site> locator = new ExpressionLocator<Site>(position.getOffset()-func.bodyLocation().start());
 			this.func.traverse(locator, this);
 			this.parser = new FunctionFragmentParser(document, script, func, null);
@@ -440,7 +441,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		void commitReplacements() {
 			replacements.stream().map(replacement -> {
 				final String replacementAsString = "later"; //$NON-NLS-1$
-				final IRegion r =  replacement.regionToBeReplacedSpecifiedByReplacementExpression
+				final IRegion r = replacement.regionToBeReplacedSpecifiedByReplacementExpression
 					? new Region(
 						func.bodyLocation().getOffset() + replacement.replacementExpression().start(),
 						replacement.replacementExpression().getLength()
