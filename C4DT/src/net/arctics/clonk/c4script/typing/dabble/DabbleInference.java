@@ -649,13 +649,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 								env.clear();
 							}
 							actualVisit(ownedFunction, statements, parTypes);
+							warnAboutUnusedLocals(function, statements);
 							DabbleInference.this.markers().take(this);
 						}
 						env = endTypeEnvironment();
 						typeUntypedParametersByUsage(parTypes);
 					}
 					endTypeEnvironment();
-					warnAboutUnusedLocals(function, statements);
 				}
 				catch (final ProblemException e) {}
 				finally {
