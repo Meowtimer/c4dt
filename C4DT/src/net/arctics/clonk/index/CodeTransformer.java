@@ -1,6 +1,7 @@
 package net.arctics.clonk.index;
 
 import static java.util.Arrays.stream;
+import static java.util.function.Function.identity;
 import static net.arctics.clonk.util.ArrayUtil.indexOfItemSatisfying;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.StringUtil.blockString;
@@ -235,7 +236,7 @@ public class CodeTransformer extends CodeConverter {
 			if (tf == null || tf.numParameters() - diff != sf.numParameters())
 				return null;
 			return new ObjParConversion(sf, tf, objNdx, idNdx);
-		}).filter(f -> f != null).collect(Collectors.toMap(c -> c.sourceFunction.name(), c -> c));
+		}).filter(f -> f != null).collect(Collectors.toMap(c -> c.sourceFunction.name(), identity()));
 	}
 	private void loadIDMap(final URL idMap) {
 		final String text = StreamUtil.stringFromURL(idMap);

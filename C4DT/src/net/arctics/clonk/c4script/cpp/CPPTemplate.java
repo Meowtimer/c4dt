@@ -2,6 +2,7 @@ package net.arctics.clonk.c4script.cpp;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
+import static java.util.function.Function.identity;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.DispatchCase.caze;
 import static net.arctics.clonk.util.DispatchCase.dispatch;
@@ -461,7 +462,7 @@ public class CPPTemplate {
 					.map(av -> av.name())
 			)
 				.distinct()
-				.collect(Collectors.toMap(s -> s, s -> counter.incrementAndGet()));
+				.collect(Collectors.toMap(identity(), s -> counter.incrementAndGet()));
 
 		final Set<Definition> idRefs =
 			ofType(functions.stream().flatMap(f -> f.recursiveNodesStream()), AccessVar.class)

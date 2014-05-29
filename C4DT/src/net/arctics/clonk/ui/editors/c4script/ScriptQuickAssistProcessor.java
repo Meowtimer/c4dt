@@ -2,6 +2,7 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.function.Function.identity;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -700,7 +701,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			// just print out site.topLevel, space will be removed automatically
 			site.replacements.add(Messages.ClonkQuickAssistProcessor_RemoveSpace, site.topLevel);
 		})
-	).stream().flatMap(x -> x).collect(Collectors.toMap(p -> p.first(), p -> p.second()));
+	).stream().flatMap(identity()).collect(Collectors.toMap(p -> p.first(), p -> p.second()));
 
 	private void internalCollectProposals(final IMarker marker, final Position position, final List<ICompletionProposal> proposals, final IDocument document, final Script script) {
 		final Site site = new Site(proposals, document, script, position, marker);
