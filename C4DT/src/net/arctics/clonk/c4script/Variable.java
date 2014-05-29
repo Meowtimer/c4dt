@@ -312,7 +312,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * Returns whether this variable is an actual explicitly declared parameter and not some crazy hack thingie like '...'
 	 * @return look above and feel relieved that redundancy is lifted from you
 	 */
-	public boolean isEllipsis() { return !name().equals("..."); } //$NON-NLS-1$
+	public boolean isEllipsis() { return name().equals("..."); } //$NON-NLS-1$
 	@Override
 	public IASTSection section() { return null; /* variables are always absolute because of the reasons */ }
 
