@@ -247,6 +247,12 @@ public abstract class Utilities {
 		return firstChoice != null ? firstChoice : defaultChoice;
 	}
 
+	@SafeVarargs
+	public static <A> A defaulting(final A firstChoice, final Supplier<A>... secondaryChoices) {
+		return firstChoice != null ? firstChoice :
+			stream(secondaryChoices).map(Supplier::get).filter(x -> x != null).findFirst().orElse(null);
+	}
+
 	public static <A> A defaulting(final A firstChoice, final java.util.function.Supplier<? extends A> defaultChoice) {
 		return firstChoice != null ? firstChoice : defaultChoice.get();
 	}

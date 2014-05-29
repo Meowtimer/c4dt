@@ -706,11 +706,11 @@ public abstract class SpecialEngineRules {
 		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			if (index == 1 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				Definition def = as(script.typings().get(callFunc.params()[0]), Definition.class);
-				if (def == null && callFunc.predecessor() != null)
-					def = as(script.typings().get(callFunc.predecessor()), Definition.class);
-				if (def == null)
-					def = as(script, Definition.class);
+				final Definition def = defaulting(
+					as(script.typings().get(callFunc.params()[0]), Definition.class),
+					() -> callFunc.predecessor() != null ? as(script.typings().get(callFunc.predecessor()), Definition.class) : null,
+					() -> as(script, Definition.class)
+				);
 				if (def != null) {
 					final Function f = def.findFunction(lit.stringValue());
 					if (f != null)
@@ -730,11 +730,11 @@ public abstract class SpecialEngineRules {
 		public EntityRegion locateEntityInParameter(final CallDeclaration callFunc, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
-				Definition def = callFunc.params().length > 1 ? as(script.typings().get(callFunc.params()[1]), Definition.class) : null;
-				if (def == null && callFunc.predecessor() != null)
-					def = as(script.typings().get(callFunc.predecessor()), Definition.class);
-				if (def == null)
-					def = as(script, Definition.class);
+				final Definition def = defaulting(
+					callFunc.params().length > 1 ? as(script.typings().get(callFunc.params()[1]), Definition.class) : null,
+					() -> callFunc.predecessor() != null ? as(script.typings().get(callFunc.predecessor()), Definition.class) : null,
+					() -> as(script, Definition.class)
+				);
 				if (def != null) {
 					final Variable var = def.findVariable(lit.stringValue());
 					if (var != null)
@@ -752,10 +752,7 @@ public abstract class SpecialEngineRules {
 	public final SpecialFuncRule getPlrKnowledgeRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(final ProblemReporter processor, final CallDeclaration callFunc) {
-			if (callFunc.params().length >= 3)
-				return PrimitiveType.ID;
-			else
-				return PrimitiveType.INT;
+			return callFunc.params().length >= 3 ? PrimitiveType.ID : PrimitiveType.INT;
 		};
 	};
 
@@ -866,8 +863,7 @@ public abstract class SpecialEngineRules {
 					final Definition projDef = definition;
 					final IResource res = Utilities.findMemberCaseInsensitively(projDef.definitionFolder(), "ActMap.txt");
 					if (res instanceof IFile) {
-						IniUnit unit;
-						unit = (IniUnit) Structure.pinned(res, true, false);
+						final IniUnit unit = (IniUnit) Structure.pinned(res, true, false);
 						if (unit instanceof IniUnitWithNamedSections) {
 							final IniSection actionSection = unit.sectionMatching(((IniUnitWithNamedSections) unit).nameMatcherPredicate(actionName));
 							if (actionSection != null)
@@ -1006,12 +1002,9 @@ public abstract class SpecialEngineRules {
 		else if (entry.key().equals("Animal"))
 			return item -> item.findFunction("IsAnimal") != null;
 		else if (entry.key().equals("Crew"))
-			return item -> {
-				for (final Directive d : item.directives())
-					if (d.type() == DirectiveType.APPENDTO)
-						return false; // ignore definitions that append
-				return item.findFunction("IsClonk") != null;
-			};
+			return item -> // ignore any definitions that append
+				!item.directives().stream().anyMatch(d -> d.type() == DirectiveType.APPENDTO) &&
+				item.findFunction("IsClonk") != null;
 		else
 			return item -> true;
 	}
