@@ -1300,7 +1300,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		if (result != null)
 			return result;
 
-		result = factory.newVariable(varName, scope);
+		result = factory.newVariable(scope, varName);
 		switch (scope) {
 		case PARAMETER:
 			result.setParent(function);

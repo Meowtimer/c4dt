@@ -389,6 +389,6 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		return parent instanceof Function ? new Object[] {parent} : super.occurenceScope(indexes);
 	}
 
-	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = (varName, scope) -> new Variable(scope, varName);
+	public static final IVariableFactory DEFAULT_VARIABLE_FACTORY = Variable::new;
 
 }

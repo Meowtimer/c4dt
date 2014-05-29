@@ -783,7 +783,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	@Override
-	public Variable newVariable(final String varName, final Scope scope) {
+	public Variable newVariable(final Scope scope, final String varName) {
 		return new Variable(scope, varName);
 	}
 
@@ -1847,10 +1847,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	public IRegion convertRelativeRegionToAbsolute(final int flags, final IRegion region) {
 		final int offset = sectionOffset();
-		if (offset == 0 || (flags & Markers.ABSOLUTE_MARKER_LOCATION) == 0)
-			return region;
-		else
-			return new Region(offset+region.getOffset(), region.getLength());
+		return offset == 0 || (flags & Markers.ABSOLUTE_MARKER_LOCATION) == 0 ? region : new Region(offset+region.getOffset(), region.getLength());
 	}
 
 	protected ASTNode parseExpression() throws ProblemException {
@@ -2115,13 +2112,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			//if (this.offset < endOfFunc)
 			//error(ParserErrorCode.BlockNotClosed, start, start+1, NO_THROW);
 		} else if (!oldStyle)
-			read(); // should be }
+			expect('}');
 		return statements;
 	}
 
 	private int maybeAddGarbageStatement(final List<ASTNode> statements, int garbageStart, final int potentialGarbageEnd) throws ProblemException {
-		String garbageString = new String(buffer, garbageStart, Math.min(potentialGarbageEnd, buffer.length-garbageStart));
-		garbageString = modifyGarbage(garbageString);
+		final String garbageString = new String(buffer, garbageStart, Math.min(potentialGarbageEnd, buffer.length-garbageStart));
 		if (garbageString != null && garbageString.length() > 0) {
 			final GarbageStatement garbage = new GarbageStatement(garbageString, garbageStart-sectionOffset());
 			garbageStart = -1;
@@ -2555,15 +2551,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			final SourceLocation loc = function.bodyLocation();
 			return new String(buffer, loc.start(), loc.getLength());
 		}
-	}
-
-	/**
-	 * Modify garbage string based on special considerations
-	 * @param garbage The expression string recognized as garbage
-	 * @return Actual garbage string to be wrapped in a GarbageStatement. Null if no GarbageStatement should be created
-	 */
-	protected String modifyGarbage(final String garbage) {
-		return garbage; // normal parser accepts teh garbage
 	}
 
 	/**

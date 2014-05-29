@@ -49,5 +49,5 @@ final class EngineScriptParser extends ScriptParser {
 	@Override
 	protected Function newFunction(final String nameWillBe) { return new EngineFunction(); }
 	@Override
-	public Variable newVariable(final String varName, final Scope scope) { return new EngineVariable(scope, varName); }
+	public Variable newVariable(final Scope scope, final String varName) { return new EngineVariable(scope, varName); }
 }
