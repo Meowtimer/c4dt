@@ -440,21 +440,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 				inferredTypes = new IType[function.totalNumASTNodes()];
 				experts = new Expert<?>[function.totalNumASTNodes()];
 				declarations = new Declaration[function.totalNumASTNodes()];
-				function.body().traverse(new IASTVisitor<Void>() {
-					final boolean owns = function.containedIn(script);
-					@Override
-					public TraversalContinuation visitNode(final ASTNode node, final Void nothing) {
-						if (owns && node instanceof AccessDeclaration)
-							((AccessDeclaration)node).setDeclaration(null);
-						final Expert<? super ASTNode> e = findExpert(node);
-						final int nid = node.localIdentifier();
-						if (nid >= 0) {
-							experts[nid] = e;
-							if (e.providesInherentType)
-								inferredTypes[nid] = e.type(node, visitor);
-						}
-						return TraversalContinuation.Continue;
+				final boolean owns = function.containedIn(script);
+				function.body().traverse((node, nothing) -> {
+					if (owns && node instanceof AccessDeclaration)
+						((AccessDeclaration)node).setDeclaration(null);
+					final Expert<? super ASTNode> e = findExpert(node);
+					final int nid = node.localIdentifier();
+					if (nid >= 0) {
+						experts[nid] = e;
+						if (e.providesInherentType)
+							inferredTypes[nid] = e.type(node, visitor);
 					}
+					return TraversalContinuation.Continue;
 				}, null);
 			}
 
