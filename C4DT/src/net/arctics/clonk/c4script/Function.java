@@ -1,7 +1,6 @@
 package net.arctics.clonk.c4script;
 
 import static java.lang.String.format;
-import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -423,7 +422,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	private void printParametersString(final ASTNodePrinter output, final PrintParametersOptions options) {
 		if (numParameters() > 0)
-			StringUtil.writeBlock(output, "", "", ", ", map(parameters(), new java.util.function.Function<Variable, String>() {
+			StringUtil.writeBlock(output, "", "", ", ", parameters().stream().map(new java.util.function.Function<Variable, String>() {
 				final Function.Typing typing = options.typing;
 				int i = -1;
 				@Override

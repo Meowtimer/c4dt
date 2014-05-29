@@ -42,7 +42,10 @@ public class StringUtil {
 		final Stream<?> enumeration
 	) {
 		final Appendable output = output0 != null ? output0 : new StringBuilder();
-		final String joined = enumeration.map(o -> o.toString()).collect(Collectors.joining(delimiter, startBlock, endBlock));
+		final String joined = enumeration
+			.filter(o -> o != null)
+			.map(Object::toString)
+			.collect(Collectors.joining(delimiter, startBlock, endBlock));
 		try {
 			output.append(joined);
 		} catch (final IOException e) {
