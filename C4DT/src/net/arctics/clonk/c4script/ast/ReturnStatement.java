@@ -37,7 +37,7 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 	@Override
 	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(keyword());
-		if (returnExpr != null) {
+		if (returnExpr != null && !(returnExpr instanceof Whitespace)) {
 			builder.append(" "); //$NON-NLS-1$
 			// return(); -> return 0;
 			if (returnExpr == ASTNode.NULL_EXPR)
