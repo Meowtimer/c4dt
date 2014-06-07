@@ -2740,6 +2740,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					final ControlFlow old = visitor.controlFlow;
 					final ASTNode condition = node.condition();
 					visitor.visit(condition, true);
+					visitor.ty(condition);
 					// use two separate type environments for if and else statement, merging
 					// gathered information afterwards
 					visitor.newTypeEnvironment();
