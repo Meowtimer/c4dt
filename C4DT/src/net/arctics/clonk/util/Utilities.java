@@ -114,28 +114,19 @@ public abstract class Utilities {
 	 * @return The item 'nearest' to resource
 	 */
 	public static <T extends IHasRelatedResource> T pickNearest(final List<? extends T> fromList, final IResource resource, final Predicate<T> filter) {
-		int bestDist = Integer.MAX_VALUE;
-		T best = null;
-		if (fromList != null) {
-			if (fromList.size() == 1) {
-				final T soleItem = fromList.get(0);
-				return filter == null || filter.test(soleItem) ? soleItem : null;
-			}
-			final Scenario scen = Scenario.containingScenario(resource);
-			for (final T o : fromList) {
-				if (filter != null && !filter.test(o))
-					continue;
+		final Weighted<T> w = (fromList != null ? fromList.stream() : Stream.<T>empty())
+			.filter(defaulting(filter, (T x) -> true))
+			.map(o -> {
 				final IResource res = o.resource();
-				final int newDist = res != null
+				final Scenario scen = Scenario.containingScenario(resource);
+				final int dist = res != null
 					? distanceToCommonContainer(resource, res, scen, null)
 					: Integer.MAX_VALUE;
-				if (best == null || newDist < bestDist) {
-					best = o;
-					bestDist = newDist;
-				}
-			}
-		}
-		return best;
+				return new Weighted<T>(o, dist);
+			})
+			.reduce((a, b) -> b.weight < a.weight ? b : a)
+			.orElse(null);
+		return w != null ? w.object : null;
 	}
 
 	public static Class<?> baseClass(final Class<?> a, final Class<?> b) {
@@ -401,5 +392,5 @@ public abstract class Utilities {
 			item instanceof Stream ? (Stream<T>)item : Stream.empty()
 		);
 	}
-	
+
 }

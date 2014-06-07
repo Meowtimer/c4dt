@@ -1,5 +1,6 @@
 package net.arctics.clonk.util;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.ByteArrayOutputStream;
@@ -191,4 +192,10 @@ public class StreamUtil {
 			return null;
 		}
 	}
+
+	@SafeVarargs
+	public static <T> Stream<? extends T> concat(Stream<? extends T>... streams) {
+		return stream(streams).reduce(Stream.empty(), Stream::concat);
+	}
+
 }

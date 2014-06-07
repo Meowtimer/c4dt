@@ -344,7 +344,6 @@ public class Definition extends Script implements IProplistDeclaration {
 			else
 				folder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, null);
 			relativePath = folder.getProjectRelativePath().toPortableString();
-			//index = ClonkProjectNature.get(definitionFolder).getIndex();
 		}
 	}
 

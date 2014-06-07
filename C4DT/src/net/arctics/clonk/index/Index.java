@@ -1,7 +1,12 @@
 package net.arctics.clonk.index;
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.util.StreamUtil.concat;
+import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.block;
+import static net.arctics.clonk.util.Utilities.pickNearest;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +32,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -157,16 +163,14 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		if (loadSynchronizer == null)
 			loadSynchronizer = new Object();
 		// make sure all the things are actually in the entity map...
-		for (final ASTNode s : subElements())
-			if (s instanceof IndexEntity) {
-				final IndexEntity e = (IndexEntity) s;
-				if (entities.put(e.entityId(), e) == null)
-					System.out.println(String.format("%s was missing from entities map", e.toString()));
-			}
-		for (final IndexEntity e : entities()) {
+		ofType(stream(subElements()), IndexEntity.class).forEach(e -> {
+			if (entities.put(e.entityId(), e) == null)
+				System.out.println(String.format("%s was missing from entities map", e.toString()));
+		});
+		entities().forEach(e -> {
 			e.index = this;
 			e.loaded = Loaded.No;
-		}
+		});
 		refresh(true);
 	}
 
@@ -187,18 +191,20 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				return (Definition) prop;
 
 			// create session cache
-			if (folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID) == null) return null;
-			final Iterable<? extends Definition> objects = definitionsWithID(ID.get(folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID)));
-			if (objects != null)
-				for (final Definition obj : objects)
-					if ((obj instanceof Definition)) {
-						final Definition projDef = obj;
-						if (projDef.relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())) {
-							projDef.setDefinitionFolder(folder);
-							return projDef;
-						}
-					}
-			return null;
+			final String idProperty = folder.getPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID);
+			if (idProperty == null) return null;
+			final List<? extends Definition> objects = definitionsWithID(ID.get(idProperty));
+			final Definition def = objects != null ? objects.stream().filter(
+				d -> d.relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())
+			).findFirst().orElse(null) : null;
+			return def != null ? block(() -> {
+				try {
+					def.setDefinitionFolder(folder);
+				} catch (final Exception e) {
+					e.printStackTrace();
+				}
+				return def;
+			}) : null;
 		} catch (final CoreException e) {
 			// likely due to getSessionProperty being called on non-existent resources
 			for (final List<Definition> list : definitions.values())
@@ -557,18 +563,19 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The chosen definition.
 	 */
 	public Definition definitionNearestTo(final IResource resource, final ID id) {
-		Definition best = null;
-		for (final Index index : relevantIndexes()) {
-			if (resource != null) {
-				final List<? extends Definition> objs = index.definitionsWithID(id);
-				best = objs == null ? null : objs.size() == 1 ? objs.get(0) : Utilities.pickNearest(objs, resource, null);
-			}
-			else
-				best = index.lastDefinitionWithId(id);
-			if (best != null)
-				break;
-		}
-		return best;
+		return relevantIndexes().stream()
+			.map(index ->
+				resource != null ? block(() -> {
+					final List<? extends Definition> objs = index.definitionsWithID(id);
+					return
+						objs == null ? null :
+						objs.size() == 1 ? objs.get(0) :
+						pickNearest(objs, resource, null);
+				}) : index.lastDefinitionWithId(id)
+			)
+			.filter(x -> x != null)
+			.findFirst()
+			.orElse(null);
 	}
 
 	/**
@@ -587,19 +594,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param declarationClass The class of the declarations to return
 	 * @return An Iterable to iterate over the matching declarations
 	 */
-	@SuppressWarnings("unchecked")
 	public <T extends Declaration> List<T> declarationsWithName(final String name, final Class<T> declarationClass) {
-		List<Declaration> list;
 		synchronized (declarationMap) {
-			list = this.declarationMap.get(name);
-			if (list != null) {
-				final ArrayList<T> result = new ArrayList<>(list.size());
-				for (final Declaration d : list)
-					if (declarationClass.isInstance(d))
-						result.add((T)d);
-				return result;
-			} else
-				return Collections.emptyList();
+			final List<Declaration> list = this.declarationMap.get(name);
+			return list != null ? ofType(list.stream(), declarationClass).collect(Collectors.toList()) : Collections.emptyList();
 		}
 	}
 
@@ -613,12 +611,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public <T extends Declaration> T findGlobal(final Class<T> whatYouWant, final String name) {
 		synchronized (declarationMap) {
 			final List<Declaration> decs = declarationMap.get(name);
-			if (decs == null)
-				return null;
-			for (final Declaration d : decs)
-				if (d.isGlobal() && whatYouWant.isInstance(d))
-					return (T)d;
-			return null;
+			return decs != null ?
+				(T)decs.stream().filter(d -> d.isGlobal() && whatYouWant.isInstance(d)).findFirst().orElse(null) :
+				null;
 		}
 	}
 
@@ -729,7 +724,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	/**
-	 * Finds a script by its path. This may be a path to an actual file or some other kind of path understood by the kind of index. But since the only relevant subclass of ClonkIndex is {@link ProjectIndex}, that's moot!
+	 * Finds a script by its path. This may be a path to an actual file or some other kind of path understood by the kind of index. But since the only relevant subclass of Index is {@link ProjectIndex}, that's moot!
 	 * @param path the path
 	 * @return the script or null if not found
 	 */
@@ -753,10 +748,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	@Override
 	public int hashCode() {
-		if (nature() != null)
-			return nature().getProject().getName().hashCode(); // project name should be unique
-		else
-			return super.hashCode();
+		return nature() != null ? nature().getProject().getName().hashCode() : super.hashCode();
 	}
 
 	/**
@@ -885,14 +877,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return
 	 */
 	public IDeserializationResolvable saveReplacementForEntity(final IndexEntity entity) {
-		if (entity == null)
-			return null;
-		if (entity instanceof Engine)
-			return new EngineRef((Engine)entity);
-		else if (entity.index() == this)
-			return new EntityId(entity);
-		else
-			return new EntityReference(entity);
+		return
+			entity == null ? null :
+			entity instanceof Engine ? new EngineRef((Engine)entity) :
+			entity.index() == this ? new EntityId(entity) :
+			new EntityReference(entity);
 	}
 
 	/**
@@ -1058,12 +1047,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	@Override
 	public ASTNode[] subElements() {
-		final List<ASTNode> nodes = new ArrayList<>(100);
-		nodes.addAll(scenarios);
-		nodes.addAll(scripts);
-		for (final List<Definition> defs : definitions.values())
-			nodes.addAll(defs);
-		return nodes.toArray(new ASTNode[nodes.size()]);
+		return concat(
+			scenarios.stream(),
+			scripts.stream(),
+			definitions.values().stream().flatMap(x -> x.stream())
+		).collect(ArrayUtil.toArray(ASTNode.class));
 	}
 
 	@Override
