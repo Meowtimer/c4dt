@@ -1,7 +1,9 @@
 package net.arctics.clonk.builder;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
+import static net.arctics.clonk.util.Utilities.tri;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -90,47 +92,49 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		}
 	}
 	@Override
-	public boolean visit(final IResourceDelta delta) throws CoreException {
+	public boolean visit(final IResourceDelta delta) {
 		if (delta == null)
 			return false;
 
 		boolean visitChildren = false;
 		If: if (delta.getResource() instanceof IFile) {
 			final IFile file = (IFile) delta.getResource();
-			Script script;
 			switch (delta.getKind()) {
 			case IResourceDelta.CHANGED: case IResourceDelta.ADDED:
-				script = Script.get(file, false);
-				if (script == null) {
-					final SystemScript sy = makeSystemScript(delta.getResource());
-					if (sy != null)
-						script = sy;
-					else
-						script = createDefinition(delta.getResource().getParent());
-				} else {
-					if (Script.looksLikeScriptFile(file.getName()))
-						script.setScriptFile(file); // ensure files match up
-					else {
-						final Structure s = Structure.pinned(file, true, true);
-						if (script instanceof Definition && s instanceof DefCoreUnit) {
-							// reparse for good measure
-							try {
-								new IniUnitParser((IniUnit) s).parse(false);
-							} catch (final ProblemException e) {
-								e.printStackTrace();
+				final Script existing = Script.get(file, false);
+				final Script script = existing == null
+					? block(() -> {
+						final SystemScript sy = tri(() -> makeSystemScript(delta.getResource()), CoreException.class, Exception::printStackTrace);
+						return sy != null ? sy : createDefinition(delta.getResource().getParent());
+					}) : block(() -> {
+						if (Script.looksLikeScriptFile(file.getName()))
+							existing.setScriptFile(file); // ensure files match up
+						else {
+							final Structure s = Structure.pinned(file, true, true);
+							if (existing instanceof Definition && s instanceof DefCoreUnit) {
+								// reparse for good measure
+								try {
+									new IniUnitParser((IniUnit) s).parse(false);
+								} catch (final ProblemException e) {
+									e.printStackTrace();
+								}
+								final ID id = ((DefCoreUnit)s).definitionID();
+								final Definition def = (Definition)existing;
+								if (id != null)
+									def.setId(id);
 							}
-							final ID id = ((DefCoreUnit)s).definitionID();
-							final Definition def = (Definition)script;
-							if (id != null)
-								def.setId(id);
 						}
-					}
-					obsoleted.remove(script);
-				}
+						obsoleted.remove(existing);
+						return existing;
+					});
 				if (script != null && file.equals(script.file()))
 					builder.queueScript(script);
 				else
-					processAuxiliaryFiles(file, script);
+					try {
+						processAuxiliaryFiles(file, script);
+					} catch (final CoreException e) {
+						e.printStackTrace();
+					}
 				break;
 			case IResourceDelta.REMOVED:
 				obsoleteCorrespondingScriptFromIndex(file, builder.index());
@@ -141,15 +145,18 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		else if (delta.getResource() instanceof IContainer) {
 			final IContainer container = (IContainer)delta.getResource();
 			if (!INDEX_C4GROUPS)
-				if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group) {
-					visitChildren = false;
-					break If;
+				try {
+					if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group) {
+						visitChildren = false;
+						break If;
+					}
+				} catch (final CoreException e) {
+					e.printStackTrace();
 				}
 			// make sure the object has a reference to its folder (not to some obsolete deleted one)
-			Definition definition;
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
-				definition = Definition.at(container);
+				final Definition definition = Definition.at(container);
 				if (definition != null) {
 					definition.setDefinitionFolder(container);
 					obsoleted.remove(definition);
@@ -214,32 +221,33 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		return result;
 	}
 	public void removeObsoleteScripts() {
-		for (final Script s : obsoleted)
-			builder.index().removeScript(s);
+		obsoleted.forEach(builder.index()::removeScript);
 		obsoleted.clear();
 	}
-	private SystemScript makeSystemScript(final IResource resource) throws CoreException {
+	private SystemScript makeSystemScript(final IResource resource) {
 		final SystemScript pinned = SystemScript.pinned(resource, true);
-		if (pinned != null)
-			return pinned;
-		if (resource instanceof IFile) {
+		return pinned != null ? pinned : resource instanceof IFile ? block(() -> {
 			final String ln = resource.getName().toLowerCase();
 			final IFile file = (IFile) resource;
-			if (Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent()))
-				return new SystemScript(builder.index(), file);
-			else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
-				return new MapScript(builder.index(), file);
-			else if (ln.equals("objects.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
-				return new ObjectsScript(builder.index(), file);
-			else if (LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.at(resource.getParent()) != null)
-				return new LocalizedScript(builder.index(), file);
-		}
-		return null;
+			try {
+				return
+					Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent()) ?
+						new SystemScript(builder.index(), file) :
+					ln.equals("map.c") && Scenario.get(resource.getParent()) != null ? //$NON-NLS-1$
+						new MapScript(builder.index(), file) :
+					ln.equals("objects.c") && Scenario.get(resource.getParent()) != null ? //$NON-NLS-1$
+						new ObjectsScript(builder.index(), file) :
+					LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.at(resource.getParent()) != null ?
+						new LocalizedScript(builder.index(), file) :
+					null;
+			} catch (final CoreException ce) {
+				ce.printStackTrace();
+				return null;
+			}
+		}) : null;
 	}
 	public boolean isMapScript(final IResource resource) {
-		return
-			resource instanceof IFile &&
-			resource.getName().equals("Map.c");
+		return resource instanceof IFile && resource.getName().equals("Map.c");
 	}
 	private boolean isSystemGroup(final IContainer container) {
 		return container.getName().equals(builder.index().engine().groupName("System", FileExtension.ResourceGroup)); //$NON-NLS-1$

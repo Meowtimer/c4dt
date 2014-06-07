@@ -136,15 +136,13 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		return result;
 	}
 
-    public static void MemScramble(final byte[] buffer, final int size)
-    {
+    public static void MemScramble(final byte[] buffer, final int size) {
         int cnt; byte temp;
         // XOR deface
         for (cnt = 0; cnt < size; cnt++)
             buffer[cnt] ^= 237;
         // BYTE swap
-        for (cnt = 0; cnt + 2 < size; cnt += 3)
-        {
+        for (cnt = 0; cnt + 2 < size; cnt += 3) {
             temp = buffer[cnt];
             buffer[cnt] = buffer[cnt + 2];
             buffer[cnt + 2] = temp;
@@ -450,10 +448,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 	@Override
 	public IFileStore[] childStores(final int options, final IProgressMonitor monitor) throws CoreException {
-		if (childEntries == null)
-			return new IFileStore[0];
-		else
-			return childEntries.toArray(new IFileStore[childEntries.size()]);
+		return childEntries == null ? new IFileStore[0] : childEntries.toArray(new IFileStore[childEntries.size()]);
 	}
 
 	@Override
@@ -496,12 +491,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 
 	public long lastModified() {
-		if (origin != null)
-			return origin.lastModified();
-		else if (parentGroup() != null)
-			return parentGroup().lastModified();
-		else
-			return EFS.NONE;
+		return origin != null ? origin.lastModified() : parentGroup() != null ? parentGroup().lastModified() : EFS.NONE;
 	}
 
 	@Override
@@ -557,10 +547,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	 * @return what he says
 	 */
 	public boolean outdated() {
-		if (origin != null)
-			return origin.lastModified() != originModifiedAtLoadTime;
-		else
-			return parentGroup != null ? parentGroup.outdated() : false;
+		return origin != null ? origin.lastModified() != originModifiedAtLoadTime : parentGroup != null ? parentGroup.outdated() : false;
 	}
 
 	@Override

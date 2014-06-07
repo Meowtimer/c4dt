@@ -1,5 +1,6 @@
 package net.arctics.clonk.index;
 
+import static java.lang.String.format;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.IOException;
@@ -292,11 +293,7 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	public Definition(final Index index, final ID id, final String name, final IContainer container) {
 		this(index, id, name);
-		try {
-			setDefinitionFolder(container);
-		} catch (final CoreException e1) {
-			e1.printStackTrace();
-		}
+		setDefinitionFolder(container);
 	}
 
 	@Override
@@ -327,23 +324,24 @@ public class Definition extends Script implements IProplistDeclaration {
 	 * @param folder The folder
 	 * @throws CoreException
 	 */
-	public void setDefinitionFolder(final IContainer folder) throws CoreException {
+	public void setDefinitionFolder(final IContainer folder) {
 		if (Utilities.eq(folder, definitionFolder))
 			return;
-		if (definitionFolder != null && definitionFolder.exists())
-			definitionFolder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, null);
-		// on setObjectFolder(null): don't actually set objectFolder to null, so ILatestDeclarationVersionProvider machinery still works
-		// (see ClonkIndex.getLatestVersion)
-		definitionFolder = folder;
-		if (folder != null) {
-			scriptFile = Script.findScriptFile(definitionFolder);
-			defCoreFile = as(Utilities.findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class);
-			folder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, this);
-			if (id() != null)
-				folder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
-			else
-				folder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, null);
-			relativePath = folder.getProjectRelativePath().toPortableString();
+		try {
+			if (definitionFolder != null && definitionFolder.exists())
+				definitionFolder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, null);
+			// on setObjectFolder(null): don't actually set objectFolder to null, so ILatestDeclarationVersionProvider machinery still works
+			// (see ClonkIndex.getLatestVersion)
+			definitionFolder = folder;
+			if (folder != null) {
+				scriptFile = Script.findScriptFile(definitionFolder);
+				defCoreFile = as(Utilities.findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class);
+				folder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, this);
+				folder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, id() != null ? id().stringValue() : null);
+				relativePath = folder.getProjectRelativePath().toPortableString();
+			}
+		} catch (final CoreException ce) {
+			ce.printStackTrace();
 		}
 	}
 
@@ -378,12 +376,7 @@ public class Definition extends Script implements IProplistDeclaration {
 		final IPath projectPath = new Path(this.relativePath);
 		final IResource res = project.findMember(projectPath);
 		if (res instanceof IContainer) {
-			try {
-				this.setDefinitionFolder((IContainer)res);
-			} catch (final CoreException e) {
-				e.printStackTrace();
-				return false;
-			}
+			this.setDefinitionFolder((IContainer)res);
 			return true;
 		}
 		else
@@ -392,8 +385,12 @@ public class Definition extends Script implements IProplistDeclaration {
 
 	@Override
 	public String toString() {
-		//return id != null ? id.stringValue() : name();
-		return (localizedName() + (id != null && id != ID.NULL ? " (" + id.toString() + ")" : "")) + " [" + relativePath + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+		return format(
+			"%s %s [%s],",
+			localizedName(),
+			(id != null && id != ID.NULL ? format("(%s)", id.toString()) : ""),
+			relativePath
+		);
 	}
 
 	@Override

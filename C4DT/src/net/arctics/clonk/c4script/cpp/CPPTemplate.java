@@ -526,6 +526,7 @@ public class CPPTemplate {
 			"	class Def : public C4NativeDef",
 			"	{",
 			"	public:",
+			"		virtual C4Object* NewInstance();",
 			"		using C4NativeDef::C4NativeDef;",
 			"		struct",
 			"		{",
@@ -623,6 +624,8 @@ public class CPPTemplate {
 			"		C4Object::ResetProperty(k);",
 			"	}",
 			"};",
+			"",
+			"C4Object* %s::Def::NewInstance() { return new %s(); }",
 			"",
 			convertedFunctions,
 			format("decltype(%s::D) %1$s::D(\"%s\");", script.name(), script.resource().getProjectRelativePath().toPortableString())

@@ -280,24 +280,22 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 
 		Display.getCurrent().asyncExec(() -> {
 			final ISearchResultViewPart view = NewSearchUI.activateSearchResultView();
-			if (view != null) {
-				final SearchResultPage page = as(view.getActivePage(), SearchResultPage.class);
-				if (page != null) {
-					final SearchResult result = (SearchResult)page.getInput();
-					runWithoutAutoBuild(() -> {
-						ofType(stream(result.getElements()), Structure.class).forEach(struct -> {
-							struct.saveNodes(ofType(stream(result.getMatches(struct)), ASTSearchQuery.Match.class).map(qm -> {
-								final ASTNode replacement = query.replacement();
-								ASTNode repl = replacement.transform(qm.subst(), replacement);
-								if (repl == replacement)
-									repl = repl.clone();
-								repl.setLocation(qm.node());
-								repl.setParent(qm.node().parent());
-								return repl;
-							}).collect(Collectors.toList()));
-						});
+			final SearchResultPage page = view != null ? as(view.getActivePage(), SearchResultPage.class) : null;
+			if (page != null) {
+				final SearchResult result = (SearchResult)page.getInput();
+				runWithoutAutoBuild(() -> {
+					ofType(stream(result.getElements()), Structure.class).forEach(struct -> {
+						struct.saveNodes(ofType(stream(result.getMatches(struct)), ASTSearchQuery.Match.class).map(qm -> {
+							final ASTNode replacement = query.replacement();
+							ASTNode repl = replacement.transform(qm.subst(), replacement);
+							if (repl == replacement)
+								repl = repl.clone();
+							repl.setLocation(qm.node());
+							repl.setParent(qm.node().parent());
+							return repl;
+						}).collect(Collectors.toList()));
 					});
-				}
+				});
 			}
 		});
 		return true;

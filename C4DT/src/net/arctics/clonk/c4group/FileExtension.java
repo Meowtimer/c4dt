@@ -12,8 +12,7 @@ public enum FileExtension {
 	ScenarioGroup,
 	FolderGroup,
 	Material(false);
-	final boolean group;
+	public final boolean group;
 	FileExtension() { this(true); }
 	FileExtension(boolean group) { this.group = group; }
-	public boolean group() { return group; }
 }

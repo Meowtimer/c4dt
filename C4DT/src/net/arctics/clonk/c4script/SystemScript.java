@@ -1,10 +1,11 @@
 package net.arctics.clonk.c4script;
 
+import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Structure;
@@ -101,26 +102,21 @@ public class SystemScript extends Script implements Serializable {
 	}
 
 	public static void register() {
-		registerStructureFactory(new IStructureFactory() {
-			@Override
-			public Structure create(final IResource resource, final boolean duringBuild) {
-				if (!Script.looksLikeScriptFile(resource.getName()))
-					return null;
-				final ProjectIndex index = ProjectIndex.fromResource(resource);
-				if (index != null)
-					for (final Script script : index.scripts()) {
-						final SystemScript sysScript = as(script, SystemScript.class);
-						if (sysScript != null && sysScript.file() != null && sysScript.file().equals(resource)) {
-							try {
-								index.loadEntity(sysScript);
-							} catch (final Exception e) {
-								e.printStackTrace();
-							}
-							return sysScript;
-						}
-					}
+		registerStructureFactory((resource, duringBuild) -> {
+			if (!Script.looksLikeScriptFile(resource.getName()))
 				return null;
-			}
+			final ProjectIndex index = ProjectIndex.fromResource(resource);
+			final Script sysScript = ofType(index.scripts().stream(), SystemScript.class)
+				.filter(s -> s.file() != null && s.file().equals(resource))
+				.findFirst()
+				.orElse(null);
+			if (sysScript != null)
+				try {
+					index.loadEntity(sysScript);
+				} catch (final Exception e) {
+					e.printStackTrace();
+				}
+			return sysScript;
 		});
 	}
 
@@ -128,20 +124,15 @@ public class SystemScript extends Script implements Serializable {
 	public String typeName(final boolean special) {
 		if (!special)
 			return PrimitiveType.OBJECT.typeName(false);
-		final List<Definition> targets = new ArrayList<>(3);
-		for (final Directive d : directives())
-			if (d.type() == DirectiveType.APPENDTO) {
+		final List<Definition> targets = directives().stream()
+			.filter(d -> d.type() == DirectiveType.APPENDTO)
+			.map(d -> {
 				final ID id = d.contentAsID();
-				if (id != null) {
-					final Definition def = index().definitionNearestTo(file(), id);
-					if (def != null)
-						targets.add(def);
-				}
-			}
-		if (targets.size() == 1)
-			return String.format("%s+", targets.get(0).typeName(true));
-		else
-			return super.typeName(special);
+				return id != null ? index().definitionNearestTo(file(), id) : null;
+			})
+			.filter(x -> x != null)
+			.collect(Collectors.toList());
+		return targets.size() == 1 ? String.format("%s+", targets.get(0).typeName(true)) : super.typeName(special);
 	}
 
 }
