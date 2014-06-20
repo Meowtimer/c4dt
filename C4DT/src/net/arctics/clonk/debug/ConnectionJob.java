@@ -1,6 +1,6 @@
 package net.arctics.clonk.debug;
 
-import static net.arctics.clonk.util.Utilities.tri;
+import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,7 +39,7 @@ class ConnectionJob extends Job {
 	protected IStatus run(final IProgressMonitor monitor) {
 		// try several times to give the engine a chance to load
 		final Socket socket = Stream
-			.generate(() -> tri(
+			.generate(() -> attempt(
 				() -> monitor.isCanceled() ? null : new Socket("localhost", port),
 				Exception.class,
 				e -> {
@@ -53,7 +53,7 @@ class ConnectionJob extends Job {
 			.filter(s -> s != null)
 			.findFirst().orElse(null);
 
-		final ConnectionObjects objs = socket != null ? tri(() ->
+		final ConnectionObjects objs = socket != null ? attempt(() ->
 			new ConnectionObjects(
 				new PrintWriter(socket.getOutputStream()),
 				new BufferedReader(new InputStreamReader(socket.getInputStream())

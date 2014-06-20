@@ -1,6 +1,6 @@
 package net.arctics.clonk.c4group;
 
-import static net.arctics.clonk.util.Utilities.tri;
+import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,7 +22,7 @@ public class C4GroupTopLevelCompressed extends C4Group {
 
 	private static final class SeekableStream extends FilterInputStream {
 		private static GZIPInputStream makeGZIPStream(File file) {
-			return tri(() -> new GZIPInputStream(new FilterInputStream(new FileInputStream(file)) {
+			return attempt(() -> new GZIPInputStream(new FilterInputStream(new FileInputStream(file)) {
 				private int timesRead = 0;
 				@Override
 				public int read() throws IOException {

@@ -3,7 +3,7 @@ package net.arctics.clonk.c4group;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.printingException;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
-import static net.arctics.clonk.util.Utilities.tri;
+import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,7 +104,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 							else {
 								final C4GroupFile entry = (C4GroupFile)item;
 								final IFile newFile = currentContainer.getFile(new Path(entry.getName()));
-								final InputStream newContents = tri(() -> entry.getContents(), CoreException.class, e -> {});
+								final InputStream newContents = attempt(() -> entry.getContents(), CoreException.class, e -> {});
 								if (newContents == null)
 									return;
 								try {

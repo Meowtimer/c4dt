@@ -3,7 +3,7 @@ package net.arctics.clonk.builder;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
-import static net.arctics.clonk.util.Utilities.tri;
+import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -104,7 +104,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				final Script existing = Script.get(file, false);
 				final Script script = existing == null
 					? block(() -> {
-						final SystemScript sy = tri(() -> makeSystemScript(delta.getResource()), CoreException.class, Exception::printStackTrace);
+						final SystemScript sy = attempt(() -> makeSystemScript(delta.getResource()), CoreException.class, Exception::printStackTrace);
 						return sy != null ? sy : createDefinition(delta.getResource().getParent());
 					}) : block(() -> {
 						if (Script.looksLikeScriptFile(file.getName()))

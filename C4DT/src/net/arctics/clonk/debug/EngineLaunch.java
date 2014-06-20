@@ -4,7 +4,7 @@ import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.flatten;
-import static net.arctics.clonk.util.Utilities.tri;
+import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.walk;
 
 import java.io.File;
@@ -160,7 +160,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 					return walk(scenarioFolder.getParent(), c -> c != null && c != projectLevel, c -> c.getParent());
 				})
 				.flatMap(c -> {
-					final IResource[] mems = tri(() -> c.members(), CoreException.class, e -> e.printStackTrace());
+					final IResource[] mems = attempt(() -> c.members(), CoreException.class, e -> e.printStackTrace());
 					return mems != null
 						? stream(mems)
 							.filter(res -> {
@@ -196,7 +196,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 				: Stream.empty(),
 
 			block(() -> {
-				final String custom = tri(
+				final String custom = attempt(
 					() -> configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_CUSTOMARGS, (String) null),
 					CoreException.class, e -> e.printStackTrace()
 				);

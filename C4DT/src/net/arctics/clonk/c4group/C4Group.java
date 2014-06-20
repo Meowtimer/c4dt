@@ -2,7 +2,7 @@ package net.arctics.clonk.c4group;
 
 import static net.arctics.clonk.util.DispatchCase.caze;
 import static net.arctics.clonk.util.Utilities.block;
-import static net.arctics.clonk.util.Utilities.tri;
+import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.walk;
 
 import java.io.File;
@@ -174,12 +174,12 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 			// compressed
 			childEntries =
 				stream != null ? block(() -> {
-					header = tri(() -> C4GroupHeader.createFromStream(stream), Exception.class, Exception::printStackTrace);
+					header = attempt(() -> C4GroupHeader.createFromStream(stream), Exception.class, Exception::printStackTrace);
 					if (header == null)
 						return null;
 					final List<Object> readObjects = IntStream.range(0,  header.getEntries())
 						.mapToObj(i -> {
-							final C4GroupEntryHeader entryHeader = tri(() -> C4GroupEntryHeader.createFromStream(stream), C4GroupInvalidDataException.class, Exception::printStackTrace);
+							final C4GroupEntryHeader entryHeader = attempt(() -> C4GroupEntryHeader.createFromStream(stream), C4GroupInvalidDataException.class, Exception::printStackTrace);
 							return !(filter.accepts(entryHeader, this) || entryHeader.isGroup())
 								? entryHeader
 								: block(() -> {
@@ -230,7 +230,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 						: child.isDirectory()
 						? new C4GroupUncompressed(this, child.getName(), child)
 							: new C4GroupTopLevelCompressed(this, child.getName(), child);
-						final InputStream fstream = isFile ? tri(() -> new FileInputStream(child), IOException.class, Exception::printStackTrace) : stream;
+						final InputStream fstream = isFile ? attempt(() -> new FileInputStream(child), IOException.class, Exception::printStackTrace) : stream;
 						try {
 							if (fstream != null && recursively || !(childItem instanceof C4Group))
 								childItem.readIntoMemory(true, filter, fstream);

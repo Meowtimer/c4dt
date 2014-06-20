@@ -226,7 +226,7 @@ public abstract class Utilities {
 	public static IResource findMemberCaseInsensitively(final IContainer container, final String name) {
 		if (container == null)
 			return null;
-		final IResource[] members = tri(() -> container.members(), CoreException.class, e -> {});
+		final IResource[] members = attempt(() -> container.members(), CoreException.class, e -> {});
 		return members != null ? stream(members).filter(c -> c.getName().equalsIgnoreCase(name)).findFirst().orElse(null) : null;
 	}
 
@@ -356,22 +356,16 @@ public abstract class Utilities {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T, E extends Exception> Supplier<T> trying(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
-		return () -> {
-			try {
-				return sup.get();
-			} catch (final Exception e) {
-				if (expectedException.isInstance(e))
-					exceptionHandler.accept((E)e);
-				else
-					unexpectedException(e);
-				return null;
-			}
-		};
-	}
-
-	public static <T, E extends Exception> T tri(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
-		return trying(sup, expectedException, exceptionHandler).get();
+	public static <T, E extends Exception> T attempt(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
+		try {
+			return sup.get();
+		} catch (final Exception e) {
+			if (expectedException.isInstance(e))
+				exceptionHandler.accept((E)e);
+			else
+				unexpectedException(e);
+			return null;
+		}
 	}
 
 	public static <T, E extends Throwable> T thro(E e) throws E { throw e; }

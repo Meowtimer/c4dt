@@ -7,7 +7,7 @@ import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
-import static net.arctics.clonk.util.Utilities.tri;
+import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,7 +122,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	public boolean canFix(final Annotation annotation) {
 		return
 			annotation instanceof MarkerAnnotation &&
-			Core.MARKER_C4SCRIPT_ERROR.equals(tri(
+			Core.MARKER_C4SCRIPT_ERROR.equals(attempt(
 				((MarkerAnnotation)annotation).getMarker()::getType,
 				CoreException.class, e -> {}
 			)) &&
@@ -569,7 +569,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					final boolean isIDPar = parm != null && site.script.typing().compatible(parm.type(), PrimitiveType.ID);
 					if (isIDPar) {
 						final IProject p = site.script.resource().getProject();
-						final List<IProject> referencedProjects = tri(
+						final List<IProject> referencedProjects = attempt(
 							() -> asList(p.getReferencedProjects()), CoreException.class, Exception::printStackTrace
 						);
 						final ID defId = ID.get(accessDec.name());
@@ -582,7 +582,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 									site.replacements.add(new Replacement(String.format(Messages.ClonkQuickAssistProcessor_AddProjectToReferencedProjects, nat.getProject().getName()), accessDec) {
 										@Override
 										public void performAdditionalActionsBeforeDoingReplacements() {
-											final IProjectDescription desc = tri(p::getDescription, CoreException.class, Exception::printStackTrace);
+											final IProjectDescription desc = attempt(p::getDescription, CoreException.class, Exception::printStackTrace);
 											if (desc != null)
 												try {
 													desc.setReferencedProjects(ArrayUtil.concat(desc.getReferencedProjects(), nat.getProject()));
