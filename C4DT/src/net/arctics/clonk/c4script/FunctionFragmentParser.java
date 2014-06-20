@@ -1,5 +1,8 @@
 package net.arctics.clonk.c4script;
 
+import static net.arctics.clonk.util.Utilities.attempt;
+import static net.arctics.clonk.util.Utilities.defaulting;
+
 import java.util.EnumSet;
 import java.util.List;
 
@@ -15,15 +18,12 @@ import org.eclipse.jface.text.IRegion;
 public class FunctionFragmentParser extends ScriptParser {
 	private final Function function;
 	private static String fragmentString(final IDocument doc, final Function function) {
-		String statements_;
 		final IRegion statementRegion = function.bodyLocation();
-		try {
-			// totally important to add the ")". Makes completion proposals work. DO NOT REMOVE!1 - actually, I removed it and it's okay
-			statements_ = doc.get(statementRegion.getOffset(), Math.min(statementRegion.getLength(), doc.getLength()-statementRegion.getOffset()));
-		} catch (final BadLocationException e) {
-			statements_ = ""; // well... //$NON-NLS-1$
-		}
-		return statements_;
+		return defaulting(
+			attempt(() -> doc.get(statementRegion.getOffset(), Math.min(statementRegion.getLength(), doc.getLength()-statementRegion.getOffset())),
+				BadLocationException.class, e -> {}),
+			""
+		);
 	}
 	public FunctionFragmentParser(final IDocument document, final Script script, final Function function, final Markers markers) {
 		super(fragmentString(document, function), script, null);
