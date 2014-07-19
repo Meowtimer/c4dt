@@ -194,7 +194,7 @@ public class StreamUtil {
 	}
 
 	@SafeVarargs
-	public static <T> Stream<? extends T> concat(Stream<? extends T>... streams) {
+	public static <T> Stream<? extends T> concatStreams(Stream<? extends T>... streams) {
 		return stream(streams).reduce(Stream.empty(), Stream::concat);
 	}
 

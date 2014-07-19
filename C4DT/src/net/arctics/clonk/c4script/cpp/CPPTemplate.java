@@ -6,6 +6,7 @@ import static java.util.function.Function.identity;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.DispatchCase.caze;
 import static net.arctics.clonk.util.DispatchCase.dispatch;
+import static net.arctics.clonk.util.StreamUtil.concatStreams;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
@@ -112,11 +113,6 @@ public class CPPTemplate {
 
 	static String valueConversionSuffix(IType targetType) {
 		return primitiveDispatch(targetType, CPPTemplate::valueConversionSuffix);
-	}
-
-	@SafeVarargs
-	static <T> Stream<T> concatMultiple(Stream<T>... streams) {
-		return stream(streams).reduce(Stream::concat).orElseGet(Stream::empty);
 	}
 
 	static String unclashKeyword(String name) {
@@ -449,7 +445,7 @@ public class CPPTemplate {
 
 		final AtomicInteger counter = new AtomicInteger();
 		final Map<String, Integer> strTable =
-			concatMultiple(
+			concatStreams(
 				// direct string literals
 				ofType(functions.stream().flatMap(f -> f.recursiveNodesStream()), StringLiteral.class).map(l -> l.stringValue()),
 				// names of functions from target calls or not resolved
