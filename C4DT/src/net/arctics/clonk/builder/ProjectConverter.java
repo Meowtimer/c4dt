@@ -27,6 +27,7 @@ import java.util.stream.IntStream;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
 import net.arctics.clonk.c4group.FileExtension;
@@ -325,26 +326,8 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		} catch (final CoreException ce) {}
 		final List<Runnable> list = new LinkedList<>();
 		destinationProject.index().allScripts(s -> list.add(() -> {
-			final boolean[] doSave = new boolean[1];
-			s.traverse((node, ctx) -> {
-				if (
-					applyFix(node, CallDeclaration.class, ProjectConverter::fixSomeArgumentTypes) ||
-					applyFix(node, IfStatement.class, ProjectConverter::fixIfEffect) ||
-					applyFix(node, Function.class, ProjectConverter::fixParms) ||
-					applyFix(node, AccessDeclaration.class, ProjectConverter::fixUndeclaredIdentifier)
-				)
-					doSave[0] = true;
-				return TraversalContinuation.Continue;
-			}, null);
-			if (doSave[0]) {
-				s.traverse(node -> {
-					final Function fn = as(node, Function.class);
-					if (fn != null)
-						fn.assignLocalIdentifiers();
-					return TraversalContinuation.Continue;
-				});
+			if (new Fixes().run(s))
 				needResaving.add(s);
-			}
 		}));
 		TaskExecution.threadPool(list, 20);
 	}
@@ -353,97 +336,122 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	public interface Fix<T> {
 		boolean fix(T node);
 	}
-	@SuppressWarnings("unchecked")
-	private static <T> boolean applyFix(ASTNode node, Class<? extends ASTNode> cls, Fix<T> fix) {
-		if (cls.isInstance(node))
-			return fix.fix((T)node);
-		else
-			return false;
-	}
 
-	private static boolean fixParms(Function node) {
-		final Set<String> got = new HashSet<>();
-		final boolean fixedParms = node.parameters().stream().reduce(false, (num, v) -> {
-			if (v.type() == PrimitiveType.REFERENCE) {
-				v.forceType(PrimitiveType.ANY);
-				return true;
-			} else if (!got.add(v.name())) {
-				final String mut = IntStream.iterate(2, x -> x + 1)
-					.mapToObj(x -> v.name()+Integer.valueOf(x))
-					.filter(got::add)
-					.findFirst()
-					.orElseThrow(() -> new IllegalStateException());
-				v.setName(mut);
+	static class Fixes implements IASTVisitor<Void> {
+		boolean doSave;
+		@Override
+		public TraversalContinuation visitNode(ASTNode node, Void ctx) {
+			if (
+				applyFix(node, CallDeclaration.class, Fixes::fixSomeArgumentTypes) ||
+				applyFix(node, IfStatement.class, Fixes::fixIfEffect) ||
+				applyFix(node, Function.class, Fixes::fixParms) ||
+				applyFix(node, AccessDeclaration.class, Fixes::fixUndeclaredIdentifier)
+			)
+				doSave = true;
+			return TraversalContinuation.Continue;
+		}
+		boolean run(Script s) {
+			s.traverse(this, null);
+			if (doSave) {
+				s.traverse(node -> {
+					final Function fn = as(node, Function.class);
+					if (fn != null)
+						fn.assignLocalIdentifiers();
+					return TraversalContinuation.Continue;
+				});
 				return true;
 			} else
 				return false;
-		}, (a, b) -> a || b);
-		if (node.returnType() == PrimitiveType.REFERENCE) {
-			node.forceType(PrimitiveType.ANY);
-			return true;
 		}
-		return fixedParms;
-	}
+		@SuppressWarnings("unchecked")
+		private static <T> boolean applyFix(ASTNode node, Class<? extends ASTNode> cls, Fix<T> fix) {
+			return cls.isInstance(node) ? fix.fix((T)node) : false;
+		}
 
-	private static boolean fixSomeArgumentTypes(CallDeclaration node) {
-		final Function fn = node.function();
-		if (fn != null) {
-			final ASTNode[] converted = IntStream.range(0, node.params().length).mapToObj(x -> {
-				final Variable par = fn.parameter(x);
-				final ASTNode arg = node.params()[x];
-				if (arg != null && arg.equals(IntegerLiteral.ZERO) && par != null && par.type() != PrimitiveType.INT)
-					return new Nil();
-				else
-					return arg;
-			}).toArray(l -> new ASTNode[l]);
-			if (!Arrays.equals(node.params(), converted)) {
-				node.setParams(converted);
+		private static boolean fixParms(Function node) {
+			final Set<String> got = new HashSet<>();
+			final boolean fixedParms = node.parameters().stream().reduce(false, (num, v) -> {
+				if (v.type() == PrimitiveType.REFERENCE) {
+					v.forceType(PrimitiveType.ANY);
+					return true;
+				} else if (!got.add(v.name())) {
+					final String mut = IntStream.iterate(2, x -> x + 1)
+						.mapToObj(x -> v.name()+Integer.valueOf(x))
+						.filter(got::add)
+						.findFirst()
+						.orElseThrow(() -> new IllegalStateException());
+					v.setName(mut);
+					return true;
+				} else
+					return false;
+			}, (a, b) -> a || b);
+			if (node.returnType() == PrimitiveType.REFERENCE) {
+				node.forceType(PrimitiveType.ANY);
 				return true;
 			}
+			return fixedParms;
 		}
-		return false;
-	}
 
-	private static boolean fixUndeclaredIdentifier(AccessDeclaration v) {
-		if (v.declaration() == null && v.predecessor() == null) {
-			if (v instanceof AccessVar) {
-				v.parent().replaceSubElement(v, new CallDeclaration("EvaluateID", new StringLiteral(v.name())), 0);
-				return true;
-			} else
-				return false;
-		} else
-			return false;
-	}
-
-	private static boolean fixIfEffect(IfStatement check) {
-		final Script script = check.parent(Script.class);
-		final BinaryOp comp = as(check.condition(), BinaryOp.class);
-		if (comp != null) {
-			final boolean leftSideIsEffect = script.typings().get(comp.leftSide()) instanceof Effect;
-			final boolean rightSideIsZero = IntegerLiteral.ZERO.equals(comp.rightSide());
-			final boolean elligible = leftSideIsEffect && rightSideIsZero;
-			if (elligible) {
-				Operator conv;
-				switch (comp.operator()) {
-				case SmallerEqual:
-					conv = Operator.Equal;
-					break;
-				case Larger:
-					conv = Operator.NotEqual;
-					break;
-				default:
-					conv = null;
+		private static boolean fixSomeArgumentTypes(CallDeclaration node) {
+			final Function fn = node.function();
+			if (fn != null) {
+				final ASTNode[] converted = IntStream.range(0, node.params().length).mapToObj(x -> {
+					final Variable par = fn.parameter(x);
+					final ASTNode arg = node.params()[x];
+					if (arg != null && arg.equals(IntegerLiteral.ZERO) && par != null && par.type() != PrimitiveType.INT)
+						return new Nil();
+					else
+						return arg;
+				}).toArray(l -> new ASTNode[l]);
+				if (!Arrays.equals(node.params(), converted)) {
+					node.setParams(converted);
+					return true;
 				}
-				if (conv != null) {
-					comp.operator(conv);
-					comp.setRightSide(new Nil());
+			}
+			return false;
+		}
+
+		private static boolean fixUndeclaredIdentifier(AccessDeclaration v) {
+			if (v.declaration() == null && v.predecessor() == null) {
+				if (v instanceof AccessVar) {
+					v.parent().replaceSubElement(v, new CallDeclaration("EvaluateID", new StringLiteral(v.name())), 0);
 					return true;
 				} else
 					return false;
 			} else
 				return false;
-		} else
-			return false;
+		}
+
+		private static boolean fixIfEffect(IfStatement check) {
+			final Script script = check.parent(Script.class);
+			final BinaryOp comp = as(check.condition(), BinaryOp.class);
+			if (comp != null) {
+				final boolean leftSideIsEffect = script.typings().get(comp.leftSide()) instanceof Effect;
+				final boolean rightSideIsZero = IntegerLiteral.ZERO.equals(comp.rightSide());
+				final boolean elligible = leftSideIsEffect && rightSideIsZero;
+				if (elligible) {
+					Operator conv;
+					switch (comp.operator()) {
+					case SmallerEqual:
+						conv = Operator.Equal;
+						break;
+					case Larger:
+						conv = Operator.NotEqual;
+						break;
+					default:
+						conv = null;
+					}
+					if (conv != null) {
+						comp.operator(conv);
+						comp.setRightSide(new Nil());
+						return true;
+					} else
+						return false;
+				} else
+					return false;
+			} else
+				return false;
+		}
 	}
 
 	/**
