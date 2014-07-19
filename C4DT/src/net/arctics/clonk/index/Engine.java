@@ -545,7 +545,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 				final IStorageLocation location = storageLocations[i];
 				location.collectURLsOfContainer(String.format("projectConverters/%s", sourceEngine.name()), true, projectConverterFiles); //$NON-NLS-1$
 			}
-			if (projectConverterFiles.size() > 0) {
+			if (!projectConverterFiles.isEmpty()) {
 				final CodeTransformer conf = new CodeTransformer(sourceEngine, this, projectConverterFiles);
 				return conf;
 			}
@@ -743,13 +743,14 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public String qualifiedName() { return name(); }
 
 	public boolean supportsPrimitiveType(final PrimitiveType type) {
+		final EngineSettings s = settings();
 		switch (type) {
 		case NUM:
-			return settings().supportsFloats;
+			return s.supportsFloats;
 		case REFERENCE:
-			return settings().supportsRefs;
+			return s.supportsRefs;
 		case PROPLIST:
-			return settings().supportsProplists;
+			return s.supportsProplists;
 		default:
 			return true;
 		}
