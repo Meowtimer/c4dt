@@ -243,12 +243,6 @@ public class CPPTemplate {
 	}
 
 	private final List<Object> skeleton;
-	private final Stream<String>
-		globals, assignGlobals, locals, assignLocals, funcs,
-		assignFuncs, natives, nativeWrappers, assignNatives,
-		stringTable, assignStringTable, instanceFields, instanceFuncs,
-		getPropertyByS, addNativeFields, setPropertyByS, resetProperty,
-		convertedFunctions, idTable, assignIDTable;
 
 	String parmsString(Function f, boolean comma) {
 		return f.parameters().isEmpty() ? "" : (
@@ -466,14 +460,14 @@ public class CPPTemplate {
 				.filter(def -> def != null)
 				.collect(Collectors.toSet());
 
-		this.globals = referencedGlobalFunctionNames.stream().map(n -> format("C4AulFunc* %s;", n));
-		this.assignGlobals = referencedGlobalFunctionNames.stream().map(n -> format("%1$s = def.GetFunc(\"%1$s\");", n));
-		this.locals = fields.stream().map(l -> format("C4String* %s;", l.unclashedName()));
-		this.assignLocals = fields.stream().map(l -> format("%s = Strings.RegString(\"%s\");", l.unclashedName(), l.name()));
-		this.funcs = uniqueFuncNames.stream().map(fn -> format("C4String* %s;", fn));
-		this.assignFuncs = uniqueFuncNames.stream().map(fn -> format("%1$s = Strings.RegString(\"%1$s\");", fn));
-		this.natives = uniqueFuncNames.stream().map(fn -> format("C4AulFunc* %s;", fn));
-		this.nativeWrappers = numberedFunctions.stream()
+		final Stream<String> globals = referencedGlobalFunctionNames.stream().map(n -> format("C4AulFunc* %s;", n));
+		final Stream<String> assignGlobals = referencedGlobalFunctionNames.stream().map(n -> format("%1$s = def.GetFunc(\"%1$s\");", n));
+		final Stream<String> locals = fields.stream().map(l -> format("C4String* %s;", l.unclashedName()));
+		final Stream<String> assignLocals = fields.stream().map(l -> format("%s = Strings.RegString(\"%s\");", l.unclashedName(), l.name()));
+		final Stream<String> funcs = uniqueFuncNames.stream().map(fn -> format("C4String* %s;", fn));
+		final Stream<String> assignFuncs = uniqueFuncNames.stream().map(fn -> format("%1$s = Strings.RegString(\"%1$s\");", fn));
+		final Stream<String> natives = uniqueFuncNames.stream().map(fn -> format("C4AulFunc* %s;", fn));
+		final Stream<String> nativeWrappers = numberedFunctions.stream()
 			.map(nf -> {
 				final Function f = nf.function;
 				return format(
@@ -485,26 +479,26 @@ public class CPPTemplate {
 					f.parameters().stream().map(Variable::name).map(CPPTemplate::unclashKeyword).collect(Collectors.joining(", "))
 				);
 			});
-		this.assignNatives = uniqueFuncNames.stream().map(n -> format("%s = AddFunc(&def.Script, \"%1$s\", W::%1$s);", n));
-		this.stringTable = strTable.entrySet().stream().map(e -> format("C4String* _%d;", e.getValue()));
-		this.assignStringTable = strTable.entrySet().stream()
+		final Stream<String> assignNatives = uniqueFuncNames.stream().map(n -> format("%s = AddFunc(&def.Script, \"%1$s\", W::%1$s);", n));
+		final Stream<String> stringTable = strTable.entrySet().stream().map(e -> format("C4String* _%d;", e.getValue()));
+		final Stream<String> assignStringTable = strTable.entrySet().stream()
 			.sorted((a, b) -> a.getValue().compareTo(b.getValue()))
 			.map(e -> format("_%d = Strings.RegString(\"%s\");", e.getValue(), e.getKey()));
-		this.instanceFields = fields.stream().map(f -> format("%s %s;", cppTypeString(f.type()), unclashKeyword(f.name())));
-		this.instanceFuncs = numberedFunctions.stream().map(f -> format(
+		final Stream<String> instanceFields = fields.stream().map(f -> format("%s %s;", cppTypeString(f.type()), unclashKeyword(f.name())));
+		final Stream<String> instanceFuncs = numberedFunctions.stream().map(f -> format(
 			"%s s_%s(%s);",
 			cppTypeString(f.function.returnType()),
 			f.name(),
 			parmsString(f.function, false)
 		));
-		this.getPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { *pResult = C4Value(%1$s); return true; }", f.unclashedName()));
-		this.addNativeFields = fields.stream().map(f -> format("(*properties)[i++] = C4Value(%s);", f.unclashedName()));
-		this.setPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = to%s; return; }", f.unclashedName(), valueConversionSuffix(f.type())));
-		this.resetProperty = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = {}; return; }", f.unclashedName()));
-		this.idTable = idRefs.stream().map(id -> format("C4Def* %s;", id.name()));
-		this.assignIDTable = idRefs.stream().map(id -> format("%s = Definitions.GetByName(StdStrBuf(\"%1$s\"));", id.name()));
+		final Stream<String> getPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { *pResult = C4Value(%1$s); return true; }", f.unclashedName()));
+		final Stream<String> addNativeFields = fields.stream().map(f -> format("(*properties)[i++] = C4Value(%s);", f.unclashedName()));
+		final Stream<String> setPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = to%s; return; }", f.unclashedName(), valueConversionSuffix(f.type())));
+		final Stream<String> resetProperty = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = {}; return; }", f.unclashedName()));
+		final Stream<String> idTable = idRefs.stream().map(id -> format("C4Def* %s;", id.name()));
+		final Stream<String> assignIDTable = idRefs.stream().map(id -> format("%s = Definitions.GetByName(StdStrBuf(\"%1$s\"));", id.name()));
 
-		this.convertedFunctions = functions.stream().map(f ->
+		final Stream<String> convertedFunctions = functions.stream().map(f ->
 			format("%s %s::s_%s(%s)\n%s\n",
 				cppTypeString(f.returnType()),
 				script.name(),
@@ -639,21 +633,22 @@ public class CPPTemplate {
 	@SuppressWarnings("unchecked")
 	public Stream<String> flatten() {
 		final AtomicInteger indent = new AtomicInteger();
-		final List<Indented> indented = skeleton.stream().map(item -> {
-			final String str = as(item, String.class);
-			final int currentIndentation = indent.get();
-			if (str != null)
-				if (str.contains("}"))
-					indent.decrementAndGet();
-				else if (str.contains("{"))
-					indent.incrementAndGet();
-			return new Indented(currentIndentation, item);
-		}).collect(Collectors.toList());
-		return indented.stream().flatMap(s ->
-			s.item instanceof String ? stream(new String[] {(String)s.item}) :
-			s.item instanceof Stream ? ((Stream<String>)s.item).map(str -> StringUtil.multiply("\t", s.indentation) + str) :
-			Stream.empty()
-		);
+		return skeleton.stream()
+			.map(item -> {
+				final String str = as(item, String.class);
+				final int currentIndentation = indent.get();
+				if (str != null)
+					if (str.contains("}"))
+						indent.decrementAndGet();
+					else if (str.contains("{"))
+						indent.incrementAndGet();
+				return new Indented(currentIndentation, item);
+			})
+			.flatMap(s ->
+				s.item instanceof String ? stream(new String[] {(String)s.item}) :
+				s.item instanceof Stream ? ((Stream<String>)s.item).map(str -> StringUtil.multiply("\t", s.indentation) + str) :
+				Stream.empty()
+			);
 	}
 
 	public static void render(Index index, Script script, PrintWriter output) {
