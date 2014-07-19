@@ -162,17 +162,17 @@ public class EngineLaunch implements ILaunchesListener2 {
 				.flatMap(c -> {
 					final IResource[] mems = tri(() -> c.members(), CoreException.class, e -> e.printStackTrace());
 					return mems != null
-						? stream(mems)
+						? ofType(stream(mems), IContainer.class)
 							.filter(res -> {
 								final FileExtension ext = engine.extensionForFileName(res.getName());
 								return
-									!res.getName().startsWith(".") && res instanceof IContainer &&
+									!res.getName().startsWith(".") &&
 									(ext == FileExtension.DefinitionGroup || ext == FileExtension.ResourceGroup) &&
-									!Utilities.resourceInside(scenarioFolder, (IContainer)res);
+									!Utilities.resourceInside(scenarioFolder, res);
 							})
 						: Stream.empty();
 				})
-				.map(res -> workspaceDependency((IContainer) res)),
+				.map(this::workspaceDependency),
 
 			// Full screen/console
 			configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_FULLSCREEN, false)
@@ -243,22 +243,23 @@ public class EngineLaunch implements ILaunchesListener2 {
 
 			// Run the engine
 			try {
-				if (mode.equals(ILaunchManager.DEBUG_MODE))
-					if (scenario != null && !scenario.engine().settings().supportsDebugging)
-						Utilities.abort(IStatus.ERROR,
+				if (mode.equals(ILaunchManager.DEBUG_MODE) && scenario != null && !scenario.engine().settings().supportsDebugging)
+					Utilities.abort(IStatus.ERROR,
 							String.format(Messages.EngineDoesNotSupportDebugging, scenario.engine().name()));
-				final Process process = new ProcessBuilder(arguments()).directory(workDirectory).start();
-				final Map<String, String> processAttributes = new HashMap<String, String>();
-				processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "clonkEngine"); //$NON-NLS-1$
-				processAttributes.put(IProcess.ATTR_PROCESS_LABEL, scenarioFolder.getProjectRelativePath().toOSString());
-				final IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName(), processAttributes);
-				if (mode.equals(ILaunchManager.DEBUG_MODE))
-					try {
-						final IDebugTarget target = new Target(launch, p, ClonkLaunchConfigurationDelegate.DEFAULT_DEBUG_PORT, scenarioFolder);
-						launch.addDebugTarget(target);
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
+				else {
+					final Process process = new ProcessBuilder(arguments()).directory(workDirectory).start();
+					final Map<String, String> processAttributes = new HashMap<String, String>();
+					processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "clonkEngine"); //$NON-NLS-1$
+					processAttributes.put(IProcess.ATTR_PROCESS_LABEL, scenarioFolder.getProjectRelativePath().toOSString());
+					final IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName(), processAttributes);
+					if (mode.equals(ILaunchManager.DEBUG_MODE))
+						try {
+							final IDebugTarget target = new Target(launch, p, ClonkLaunchConfigurationDelegate.DEFAULT_DEBUG_PORT, scenarioFolder);
+							launch.addDebugTarget(target);
+						} catch (final Exception e) {
+							e.printStackTrace();
+						}
+				}
 			} catch (final IOException e) {
 				Utilities.abort(IStatus.ERROR, Messages.CouldNotStartEngine, e);
 			}
