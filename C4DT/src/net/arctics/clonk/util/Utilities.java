@@ -6,8 +6,10 @@ import static java.util.Arrays.stream;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -385,6 +387,28 @@ public abstract class Utilities {
 			cls.isInstance(item) ? one((T)item) :
 			item instanceof Stream ? (Stream<T>)item : Stream.empty()
 		);
+	}
+	
+	public static <K, V> V getOrAdd(Map<K, V> dictionary, K key, Supplier<V> creation)
+	{
+		return defaulting(dictionary.get(key), () -> {
+			final V n = creation.get();
+			dictionary.put(key, n);
+			return n;
+		});
+	}
+	
+	public static <T, K> Map<K, List<T>> bucketize(Stream<T> list, Function<T, K> keySelector)
+	{
+		final HashMap<K, List<T>> result = new HashMap<>();
+		list.forEach(e -> {
+			final K k = keySelector.apply(e);
+			if (k == null)
+				return;
+			final List<T> bucket = getOrAdd(result, k, LinkedList<T>::new);
+			bucket.add(e);
+		});
+		return result;
 	}
 
 }

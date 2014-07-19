@@ -2,7 +2,7 @@ package net.arctics.clonk.index;
 
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.Flags.DEBUG;
-import static net.arctics.clonk.util.StreamUtil.concat;
+import static net.arctics.clonk.util.StreamUtil.concatStreams;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.block;
@@ -1047,7 +1047,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	@Override
 	public ASTNode[] subElements() {
-		return concat(
+		return concatStreams(
 			scenarios.stream(),
 			scripts.stream(),
 			definitions.values().stream().flatMap(x -> x.stream())

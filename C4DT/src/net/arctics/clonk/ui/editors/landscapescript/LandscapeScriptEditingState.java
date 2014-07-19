@@ -44,22 +44,22 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 		finally { structure().setFile(file); }
 	}
 	public void reparse() {
+		final LandscapeScript script = structure();
+		if (script == null)
+			return;
+		final String documentText = document.get();
+		final CharStream charStream = new ANTLRStringStream(documentText);
+		final LandscapeScriptLexer lexer = new LandscapeScriptLexer(charStream);
+		final CommonTokenStream tokenStream = new CommonTokenStream();
+		tokenStream.setTokenSource(lexer);
+		final LandscapeScriptParser parser = new LandscapeScriptParser(structure(), tokenStream);
 		synchronized (monitor) {
-			final LandscapeScript script = structure();
-			if (script == null)
-				return;
-			final String documentText = document.get();
-			final CharStream charStream = new ANTLRStringStream(documentText);
-			final LandscapeScriptLexer lexer = new LandscapeScriptLexer(charStream);
-			final CommonTokenStream tokenStream = new CommonTokenStream();
-			tokenStream.setTokenSource(lexer);
-			final LandscapeScriptParser parser = new LandscapeScriptParser(structure(), tokenStream);
 			structure().clear();
 			parser.parse();
-			for (final LandscapeScriptEditor ed : editors)
-				ed.refreshOutline();
-			updatePreview(script);
 		}
+		for (final LandscapeScriptEditor ed : editors)
+			ed.refreshOutline();
+		updatePreview(script);
 	}
 	private void updatePreview(final LandscapeScript script) {
 		final IFile file = script.file();
@@ -95,8 +95,7 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 		final PresentationReconciler reconciler = new PresentationReconciler();
 		final ScriptCommentScanner commentScanner = new ScriptCommentScanner(getColorManager(), "COMMENT");
 
-		DefaultDamagerRepairer dr =
-			new DefaultDamagerRepairer(scanner);
+		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(scanner);
 		reconciler.setDamager(dr, CStylePartitionScanner.CODEBODY);
 		reconciler.setRepairer(dr, CStylePartitionScanner.CODEBODY);
 
@@ -127,16 +126,16 @@ public class LandscapeScriptEditingState extends StructureEditingState<Landscape
 	}
 	@Override
 	public ContentAssistant createAssistant() {
-		final ContentAssistant assistant = new ContentAssistant();
+		final ContentAssistant a = new ContentAssistant();
 		final LandscapeScriptCompletionProcessor processor = new LandscapeScriptCompletionProcessor(this);
-		assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
-		assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
-		assistant.setStatusLineVisible(true);
-		assistant.setStatusMessage(String.format(Messages.LandscapeScriptSourceViewerConfiguration_Proposals, structure().file().getName()));
-		assistant.enablePrefixCompletion(false);
-		assistant.enableAutoInsert(true);
-		assistant.enableAutoActivation(true);
-		assistant.enableColoredLabels(true);
-		return assistant;
+		a.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
+		a.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
+		a.setStatusLineVisible(true);
+		a.setStatusMessage(String.format(Messages.LandscapeScriptSourceViewerConfiguration_Proposals, structure().file().getName()));
+		a.enablePrefixCompletion(false);
+		a.enableAutoInsert(true);
+		a.enableAutoActivation(true);
+		a.enableColoredLabels(true);
+		return a;
 	}
 }
