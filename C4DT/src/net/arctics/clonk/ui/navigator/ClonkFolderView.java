@@ -1,11 +1,14 @@
 package net.arctics.clonk.ui.navigator;
 
+import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -18,6 +21,7 @@ import net.arctics.clonk.c4group.C4GroupTopLevelCompressed;
 import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
 
@@ -76,6 +80,68 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	public ClonkFolderView() {
 		super();
 		instance = this;
+	}
+
+	private final class DefCoreTextSearch extends Job {
+		private final Object[] selection;
+		private final Pattern idPattern;
+		private final List<File> containing = new ArrayList<File>();
+		private DefCoreTextSearch(String name, Object[] selection, Pattern idPattern) {
+			super(name);
+			this.selection = selection;
+			this.idPattern = idPattern;
+		}
+		class GroupScanner implements Runnable {
+			private final File groupFile;
+			public GroupScanner(File f) { this.groupFile = f; }
+			@Override
+			public void run() {
+				try {
+					final C4GroupTopLevelCompressed group = new C4GroupTopLevelCompressed(groupFile.getName(), groupFile);
+					final C4GroupHeaderFilterBase headerFilter = new C4GroupHeaderFilterBase() {
+						@Override
+						public int flagsForEntry(C4GroupFile entry) {
+							return READINTOMEMORY;
+						}
+						@Override
+						public boolean accepts(final C4GroupEntryHeader header, final C4Group context) {
+							return header.entryName().equals("DefCore.txt"); //$NON-NLS-1$
+						}
+						@Override
+						public void processGroupItem(final C4GroupItem item) {
+							final C4GroupFile file = as(item, C4GroupFile.class);
+							if (file != null) {
+								final String s = new String(file.getContents());
+								if (idPattern.matcher(s).find())
+									containing.add(groupFile);
+							}
+						}
+					};
+					group.readFromStream(group, 0, stream -> {
+						try {
+							group.readIntoMemory(true, headerFilter, stream);
+						} catch (final Exception e) {
+							e.printStackTrace();
+						}
+					});
+				} catch (final Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		@Override
+		protected IStatus run(final IProgressMonitor monitor) {
+			TaskExecution.threadPool(
+				ofType(stream(selection), File.class)
+					.filter(f -> !f.isDirectory())
+					.map(f -> new GroupScanner(f) {
+						
+					}).collect(Collectors.toList()),
+					20
+				);
+			Display.getDefault().asyncExec(() -> folderTree.setSelection(new StructuredSelection(containing)));
+			return Status.OK_STATUS;
+		}
 	}
 
 	private class ClonkFolderContentProvider extends LabelProvider implements ITreeContentProvider, IStyledLabelProvider {
@@ -347,47 +413,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 
 		final Pattern idPattern = Pattern.compile(String.format("^id\\=%s$", inputDialog.getValue()), Pattern.CASE_INSENSITIVE|Pattern.MULTILINE); //$NON-NLS-1$
 		final Object[] selection = ((IStructuredSelection)folderTree.getSelection()).toArray();
-		new Job(Messages.ClonkFolderView_LookForIDJobDescription) {
-			@Override
-			protected IStatus run(final IProgressMonitor monitor) {
-				final List<File> containing = new ArrayList<File>();
-
-				for (final Object f : selection) {
-					final File sel = (File)f;
-					if (sel.isDirectory())
-						continue;
-					try {
-						final C4GroupTopLevelCompressed group = new C4GroupTopLevelCompressed(sel.getName(), sel);
-						final C4GroupHeaderFilterBase headerFilter = new C4GroupHeaderFilterBase() {
-							@Override
-							public boolean accepts(final C4GroupEntryHeader header, final C4Group context) {
-								return header.entryName().equals("DefCore.txt"); //$NON-NLS-1$
-							}
-							@Override
-							public void processGroupItem(final C4GroupItem item) {
-								final C4GroupFile file = as(item, C4GroupFile.class);
-								if (file != null) {
-									final String s = file.getContentsAsString();
-									if (idPattern.matcher(s).find())
-										containing.add(sel);
-								}
-							}
-						};
-						group.readFromStream(group, 0, stream -> {
-							try {
-								group.readIntoMemory(true, headerFilter, stream);
-							} catch (final Exception e) {
-								e.printStackTrace();
-							}
-						});
-					} catch (final Exception e) {
-						e.printStackTrace();
-					}
-				}
-				Display.getDefault().asyncExec(() -> folderTree.setSelection(new StructuredSelection(containing)));
-				return Status.OK_STATUS;
-			}
-		}.schedule();
+		new DefCoreTextSearch(Messages.ClonkFolderView_LookForIDJobDescription, selection, idPattern).schedule();
 	}
 
 	@Override
