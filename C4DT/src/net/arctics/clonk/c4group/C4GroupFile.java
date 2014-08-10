@@ -21,7 +21,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -31,7 +30,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @author ZokRadonh
  *
  */
-public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
+public class C4GroupFile extends C4GroupItem implements Serializable {
 
 	private static class EntryCache {
 		private static class CachedEntry {
@@ -53,11 +52,8 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 				if (e == null || e.modified()) {
 					final File f = File.createTempFile("c4dt", "c4groupcache"); //$NON-NLS-1$ //$NON-NLS-2$
 					try (final FileOutputStream fileStream = new FileOutputStream(f)) {
-						final ByteArrayInputStream contents = groupEntry.getContents();
-						final byte[] buf = new byte[1024];
-						int read;
-						while ((read = contents.read(buf)) != -1)
-							fileStream.write(buf, 0, read);
+						final byte[] contents = groupEntry.getContents();
+						fileStream.write(contents);
 					}
 					f.deleteOnExit();
 					e = new CachedEntry(f, f.lastModified());
@@ -107,13 +103,12 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 		}
 	}
 
-	@Override
-	public ByteArrayInputStream getContents() throws CoreException {
+	public byte[] getContents() {
 		if (contents == null)
 			try {
 				parentGroup().readFromStream(this, parentGroup().baseOffset() + header.offset(), this::fetchContents);
 				try {
-					return new ByteArrayInputStream(contents);
+					return contents;
 				} finally {
 					contents = null; // don't store
 				}
@@ -121,7 +116,7 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 				e.printStackTrace();
 				return null;
 			}
-		return new ByteArrayInputStream(contents);
+		return contents;
 	}
 
 	@Override
@@ -134,100 +129,43 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 		return builder.toString();
 	}
 
-	/**
-	 * @return the entryName
-	 */
-	public String getEntryName() {
-		return header.entryName();
-	}
-
-	/**
-	 * @return the packed
-	 */
-	public boolean isPacked() {
-		return header.isPacked();
-	}
-
-	/**
-	 * @return the hasChildren
-	 */
+	public String getEntryName() { return header.entryName(); }
+	public boolean isPacked() { return header.isPacked(); }
 	@Override
-	public boolean hasChildren() {
-		return false;
-	}
-
-	/**
-	 * @return the size
-	 */
-	public int getSize() {
-		return header.size();
-	}
-
-	/**
-	 * @return the entrySize
-	 */
-	public int getEntrySize() {
-		return header.entrySize();
-	}
-
-	/**
-	 * @return the offset
-	 */
-	public int getOffset() {
-		return header.offset();
-	}
-
-	/**
-	 * @return the time
-	 */
-	public int getTime() {
-		return header.time();
-	}
-
-	/**
-	 * @return the hasCRC
-	 */
-	public boolean hasCRC() {
-		return header.hasCRC();
-	}
-
-	/**
-	 * Return the contents of this entry as a string
-	 * @return the contents of this entry as string
-	 */
-	public String getContentsAsString() {
-		return new String(contents);
-	}
-
+	public boolean hasChildren() { return false; }
+	public int getSize() { return header.size(); }
+	public int getEntrySize() { return header.entrySize(); }
+	public int getOffset() { return header.offset(); }
+	public int getTime() { return header.time(); }
+	public boolean hasCRC() { return header.hasCRC(); }
 	@Override
-	public String getName() {
-		return header.entryName();
-	}
-
+	public String getName() { return header.entryName(); }
 	@Override
-	public C4Group parentGroup() {
-		return parentGroup;
-	}
-
-	/**
-	 * @param contents the contents to set
-	 */
-	public void setContents(final byte[] contents) {
-		this.contents = contents;
-	}
-
+	public C4Group parentGroup() { return parentGroup; }
+	public void setContents(final byte[] contents) { this.contents = contents; }
 	/**
 	 * Release the contents of this item to preserve memory
 	 */
 	@Override
-	public void releaseData() {
-		contents = null;
-	}
-
+	public void releaseData() { contents = null; }
 	@Override
 	public void extractToFileSystem(final IContainer parent) throws CoreException {
 		extractToFileSystem(parent, null);
 	}
+	@Override
+	public int computeSize() { return contents != null ? contents.length : header != null ? header.size() : 0; }
+	@Override
+	public C4GroupEntryHeader entryHeader() { return header; }
+	@Override
+	public IFileStore getChild(final String name) { return null; }
+	@Override
+	public IFileStore getParent() { return parentGroup(); }
+	@Override
+	public IPath path() { return ITreeNode.Default.path(this); }
+	@Override
+	public String nodeName() { return getName(); }
+	@Override
+	public String[] childNames(final int options, final IProgressMonitor monitor) throws CoreException { return NO_CHILDNAMES; }
 
 	@Override
 	public void extractToFileSystem(final IContainer parent, final IProgressMonitor monitor) throws CoreException {
@@ -237,20 +175,10 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 		else if (parent instanceof IProject)
 			me = ((IProject)parent).getFile(getName());
 		if (me != null) try {
-			me.create(getContents(), IResource.NONE, monitor);
+			me.create(new ByteArrayInputStream(getContents()), IResource.NONE, monitor);
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
-	}
-
-	@Override
-	public int computeSize() {
-		return contents != null ? contents.length : header != null ? header.size() : 0;
-	}
-
-	@Override
-	public C4GroupEntryHeader entryHeader() {
-		return header;
 	}
 
 	@Override
@@ -268,36 +196,11 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	}
 
 	@Override
-	public IPath getFullPath() {
-		return ITreeNode.Default.path(this);
-	}
-
-	@Override
-	public IPath path() {
-		return getFullPath();
-	}
-
-	@Override
-	public boolean isReadOnly() {
-		return true;
-	}
-
-	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(final Class cls) {
 		if (cls == C4GroupFile.class)
 			return this;
 		return null;
-	}
-
-	@Override
-	public String nodeName() {
-		return getName();
-	}
-
-	@Override
-	public String[] childNames(final int options, final IProgressMonitor monitor) throws CoreException {
-		return NO_CHILDNAMES;
 	}
 
 	@Override
@@ -309,18 +212,8 @@ public class C4GroupFile extends C4GroupItem implements IStorage, Serializable {
 	}
 
 	@Override
-	public IFileStore getChild(final String name) {
-		return null; // go away :c
-	}
-
-	@Override
-	public IFileStore getParent() {
-		return parentGroup();
-	}
-
-	@Override
 	public InputStream openInputStream(final int options, final IProgressMonitor monitor) throws CoreException {
-		return getContents();
+		return new ByteArrayInputStream(getContents());
 	}
 
 	@Override

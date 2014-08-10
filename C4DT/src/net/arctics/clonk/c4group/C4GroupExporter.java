@@ -1,10 +1,11 @@
 package net.arctics.clonk.c4group;
 
+import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.Utilities.bucketize;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,29 +36,23 @@ import org.eclipse.ui.console.MessageConsoleStream;
 
 public class C4GroupExporter implements IRunnableWithProgress {
 	
-	private final Map<Engine, List<Pair<IContainer, String>>> packsDividedInEngines = new HashMap<Engine, List<Pair<IContainer, String>>>();
+	private final Map<Engine, List<Pair<IContainer, String>>> packsDividedInEngines;
 	private final String destinationPath;
 	private final int numTotal;
 	
-	private void divideInEngines(final IContainer[] packs) {
-		packsDividedInEngines.clear();
-		for (final IContainer c : packs) {
-			if (c == null)
-				continue;
-			final Engine engine = ClonkProjectNature.get(c).index().engine();
-			List<Pair<IContainer, String>> list = packsDividedInEngines.get(engine);
-			if (list == null) {
-				list = new LinkedList<Pair<IContainer, String>>();
-				packsDividedInEngines.put(engine, list);
-			}
-			list.add(new Pair<IContainer, String>(c, null));
-		}
+	private static Map<Engine, List<Pair<IContainer, String>>> divideInEngines(final IContainer[] packs) {
+		return bucketize(
+			stream(packs)
+				.filter(c -> c != null)
+				.map(c -> new Pair<IContainer, String>(c, null)),
+			c -> ClonkProjectNature.get(c.first()).index().engine()
+		);
 	}
 	
 	public C4GroupExporter(final IContainer[] packs, final String destinationPath) {
-		divideInEngines(packs);
-		this.numTotal = packs.length;
+		this.packsDividedInEngines = divideInEngines(packs);
 		this.destinationPath = destinationPath;
+		this.numTotal = packs.length;
 	}
 
 	public synchronized boolean selectDestPaths() {
@@ -100,7 +95,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 				// ugh, deleting files is ugly but there seems to be no java method for putting files to trash -.-
 				if (oldFile.exists())
 					oldFile.delete();
-				(new Job(String.format(Messages.ExportC4GroupJobTitle, toExport.first().getName())) {
+				new Job(String.format(Messages.ExportC4GroupJobTitle, toExport.first().getName())) {
 					@Override
 					protected IStatus run(final IProgressMonitor monitor) {
 						try {
@@ -148,14 +143,13 @@ public class C4GroupExporter implements IRunnableWithProgress {
 							return Status.CANCEL_STATUS;
 						}
 					}
-				}).schedule();
+				}.schedule();
 				if (monitor != null)
 					monitor.worked(1);
-
-				if (monitor != null)
-					monitor.done();
 			}
 		}
+		if (monitor != null)
+			monitor.done();
 	}
 
 	@Override

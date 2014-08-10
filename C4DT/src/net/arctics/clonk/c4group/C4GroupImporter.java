@@ -1,10 +1,11 @@
 package net.arctics.clonk.c4group;
 
 import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.printingException;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
-import static net.arctics.clonk.util.Utilities.attempt;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,7 +75,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 				try {
 					final C4Group group = C4Group.openFile(groupFile);
 					monitor.subTask(String.format(Messages.C4GroupImporter_Importing, group.getName()));
-					final List<String> errorsWhileImporting = new LinkedList<String>();
+					new LinkedList<String>();
 					group.readIntoMemory(true, new C4GroupHeaderFilterBase() {
 						private IContainer currentContainer = destination;
 						private C4Group currentGroup;
@@ -104,7 +105,7 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 							else {
 								final C4GroupFile entry = (C4GroupFile)item;
 								final IFile newFile = currentContainer.getFile(new Path(entry.getName()));
-								final InputStream newContents = attempt(() -> entry.getContents(), CoreException.class, e -> {});
+								final InputStream newContents = attempt(() -> new ByteArrayInputStream(entry.getContents()), CoreException.class, e -> {});
 								if (newContents == null)
 									return;
 								try {
@@ -114,7 +115,6 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 										else
 											newFile.create(newContents, IResource.NONE, null);
 									} catch (final CoreException e) {
-										errorsWhileImporting.add(e.getLocalizedMessage());
 										e.printStackTrace();
 									}
 								} finally {
