@@ -5,8 +5,8 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -221,7 +221,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @throws ProblemException
 	 */
 	public void parse() throws ProblemException {
-		script().setTypings(new Typings(Collections.<String, IType>emptyMap(), Collections.<String, Function.Typing>emptyMap()));
+		script().setTypings(new Typings(new HashMap<>(), new HashMap<>()));
 		script().setTypeAnnotations(null);
 		clear();
 		parseDeclarations();
