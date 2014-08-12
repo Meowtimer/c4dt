@@ -31,16 +31,12 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.ui.PlatformUI;
 
 public class CustomizationDynamicMenuItem extends ContributionItem {
-
 	private final class SelListener implements SelectionListener {
-
 		private static final String URL_PROP = "_url"; //$NON-NLS-1$
 		private static final String PATH_PROP = "_path"; //$NON-NLS-1$
-
 		private Engine engine;
 		private IPath resPath;
 		private IContainer container;
-
 		public SelListener(final Menu menu) {
 			final ISelection sel = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
 			if (sel instanceof IStructuredSelection && ((IStructuredSelection)sel).getFirstElement() instanceof IContainer) {
@@ -54,21 +50,20 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 							// ignore any '.'-files
 							if (stream(path.segments()).anyMatch(s -> s.startsWith(".")))
 								return;
-							final MenuItem menuItem = new MenuItem(menu, SWT.RADIO);
-							menuItem.setText(path.toOSString());
-							menuItem.addSelectionListener(this);
-							menuItem.setData(URL_PROP, url);
-							menuItem.setData(PATH_PROP, path);
+							final MenuItem mi = new MenuItem(menu, SWT.RADIO);
+							mi.setText(path.toOSString());
+							mi.addSelectionListener(this);
+							mi.setData(URL_PROP, url);
+							mi.setData(PATH_PROP, path);
 						});
 					else {
-						final MenuItem failItem = new MenuItem(menu, SWT.RADIO);
-						failItem.setEnabled(false);
-						failItem.setText(Messages.CustomizationDynamicMenuItem_SelectTopLevelEngineFolder);
+						final MenuItem mi = new MenuItem(menu, SWT.RADIO);
+						mi.setEnabled(false);
+						mi.setText(Messages.CustomizationDynamicMenuItem_SelectTopLevelEngineFolder);
 					}
 				}
 			}
 		}
-
 		private IPath engineSpecificPathForURL(final URL url) {
 			IPath path = new Path(url.getPath());
 			for (int i = 0; i < path.segmentCount(); i++)
@@ -78,7 +73,6 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 				}
 			return path.makeRelativeTo(container.getProjectRelativePath());
 		}
-
 		@Override
 		public void widgetSelected(final SelectionEvent event) {
 			final URL url = (URL)event.widget.getData(URL_PROP);
@@ -100,10 +94,8 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 				e.printStackTrace();
 			}
 		}
-
 		@Override
 		public void widgetDefaultSelected(final SelectionEvent e) {}
-
 		private Iterable<URL> possibleFiles(final IContainer container) {
 			this.container = container;
 			resPath = container.getProjectRelativePath();
@@ -113,18 +105,8 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 			return engine != null ? engine.getURLsOfStorageLocationPath(resPath.toString(), true) : null;
 		}
 	}
-
-	public CustomizationDynamicMenuItem() {
-
-	}
-
-	public CustomizationDynamicMenuItem(final String id) {
-		super(id);
-	}
-
+	public CustomizationDynamicMenuItem() {}
+	public CustomizationDynamicMenuItem(final String id) { super(id); }
 	@Override
-	public void fill(final Menu menu, final int index) {
-		new SelListener(menu);
-	}
-
+	public void fill(final Menu menu, final int index) { new SelListener(menu); }
 }

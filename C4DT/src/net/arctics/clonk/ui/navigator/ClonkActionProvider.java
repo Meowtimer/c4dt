@@ -9,15 +9,9 @@ import org.eclipse.ui.navigator.ICommonMenuConstants;
 import org.eclipse.ui.navigator.ICommonViewerSite;
 import org.eclipse.ui.navigator.ICommonViewerWorkbenchSite;
 
-
 public class ClonkActionProvider extends CommonActionProvider {
-
 	private OpenSpecialItemAction openAction;
-	
-	public ClonkActionProvider() {
-
-	}
-	
+	public ClonkActionProvider() {}
 	@Override
 	public void init(final ICommonActionExtensionSite site) {
 		super.init(site);
@@ -30,7 +24,6 @@ public class ClonkActionProvider extends CommonActionProvider {
 					workbenchSite.getSelectionProvider());
 		}
 	}
-
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.actions.ActionGroup#fillContextMenu(org.eclipse.jface.action.IMenuManager)
 	 */
@@ -40,12 +33,10 @@ public class ClonkActionProvider extends CommonActionProvider {
 		if (openAction.isEnabled())
 			menu.appendToGroup(ICommonMenuConstants.GROUP_OPEN, openAction);
 	}
-	
 	@Override
 	public void fillActionBars(final IActionBars actionBars) {
 		super.fillActionBars(actionBars);
 		if (openAction.isEnabled())
 			actionBars.setGlobalActionHandler(ICommonActionConstants.OPEN, openAction);
 	}
-
 }

@@ -26,9 +26,7 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
 public class ClonkLabelProvider extends LabelProvider implements IStyledLabelProvider, IColorProvider {
-	
 	public ClonkLabelProvider() {}
-	
 	@Override
 	public Image getImage(final Object element) {
 		if (element instanceof IProject)
@@ -51,7 +49,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		return UI.iconFor(element);
 	}
-
 	@Override
 	public String getText(final Object element) {
 		if (element instanceof IProject)
@@ -60,16 +57,12 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			return ((IFile)element).getName();
 		return super.getText(element);
 	}
-
-	public static String stringWithoutExtension(final String s) {
-		return s.substring(0,s.lastIndexOf(".")); //$NON-NLS-1$
-	}
-
+	public static String stringWithoutExtension(final String s) { return s.substring(0,s.lastIndexOf(".")); } //$NON-NLS-1$
 	@Override
 	public StyledString getStyledText(final Object element) {
 		if (element instanceof IFolder) {
 			final IFolder folder = (IFolder)element;
-			Engine engine = ClonkProjectNature.engineFromResource(folder);
+			final Engine engine = ClonkProjectNature.engineFromResource(folder);
 			if (engine != null) {
 				final FileExtension groupType = engine.extensionForFileName(folder.getName());
 				if (groupType == FileExtension.DefinitionGroup)
@@ -96,7 +89,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 			return new StyledString(element.toString(), StyledString.COUNTER_STYLER);
 		return new StyledString(element.toString());
 	}
-
 	private StyledString getIDText(final String baseName, final String id, final boolean virtual) {
 		final StyledString buf = new StyledString();
 		if (virtual)
@@ -110,7 +102,6 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		return buf;
 	}
-	
 	protected static ImageDescriptor[][] computeOverlays(final Object element) {
 		final ImageDescriptor[][] result = new ImageDescriptor[4][1];
 		if (element instanceof IResource) {
@@ -133,10 +124,8 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		}
 		return result;
 	}
-	
 	@Override
 	public Color getForeground(final Object element) { return null; }
-
 	@Override
 	public Color getBackground(final Object element) {
 		try {
@@ -149,5 +138,4 @@ public class ClonkLabelProvider extends LabelProvider implements IStyledLabelPro
 		} catch (final Exception e) {}
 		return null;
 	}
-	
 }

@@ -5,8 +5,8 @@ import java.util.Set;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
+import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
@@ -18,7 +18,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 public class LookupLocalDeclarationHandler extends AbstractHandler {
-
 	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final IWorkbenchPart part = HandlerUtil.getActivePart(event);
@@ -42,5 +41,4 @@ public class LookupLocalDeclarationHandler extends AbstractHandler {
 		}
 		return null;
 	}
-
 }

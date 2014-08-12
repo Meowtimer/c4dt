@@ -1,7 +1,10 @@
 package net.arctics.clonk.ui.editors;
 
+import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.StreamUtil.ofType;
+import static net.arctics.clonk.util.Utilities.attempt;
+
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import net.arctics.clonk.c4script.Script;
@@ -19,13 +22,11 @@ import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 public class FindDuplicatesHandler extends AbstractHandler {
-
 	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final ISelection selection = HandlerUtil.getCurrentSelection(event);
 		if (selection instanceof IStructuredSelection) {
 			final IStructuredSelection ssel = (IStructuredSelection) selection;
-			final Iterator<?> it = ssel.iterator();
 			final Set<Script> scripts = new HashSet<Script>();
 			final IResourceVisitor visitor = resource -> {
 				final Script script = Script.get(resource, false);
@@ -33,20 +34,12 @@ public class FindDuplicatesHandler extends AbstractHandler {
 					scripts.add(script);
 				return true;
 			};
-			while (it.hasNext()) {
-				final Object obj = it.next();
-				if (obj instanceof IResource) {
-					final IResource res = (IResource) obj;
-					try {
-						res.accept(visitor);
-					} catch (final CoreException e) {
-						e.printStackTrace();
-					}
-				}
-			}
+			ofType(stream(ssel.toArray()), IResource.class).forEach(res -> attempt(
+				() -> { res.accept(visitor); return true; },
+				CoreException.class, Exception::printStackTrace)
+			);
 			NewSearchUI.runQueryInBackground(DuplicatesSearchQuery.queryWithScripts(scripts));
 		}
 		return null;
 	}
-
 }
