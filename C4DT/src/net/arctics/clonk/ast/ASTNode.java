@@ -195,7 +195,13 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	public boolean allowsSequenceSuccessor(final ASTNode successor) { return true; }
 
 	public boolean hasSideEffects() {
-		return stream(subElements()).anyMatch(e -> e.hasSideEffects());
+		final ASTNode[] elms = subElements();
+		for (int i = elms.length - 1; i >= 0; i--) {
+			final ASTNode e = elms[i];
+			if (e != null && e.hasSideEffects())
+				return true;
+		}
+		return false;
 	}
 
 	@Override
