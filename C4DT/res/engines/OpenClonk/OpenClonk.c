@@ -727,7 +727,7 @@ static const int ATTACH_MoveRelative;
 global func bool SetLeagueProgressData(string newData, int player);
 global func string GetLeagueProgressData(int player);
 
-global func array PV_Sin(int value, int amplitude, int offset);
+global func array PV_Sin(int|array value, int|array amplitude, int|array offset);
 
 global func array Trans_Identity();
 global func array Trans_Translate(int dx, int dy, int dz);
