@@ -2177,11 +2177,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 					// allow this->Unknown()
 					if (pred instanceof This)
 						return null;
-					boolean anyScripts = false;
+					if (predType instanceof Definition)
+						return predType;
+					boolean allScripts = true;
 					for (final IType t : predType)
-						if (t instanceof Definition)
-							anyScripts = true;
-					return anyScripts ? predType : null;
+						if (!(t instanceof Definition)) {
+							allScripts = false;
+							break;
+						}
+					return allScripts ? predType : null;
 				}
 				@Override
 				public IType type(final CallDeclaration node, final Visitor visitor) {
