@@ -84,6 +84,7 @@ static const int FX_Call_EngBaseRefresh;
 static const int FX_Call_EngAsphyxiation;
 static const int FX_Call_EngCorrosion;
 static const int FX_Call_EngGetPunched;
+static const int FX_Call_DmgChop;
 static const int C4M_Vehicle;
 static const int C4M_Solid;
 static const int C4M_SemiSolid;
@@ -193,6 +194,7 @@ static const int C4MN_Add_ImgColor;
 static const int C4MN_Add_PassValue;
 static const int C4MN_Add_ForceCount;
 static const int C4MN_Add_ForceNoDesc;
+static const int C4MN_Add_ImgPropListSpec;
 static const int GFXOV_MODE_None;
 static const int GFXOV_MODE_Base;
 static const int GFXOV_MODE_Action;
@@ -663,6 +665,8 @@ global func any AdjustWalkRotation(int rangeX, int rangeY, int speed);
 global func any DoNoCollectDelay(int change);
 global func any this();
 
+global func 
+
 static const proplist MapLayer;
 static const proplist Map;
 static const int MAPALGO_Layer;
@@ -722,3 +726,11 @@ static const int ATTACH_MoveRelative;
 
 global func bool SetLeagueProgressData(string newData, int player);
 global func string GetLeagueProgressData(int player);
+
+global func array PV_Sin(int value, int amplitude, int offset);
+
+global func array Trans_Identity();
+global func array Trans_Translate(int dx, int dy, int dz);
+global func array Trans_Scale(int sx, int sy, int sz);
+global func array Trans_Rotate(int angle, int rx, int ry, int rz);
+global func array Trans_Mul(array lhs, array rhs);
