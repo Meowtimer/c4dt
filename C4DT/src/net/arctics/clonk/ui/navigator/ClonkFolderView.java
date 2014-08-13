@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -85,7 +86,7 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 	private final class DefCoreTextSearch extends Job {
 		private final Object[] selection;
 		private final Pattern idPattern;
-		private final List<File> containing = new ArrayList<File>();
+		private final List<File> containing = Collections.synchronizedList(new ArrayList<File>());
 		private DefCoreTextSearch(String name, Object[] selection, Pattern idPattern) {
 			super(name);
 			this.selection = selection;
@@ -134,9 +135,8 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 			TaskExecution.threadPool(
 				ofType(stream(selection), File.class)
 					.filter(f -> !f.isDirectory())
-					.map(f -> new GroupScanner(f) {
-						
-					}).collect(Collectors.toList()),
+					.map(f -> new GroupScanner(f))
+					.collect(Collectors.toList()),
 					20
 				);
 			Display.getDefault().asyncExec(() -> folderTree.setSelection(new StructuredSelection(containing)));
