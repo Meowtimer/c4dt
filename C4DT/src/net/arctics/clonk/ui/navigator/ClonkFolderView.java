@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -130,11 +131,16 @@ public class ClonkFolderView extends ViewPart implements ISelectionListener, IDo
 				}
 			}
 		}
+		Stream<File> subFiles(File dir) {
+			return dir.isDirectory() ? stream(dir.listFiles()).flatMap(this::subFiles) : stream(new File[] {dir});
+		}
 		@Override
 		protected IStatus run(final IProgressMonitor monitor) {
+			final Engine engine = currentEngine();
 			TaskExecution.threadPool(
 				ofType(stream(selection), File.class)
-					.filter(f -> !f.isDirectory())
+					.flatMap(this::subFiles)
+					.filter(f -> engine.extensionForFileName(f.getName()).group)
 					.map(f -> new GroupScanner(f))
 					.collect(Collectors.toList()),
 					20
