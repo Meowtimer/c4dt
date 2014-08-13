@@ -1784,14 +1784,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 									visitor.judgment(pred, PrimitiveType.PROPLIST, TypingJudgementMode.UNIFY);
 							} else {
 								final IType u = typing.unifyNoChoice(PrimitiveType.ARRAY, type);
-								if (eq(argType, PrimitiveType.INT)) {
+								if (eq(argType, PrimitiveType.INT))
 									if (u == null)
 										visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, pred, 0);
 									else
 										visitor.judgment(pred, u, TypingJudgementMode.UNIFY);
-								}
-								else if (u != null)
-									visitor.judgment(arg, PrimitiveType.INT, TypingJudgementMode.UNIFY);
 							}
 					}
 				}
