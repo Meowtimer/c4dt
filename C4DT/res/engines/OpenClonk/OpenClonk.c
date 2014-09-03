@@ -663,9 +663,7 @@ global func any SetObjectStatus(int newStatus, bool clearPointers);
 global func any GetObjectStatus();
 global func any AdjustWalkRotation(int rangeX, int rangeY, int speed);
 global func any DoNoCollectDelay(int change);
-global func any this();
-
-global func 
+global func any this(); 
 
 static const proplist MapLayer;
 static const proplist Map;

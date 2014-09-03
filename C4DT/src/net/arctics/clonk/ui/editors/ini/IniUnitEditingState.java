@@ -222,7 +222,7 @@ public final class IniUnitEditingState extends StructureEditingState<IniTextEdit
 			try {
 				parser.parseBuffer(false);
 			} catch (final ProblemException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 		return true;

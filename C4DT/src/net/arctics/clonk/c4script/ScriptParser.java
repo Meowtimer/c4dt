@@ -265,13 +265,6 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			return String.valueOf((char)read());
 	}
 
-	public ASTNode parseNode() throws ProblemException {
-		ASTNode node = parseDeclaration();
-		if (node == null)
-			node = parseStatement();
-		return node;
-	}
-
 	/**
 	 * Parse declarations but not function code. Before calling this it should be ensured that the script is {@link #clear()}-ed to avoid duplicates.
 	 */
@@ -1229,7 +1222,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @throws ProblemException
 	 */
 	public void marker(final Problem code, final int markerStart, final int markerEnd, final int flags, final int severity, final Object... args) throws ProblemException {
-		markers().marker(this, code, null, markerStart, markerEnd, flags, severity, args);
+		markers().marker(this, code, script(), markerStart, markerEnd, flags, severity, args);
 	}
 
 	public IMarker todo(final String todoText, final int markerStart, final int markerEnd, final int priority) {
@@ -2183,9 +2176,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	private Statement needsSemicolon(Statement statement) {
-		if (!parseSemicolonOrReturnFalse())
-			statement = new Unfinished(statement);
-		return statement;
+		return parseSemicolonOrReturnFalse() ? statement : new Unfinished(statement);
 	}
 
 	/**
@@ -2574,8 +2565,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return The {@link Statement}, or a {@link BunchOfStatements} if more than one statement could be parsed from statementText. Possibly null, if erroneous text was passed.
 	 * @throws ProblemException
 	 */
-	public ASTNode parseStandaloneStatement(final String statementText, final Function function) throws ProblemException {
-		init(statementText);
+	public ASTNode parseStandaloneStatement(final Function function) throws ProblemException {
 		setCurrentFunction(function);
 		markers().enableError(Problem.NotFinished, false);
 

@@ -35,7 +35,7 @@ public class IniDescriptionsLoader {
 					} catch (final ProblemException e) {
 						e.printStackTrace();
 					}
-					final IniSection functions = unit.sectionWithName("Functions", false); //$NON-NLS-1$
+					final IniSection functions = unit.sectionWithName("Functions", false, null); //$NON-NLS-1$
 					if (functions != null)
 						for (final Function f : engine.functions()) {
 							final IniSection sec = as(functions.item(f.name()), IniSection.class);
@@ -54,7 +54,7 @@ public class IniDescriptionsLoader {
 								}
 							}
 						}
-					final IniSection variables = unit.sectionWithName("Variables", false); //$NON-NLS-1$
+					final IniSection variables = unit.sectionWithName("Variables", false, null); //$NON-NLS-1$
 					if (variables != null)
 						for (final Variable v : engine.variables()) {
 							final IniSection sec = as(variables.item(v.name()), IniSection.class);

@@ -1,5 +1,7 @@
 package net.arctics.clonk.c4script;
 
+import static net.arctics.clonk.util.Utilities.attempt;
+
 import java.util.HashSet;
 
 import net.arctics.clonk.Core;
@@ -16,8 +18,6 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.IMarkerListener;
 
-import org.eclipse.core.resources.IFile;
-
 /**
  * Helper class to parse single standalone C4Script statements/expressions
  * @author madeen
@@ -26,13 +26,24 @@ import org.eclipse.core.resources.IFile;
 public class Standalone {
 
 	public static final class Parser extends ScriptParser {
-		public Parser(Object source, Script script, IFile scriptFile) { super(source, script, scriptFile); }
+		final Function function;
+		public Parser(String source, Function function) { super(source, function.script(), null); this.function = function; }
+		public Parser(String source, Script script) { super(source, script, null); function = null; }
 		@Override
 		public int sectionOffset() { return 0; }
 		@Override
 		protected ASTNode parseTupleElement() throws ProblemException {
 			final Statement s = parseStatement();
 			return s instanceof SimpleStatement ? ((SimpleStatement)s).expression() : s;
+		}
+		public ASTNode parseNode() {
+			final int saved = tell();
+			final ASTNode result = attempt(this::parseDeclaration, ProblemException.class, e -> {});
+			if (result == null || result instanceof Variables) {
+				seek(saved);
+				return attempt(() -> parseStandaloneStatement(function), ProblemException.class, e -> {});
+			} else
+				return result;
 		}
 	}
 
@@ -109,26 +120,31 @@ public class Standalone {
 		final IMarkerListener markerListener,
 		final T context
 	) throws ProblemException {
-		if (function == null) {
-			final Script tempScript = new TempScript(source, engine, referencedIndices) {
-				private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-				@Override
-				public Typing typing() { return typing; }
-			};
-			function = new Function(null, FunctionScope.GLOBAL, "<temp>"); //$NON-NLS-1$
-			function.setParent(tempScript);
-			function.setBodyLocation(new SourceLocation(0, source.length()));
-		}
-		final ScriptParser tempParser = new Parser(source, function.script(), null);
+		final Parser tempParser = function != null ? parser(source, function) : parser(source);
 		tempParser.markers().setListener(markerListener);
-		ASTNode result = tempParser.parseDeclaration();
-		if (result == null || result instanceof Variables) {
-			tempParser.seek(0);
-			result = tempParser.parseStandaloneStatement(source, function);
-		}
+		final ASTNode result = tempParser.parseNode();
 		if (visitor != null && result != null)
 			result.traverse(visitor, context);
 		return result;
+	}
+
+	public Parser parser(
+		final String source,
+		Function function
+	) {
+		return new Parser(source, function);
+	}
+
+	public Parser parser(final String source) {
+		final Script tempScript = new TempScript(source, engine, referencedIndices) {
+			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+			@Override
+			public Typing typing() { return typing; }
+		};
+		final Function function = new Function(null, FunctionScope.GLOBAL, "<temp>"); //$NON-NLS-1$
+		function.setParent(tempScript);
+		function.setBodyLocation(new SourceLocation(0, source.length()));
+		return parser(source, function);
 	}
 
 	/**

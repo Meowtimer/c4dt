@@ -5,9 +5,9 @@ import static java.util.Arrays.stream;
 import static java.util.function.Function.identity;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
-import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -695,14 +695,12 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				);
 			}
 		}),
-		problems(Problem.Garbage).fixedBy(site -> {
-			site.addRemoveReplacement();
-		}),
+		problems(Problem.Garbage).fixedBy(Site::addRemoveReplacement),
 		problems(Problem.MemberOperatorWithTildeNoSpace).fixedBy(site -> {
 			// just print out site.topLevel, space will be removed automatically
 			site.replacements.add(Messages.ClonkQuickAssistProcessor_RemoveSpace, site.topLevel);
 		})
-	).stream().flatMap(identity()).collect(Collectors.toMap(p -> p.first(), p -> p.second()));
+	).stream().flatMap(identity()).collect(Collectors.toMap(Pair::first, Pair::second));
 
 	private void internalCollectProposals(final IMarker marker, final Position position, final List<ICompletionProposal> proposals, final IDocument document, final Script script) {
 		final Site site = new Site(proposals, document, script, position, marker);

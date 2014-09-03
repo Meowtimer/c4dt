@@ -2,6 +2,7 @@ package net.arctics.clonk.index;
 
 import static java.lang.String.format;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -14,6 +15,7 @@ import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
@@ -50,7 +52,7 @@ import org.eclipse.core.runtime.Path;
  * @author madeen
  *
  */
-public class Definition extends Script implements IProplistDeclaration {
+public class Definition extends Script implements IProplistDeclaration, IPlaceholderPatternMatchTarget {
 
 	/**
 	 * Template to construct the info text of an object definition from
@@ -472,5 +474,10 @@ public class Definition extends Script implements IProplistDeclaration {
 						ClonkProjectNature.get(proj).index().allDefinitions(sink);
 				}
 			});
+	}
+
+	@Override
+	public String patternMatchingText() {
+		return defaulting(id != null ? id.toString() : null, super::patternMatchingText);
 	}
 }

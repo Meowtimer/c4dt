@@ -3,6 +3,7 @@ package net.arctics.clonk.parser;
 import static net.arctics.clonk.Flags.SAYERRORS;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,6 +24,8 @@ import net.arctics.clonk.c4script.Marker;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.ini.ProblemHandlingMap;
+import net.arctics.clonk.ini.ProblemHandlingMap.Handling;
 import net.arctics.clonk.parser.IMarkerListener.Decision;
 import net.arctics.clonk.util.StringUtil;
 
@@ -45,6 +48,7 @@ public class Markers implements Iterable<Marker> {
 
 	private boolean enabled = true;
 	private final Set<Problem> disabledErrors = new HashSet<Problem>();
+	private ProblemHandlingMap problemHandlingMap;
 	private IMarkerListener listener;
 	private Marker first, last;
 	private Set<IMarker> captured;
@@ -91,6 +95,8 @@ public class Markers implements Iterable<Marker> {
 	}
 
 	private IMarker deploy(final Marker marker) {
+		if (handleProblemMapping(marker) == Handling.Hide)
+			return null;
 		final IFile file = marker.scriptFile;
 		final Declaration declarationAssociatedWithFile = marker.container;
 		if (file == null)
@@ -120,6 +126,27 @@ public class Markers implements Iterable<Marker> {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	private Handling handleProblemMapping(final Marker marker) {
+		return problemHandlingMap != null && marker.reporter != null
+			? problemHandlingMap
+				.find(marker.reporter).map(m -> {
+					final Handling h = defaulting(m.map.get(marker.code), Handling.Show);
+					switch (h) {
+					case TurnIntoWarning:
+						marker.severity = IMarker.SEVERITY_WARNING;
+						break;
+					case TurnIntoError:
+						marker.severity = IMarker.SEVERITY_ERROR;
+						break;
+					default:
+						break;
+					}
+					return h;
+				})
+				.reduce(Handling.Show, (a, b) -> a.ordinal() < b.ordinal() ? a : b)
+			: Handling.Show;
 	}
 
 	private void sayError(final Marker marker) {
@@ -294,7 +321,7 @@ public class Markers implements Iterable<Marker> {
 			final ProjectIndex projIndex = (ProjectIndex) index;
 			final ClonkProjectNature nature = projIndex.nature();
 			if (nature != null)
-				enableErrors(nature.settings().disabledErrorsSet(), false);
+				problemHandlingMap = nature.problemHandlingMap();
 		}
 	}
 

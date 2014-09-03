@@ -91,6 +91,10 @@
 		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="FolderMap.txt" id="net.arctics.clonk.foldermap" name="%FolderMapDefinition_Name"
 			priority="high" />
+		
+		<content-type base-type="net.arctics.clonk.inifile"
+			file-names="ProblemHandlingMap.txt" id="net.arctics.clonk.problemhandlingmap" name="%ProblemHandlingMap"
+			priority="high" />
 
 	</extension>
 

@@ -16,7 +16,7 @@ import org.eclipse.core.resources.IFile;
 public class Marker {
 	public final Problem code;
 	public final int start, end;
-	public final int severity;
+	public int severity;
 	public final Object[] args;
 	public final Declaration cf;
 	public final ASTNode reporter;

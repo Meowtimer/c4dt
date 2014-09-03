@@ -1,6 +1,8 @@
 package net.arctics.clonk.builder;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
+import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,12 +29,19 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.ini.CustomIniUnit;
+import net.arctics.clonk.ini.IniUnit;
+import net.arctics.clonk.ini.ProblemHandlingMap;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.StreamUtil;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -91,6 +100,8 @@ public class ClonkProjectNature implements IProjectNature {
 	 */
 	private boolean indexLoadingPending = false;
 
+	private ProblemHandlingMap problemHandlingMap;
+
 	/**
 	 * Settings stored in ini file
 	 */
@@ -105,9 +116,36 @@ public class ClonkProjectNature implements IProjectNature {
 	@Override
 	public IProject getProject() { return project; }
 	@Override
-	public void setProject(final IProject project) { this.project = project; }
+	public void setProject(final IProject project) {
+		this.project = project;
+		this.project.getWorkspace().addResourceChangeListener(ResourceListener.INSTANCE, IResourceChangeEvent.POST_CHANGE);
+	}
 	public List<ProblemReportingStrategy> problemReportingStrategies() {
 		return instantiateProblemReportingStrategies(0);
+	}
+
+	static final String PROBLEM_HANDLING_MAP_FILE = "ProblemHandlingMap.txt";
+
+	enum ResourceListener implements IResourceChangeListener, IResourceDeltaVisitor {
+		INSTANCE;
+		@Override
+		public void resourceChanged(IResourceChangeEvent event) {
+			try {
+				event.getDelta().accept(this);
+			} catch (final CoreException e) {
+				e.printStackTrace();
+			}
+		}
+		@Override
+		public boolean visit(IResourceDelta delta) throws CoreException {
+			final IResource res = delta.getResource();
+			if (res.getParent() instanceof IProject && res.getName().equals(PROBLEM_HANDLING_MAP_FILE)) {
+				final ClonkProjectNature n = get(res.getProject());
+				if (n != null)
+					n.problemHandlingMap = null;
+			}
+			return true;
+		}
 	}
 
 	/**
@@ -366,6 +404,20 @@ public class ClonkProjectNature implements IProjectNature {
 		} catch (final Exception e) {
 			return Collections.emptyList();
 		}
+	}
+
+	public ProblemHandlingMap problemHandlingMap() {
+		return defaulting(problemHandlingMap, () -> {
+			final IFile file = problemHandlingMapFile();
+			System.out.println("Called");
+			return problemHandlingMap = file != null && file.exists()
+				? IniUnit.fromFile(file).to(n -> ProblemHandlingMap.from(settings().engine(), n))
+				: null;
+		});
+	}
+
+	private IFile problemHandlingMapFile() {
+		return as(this.getProject().findMember(PROBLEM_HANDLING_MAP_FILE), IFile.class);
 	}
 
 }

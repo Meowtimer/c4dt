@@ -196,7 +196,7 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 				public int sectionOffset() { return 0; }
 			};
 			final ExpressionLocator<Comment> locator = new ExpressionLocator<Comment>(offset-2-this.sectionOffset()); // make up for '//' or /*'
-			commentParser.parseStandaloneStatement(comment, parent(Function.class)).traverse(locator, this);
+			commentParser.parseStandaloneStatement(parent(Function.class)).traverse(locator, this);
 			if (locator.expressionAtRegion() != null) {
 				final EntityRegion reg = locator.expressionAtRegion().entityAt(offset, locator);
 				if (reg != null)

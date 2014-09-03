@@ -135,4 +135,9 @@ public class SystemScript extends Script implements Serializable {
 		return targets.size() == 1 ? String.format("%s+", targets.get(0).typeName(true)) : super.typeName(special);
 	}
 
+	@Override
+	public String patternMatchingText() {
+		return scriptFile != null ? scriptFile.getProjectRelativePath().toString() : super.patternMatchingText();
+	}
+
 }

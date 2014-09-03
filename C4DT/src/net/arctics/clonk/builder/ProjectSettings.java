@@ -4,11 +4,9 @@ package net.arctics.clonk.builder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,7 +18,6 @@ import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.ini.IniField;
 import net.arctics.clonk.util.SettingsBase;
-import net.arctics.clonk.util.StringUtil;
 
 import org.eclipse.core.resources.IProject;
 
@@ -42,7 +39,6 @@ public class ProjectSettings extends SettingsBase {
 	public String problemReportingStrategies;
 
 	private Engine cachedEngine;
-	private Set<Problem> disabledErrorsSet;
 
 	public ProjectSettings() {}
 
@@ -54,22 +50,6 @@ public class ProjectSettings extends SettingsBase {
 				cachedEngine = Core.instance().activeEngine();
 		}
 		return cachedEngine;
-	}
-
-	public synchronized Set<Problem> disabledErrorsSet() {
-		if (disabledErrorsSet == null) {
-			disabledErrorsSet = new HashSet<Problem>();
-			if (!disabledErrors.equals("")) {
-				final String ds[] = disabledErrors.split(",");
-				for (final String d : ds)
-					try {
-						disabledErrorsSet.add(Problem.valueOf(d));
-					} catch (final IllegalArgumentException e) {
-						System.out.println("Unknown parser error: " + d);
-					}
-			}
-		}
-		return disabledErrorsSet;
 	}
 
 	public static final class ProblemReportingStrategyInfo {
@@ -114,17 +94,6 @@ public class ProjectSettings extends SettingsBase {
 		return _problemReportingStrategies;
 	}
 
-	public void setDisabledErrors(final String disabledErrors) {
-		this.disabledErrors = disabledErrors;
-		disabledErrorsSet = null;
-	}
-
-	public void setDisabledErrorsSet(final Set<Problem> errorCodes) {
-		this.disabledErrorsSet = errorCodes;
-		if (errorCodes != null)
-			this.disabledErrors = StringUtil.writeBlock(null, "", "", ",", errorCodes.stream()).toString();
-	}
-
 	public String disabledErrorsString() { return disabledErrors; }
 	public String engineName() { return engineName; }
 
@@ -144,14 +113,12 @@ public class ProjectSettings extends SettingsBase {
 			score.put(engine, 0);
 		for (final IProject proj : referencingProjects) {
 			final String projName = proj.getName();
-			String engine;
-			if (projName.equalsIgnoreCase("OPENCLONK") || projName.equalsIgnoreCase("OC"))
-				engine = "OpenClonk";
-			else if (projName.equalsIgnoreCase("ClonkRage") || projName.equalsIgnoreCase("CR"))
-				engine = "ClonkRage";
-			else
-				continue;
-			score.put(engine, score.get(engine)+1);
+			final String engine =
+				projName.equalsIgnoreCase("OPENCLONK") || projName.equalsIgnoreCase("OC") ? "OpenClonk" :
+				projName.equalsIgnoreCase("ClonkRage") || projName.equalsIgnoreCase("CR") ? "ClonkRage" :
+				null;
+			if (engine != null)
+				score.put(engine, score.get(engine)+1);
 		}
 		Entry<String, Integer> best = null;
 		for (final Entry<String, Integer> entry : score.entrySet())

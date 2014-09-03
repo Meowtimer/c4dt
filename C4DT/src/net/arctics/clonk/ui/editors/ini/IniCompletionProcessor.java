@@ -93,8 +93,38 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 		state().ensureIniUnitUpToDate();
 		final IniSection section = state().structure().sectionAtOffset(offset);
 
-		if (!assignment) {
-			if (section != null) {
+		if (section != null)
+			if (assignment) {
+				final IniDataBase itemData = section.definition().entryForKey(entryName);
+				if (itemData instanceof IniEntryDefinition) {
+					final IniEntryDefinition entryDef = (IniEntryDefinition) itemData;
+					final Class<?> entryClass = entryDef.entryClass();
+					if (entryClass == ID.class || entryClass == IconSpec.class)
+						proposalsForIndex(site);
+					else if (entryClass == FunctionEntry.class)
+						proposalsForFunctionEntry(site);
+					else if (entryClass == IDArray.class) {
+						final int lastDelim = prefix.lastIndexOf(';');
+						prefix = prefix.substring(lastDelim+1);
+						wordOffset += lastDelim+1;
+						proposalsForIndex(site);
+					}
+					else if (entryClass == Boolean.class)
+						proposalsForBooleanEntry(site);
+					else if (entryClass == DefinitionPack.class)
+						proposalsForDefinitionPackEntry(site);
+					else if (entryClass == CategoriesValue.class) {
+						final int lastDelim = prefix.lastIndexOf('|');
+						prefix = prefix.substring(lastDelim+1);
+						wordOffset += lastDelim+1;
+						proposalsForCategoriesValue(site, entryDef);
+					}
+					else if (entryDef.enumValues() != null)
+						entryDef.enumValues().keySet().forEach(k -> site.addProposal(
+							new CompletionProposal(k, site.wordOffset, site.prefix.length(), k.length())
+						));
+				}
+			} else {
 				if (section.definition() != null)
 					proposalsForSection(site, section);
 				if (section.parentSection() != null && section.parentSection().definition() != null)
@@ -106,34 +136,6 @@ public class IniCompletionProcessor extends StructureCompletionProcessor<IniUnit
 				if (indentation == section.indentation()+1)
 					proposalsForIniDataEntries(site, section.definition().entries().values());
 			}
-		}
-		else if (assignment && section != null) {
-			final IniDataBase itemData = section.definition().entryForKey(entryName);
-			if (itemData instanceof IniEntryDefinition) {
-				final IniEntryDefinition entryDef = (IniEntryDefinition) itemData;
-				final Class<?> entryClass = entryDef.entryClass();
-				if (entryClass == ID.class || entryClass == IconSpec.class)
-					proposalsForIndex(site);
-				else if (entryClass == FunctionEntry.class)
-					proposalsForFunctionEntry(site);
-				else if (entryClass == IDArray.class) {
-					final int lastDelim = prefix.lastIndexOf(';');
-					prefix = prefix.substring(lastDelim+1);
-					wordOffset += lastDelim+1;
-					proposalsForIndex(site);
-				}
-				else if (entryClass == Boolean.class)
-					proposalsForBooleanEntry(site);
-				else if (entryClass == DefinitionPack.class)
-					proposalsForDefinitionPackEntry(site);
-				else if (entryClass == CategoriesValue.class) {
-					final int lastDelim = prefix.lastIndexOf('|');
-					prefix = prefix.substring(lastDelim+1);
-					wordOffset += lastDelim+1;
-					proposalsForCategoriesValue(site, entryDef);
-				}
-			}
-		}
 
 		final ICompletionProposal[] proposals = site.finish(ProposalCycle.ALL);
 		guardedSort(proposals);

@@ -388,7 +388,7 @@ public abstract class Utilities {
 			item instanceof Stream ? (Stream<T>)item : Stream.empty()
 		);
 	}
-	
+
 	public static <K, V> V getOrAdd(Map<K, V> dictionary, K key, Supplier<V> creation)
 	{
 		return defaulting(dictionary.get(key), () -> {
@@ -397,7 +397,7 @@ public abstract class Utilities {
 			return n;
 		});
 	}
-	
+
 	public static <T, K> Map<K, List<T>> bucketize(Stream<T> list, Function<T, K> keySelector)
 	{
 		final HashMap<K, List<T>> result = new HashMap<>();

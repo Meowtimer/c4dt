@@ -27,7 +27,7 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	 */
 	@Override
 	protected void endParsing() {
-		final IniSection controlsDefsSection = sectionWithName("ControlDefs", false);
+		final IniSection controlsDefsSection = sectionWithName("ControlDefs", false, null);
 		if (controlsDefsSection != null)
 			for (final IniItem item : controlsDefsSection.items())
 				if (item instanceof IniSection) {
@@ -51,12 +51,14 @@ public class PlayerControlsUnit extends IniUnitWithNamedSections {
 	public String nameEntryName(final IniSection section) {
 		if (section != null && section.parentSection() != null) {
 			final IniSection psec = section.parentSection();
-			if (psec.name().equals("ControlDefs"))
+			switch (psec.name()) {
+			case "ControlDefs":
 				return "Identifier";
-			else if (psec.name().equals("ControlSets"))
+			case "ControlSets":
 				return "Name";
-			else if (psec.name().equals("ControlSet"))
+			case "ControlSet":
 				return "Control";
+			}
 		}
 		return super.nameEntryName(section);
 	}

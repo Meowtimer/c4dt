@@ -20,7 +20,7 @@ public abstract class MapCreator {
 	public ImageData create(final ScenarioUnit scenarioConfiguration, final boolean layers, final int numPlayers) {
 		final LandscapeSection section = new LandscapeSection();
 		section.Default();
-		final IniSection landscapeIniSection = scenarioConfiguration.sectionWithName(IniData.defaultSection(LandscapeSection.class), false);
+		final IniSection landscapeIniSection = scenarioConfiguration.sectionWithName(IniData.defaultSection(LandscapeSection.class), false, null);
 		landscapeIniSection.commit(section, false);
 		final int[] size = section.GetMapSize(numPlayers);
 		IContainer materialsContainer = null;

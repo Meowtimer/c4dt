@@ -3,6 +3,10 @@ package net.arctics.clonk.ini;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.attempt;
+import static net.arctics.clonk.util.Utilities.block;
+import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.walk;
 
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
@@ -11,8 +15,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
@@ -40,6 +45,7 @@ import net.arctics.clonk.stringtbl.StringTbl;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.ITreeNode;
+import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IFile;
@@ -71,16 +77,10 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	public IniUnit(final Object input) { super(null); this.input = input; }
 
 	public void save(final ASTNodePrinter writer, final boolean discardEmptySections) {
-		sections().forEach(new Consumer<IniSection>() {
-			boolean started = false;
-			@Override
-			public void accept(IniSection section) {
-				if (started)
-					writer.append('\n');
-				if (!discardEmptySections || section.hasPersistentItems()) {
-					started = true;
-					section.print(writer, -1);
-				}
+		sections().forEach(section -> {
+			if (!discardEmptySections || section.hasPersistentItems()) {
+				section.print(writer, -1);
+				writer.append('\n');
 			}
 		});
 	}
@@ -122,25 +122,22 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	}
 
 	static Object createEntryValueFromString(final Class<?> type, String value, final IniEntryDefinition entryData, final IniUnit context) throws IniParserException {
-		if (value == null)
-			value = ""; //$NON-NLS-1$
-		if (type.equals(IDLiteral.class))
-			return new IDLiteral(ID.get(value));
-		else if (type.equals(String.class))
-			return value;
-		else if (IniEntryValue.class.isAssignableFrom(type))
-			try {
-				final IniEntryValue obj = ((IniEntryValue)type.newInstance());
-				obj.setInput(value, entryData, context);
-				return obj;
-			} catch (InstantiationException | IllegalAccessException e) {
-				e.printStackTrace();
-				return null;
-			}
-		else if (type.isEnum())
-			return Utilities.enumValueFromString(type, value);
-		else
-			return null;
+		final String value_ = defaulting(value, "");
+		return
+			type.equals(IDLiteral.class) ? new IDLiteral(ID.get(value_)) :
+			type.equals(String.class) ? value_ :
+			IniEntryValue.class.isAssignableFrom(type) ? block(() -> {
+				try {
+					final IniEntryValue obj = ((IniEntryValue)type.newInstance());
+					obj.setInput(value_, entryData, context);
+					return obj;
+				} catch (InstantiationException | IllegalAccessException | IniParserException e) {
+					//e.printStackTrace();
+					return null;
+				}
+			}) :
+			type.isEnum() ? Utilities.enumValueFromString(type, value_) :
+			null;
 	}
 
 	/**
@@ -185,55 +182,37 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 			throw new IniParserException(IMarker.SEVERITY_ERROR, String.format("No definition for ini entry '%s'", entry.key()));
 	}
 
-	public IniSection requestSection(final String name, final IniSectionDefinition sectionData) {
-		IniSection result = as(map.get(name), IniSection.class);
-		if (result == null) {
-			result = new IniSection(name);
-			result.setDefinition(sectionData);
-			return addDeclaration(result);
-		}
-		else
-			return result;
+	public IniSection sectionWithName(final String name, final boolean create, final IniSectionDefinition sectionData) {
+		return as(defaulting(map.get(name), create ? () -> {
+			final IniSection s = new IniSection(new SourceLocation(-1, -1), name);
+			s.setDefinition(defaulting(sectionData, () -> sectionDataFor(s, null)));
+			return addDeclaration(s);
+		} : () -> null), IniSection.class);
 	}
 
 	protected IniSectionDefinition sectionDataFor(final IniSection section, final IniSection parentSection) {
-		if (parentSection != null) {
-			if (parentSection.definition() != null) {
-				final IniDataBase dataItem = parentSection.definition().entryForKey(section.name());
-				return dataItem instanceof IniSectionDefinition ? (IniSectionDefinition)dataItem : null;
-			}
-			else
-				return null;
-		} else
-			return configuration() != null
-			? configuration().sections().get(section.name())
-					: null;
+		return parentSection != null
+			? parentSection.definition() != null
+				? block(() -> {
+					final IniDataBase dataItem = parentSection.definition().entryForKey(section.name());
+					return dataItem instanceof IniSectionDefinition ? (IniSectionDefinition)dataItem : null;
+				})
+				: null
+			: configuration() != null
+				? configuration().sections().get(section.name())
+				: null;
 	}
 
 	protected void startParsing() {}
 	protected void endParsing() {}
 
-	protected String configurationName() {
-		return null;
-	}
+	protected String configurationName() { return null; }
 
 	public IniConfiguration configuration() {
 		final String confName = configurationName();
-		if (confName != null && engine() != null && engine().iniConfigurations() != null)
-			return engine().iniConfigurations().configurationFor(confName);
-		else
-			return null;
-	}
-
-	public IniSection sectionWithName(final String name, final boolean create) {
-		IniSection s = as(map.get(name), IniSection.class);
-		if (s == null && create) {
-			final IniSection section = new IniSection(new SourceLocation(-1, -1), name);
-			section.setParent(null != null ? null : this);
-			s = section;
-			s.setDefinition(sectionDataFor(s, null));
-		}
-		return s;
+		return confName != null && engine() != null && engine().iniConfigurations() != null
+			? engine().iniConfigurations().configurationFor(confName)
+			: null;
 	}
 
 	public IniSection sectionMatching(final Predicate<IniSection> predicate) {
@@ -321,7 +300,7 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 
 	@Override
 	public Declaration findDeclaration(final String declarationName) {
-		return sectionWithName(declarationName, false);
+		return sectionWithName(declarationName, false, null);
 	}
 
 	@Override
@@ -362,14 +341,15 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	}
 
 	private static Map<String, Class<? extends IniUnit>> INIREADER_CLASSES = ArrayUtil.map(false, new Object[] {
-		Core.id("scenariocfg")  , ScenarioUnit.class, //$NON-NLS-1$
-		Core.id("actmap")       , ActMapUnit.class, //$NON-NLS-1$
-		Core.id("defcore")      , DefCoreUnit.class, //$NON-NLS-1$
-		Core.id("particle")     , ParticleUnit.class, //$NON-NLS-1$
-		Core.id("material")     , MaterialUnit.class, //$NON-NLS-1$
-		Core.id("plrcontroldef"), PlayerControlsUnit.class, //$NON-NLS-1$
-		Core.id("foldermap")    , FolderMapUnit.class,
-		Core.id("teamsdef")     , TeamsUnit.class
+		Core.id("scenariocfg")       , ScenarioUnit.class, //$NON-NLS-1$
+		Core.id("actmap")            , ActMapUnit.class, //$NON-NLS-1$
+		Core.id("defcore")           , DefCoreUnit.class, //$NON-NLS-1$
+		Core.id("particle")          , ParticleUnit.class, //$NON-NLS-1$
+		Core.id("material")          , MaterialUnit.class, //$NON-NLS-1$
+		Core.id("plrcontroldef")     , PlayerControlsUnit.class, //$NON-NLS-1$
+		Core.id("foldermap")         , FolderMapUnit.class,
+		Core.id("teamsdef")          , TeamsUnit.class,
+		Core.id("problemhandlingmap"), ProblemHandlingMap.Unit.class
 	});
 
 	/**
@@ -408,25 +388,23 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	@Override
 	public Engine engine() {
 		final ClonkProjectNature nature = ClonkProjectNature.get(resource());
-		if (nature != null)
-			return nature.index().engine();
-		else {
-			final CustomizationNature customizationNature = CustomizationNature.get(resource().getProject());
-			if (customizationNature != null)
-				for (IResource r = resource(); r != customizationNature.getProject(); r = r.getParent())
-					if (r.getParent() == customizationNature.getProject())
-						return Core.instance().loadEngine(r.getName());
-		}
-		return super.engine();
+		return nature != null ? nature.index().engine() : block(() -> {
+			final CustomizationNature custo = CustomizationNature.get(resource().getProject());
+			return defaulting(custo != null
+				? walk(resource(), IResource::getParent)
+					.filter(r -> r.getParent() == custo.getProject())
+					.map(IResource::getName).map(Core.instance()::loadEngine)
+					.findFirst().orElse(null)
+				: null,
+				() -> super.engine()
+			);
+		});
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<? extends Declaration> subDeclarations(final Index contextIndex, final int mask) {
-		if ((mask & DeclMask.IMPLICIT) != 0)
-			return (List<? extends Declaration>) this.list;
-		else
-			return Collections.emptyList();
+		return (mask & DeclMask.IMPLICIT) != 0 ? (List<? extends Declaration>) this.list : Collections.emptyList();
 	}
 
 	@Override
@@ -488,8 +466,8 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 
 	public void readObjectFields(final Object object, final Object defaults) throws IllegalAccessException {
 		for (final Field f : object.getClass().getFields()) {
-			IniField annot;
-			if ((annot = f.getAnnotation(IniField.class)) != null) {
+			final IniField annot = f.getAnnotation(IniField.class);
+			if (annot != null) {
 				final String category = IniData.category(annot, object.getClass());
 				if (defaults != null && Utilities.eq(f.get(object), f.get(defaults)))
 					continue;
@@ -498,26 +476,20 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 					final IniDataBase dataItem = dataSection.entryForKey(f.getName());
 					if (dataItem instanceof IniEntryDefinition) {
 						final IniEntryDefinition entry = (IniEntryDefinition) dataItem;
-						Constructor<?> ctor;
-						Object value = f.getType() == entry.entryClass() ? f.get(object) : null;
-						if (value == null) {
-							try {
-								ctor = entry.entryClass().getConstructor(f.getType());
-							} catch (final SecurityException e) {
-								ctor = null;
-							} catch (final NoSuchMethodException e) {
-								ctor = null;
-							}
-							if (ctor != null)
+						final Object value = f.getType() == entry.entryClass() ? f.get(object) : null;
+						final Object cvalue = defaulting(value, () -> {
+							final Constructor<?> ctor = block(() -> {
 								try {
-									value = ctor.newInstance(f.get(object));
-								} catch (final Exception e) {
-									value = null;
+									return entry.entryClass().getConstructor(f.getType());
+								} catch (final SecurityException | NoSuchMethodException e) {
+									return null;
 								}
-						}
-						if (value != null) {
-							final IniSection section = this.requestSection(category, dataSection);
-							final IniEntry complEntry = new IniEntry(0, 0, f.getName(), value);
+							});
+							return ctor != null ? attempt(() -> ctor.newInstance(f.get(object)), Exception.class, e -> {}) : null;
+						});
+						if (cvalue != null) {
+							final IniSection section = this.sectionWithName(category, true, dataSection);
+							final IniEntry complEntry = new IniEntry(0, 0, f.getName(), cvalue);
 							complEntry.setDefinition(entry);
 							section.putEntry(complEntry);
 						}
@@ -533,7 +505,7 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 			return null;
 		IniSection section = null;
 		for (int i = 0; i < p.length-1; i++) {
-			section = section != null ? as(section.item(p[i]), IniSection.class) : this.sectionWithName(p[i], false);
+			section = section != null ? as(section.item(p[i]), IniSection.class) : this.sectionWithName(p[i], false, null);
 			if (section == null)
 				return null;
 		}
@@ -564,12 +536,65 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 		if (from instanceof IniSection) {
 			final IniSection section = (IniSection) from;
 			final IniEntry entry = (IniEntry) section.item(nameEntryName(section.parentSection()));
-			if (entry != null)
-				return (T) sectionMatching(nameMatcherPredicate(entry.stringValue()));
-			else
-				return null;
+			return entry != null ? (T) sectionMatching(nameMatcherPredicate(entry.stringValue())) : null;
 		} else
 			return null;
+	}
+
+	public interface INode<T> {
+		Stream<T> elements();
+		Stream<Pair<String, Object>> attributes();
+		String name();
+	}
+
+	static class Node<T> implements INode<T> {
+		final Function<INode<T>, T> unamplifier;
+		final IniSection section;
+		public Node(Function<INode<T>, T> unamplifier, IniSection section) {
+			super();
+			this.unamplifier = unamplifier;
+			this.section = section;
+		}
+		@Override
+		public Stream<T> elements() {
+			return ofType(section.map.values().stream(), IniSection.class).map(s -> new Node<T>(unamplifier, s)).map(unamplifier);
+		}
+		@Override
+		public Stream<Pair<String, Object>> attributes() {
+			return ofType(section.map.values().stream(), IniEntry.class).map(e -> Pair.pair(e.key(), e.value()));
+		}
+		@Override
+		public String name() {
+			return section.name();
+		}
+	}
+
+	public static <T> IniUnit from(T thing, Function<T, INode<T>> amplifier) {
+		final IniUnit unit = new IniUnit(null);
+		class Constructor {
+			public void construct(IniSection parent, T thing) {
+				final INode<T> n = amplifier.apply(thing);
+				final IniSection s = new IniSection(n.name());
+				n.attributes().map(kv -> new IniEntry(-1, -1, kv.first(), kv.second())).forEach(s::putEntry);
+				n.elements().forEach(t -> construct(s, t));
+			}
+		}
+		new Constructor().construct(unit, thing);
+		return unit;
+	}
+
+	public <T> T to(Function<INode<T>, T> unamplifier) {
+		return unamplifier.apply(new Node<T>(unamplifier, this));
+	}
+
+	public static IniUnit fromFile(IFile file) {
+		final IniUnit unit = new IniUnit(file);
+		try {
+			new IniUnitParser(unit).parse(false);
+		} catch (final ProblemException e) {
+			e.printStackTrace();
+		}
+		return unit;
 	}
 
 }

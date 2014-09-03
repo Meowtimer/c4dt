@@ -492,7 +492,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	}
 
 	private ComputedScenarioConfigurationEntry entry(final ScenarioUnit unit, final String section, final String entry) {
-		final IniSection s = unit.sectionWithName(section, true);
+		final IniSection s = unit.sectionWithName(section, true, null);
 		IniItem i = s.item(entry);
 		if (i != null && !(i instanceof ComputedScenarioConfigurationEntry)) {
 			s.removeItem(i);

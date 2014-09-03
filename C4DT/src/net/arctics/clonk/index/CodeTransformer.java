@@ -258,7 +258,7 @@ public class CodeTransformer extends CodeConverter {
 			builder.append("\n}");
 			text = builder.toString();
 			final Script script = new TempScript(text, targetEngine);
-			final ScriptParser parser = new Standalone.Parser(text, script, null);
+			final ScriptParser parser = new Standalone.Parser(text, script);
 			parser.parse();
 			final Function transformations = parser.script().findLocalFunction("Transformations", false);
 			if (transformations != null && transformations.body() != null)
