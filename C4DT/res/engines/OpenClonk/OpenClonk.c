@@ -160,6 +160,7 @@ static const int PLRZOOM_NoIncrease;
 static const int PLRZOOM_NoDecrease;
 static const int PLRZOOM_LimitMin;
 static const int PLRZOOM_LimitMax;
+static const int PLRZOOM_Set;
 static const int C4D_Environment;
 static const int C4D_MouseSelect;
 static const int C4D_Foreground;
