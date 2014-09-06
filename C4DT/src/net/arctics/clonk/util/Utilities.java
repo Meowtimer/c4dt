@@ -377,9 +377,7 @@ public abstract class Utilities {
 		return stream(item);
 	}
 
-	public static <T> T block(Supplier<T> sup) {
-		return sup.get();
-	}
+	public static <T> T block(Supplier<T> sup) { return sup.get(); }
 
 	@SuppressWarnings("unchecked")
 	public static <T> Stream<T> flatten(Class<T> cls, Object... items) {
@@ -398,8 +396,7 @@ public abstract class Utilities {
 		});
 	}
 
-	public static <T, K> Map<K, List<T>> bucketize(Stream<T> list, Function<T, K> keySelector)
-	{
+	public static <T, K> Map<K, List<T>> bucketize(Stream<T> list, Function<T, K> keySelector) {
 		final HashMap<K, List<T>> result = new HashMap<>();
 		list.forEach(e -> {
 			final K k = keySelector.apply(e);
@@ -409,6 +406,11 @@ public abstract class Utilities {
 			bucket.add(e);
 		});
 		return result;
+	}
+
+	public static <I, O> Function<I, O> memoize(Function<I, O> f) {
+		final HashMap<I, O> m = new HashMap<>();
+		return k -> synchronizing(m, () -> getOrAdd(m, k, () -> f.apply(k)));
 	}
 
 }

@@ -6,6 +6,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.util.ScriptAccessible;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -18,6 +19,7 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
+	@ScriptAccessible
 	public abstract T literal();
 	public boolean literalsEqual(final Literal<?> other) {
 		return Utilities.eq(other.literal(), this.literal());

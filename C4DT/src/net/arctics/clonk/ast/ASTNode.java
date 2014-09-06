@@ -24,6 +24,7 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Herbert;
 import net.arctics.clonk.util.IPrintable;
+import net.arctics.clonk.util.ScriptAccessible;
 
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -90,6 +91,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * Return the parent of this expression.
 	 * @return
 	 */
+	@ScriptAccessible
 	public ASTNode parent() { return parent; }
 
 	/**
@@ -98,12 +100,14 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @return The first parent of the given class or null if such parent does not exist
 	 */
 	@SuppressWarnings("unchecked")
+	@ScriptAccessible
 	public <T> T parent(final Class<T> cls) {
 		ASTNode e;
 		for (e = parent(); e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
 		return (T) e;
 	}
 
+	@ScriptAccessible
 	public final boolean is(final Class<? extends ASTNode> cls) {
 		return cls.isInstance(this);
 	}
@@ -114,6 +118,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
+	@ScriptAccessible
 	public final <T> T topLevelParent(final Class<T> type) {
 		T result = null;
 		for (ASTNode f = this; f != null; f = f.parent())
@@ -158,6 +163,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * Return the printed string for this node. Calls {@link #print(ASTNodePrinter, int)}.
 	 * @return The printed string.
 	 */
+	@ScriptAccessible
 	public String printed() {
 		final StringBuilder builder = new StringBuilder();
 		print(builder, 0);
@@ -205,8 +211,10 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	}
 
 	@Override
+	@ScriptAccessible
 	public int getLength() { return end()-start(); }
 	@Override
+	@ScriptAccessible
 	public int getOffset() { return start(); }
 	/**
 	 * If this node has an identifier return its offset relative to the {@link #sectionOffset()} (same as {@link #start()}).
@@ -364,6 +372,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @param offset The offset. If 0 the expression itself will be returned since it implements {@link IRegion}
 	 * @return The region offset by the specified amount.
 	 */
+	@ScriptAccessible
 	public IRegion region(final int offset) {
 		return offset == 0 ? this : new Region(offset+start(), end()-start());
 	}
@@ -374,6 +383,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @param locator TODO
 	 * @return An object describing the referenced entity or null if no entity is referenced.
 	 */
+	@ScriptAccessible
 	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		return null;
 	}
@@ -390,14 +400,17 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	}
 
 	@Override
+@ScriptAccessible
 	public String toString() {
 		return printed(0);
 	}
 
+@ScriptAccessible
 	public ControlFlow controlFlow() {
 		return ControlFlow.Continue;
 	}
 
+@ScriptAccessible
 	public EnumSet<ControlFlow> possibleControlFlows() {
 		return EnumSet.of(controlFlow());
 	}
@@ -427,6 +440,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * Returns whether this ExprElm represents a constant value.
 	 * @return Whether constant or not.
 	 */
+	@ScriptAccessible
 	public boolean isConstant() {
 		return false;
 	}
@@ -436,6 +450,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @param context the context to evaluate in
 	 * @return the result
 	 */
+	@ScriptAccessible
 	public Object evaluateStatic(final IEvaluationContext context) {
 		return EVALUATION_COMPLEX;
 	}
@@ -584,6 +599,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 			? compare((ASTNode) other, new ASTComparisonDelegate((ASTNode)other)) : false;
 	}
 
+	@ScriptAccessible
 	public ASTNode sequenceTilMe() {
 		final Sequence fullSequence = sequence();
 		if (fullSequence != null) {
@@ -598,6 +614,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 			return this;
 	}
 
+	@ScriptAccessible
 	private Sequence sequence() { return as(parent(), Sequence.class); }
 
 	public void postLoad(final ASTNode parent) {
@@ -626,6 +643,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * Return the {@link Declaration} this expression element is owned by. This may be the function whose body this element is contained in.
 	 * @return The owning {@link Declaration}
 	 */
+	@ScriptAccessible
 	public Declaration owner() {
 		return parent != null ? parent.owner() : null;
 	}

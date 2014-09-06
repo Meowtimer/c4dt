@@ -6,8 +6,9 @@ import static net.arctics.clonk.c4script.Conf.printNodeList;
 import static net.arctics.clonk.util.ArrayUtil.indexOf;
 import static net.arctics.clonk.util.ArrayUtil.set;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.attempt;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Constructor;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -29,6 +30,8 @@ import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.c4script.typing.FunctionType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.EngineFunction;
+import net.arctics.clonk.util.ScriptAccessibles;
+import net.arctics.clonk.util.ScriptAccessibles.Callable;
 
 import org.eclipse.jface.text.Region;
 
@@ -286,29 +289,13 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 			return f.invoke(f.new Invocation(args, context, self));
 		else if (self != null) {
 			final Object varEv = evaluateVariable(context.variable(this, self));
-			if (varEv instanceof Class)
-				return stream(((Class<?>)varEv).getConstructors())
-					.map(m -> {
-						try {
-							return m.newInstance(args);
-						} catch (final Exception e) {
-							return null;
-						}
-					})
-					.filter(r -> r != null)
-					.findFirst().orElse(null);
-			else
-				return stream(self.getClass().getMethods())
-					.filter(m -> m.getName().equals(declarationName))
-					.map(m -> {
-						try {
-							return m.invoke(self, args);
-						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-							return null;
-						}
-					})
-					.filter(r -> r != null)
-					.findFirst().orElse(null);
+			if (varEv instanceof Class) {
+				final Constructor<?> ctor = ScriptAccessibles.ctor((Class<?>)varEv);
+				return ctor != null ? attempt(() -> ctor.newInstance(args), ReflectiveOperationException.class, Exception::printStackTrace) : null;
+			} else {
+				final Callable m = ScriptAccessibles.method(self.getClass(), declarationName);
+				return m != null ? attempt(() -> m.invoke(self, args), Exception.class, Exception::printStackTrace) : null;
+			}
 		} else
 			return null;
 	}

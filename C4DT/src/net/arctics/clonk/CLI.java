@@ -5,8 +5,6 @@ import static java.util.Arrays.stream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,6 +40,7 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Index.Built;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.Callable;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
 
@@ -103,8 +102,6 @@ public class CLI implements IApplication, AutoCloseable {
 		}
 	}
 	{ CLIFunction.register(Command.BASE, CLI.class); }
-	@Retention(RetentionPolicy.RUNTIME)
-	public @interface Callable {}
 	public static void main(final String[] args) throws Exception {
 		try {
 			new CLI().mainImpl(args);

@@ -409,7 +409,6 @@ public class ClonkProjectNature implements IProjectNature {
 	public ProblemHandlingMap problemHandlingMap() {
 		return defaulting(problemHandlingMap, () -> {
 			final IFile file = problemHandlingMapFile();
-			System.out.println("Called");
 			return problemHandlingMap = file != null && file.exists()
 				? IniUnit.fromFile(file).to(n -> ProblemHandlingMap.from(settings().engine(), n))
 				: null;

@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
@@ -44,6 +45,8 @@ import net.arctics.clonk.index.Definition.ProxyVar;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.util.ScriptAccessibles;
+import net.arctics.clonk.util.ScriptAccessibles.Callable;
 import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.util.StringUtil;
 
@@ -419,31 +422,34 @@ public class MatchingPlaceholder extends Placeholder {
 	}
 
 	public Object transformSubstitution(final Object substitution, final Object context) {
-		Object[] n = as(substitution, Object[].class);
+		final Object[] n = as(substitution, Object[].class);
 		if (n == null)
 			return null;
 
+		Stream<Object> s = stream(n);
+
 		if (property != null)
-			n = stream(n).map(v -> {
+			s = s.map(v -> {
 				try {
-					return v == null ? null : v.getClass().getMethod(property).invoke(v);
+					final Callable getter = v == null ? null : ScriptAccessibles.getter(v.getClass(), property);
+					return getter != null ? getter.invoke(v) : null;
 				} catch (final Exception e) {
 					System.out.println(format("Failed to get %s on %s of type %s", property, v, v.getClass()));
 					return v;
 				}
-			}).toArray(l -> new Object[l]);
+			});
 
 		if (code != null)
-			n = stream(n).map(v -> {
+			s = s.map(v -> {
 				try {
 					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), context));
 				} catch (final Exception e) {
 					e.printStackTrace();
 					return v;
 				}
-			}).toArray(l -> new Object[l]);
+			});
 
-		return stream(n).map(item ->
+		return s.map(item ->
 			item instanceof ASTNode ? (ASTNode)item :
 			item instanceof String ?
 				subElements().length > 0 ? new CallDeclaration((String)item, subElements()) :
@@ -459,6 +465,7 @@ public class MatchingPlaceholder extends Placeholder {
 			r = !r;
 		return r;
 	}
+
 	private boolean internalSatisfied(final ASTNode element) {
 		RequiredClass: if (requiredClass != null) {
 			// OC: references to definitions are not IDLiterals but AccessVars referring to proxy variables
