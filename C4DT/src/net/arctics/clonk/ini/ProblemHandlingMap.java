@@ -80,14 +80,12 @@ public class ProblemHandlingMap implements IniUnit.INode<ProblemHandlingMap> {
 			void test(ASTNode node) {
 				if (current == null)
 					return;
-				final ASTNode p = current.item.patterns[patternIndex];
-				if (p.match(node) != null) {
+				while (patternIndex > -1 && current.item.patterns[patternIndex].match(node) != null)
 					patternIndex--;
-					if (patternIndex == -1) {
-						current = current.tag;
-						if (current != null)
-							patternIndex = current.item.patterns.length-1;
-					}
+				if (patternIndex == -1) {
+					current = current.tag;
+					if (current != null)
+						patternIndex = current.item.patterns.length-1;
 				}
 			}
 			boolean finished() { return current == null; }
