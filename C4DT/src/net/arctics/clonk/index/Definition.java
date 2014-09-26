@@ -7,6 +7,7 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +201,8 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 			final Scenario originScenario = origin instanceof Script
 				? origin.scenario() : origin instanceof IHasRelatedResource
 				? Scenario.containingScenario(((IHasRelatedResource)origin).resource()) : null;
-			for (final Index i : contextIndex.relevantIndexes()) {
+			final List<Index> ndxes = defaulting(contextIndex.relevantIndexes(), Collections.<Index>emptyList());
+			for (final Index i : ndxes) {
 				final List<Script> appendages = i.appendagesOf(Definition.this);
 				if (appendages != null)
 					for (final Script s : appendages) {
