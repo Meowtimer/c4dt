@@ -36,6 +36,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ini.IniData.IniConfiguration;
 import net.arctics.clonk.ini.IniData.IniDataBase;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
@@ -48,6 +49,7 @@ import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -349,8 +351,18 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 		Core.id("plrcontroldef")     , PlayerControlsUnit.class, //$NON-NLS-1$
 		Core.id("foldermap")         , FolderMapUnit.class,
 		Core.id("teamsdef")          , TeamsUnit.class,
-		Core.id("problemhandlingmap"), ProblemHandlingMap.Unit.class
+		Core.id("problemhandlingmap"), ProblemHandlingMap.Unit.class,
+		Core.id("parameterdefs")     , ParameterDefsUnit.class
 	});
+
+	@Override
+	public Scenario scenario() {
+		return walk(resource(), r -> r.getParent())
+			.map(r -> r instanceof IContainer ? Scenario.get((IContainer) r) : null)
+			.filter(s -> s != null)
+			.findFirst()
+			.orElse(null);
+	}
 
 	/**
 	 * Returns the {@link IniUnit} class that is best suited to parsing the given ini file

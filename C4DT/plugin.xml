@@ -69,6 +69,10 @@
 			priority="high" />
 		
 		<content-type base-type="net.arctics.clonk.inifile"
+			file-names="ParameterDefs.txt" id="net.arctics.clonk.parameterdefs" name="%ParameterDefs_Name"
+			priority="high" />
+		
+		<content-type base-type="net.arctics.clonk.inifile"
 			file-names="Teams.txt" id="net.arctics.clonk.teamsdef" name="%TeamsDefinition_Name"
 			priority="high" />
 

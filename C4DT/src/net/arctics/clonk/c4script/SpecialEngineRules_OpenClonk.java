@@ -51,9 +51,11 @@ import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.Scenario;
 import net.arctics.clonk.ini.IDArray;
+import net.arctics.clonk.ini.IGlobalVariablesContributor;
 import net.arctics.clonk.ini.IniEntry;
 import net.arctics.clonk.ini.IniItem;
 import net.arctics.clonk.ini.IniSection;
+import net.arctics.clonk.ini.ParameterDefsUnit;
 import net.arctics.clonk.ini.PlayerControlsUnit;
 import net.arctics.clonk.ini.ScenarioUnit;
 import net.arctics.clonk.parser.BufferedScanner;
@@ -420,7 +422,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		scanner.seek(pos);
 		return null;
 	}
-	
+
 	@Override
 	public void printID(ASTNodePrinter output, IDLiteral literal) {
 		final Script script = literal.parent(Script.class);
@@ -653,15 +655,19 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		} : null;
 	}
 
-	private void readVariablesFromPlayerControlsFile(final Index index) {
+	private void contributeAdditionalGlobalVariables(final Index index) {
 		try {
 			index.nature().getProject().accept(resource -> {
 				if (resource instanceof IContainer)
 					return true;
-				else if (resource instanceof IFile && resource.getName().equals("PlayerControls.txt")) { //$NON-NLS-1$
-					final PlayerControlsUnit unit = (PlayerControlsUnit) Structure.pinned(resource, true, true);
-					if (unit != null)
-						index.addStaticVariables(unit.controlVariables());
+				else if (resource instanceof IFile) {
+					final boolean force =
+						// le hardcode
+						resource.getName().equals(PlayerControlsUnit.CONFIG_NAME) ||
+						resource.getName().equals(ParameterDefsUnit.CONFIG_NAME);
+					final IGlobalVariablesContributor globalVars = as(Structure.pinned(resource, force, true), IGlobalVariablesContributor.class);
+					if (globalVars != null)
+						index.addStaticVariables(globalVars.globalVariables());
 					return true;
 				}
 				else
@@ -675,7 +681,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	@Override
 	public void refreshIndex(final Index index) {
 		super.refreshIndex(index);
-		readVariablesFromPlayerControlsFile(index);
+		contributeAdditionalGlobalVariables(index);
 	}
 
 	@Override

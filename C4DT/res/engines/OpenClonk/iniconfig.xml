@@ -454,4 +454,24 @@
 			</section>
 		</section>
 	</file>
+	<file name="ParameterDefs.txt">
+		<section name="ParameterDef">
+			<entry name="ParameterDef" class="java.lang.String"/>
+			<entry name="Name" class="java.lang.String"/>
+			<entry name="Description" class="java.lang.String"/>
+			<entry name="ID" class="java.lang.String"/>
+			<entry name="Enumeration" class="java.lang.String"/>
+			<entry name="Type" class="Enum" enumValues="Enumeration"/>
+			<entry name="Default" class="java.lang.String"/>
+			<entry name="Achievement" class="java.lang.String"/>
+			<entry name="Options" class="java.lang.String"/>
+			<section name="Options">
+				<section name="Option">
+					<entry name="Value" class="SignedInteger"/>
+					<entry name="Name" class="java.lang.String"/>
+					<entry name="Description" class="java.lang.String"/>
+				</section>
+			</section>
+		</section>
+	</file>
 </clonkiniconfig>
