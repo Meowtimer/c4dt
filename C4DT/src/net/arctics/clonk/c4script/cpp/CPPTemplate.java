@@ -618,7 +618,7 @@ public class CPPTemplate {
 			"C4Object* %s::Def::NewInstance() { return new %s(); }",
 			"",
 			convertedFunctions,
-			format("decltype(%s::D) %1$s::D(\"%s\");", script.name(), script.resource().getProjectRelativePath().toPortableString())
+			format("decltype(%s::D) %1$s::D(\"%s\");", script.name(), script.resource() != null ? script.resource().getProjectRelativePath().toPortableString() : "")
 		);
 	}
 	class Indented {
