@@ -626,7 +626,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			// prefer using the cache
 			requireLoaded();
 			final Declaration cacheFind = findUsingCache(info);
-			if (cacheFind != null)
+			if (cacheFind != null && !info.reject(cacheFind))
 				return cacheFind;
 		}
 
@@ -639,7 +639,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		{
 			for (final Script o : includes(info.index, info.searchOrigin(), 0)) {
 				final Declaration result = o.findDeclaration(info);
-				if (result != null)
+				if (result != null && !info.reject(result))
 					return result;
 			}
 		}

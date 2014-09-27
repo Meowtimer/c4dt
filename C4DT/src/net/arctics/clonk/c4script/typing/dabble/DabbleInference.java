@@ -40,6 +40,7 @@ import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
+import net.arctics.clonk.c4script.AssignmentVariable;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
@@ -1428,10 +1429,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 						final FindDeclarationInfo info = new FindDeclarationInfo(node.name(), visitor.script().index());
 						info.searchOrigin(scriptToLookIn);
 						info.findGlobalVariables = predecessor == null;
-						Declaration v = scriptToLookIn.findDeclaration(info);
-						if (v instanceof Definition)
-							v = ((Definition)v).proxyVar();
-						return v;
+						final Declaration v = scriptToLookIn.findDeclaration(info);
+						return v instanceof Definition ? ((Definition)v).proxyVar() : v;
 					} else
 						// find pseudo-variable from proplist expression
 						if (t instanceof IProplistDeclaration) {
@@ -1590,7 +1589,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void addFieldToScript(final T node, final IType type, final ASTNode origin, final Visitor visitor) {
-				final Variable var = new Variable(Variable.Scope.LOCAL, node.name());
+				final Variable var = new AssignmentVariable(Variable.Scope.LOCAL, node.name());
 				initializeFromAssignment(node, type, origin, visitor, var);
 				visitor.script().addDeclaration(var);
 				node.setDeclaration(var);

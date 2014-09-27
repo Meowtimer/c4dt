@@ -21,28 +21,28 @@ public final class FindDeclarationInfo {
 	public Class<? extends Declaration> declarationClass;
 	public Function contextFunction;
 	public boolean findGlobalVariables = true;
-	
+
 	private Script searchOrigin;
 	private Scenario scenario;
-	
+
 	public Script searchOrigin() { return searchOrigin; }
 	public Scenario scenario() { return scenario; }
-	
+
 	public void searchOrigin(final Script searchOrigin) {
 		this.searchOrigin = searchOrigin;
 		this.scenario = searchOrigin != null ? searchOrigin.scenario() : null;
 	}
-	
+
 	private Set<Script> alreadySearched;
 	private Script first;
-	
+
 	@Override
 	public String toString() {
 		if (declarationClass != null)
 			return format("%s: %s", name, declarationClass.getSimpleName());
 		return name;
 	}
-	
+
 	public boolean startSearchingIn(final Script script) {
 		if (script == first)
 			return false;
@@ -56,13 +56,13 @@ public final class FindDeclarationInfo {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Create an instance with a context index.
 	 */
 	public FindDeclarationInfo(final String name, final Index index) {
 		super();
-		this.name = name; 
+		this.name = name;
 		this.index = index;
 	}
 	/**
@@ -81,5 +81,15 @@ public final class FindDeclarationInfo {
 		first = null;
 		alreadySearched = null;
 		recursion = 0;
+	}
+
+	/**
+	 * This {@link FindDeclarationInfo} has opinions on your declaration.
+	 * @param d The declaration to reject
+	 * @return Whether this declaration is reject as a search result
+	 */
+	public boolean reject(Declaration d) {
+		final boolean yes = findGlobalVariables && d instanceof AssignmentVariable;
+		return yes;
 	}
 }
