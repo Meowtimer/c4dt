@@ -71,17 +71,22 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 	}
 	@Override
 	protected boolean consistent() {
-		return result == null || result.entrySet().stream().filter(e -> e.getKey().proto() == null)
+		return result == null || result.entrySet().stream()
+			// elements without proto are the ones whose match results count while...
+			.filter(e -> e.getKey().proto() == null)
 			.allMatch(e ->
-				e.getKey().consistent(e.getValue()) &&
 				result.entrySet().stream()
+					// elements with a proto reference to those elements...
 					.filter(s -> s.getKey().proto() == e.getKey())
-					.allMatch(s -> same(s.getValue(), e.getValue()))
+					// are required to have matched the same stuff
+					.allMatch(s -> same(s.getValue(), e.getValue())) &&
+				// also, matching results for a placeholder must be consistent with the multiplicity and such
+				e.getKey().consistent(e.getValue())
 		);
 	}
-	private boolean same(Object a, Object b) {
+	private static boolean same(Object a, Object b) {
 		return a.getClass() == b.getClass() &&
-			a instanceof Object[] ? ArrayUtil.same((Object[])a, (Object[])b, this::same) :
+			a instanceof Object[] ? ArrayUtil.same((Object[])a, (Object[])b, ASTNodeMatcher::same) :
 			eq(a, b);
 	}
 	@Override
@@ -136,6 +141,11 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 		}
 		return node.transformRecursively(MatchingPlaceholderTransformer.INSTANCE);
 	}
+	/**
+	 * Prepare a parsed node for being a matching template by replacing regular {@link Placeholder}s with {@link MatchingPlaceholder}s.
+	 * @param node The node to prepare
+	 * @return The prepared node.
+	 */
 	public static ASTNode prepareForMatching(final ASTNode node) {
 		final ASTNode transformed = parsePlaceholders(node);
 		final Map<String, MatchingPlaceholder> mps = new HashMap<>();
@@ -168,6 +178,10 @@ public class ASTNodeMatcher extends ASTComparisonDelegate {
 			return null;
 		}
 	}
+	/**
+	 * Return a map containing the matching results.
+	 * @return The matching result as a map with keys being the names of the placeholders and the values being either arrays or single instances of {@link ASTNode}.
+	 */
 	public Map<String, Object> result() {
 		try {
 		return result != null ? result.entrySet().stream()

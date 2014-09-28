@@ -39,13 +39,16 @@ public class ASTComparisonDelegate {
 	 */
 	public boolean acceptAttributeDifference() { return false; }
 
+	/** Decide whether some extra element on the left side of the comparison is ok */
 	public boolean acceptLeftExtraElement(final ASTNode leftNode) { return false; }
+	/** Decide whether some extra element on the right side of the comparison is ok */
 	public boolean acceptRightExtraElement(final ASTNode rightNode) { return false; }
+	/** Decide whether some differing sub elements at some position of left and right is ok */
 	public boolean acceptSubElementDifference(final ASTNode left, final ASTNode right) { return false; }
-	public boolean considerDifferent() { return false; }
-
+	/** Do some additional logic after having found mapping from left elements to right elements */
 	public boolean applyLeftToRightMapping(final ASTNode[] leftSubElements, final ASTNode[][] leftToRightMapping) { return true; }
 
+	/** Do some final consistency check after having completed the main comparison */
 	protected boolean consistent() { return true; }
 
 	public boolean equal(final ASTNode left, final ASTNode right) {

@@ -3,12 +3,10 @@ package net.arctics.clonk.ast;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.builder.ClonkBuilder;
 import net.arctics.clonk.c4script.Script;
@@ -24,7 +22,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
@@ -245,34 +242,34 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	@Override
 	public int fragmentOffset() { return 0; }
 
-	public void saveNodes(final Collection<? extends ASTNode> expressions) {
-		if (expressions.isEmpty())
+	/**
+	 * Write text representations of the specified nodes into the underlying document.
+	 * The nodes are expected to still have source locations corresponding to the old nodes which are ostensibly being replaced by them
+	 * so the document will not end up being garbled garbage.
+	 * @param nodes The nodes to save.
+	 */
+	public void saveNodes(final Collection<? extends ASTNode> nodes) {
+		if (nodes.isEmpty())
 			return;
-		Core.instance().performActionsOnFileDocument(file(), new IDocumentAction<Boolean>() {
-			@Override
-			public Boolean run(final IDocument document) {
-				try {
-					final List<ASTNode> l = new ArrayList<ASTNode>(expressions);
-					Collections.sort(l, new Comparator<ASTNode>() {
-						@Override
-						public int compare(final ASTNode o1, final ASTNode o2) {
-							final IRegion r1 = o1.absolute();
-							final IRegion r2 = o2.absolute();
-							return r2.getOffset() - r1.getOffset();
-						}
-					});
-					for (final ASTNode e : l) {
-						final IRegion region = e.absolute();
-						int depth;
-						ASTNode n;
-						for (depth = 0, n = e; n != null && !(n instanceof Declaration || n instanceof FunctionBody); depth++, n = n.parent());
-						document.replace(region.getOffset(), region.getLength(), e.printed(depth));
-					}
-					return true;
-				} catch (final BadLocationException e) {
-					e.printStackTrace();
-					return false;
+		Core.instance().performActionsOnFileDocument(file(), document -> {
+			try {
+				final List<ASTNode> l = new ArrayList<ASTNode>(nodes);
+				Collections.sort(l, (o1, o2) -> {
+					final IRegion r1 = o1.absolute();
+					final IRegion r2 = o2.absolute();
+					return r2.getOffset() - r1.getOffset();
+				});
+				for (final ASTNode e1 : l) {
+					final IRegion region = e1.absolute();
+					int depth;
+					ASTNode n;
+					for (depth = 0, n = e1; n != null && !(n instanceof Declaration || n instanceof FunctionBody); depth++, n = n.parent());
+					document.replace(region.getOffset(), region.getLength(), e1.printed(depth));
 				}
+				return true;
+			} catch (final BadLocationException e2) {
+				e2.printStackTrace();
+				return false;
 			}
 		}, true);
 	}
