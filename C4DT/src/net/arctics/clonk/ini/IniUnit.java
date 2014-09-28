@@ -23,7 +23,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
-import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.SourceLocation;
@@ -91,7 +91,7 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 		if (file() != null)
 			Core.instance().performActionsOnFileDocument(file(), document -> {
 				final StringWriter writer = new StringWriter();
-				save(new AppendableBackedExprWriter(writer), discardEmptySections);
+				save(new AppendableBackedNodePrinter(writer), discardEmptySections);
 				document.set(writer.toString());
 				return null;
 			}, true);

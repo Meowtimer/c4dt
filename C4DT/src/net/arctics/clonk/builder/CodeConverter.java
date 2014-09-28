@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
-import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.ITransformer;
@@ -144,7 +144,7 @@ public abstract class CodeConverter {
 					if (d instanceof Function) {
 						final Function f = (Function)d;
 						final StringBuilder header = new StringBuilder(f.header().getLength()+10);
-						f.printHeader(new AppendableBackedExprWriter(header), false);
+						f.printHeader(new AppendableBackedNodePrinter(header), false);
 						textChange.addEdit(new ReplaceEdit(f.header().start(), f.header().getLength(), header.toString()));
 						f.setOldStyle(false);
 					}
@@ -180,7 +180,7 @@ public abstract class CodeConverter {
 		final StringBuilder builder = new StringBuilder();
 		if (!(codeOwner instanceof Function))
 			builder.append(' ');
-		final ASTNodePrinter newStringWriter = new AppendableBackedExprWriter(builder);
+		final ASTNodePrinter newStringWriter = new AppendableBackedNodePrinter(builder);
 		final Function function = as(codeOwner, Function.class);
 		if (function != null)
 			Conf.blockPrelude(newStringWriter, 0);

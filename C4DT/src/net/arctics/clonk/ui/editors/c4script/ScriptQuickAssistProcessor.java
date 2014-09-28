@@ -24,7 +24,7 @@ import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
-import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.ExpressionLocator;
 import net.arctics.clonk.ast.Sequence;
@@ -256,7 +256,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 			for (final Declaration dec : replacement.additionalDeclarations()) {
 				final StringBuilder builder = new StringBuilder(50);
-				dec.print(new AppendableBackedExprWriter(builder), 0);
+				dec.print(new AppendableBackedNodePrinter(builder), 0);
 				builder.append("\n"); //$NON-NLS-1$
 				builder.append("\n"); //$NON-NLS-1$
 				try {

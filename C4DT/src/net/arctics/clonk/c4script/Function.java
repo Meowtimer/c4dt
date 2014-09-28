@@ -21,7 +21,7 @@ import java.util.stream.IntStream;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
-import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.Declaration;
@@ -408,7 +408,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			string.append(name());
 			string.append("("); //$NON-NLS-1$
 		}
-		printParametersString(new AppendableBackedExprWriter(string), options);
+		printParametersString(new AppendableBackedNodePrinter(string), options);
 		if (options.functionName)
 			string.append(")"); //$NON-NLS-1$
 		return string.toString();
@@ -712,7 +712,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public String headerString(final boolean oldStyle) {
 		final StringBuilder builder = new StringBuilder();
-		printHeader(new AppendableBackedExprWriter(builder), oldStyle);
+		printHeader(new AppendableBackedNodePrinter(builder), oldStyle);
 		return builder.toString();
 	}
 
@@ -945,7 +945,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		f.assignType(PrimitiveType.ANY, true);
 		for (final Variable p : parameters)
 			f.addParameter(p);
-		final ASTNodePrinter printer = new AppendableBackedExprWriter(builder);
+		final ASTNodePrinter printer = new AppendableBackedNodePrinter(builder);
 		f.printHeader(printer);
 		Conf.blockPrelude(printer, 0);
 		builder.append("{\n"); //$NON-NLS-1$

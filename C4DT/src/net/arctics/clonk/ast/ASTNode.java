@@ -193,7 +193,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 
 	@Override
 	public final void print(final StringBuilder builder, final int depth) {
-		print(new AppendableBackedExprWriter(builder), depth);
+		print(new AppendableBackedNodePrinter(builder), depth);
 	}
 
 	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor == null; }

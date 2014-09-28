@@ -6,7 +6,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
 
-import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.ini.CustomIniUnit;
 
 public abstract class SettingsBase implements Cloneable {
@@ -47,7 +47,7 @@ public abstract class SettingsBase implements Cloneable {
 	public void saveTo(final OutputStream stream, final SettingsBase defaults) {
 		try {
 			try (Writer writer = new OutputStreamWriter(stream)) {
-				CustomIniUnit.save(new AppendableBackedExprWriter(writer), this, defaults);
+				CustomIniUnit.save(new AppendableBackedNodePrinter(writer), this, defaults);
 			}
 		} catch (final Exception e) {
 			e.printStackTrace();

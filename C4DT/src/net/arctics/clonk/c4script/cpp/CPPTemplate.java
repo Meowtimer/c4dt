@@ -23,7 +23,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
@@ -254,7 +254,7 @@ public class CPPTemplate {
 	public String printNode(Map<String, Integer> strTable, final Function function, final ASTNode node) {
 		final StringWriter output = new StringWriter();
 		final java.util.function.Function<String, Integer> strNum = s -> defaulting(strTable.get(s), -1);
-		node.print(new AppendableBackedExprWriter(output) {
+		node.print(new AppendableBackedNodePrinter(output) {
 			private void printConversionSuffix(IType targetType, ASTNode node) {
 				final IType ty = node.ty();
 				final String suffix = !(node instanceof Literal || node instanceof AccessVar || node instanceof Nil)

@@ -1,8 +1,8 @@
 package net.arctics.clonk.c4group;
 
 import static net.arctics.clonk.util.DispatchCase.caze;
-import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.attempt;
+import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.walk;
 
 import java.io.File;
@@ -171,8 +171,8 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 		if (!loaded) {
 			loaded = true;
-			// compressed
 			childEntries =
+				// compressed
 				stream != null ? block(() -> {
 					header = attempt(() -> C4GroupHeader.createFromStream(stream), Exception.class, Exception::printStackTrace);
 					if (header == null)

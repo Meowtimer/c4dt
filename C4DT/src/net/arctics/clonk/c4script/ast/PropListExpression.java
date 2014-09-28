@@ -7,7 +7,7 @@ import java.util.Map;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
-import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.EntityRegion;
 import net.arctics.clonk.ast.ExpressionLocator;
@@ -43,7 +43,7 @@ public class PropListExpression extends ASTNode {
 		final char BREAK = (char)254;
 		final char LASTBREAK = (char)253;
 		final StringBuilder builder = new StringBuilder();
-		final ASTNodePrinter output = new AppendableBackedExprWriter(builder);
+		final ASTNodePrinter output = new AppendableBackedNodePrinter(builder);
 		output.append('{');
 		final Collection<Variable> components = components();
 		int i = 0;

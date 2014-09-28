@@ -3,10 +3,10 @@ package net.arctics.clonk.ast;
 import java.io.IOException;
 
 
-public class AppendableBackedExprWriter implements ASTNodePrinter {
+public class AppendableBackedNodePrinter implements ASTNodePrinter {
 	private final Appendable appendable;
 
-	public AppendableBackedExprWriter(final Appendable builder) {
+	public AppendableBackedNodePrinter(final Appendable builder) {
 		this.appendable = builder;
 	}
 

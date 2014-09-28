@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Milestones;
-import net.arctics.clonk.ast.AppendableBackedExprWriter;
+import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.builder.ProjectSettings.ProblemReportingStrategyInfo;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
@@ -202,7 +202,7 @@ public class ClonkProjectNature implements IProjectNature {
 			settings();
 			StreamUtil.writeToFile(settingsFilePath().toFile(), (file, stream, writer) -> {
 				try {
-					CustomIniUnit.save(new AppendableBackedExprWriter(writer), settings, null);
+					CustomIniUnit.save(new AppendableBackedNodePrinter(writer), settings, null);
 				} catch (final Exception e) {
 					e.printStackTrace();
 				}
