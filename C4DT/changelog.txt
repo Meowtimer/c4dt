@@ -1,5 +1,6 @@
 2.0.1:
 -Replace hiding of types of problems with ProblemHandlingMap.txt (http://deenosaurier.de/c4dt/problemfiltering.html)
+-Support ParamaterDefs.txt files in OpenClonk
 2.0:
 -Require Java 8 because author got into replace-all-the-loops-with-streams frenzy
 -It's probably more buggy than before
