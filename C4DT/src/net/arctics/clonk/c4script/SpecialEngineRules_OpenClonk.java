@@ -178,7 +178,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					final Script script = node.parent(Script.class);
 					if (script.findLocalVariable((String)nameEv, true) == null) {
 						final Variable var = script.createVarInScope(
-							Variable.DEFAULT_VARIABLE_FACTORY,
+							AssignmentVariable::new,
 							node.parent(Function.class),
 							(String) nameEv, Scope.LOCAL, loc.start(), loc.end(), null
 						);
