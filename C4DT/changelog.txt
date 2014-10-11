@@ -1,3 +1,5 @@
+2.0.2:
+-Differentiate between regular locals and locals created by assigning a property - the latter ones always require qualification and thus do not hide definitions with the same name as the assigned local
 2.0.1:
 -Replace hiding of types of problems with ProblemHandlingMap.txt (http://deenosaurier.de/c4dt/problemfiltering.html)
 -Support ParamaterDefs.txt files in OpenClonk
