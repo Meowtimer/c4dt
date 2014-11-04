@@ -1,6 +1,8 @@
 package net.arctics.clonk.ini;
 
 import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.DispatchCase.caze;
+import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.Collection;
 
@@ -18,6 +20,7 @@ import net.arctics.clonk.c4script.ast.StringLiteral;
 import net.arctics.clonk.c4script.ast.True;
 import net.arctics.clonk.ini.IniData.IniEntryDefinition;
 import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.util.DispatchCase;
 import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.IHasChildrenWithContext;
 import net.arctics.clonk.util.IHasContext;
@@ -85,21 +88,20 @@ public class IniEntry extends NameValueAssignment implements IHasChildren, IHasC
 	@Override
 	public void setSubElements(ASTNode[] elms) { this.value = ASTNodeWrap.unwrap(elms[0]); }
 	@Override
-	public ASTNode proplistValue() {
+	public ASTNode toExpression() {
 		final Object val = value();
-		if (val instanceof SignedInteger)
-			return new IntegerLiteral(((SignedInteger)val).number());
-		else if (val instanceof String)
-			return new StringLiteral((String)val);
-		else if (val instanceof NamedReference)
-			return new StringLiteral(((NamedReference)val).value());
-		else if (val instanceof IntegerArray) {
-			final ASTNode[] ints = stream(((IntegerArray)val).values()).map(c -> new IntegerLiteral(c.summedValue())).toArray(l -> new ASTNode[l]);
-			return new ArrayExpression(ints);
-		}
-		else if (val instanceof Boolean)
-			return ((Boolean)val).booleanValue() ? new True() : new False();
-		else
-			return ASTNodeWrap.wrap(val);
+		return defaulting(
+			DispatchCase.<Object, ASTNode>dispatch(val,
+				caze(SignedInteger.class, s -> new IntegerLiteral(s.number())),
+				caze(String.class, s -> new StringLiteral(s)),
+				caze(NamedReference.class, r -> new StringLiteral(r.value())),
+				caze(IntegerArray.class, ia -> {
+					final ASTNode[] ints = stream(ia.values()).map(c -> new IntegerLiteral(c.summedValue())).toArray(l -> new ASTNode[l]);
+					return new ArrayExpression(ints);
+				}),
+				caze(Boolean.class, b -> b.booleanValue() ? new True() : new False())
+			),
+			() -> ASTNodeWrap.wrap(val)
+		);
 	}
 }

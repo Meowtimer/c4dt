@@ -12,7 +12,7 @@ public interface IniItem extends ITreeNode {
 	void print(ASTNodePrinter writer, int indentation);
 	void validate(Markers markers) throws ProblemException;
 	String key();
-	ASTNode proplistValue();
+	ASTNode toExpression();
 	/**
 	 * Return whether this item won't be saved when {@link IniUnit#save(Writer, boolean)} is called.
 	 * @return True if transient and thus not saved, or false if persistent.
