@@ -15,8 +15,7 @@ public abstract class PathUtil {
 
 	public static void addURLIfNotDuplicate(final String containerPathIncludingEngine, final URL url, final List<URL> urls) {
 		final String truncatedPath = chopPath(containerPathIncludingEngine, url.getPath());
-		assert(truncatedPath != null);
-		final boolean duplicate = urls.stream()
+		final boolean duplicate = truncatedPath != null && urls.stream()
 			.map(oldURL -> chopPath(containerPathIncludingEngine, oldURL.getPath()))
 			.anyMatch(chopped -> eq(chopped, truncatedPath));
 		if (!duplicate)
