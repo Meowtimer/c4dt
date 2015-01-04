@@ -310,6 +310,10 @@ public abstract class Utilities {
 		T get() throws E;
 	}
 
+	public interface ThrowHappyRunnable<E extends Exception> {
+		void run() throws E;
+	}
+
 	public static void unexpectedException(Exception e) {
 		throw new RuntimeException(e);
 	}
@@ -357,10 +361,35 @@ public abstract class Utilities {
 		}
 	}
 
+	public static <E extends Exception> ThrowHappySupplier<Void, E> voidResult(ThrowHappyRunnable<E> runnable) {
+		return () -> {
+			runnable.run();
+			return null;
+		};
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <T, E extends Exception> T attempt(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
 		try {
 			return sup.get();
+		} catch (final Exception e) {
+			if (expectedException.isInstance(e))
+				exceptionHandler.accept((E)e);
+			else
+				unexpectedException(e);
+			return null;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends AutoCloseable, E extends Exception, O> O attemptWithResource(
+		ThrowHappySupplier<T, E> resourceSupplier,
+		Function<T, O> consumer,
+		Class<E> expectedException,
+		Consumer<E> exceptionHandler
+	) {
+		try (T res = resourceSupplier.get()) {
+			return consumer.apply(res);
 		} catch (final Exception e) {
 			if (expectedException.isInstance(e))
 				exceptionHandler.accept((E)e);
