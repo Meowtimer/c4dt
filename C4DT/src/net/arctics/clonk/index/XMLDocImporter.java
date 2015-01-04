@@ -214,8 +214,6 @@ public class XMLDocImporter {
 							return parm;
 						}) : null;
 					}).filter(x -> x != null).forEach(result.parameters::add);
-				else
-					result.returnType = PrimitiveType.INT;
 				result.returnType = PrimitiveType.fromString(getTextIncludingTags(rTypeNode));
 				if (descNode != null)
 					result.description = getTextIncludingTags(descNode);
