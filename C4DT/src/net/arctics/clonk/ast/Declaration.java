@@ -285,6 +285,7 @@ public abstract class Declaration extends ASTNode implements
 	}
 
 	public boolean isEngineDeclaration() { return parentDeclaration() instanceof Engine; }
+
 	public Engine engine() {
 		final Declaration parent = parentDeclaration();
 		return parent != null ? parent.engine() : null;

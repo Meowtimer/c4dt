@@ -78,7 +78,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		public final IType[] parameterTypes;
 		public final IType parameterType(final Variable parameter) {
 			final int ndx = parameter.parameterIndex();
-			return ndx < parameterTypes.length ? parameterTypes[ndx] : parameter.type();
+			return parameterTypes != null && ndx < parameterTypes.length ? parameterTypes[ndx] : parameter.type();
 		}
 		public final IType returnType;
 		public final IType[] nodeTypes;
@@ -230,6 +230,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public void setParameters(final List<Variable> parameters) {
 		this.parameters = parameters;
+		if (parameters != null)
+			for (final Variable p : parameters)
+				p.setParent(this);
 	}
 
 	/**

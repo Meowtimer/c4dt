@@ -6,6 +6,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.voidResult;
 import static net.arctics.clonk.util.Utilities.walk;
 
 import java.io.StringWriter;
@@ -468,11 +469,8 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	}
 
 	public void parseAndCommitTo(final Object obj) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
-		try {
-			new IniUnitParser(this).parse(false);
-		} catch (final ProblemException e) {
-			e.printStackTrace();
-		}
+		attempt(voidResult(() -> new IniUnitParser(this).parse(false)),
+			ProblemException.class, Exception::printStackTrace);
 		commit(obj);
 	}
 

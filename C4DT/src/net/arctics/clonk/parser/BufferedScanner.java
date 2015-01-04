@@ -1,12 +1,15 @@
 package net.arctics.clonk.parser;
 
+import static net.arctics.clonk.util.Utilities.attemptWithResource;
 import static net.arctics.clonk.util.Utilities.thro;
 
 import java.io.CharArrayReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigInteger;
+import java.net.URL;
 import java.nio.CharBuffer;
 import java.util.HashSet;
 import java.util.Set;
@@ -118,7 +121,13 @@ public class BufferedScanner implements ICharacterScanner {
 			source instanceof InputStream ? StreamUtil.stringFromInputStream((InputStream)source) :
 			source instanceof String ? (String)source :
 			source instanceof File ? StreamUtil.stringFromFile((File) source) :
-			source instanceof IDocument ? ((IDocument)source).get()
+			source instanceof IDocument ? ((IDocument)source).get() :
+			source instanceof URL ? attemptWithResource(
+				((URL)source)::openStream,
+				StreamUtil::stringFromInputStream,
+				IOException.class,
+				Exception::printStackTrace
+			)
 			: thro(new IllegalArgumentException(String.format("source: %s", source)));
 	}
 

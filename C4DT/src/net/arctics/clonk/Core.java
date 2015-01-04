@@ -230,15 +230,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	private IStorageLocation[] storageLocations(final String engineName) {
 		return new IStorageLocation[] {
+
 			new FolderStorageLocation(engineName) {
 				@Override
 				protected IPath storageLocationForEngine(final String engineName) {
 					return workspaceStorageLocationForEngine(engineName);
 				}
-				@Override
-				public File toFolder() {
-					return new File(workspaceStorageLocationForActiveEngine().toOSString());
-				};
 			},
 
 			new IStorageLocation() {
@@ -269,6 +266,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 					return null;
 				};
 			}
+
 		};
 	}
 
@@ -280,10 +278,6 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				protected IPath storageLocationForEngine(final String engineName) {
 					return storageLocationPath;
 				}
-				@Override
-				public File toFolder() {
-					return new File(storageLocationPath.toOSString());
-				};
 			}
 		};
 	}

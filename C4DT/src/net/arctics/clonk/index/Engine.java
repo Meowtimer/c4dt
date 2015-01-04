@@ -1,10 +1,15 @@
 package net.arctics.clonk.index;
 
-import java.io.File;
+import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.ArrayUtil.concat;
+import static net.arctics.clonk.util.Utilities.attempt;
+import static net.arctics.clonk.util.Utilities.attemptWithResource;
+import static net.arctics.clonk.util.Utilities.voidResult;
+
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
@@ -18,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
@@ -43,7 +49,9 @@ import net.arctics.clonk.ini.IniData.IniConfiguration;
 import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.AggregateStorageLocation;
 import net.arctics.clonk.util.Console;
+import net.arctics.clonk.util.FolderStorageLocation;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.SettingsBase;
@@ -54,7 +62,9 @@ import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.graphics.Image;
@@ -160,17 +170,15 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 */
 	public static String[] possibleEngineNamesAccordingToOS() {
 		// reordered to save lots of cpu time
-		if (Util.isWindows())
-			return new String[] { "Clonk.c4x", "Clonk.exe" }; //$NON-NLS-1$ //$NON-NLS-2$
-		if (Util.isLinux())
-			return new String[] { "clonk" }; //$NON-NLS-1$
-		if (Util.isMac())
-			return new String[] {
+		return
+			Util.isWindows() ? new String[] { "Clonk.c4x", "Clonk.exe" } : //$NON-NLS-1$ //$NON-NLS-2$
+			Util.isLinux() ? new String[] { "clonk" } : //$NON-NLS-1$
+			Util.isMac() ? new String[] {
 				"clonk.app/Contents/MacOS/clonk", //$NON-NLS-1$
 				"Clonk.app/Contents/MacOS/Clonk" //$NON-NLS-1$
-			};
-		// assume some UNIX -.-
-		return new String[] { "clonk" }; //$NON-NLS-1$
+			} :
+			// assume some UNIX -.-
+			new String[] { "clonk" }; //$NON-NLS-1$
 	}
 
 	/**
@@ -272,9 +280,9 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			createDeclarationsFromRepositoryDocumentationFiles();
 			final CPPSourceDeclarationsImporter importer = new CPPSourceDeclarationsImporter();
 			importer.overwriteExistingDeclarations = false;
-			importer.importFromRepository(this, settings().repositoryPath, new NullProgressMonitor());
-			if (findFunction("this") == null) //$NON-NLS-1$
-				this.addDeclaration(new Function("this", Function.FunctionScope.GLOBAL)); //$NON-NLS-1$
+			importer.importFromRepository(this, aggregateStorageLocation(), new NullProgressMonitor());
+			if (findFunction(Keywords.This) == null)
+				this.addDeclaration(new Function(Keywords.This, Function.FunctionScope.GLOBAL));
 			if (findVariable(Keywords.Nil) == null)
 				this.addDeclaration(new Variable(Variable.Scope.CONST, Keywords.Nil));
 		} finally {
@@ -284,40 +292,31 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 
 	private transient Thread documentationPrefetcherThread;
 	private void createDeclarationsFromRepositoryDocumentationFiles() {
-		final File[] xmlFiles = new File(settings().repositoryPath+"/docs/sdk/script/fn").listFiles(); //$NON-NLS-1$
-		final List<IDocumentedDeclaration> createdDecs = new ArrayList<IDocumentedDeclaration>(xmlFiles.length);
-		for (final File xmlFile : xmlFiles) {
-			boolean isConst = false;
-			try {
-				final FileReader r = new FileReader(xmlFile);
-				try {
+		final List<URL> xmlFiles = aggregateStorageLocation().locatorsOfContainer("/docs/sdk/script/fn", false);
+		if (xmlFiles == null)
+			return;
+		prefetchDocumentation(xmlFiles.stream().map(xmlFile -> {
+			final Boolean isConst = attemptWithResource(xmlFile::openStream,
+				s -> attemptWithResource(() -> new InputStreamReader(s), r -> {
 					for (final String l : StringUtil.lines(r))
-						if (l.contains("<const>")) { //$NON-NLS-1$
-							isConst = true;
-							break;
-						} else if (l.contains("<func>")) { //$NON-NLS-1$
-							isConst = false;
-							break;
-						}
-				} finally {
-					r.close();
-				}
-			} catch (final Exception e) {
-				e.printStackTrace();
-				continue;
-			}
-			final String rawFileName = StringUtil.rawFileName(xmlFile.getName());
+						if (l.contains("<const>"))
+							return true;
+						else if (l.contains("<func>"))
+							return false;
+					return false;
+				}, IOException.class, Exception::printStackTrace),
+				Exception.class, Exception::printStackTrace
+			);
+			if (isConst == null)
+				return null;
+			final String rawFileName = StringUtil.rawFileName(xmlFile.getPath());
 			if (BuiltInDefinitions.KEYWORDS.contains(rawFileName))
-				continue;
-			IDocumentedDeclaration dec;
-			if (isConst)
-				dec = new DocumentedVariable(Variable.Scope.CONST, rawFileName);
-			else
-				dec = new DocumentedFunction(rawFileName, Function.FunctionScope.GLOBAL);
-			this.addDeclaration((Declaration)dec);
-			createdDecs.add(dec);
-		}
-		prefetchDocumentation(createdDecs);
+				return null;
+			return this.addDeclaration(isConst
+				? new DocumentedVariable(Variable.Scope.CONST, rawFileName)
+				: new DocumentedFunction(rawFileName, Function.FunctionScope.GLOBAL)
+			);
+		}).filter(x -> x != null).collect(Collectors.toList()));
 	}
 
 	private void prefetchDocumentation(final List<IDocumentedDeclaration> createdDecs) {
@@ -338,9 +337,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 						documentationPrefetcherThread = null;
 				}
 			}
+			{
+				setPriority(Thread.MIN_PRIORITY);
+				start();
+			}
 		};
-		documentationPrefetcherThread.setPriority(Thread.MIN_PRIORITY);
-		documentationPrefetcherThread.start();
 	}
 
 	/**
@@ -351,12 +352,16 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	public void reinitializeDocImporter() {
 		xmlDocImporter.discardInitialization();
 		if (settings().readDocumentationFromRepository) {
-			xmlDocImporter.setRepositoryPath(settings().repositoryPath);
+			xmlDocImporter.setStorageLocation(aggregateStorageLocation());
 			namesOfDeclarationsForWhichDocsWereFreshlyObtained.clear();
 			xmlDocImporter.initialize();
 			createPlaceholderDeclarationsToBeFleshedOutFromDocumentation();
 			deriveInformation();
 		}
+	}
+
+	private AggregateStorageLocation aggregateStorageLocation() {
+		return new AggregateStorageLocation("locs", storageLocations);
 	}
 
 	/**
@@ -476,23 +481,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @return The loaded {@link Engine}
 	 */
 	public static Engine loadFromStorageLocations(final IStorageLocation... locations) {
-		Engine result = null;
-		try {
-			for (final IStorageLocation location : locations) {
-				if (location == null)
-					continue;
-				// only consider valid engine folder if configuration.ini is present
-				final URL url = location.locatorForEntry(CONFIGURATION_INI_NAME, false);
-				if (url != null) {
-					result = new Engine(location.name());
-					result.load(locations);
-					break;
-				}
-			}
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-		return result;
+		return stream(locations)
+			.filter(x -> x != null)
+			.filter(l -> l.locatorForEntry(CONFIGURATION_INI_NAME, false) != null)
+			.map(l -> { final Engine e = new Engine(l.name()); e.load(locations); return e; })
+			.findFirst()
+			.orElse(null);
 	}
 
 	public static class TemplateScenario extends Scenario {
@@ -509,23 +503,34 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		public Object saveReplacement(final Index context) { return new Ticket(); }
 	}
 
-	private void load(final IStorageLocation... providers) {
-		this.storageLocations = providers;
+	private void load(final IStorageLocation... storageLocations) {
+		this.storageLocations = storageLocations;
 		load();
+	}
+
+	class RepositoryStorageLocation extends FolderStorageLocation {
+		public RepositoryStorageLocation(String engineName) { super(engineName); }
+		@Override
+		public String name() { return "repository"; }
+		@Override
+		protected IPath storageLocationForEngine(String engineName) {
+			final String p = localRepoPath();
+			return p != null ? Path.fromOSString(p) : null;
+		}
+		private String localRepoPath() {
+			final String rp = settings().repositoryPath;
+			return rp != null && !rp.equals("") ? rp : null;
+		}
 	}
 
 	public void load() {
 		clearDeclarations();
-		try {
-			loadSettings();
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
+		attempt(voidResult(this::loadSettings), IOException.class, Exception::printStackTrace);
+		storageLocations = concat(storageLocations, new RepositoryStorageLocation(name()));
 		loadIniConfigurations();
 		createSpecialRules();
 		loadDeclarations();
 		loadDeclarationsConfiguration();
-
 		index = new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
@@ -708,7 +713,7 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		final Collection<URL> urls = getURLsOfStorageLocationPath("images", false); //$NON-NLS-1$
 		final URL url = urls != null ? urls.stream().filter(u -> u.getFile().endsWith(name+".png")).findFirst().orElse(null) : null; //$NON-NLS-1$
 		return url != null
-			?  returnDescriptor ? UI.imageDescriptorForURL(url) :  UI.imageForURL(url)
+			? returnDescriptor ? UI.imageDescriptorForURL(url) : UI.imageForURL(url)
 			: null;
 	}
 
@@ -732,13 +737,11 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 * @return
 	 */
 	public XMLDocImporter repositoryDocImporter() {
-		synchronized (xmlDocImporter) {
-			xmlDocImporter.setRepositoryPath(settings().repositoryPath);
-			return xmlDocImporter.initialize();
-		}
+		return xmlDocImporter.initialize();
 	}
 
 	public IStorageLocation[] storageLocations() { return storageLocations; }
+
 	@Override
 	public String qualifiedName() { return name(); }
 

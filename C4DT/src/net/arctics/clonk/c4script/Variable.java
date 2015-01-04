@@ -171,10 +171,7 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	@Override
 	public String obtainUserDescription() {
-		if (isEngineDeclaration())
-			return engine().obtainDescription(this);
-		else
-			return description;
+		return isEngineDeclaration() ? engine().obtainDescription(this) : description;
 	}
 
 	@Override

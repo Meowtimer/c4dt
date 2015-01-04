@@ -1,8 +1,10 @@
 package net.arctics.clonk.index;
 
 import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.Utilities.attemptWithResource;
 
-import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -15,10 +17,10 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 
 /**
  * Helper to import declarations from source files. Geared towards OpenClonk source.
@@ -36,17 +38,23 @@ public class CPPSourceDeclarationsImporter {
 	 * @param repository Repository path to prepend to cpp source paths
 	 * @param monitor Monitor used to monitor the progress of the operation.
 	 */
-	public void importFromRepository(final Script importsContainer, final String repository, final IProgressMonitor monitor) {
-		final File scriptdefs = new Path(repository).append("scriptdefinitionsources.txt").toFile();
-		final String[] sourceFiles = scriptdefs.exists() ? StreamUtil.stringFromFile(scriptdefs).split("\n") : importsContainer.engine().settings().cppSources.split(",");
+	public void importFromRepository(final Script importsContainer, IStorageLocation location, final IProgressMonitor monitor) {
+		final URL scriptDefsLoc = location.locatorForEntry("scriptdefinitionsources.txt", false);
+		final String[] sourceFiles = scriptDefsLoc != null
+			? attemptWithResource(
+				() -> scriptDefsLoc.openStream(), s -> StreamUtil.stringFromInputStream(s).split("\n"),
+				IOException.class,
+				Exception::printStackTrace
+			)
+			: importsContainer.engine().settings().cppSources.split(",");
 		stream(sourceFiles).forEach(
-			sourceFile -> readDeclarationsFromSource(importsContainer, repository, sourceFile.trim())
+			sourceFile -> readDeclarationsFromSource(importsContainer, location, sourceFile.trim())
 		);
 		if (monitor != null)
 			monitor.done();
 	}
 
-	private void readDeclarationsFromSource(final Script importsContainer, final String repository, final String sourceFilePath) {
+	private void readDeclarationsFromSource(final Script importsContainer, final IStorageLocation location, final String sourceFilePath) {
 
 		final String origin = sourceFilePath;
 
@@ -55,9 +63,9 @@ public class CPPSourceDeclarationsImporter {
 		final int SECTION_C4ScriptConstMap = 2;
 		final int SECTION_C4ScriptFnMap = 3;
 
-		final File sourceFile = new Path(repository).append(sourceFilePath).toFile();
+		final URL sourceFile = location.locatorForEntry(sourceFilePath, false);
 		final EngineSettings settings = importsContainer.engine().settings();
-		if (sourceFile.exists()) {
+		if (sourceFile != null) {
 			final Matcher[] sectionStartMatchers = new Matcher[] {
 				Pattern.compile(settings.initFunctionMapPattern).matcher(""),
 				Pattern.compile(settings.constMapPattern).matcher(""),
