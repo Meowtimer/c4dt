@@ -3,6 +3,7 @@ package net.arctics.clonk.util;
 import java.io.File;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,4 +43,16 @@ public interface IStorageLocation {
 	 * @return The folder or null if read-only/not folder backed/whatever
 	 */
 	File toFolder();
+
+	/**
+	 * Outbound {@link #collectURLsOfContainer(String, boolean, List)}
+	 * @param containerPath Container path
+	 * @param recurse Whether to recurse
+	 * @return List with contents supplied by {@link #collectURLsOfContainer(String, boolean, List)}
+	 */
+	default List<URL> locatorsOfContainer(String containerPath, boolean recurse) {
+		final ArrayList<URL> result = new ArrayList<>();
+		collectURLsOfContainer(containerPath, recurse, result);
+		return result;
+	}
 }
