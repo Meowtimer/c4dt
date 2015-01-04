@@ -73,7 +73,7 @@ import org.eclipse.ui.console.IOConsoleOutputStream;
 /**
  * Container for engine functions and constants. Will be either initialized by parsing a special 'engine script' embedded into the plugin jar which
  * contains definitions for engine definitions in a slightly modified c4script syntax (return type specification, no function bodies), or
- * by parsing c++ source files from a source repository of the OpenClonk kind.
+ * by parsing c++ source files and docs files from a source repository of the OpenClonk kind.
  * @author Madeen
  *
  */
