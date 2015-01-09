@@ -30,6 +30,11 @@ import net.arctics.clonk.util.Sink.Decision;
 public class ArrayUtil {
 
 	@SafeVarargs
+	public static <T> boolean allMatch(Predicate<T> pred, T... items) {
+		return stream(items).allMatch(pred);
+	}
+
+	@SafeVarargs
 	@SuppressWarnings("unchecked")
 	public static <T> T[] concat(final T[] a, final T... b) {
 		final int alen = a != null ? a.length : 0;

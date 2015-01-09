@@ -368,20 +368,51 @@ public abstract class Utilities {
 		};
 	}
 
-	@SuppressWarnings("unchecked")
 	public static <T, E extends Exception> T attempt(ThrowHappySupplier<T, E> sup, Class<E> expectedException, Consumer<E> exceptionHandler) {
 		try {
 			return sup.get();
 		} catch (final Exception e) {
-			if (expectedException.isInstance(e))
-				exceptionHandler.accept((E)e);
-			else
-				unexpectedException(e);
-			return null;
+			return tryHandleException(expectedException, exceptionHandler, e);
 		}
 	}
 
+	public static <T> T attempt(ThrowHappySupplier<T, Exception> sup) {
+		return attempt(sup, Exception.class, Exception::printStackTrace);
+	}
+
+	public interface ThrowHappyFunction<I, O, E extends Exception> {
+		O apply(I input) throws E;
+	}
+
+	public static <I, O, E extends Exception> Function<I, O> attempt(
+		ThrowHappyFunction<I, O, E> fun,
+		Class<E> expectedException,
+		Consumer<E> exceptionHandler
+	) {
+		return input -> {
+			try {
+				return fun.apply(input);
+			} catch (final Exception e) {
+				return tryHandleException(expectedException, exceptionHandler, e);
+			}
+		};
+	}
+
+	public static <I, O> Function<I, O> attempt(
+		ThrowHappyFunction<I, O, Exception> fun
+	) {
+		return attempt(fun, Exception.class, Exception::printStackTrace);
+	}
+
 	@SuppressWarnings("unchecked")
+	private static <O, E extends Exception> O tryHandleException(Class<E> expectedException, Consumer<E> exceptionHandler, Exception e) {
+		if (expectedException.isInstance(e))
+			exceptionHandler.accept((E)e);
+		else
+			unexpectedException(e);
+		return null;
+	}
+
 	public static <T extends AutoCloseable, E extends Exception, O> O attemptWithResource(
 		ThrowHappySupplier<T, E> resourceSupplier,
 		Function<T, O> consumer,
@@ -391,11 +422,7 @@ public abstract class Utilities {
 		try (T res = resourceSupplier.get()) {
 			return consumer.apply(res);
 		} catch (final Exception e) {
-			if (expectedException.isInstance(e))
-				exceptionHandler.accept((E)e);
-			else
-				unexpectedException(e);
-			return null;
+			return tryHandleException(expectedException, exceptionHandler, e);
 		}
 	}
 

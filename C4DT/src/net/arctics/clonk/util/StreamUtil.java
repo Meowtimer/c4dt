@@ -3,6 +3,7 @@ package net.arctics.clonk.util;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.as;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -196,6 +198,10 @@ public class StreamUtil {
 	@SafeVarargs
 	public static <T> Stream<? extends T> concatStreams(Stream<? extends T>... streams) {
 		return stream(streams).reduce(Stream.empty(), Stream::concat);
+	}
+
+	public static ByteArrayInputStream inputStreamFromString(final String text_) throws UnsupportedEncodingException {
+		return new ByteArrayInputStream(text_.getBytes("UTF8"));
 	}
 
 }
