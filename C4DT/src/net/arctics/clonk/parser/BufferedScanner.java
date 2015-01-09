@@ -1,6 +1,7 @@
 package net.arctics.clonk.parser;
 
 import static net.arctics.clonk.util.Utilities.attemptWithResource;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.thro;
 
 import java.io.CharArrayReader;
@@ -106,7 +107,7 @@ public class BufferedScanner implements ICharacterScanner {
 
 	protected final void init(final String withString) {
 		offset = 0;
-		buffer = withString.toCharArray();
+		buffer = defaulting(withString, "").toCharArray();
 		size = buffer.length;
 	}
 
