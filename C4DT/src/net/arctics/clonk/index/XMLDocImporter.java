@@ -5,7 +5,6 @@ import static net.arctics.clonk.util.Utilities.attemptWithResource;
 import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.getOrAdd;
-import static net.arctics.clonk.util.Utilities.voidResult;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -124,13 +123,7 @@ public class XMLDocImporter {
 			.filter(url -> url.getPath().endsWith(".po"))
 			.forEach(poFile -> {
 				final String langId = StringUtil.rawFileName(poFile.getPath()).toUpperCase();
-				final InputStreamReader reader = attempt(
-					() -> new InputStreamReader(poFile.openStream(), "UTF8"),
-					IOException.class, Exception::printStackTrace
-				);
-				if (reader == null)
-					return;
-				try {
+				attemptWithResource(() -> new InputStreamReader(poFile.openStream(), "UTF8"), reader -> {
 					final Matcher fileLocationMatcher = fileLocationPattern.matcher("");
 					final Matcher msgIdMatcher = msgIdPattern.matcher("");
 					final Matcher msgStrMatcher = msgStrPattern.matcher("");
@@ -155,12 +148,8 @@ public class XMLDocImporter {
 							l.clear();
 							english = null;
 						}
-				} finally {
-					attempt(
-						voidResult(reader::close),
-						IOException.class, Exception::printStackTrace
-					);
-				}
+					return true;
+				}, IOException.class, Exception::printStackTrace);
 			});
 		translationFragments = frags;
 	}
