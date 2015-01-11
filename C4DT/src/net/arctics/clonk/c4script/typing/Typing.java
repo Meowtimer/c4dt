@@ -82,13 +82,12 @@ public enum Typing {
 					return b;
 				break;
 			case BOOL:
-				if (eq(b, PrimitiveType.INT))
-					return b;
-				else
+				return eq(b, PrimitiveType.INT)
+					? b
 					// anything can be passed for a bool
-					return TypeChoice.make(PrimitiveType.BOOL, b);
+					: TypeChoice.make(PrimitiveType.BOOL, b);
 			case PROPLIST:
-				if (b == PrimitiveType.OBJECT || b == PrimitiveType.ID)
+				if (b == PrimitiveType.OBJECT || b == PrimitiveType.ID || b == PrimitiveType.EFFECT)
 					return b;
 				else if (b instanceof Definition || b instanceof MetaDefinition)
 					return b;
@@ -171,14 +170,11 @@ public enum Typing {
 	private IType unifyTypeChoices(final TypeChoice tca, final TypeChoice tcb) {
 		final IType l = unifyNoChoice(tca.left(), tcb.left());
 		final IType r = unifyNoChoice(tca.right(), tcb.right());
-		if (l != null && r != null)
-			return TypeChoice.make(l, r);
-		else if (l == null && r != null)
-			return TypeChoice.make(TypeChoice.make(tca.left(), tcb.left()), r);
-		else if (l != null && r == null)
-			return TypeChoice.make(l, TypeChoice.make(tca.right(), tcb.right()));
-		else
-			return null;
+		return
+			l != null && r != null ? TypeChoice.make(l, r) :
+			l == null && r != null ? TypeChoice.make(TypeChoice.make(tca.left(), tcb.left()), r) :
+			l != null && r == null ? TypeChoice.make(l, TypeChoice.make(tca.right(), tcb.right())) :
+			null;
 	}
 
 	private IType unifyTypeAndChoice(final TypeChoice choice, final IType type, final int recursion) {

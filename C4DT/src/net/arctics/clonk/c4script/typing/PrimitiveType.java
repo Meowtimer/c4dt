@@ -55,7 +55,8 @@ public enum PrimitiveType implements IType {
 	FLOAT,
 	NUM,
 	ERRONEOUS,
-	VOID;
+	VOID,
+	EFFECT;
 
 	public static final PrimitiveType[] NILLABLES = {
 		OBJECT,
@@ -63,7 +64,8 @@ public enum PrimitiveType implements IType {
 		ARRAY,
 		PROPLIST,
 		ID,
-		FUNCTION
+		FUNCTION,
+		EFFECT
 	};
 	private final ReferenceType referenceType = new ReferenceType(this);
 
@@ -189,19 +191,14 @@ public enum PrimitiveType implements IType {
 	 * @return the type
 	 */
 	public static PrimitiveType correspondingToInstance(final Object value) {
-		if (value instanceof String)
-			return STRING;
-		if (value instanceof Number)
-			return INT;
-		if (value instanceof Boolean)
-			return BOOL;
-		if (value instanceof ID)
-			return ID;
-		if (value instanceof Array)
-			return ARRAY;
-		if (value instanceof Map<?, ?>)
-			return PROPLIST;
-		return ANY;
+		return
+			value instanceof String ? STRING :
+			value instanceof Number ? INT :
+			value instanceof Boolean ? BOOL :
+			value instanceof ID ? ID :
+			value instanceof Array ? ARRAY :
+			value instanceof Map<?, ?> ? PROPLIST :
+			ANY;
 	}
 
 	/**
