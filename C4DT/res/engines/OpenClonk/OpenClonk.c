@@ -737,3 +737,5 @@ global func array Trans_Mul(array lhs, array rhs);
 global func bool GainScenarioAchievement(string achievement_name, int avalue, int player, string for_scenario);
 
 global func int GetPXSCount();
+
+global func SetLightRange(object obj, int range, int? fadeout_range);
