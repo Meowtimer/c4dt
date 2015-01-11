@@ -738,4 +738,4 @@ global func bool GainScenarioAchievement(string achievement_name, int avalue, in
 
 global func int GetPXSCount();
 
-global func SetLightRange(object obj, int range, int? fadeout_range);
+global func void SetLightRange(int range, int fadeout_range);
