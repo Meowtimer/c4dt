@@ -12,7 +12,6 @@ import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
-import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.ini.ScenarioUnit;
 
 import org.eclipse.core.resources.IContainer;
@@ -42,7 +41,7 @@ public class Scenario extends Definition {
 			final ProplistDeclaration type = new ProplistDeclaration(PROPLIST_NAME);
 			type.setLocation(SourceLocation.ZERO);
 			type.setParent(this);
-			final Variable v = new Variable(PROPLIST_NAME, (IType)type);
+			final Variable v = new Variable(PROPLIST_NAME, type);
 			v.setParent(this);
 			v.setScope(Scope.STATIC);
 			scenarioPropList = v;
@@ -112,18 +111,12 @@ public class Scenario extends Definition {
 
 	public ScenarioUnit scenarioConfiguration() {
 		final IFile scenarioFile = as(definitionFolder().findMember(ScenarioUnit.FILENAME), IFile.class);
-		if (scenarioFile != null)
-			return Structure.pinned(scenarioFile, true, false);
-		else
-			return null;
+		return scenarioFile != null ? Structure.pinned(scenarioFile, true, false) : null;
 	}
 
 	@Override
 	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
-		if (declarationName.equals(PROPLIST_NAME))
-			return scenarioPropList;
-		else
-			return super.findLocalDeclaration(declarationName, declarationClass);
+		return declarationName.equals(PROPLIST_NAME) ? scenarioPropList : super.findLocalDeclaration(declarationName, declarationClass);
 	}
 
 }
