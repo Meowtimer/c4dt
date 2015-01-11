@@ -735,3 +735,5 @@ global func array Trans_Rotate(int angle, int rx, int ry, int rz);
 global func array Trans_Mul(array lhs, array rhs);
 
 global func bool GainScenarioAchievement(string achievement_name, int avalue, int player, string for_scenario);
+
+global func int GetPXSCount();
