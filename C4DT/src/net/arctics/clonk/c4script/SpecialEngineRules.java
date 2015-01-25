@@ -442,17 +442,13 @@ public abstract class SpecialEngineRules {
 	public final SpecialFuncRule getIDRule = new SpecialFuncRule() {
 		@Override
 		public IType returnType(final ProblemReporter processor, final CallDeclaration callFunc) {
-			IType t;
-			if (callFunc.params().length > 0)
-				t = processor.typeOf(callFunc.params()[0]);
-			else if (callFunc.predecessor() != null)
-				t = processor.typeOf(callFunc.predecessor());
-			else
-				t = processor.script();
-			if (t instanceof Definition)
-				return ((Definition)t).metaDefinition();
-			else
-				return PrimitiveType.ID;
+			final IType t =
+				callFunc.params().length > 0 ? processor.typeOf(callFunc.params()[0]) :
+				callFunc.predecessor() != null ? processor.typeOf(callFunc.predecessor()) :
+				processor.script();
+			return
+				t instanceof Definition ? ((Definition)t).metaDefinition() :
+				PrimitiveType.ID;
 		}
 	};
 
