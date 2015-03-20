@@ -1,3 +1,4 @@
+static const int C4D_None;
 static const int C4D_All;
 static const int C4D_StaticBack;
 static const int C4D_Structure;
