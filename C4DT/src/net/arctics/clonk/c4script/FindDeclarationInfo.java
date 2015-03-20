@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script;
 
 import static java.lang.String.format;
+import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -89,7 +90,8 @@ public final class FindDeclarationInfo {
 	 * @return Whether this declaration is reject as a search result
 	 */
 	public boolean reject(Declaration d) {
-		final boolean yes = findGlobalVariables && d instanceof AssignmentVariable;
-		return yes;
+		final Variable v = as(d, Variable.class);
+		// reject variables which were only created via assignment
+		return findGlobalVariables && v != null && v.isDynamic();
 	}
 }

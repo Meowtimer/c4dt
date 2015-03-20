@@ -639,6 +639,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 		// look for comment following directly and decorate the newly created variables with it
 		assignInlineComment(createdVariables);
+		createdVariables.forEach(v -> v.variable.setDeclared(true));
 		return createdVariables != null && createdVariables.size() > 0 ? createdVariables : null;
 	}
 

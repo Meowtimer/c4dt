@@ -178,10 +178,11 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					final Script script = node.parent(Script.class);
 					if (script.findLocalVariable((String)nameEv, true) == null) {
 						final Variable var = script.createVarInScope(
-							AssignmentVariable::new,
+							Variable::new,
 							node.parent(Function.class),
 							(String) nameEv, Scope.LOCAL, loc.start(), loc.end(), null
 						);
+						var.setAssignmentVariable(true);
 						var.setLocation(processor.absoluteSourceLocationFromExpr(arguments[0]));
 						var.setScope(Scope.LOCAL);
 						// clone argument since the offset of the expression inside the func body is relative while

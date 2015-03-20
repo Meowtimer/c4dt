@@ -69,6 +69,16 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	private boolean used;
 
 	/**
+	 * Variable was created dynamically
+	 */
+	private boolean isAssignmentVariable;
+
+	/**
+	 * Variable is declared by 'local' or some such
+	 */
+	private boolean isDeclared;
+
+	/**
 	 * Variable object used as the special 'this' object.
 	 */
 	public static final Variable THIS = new Variable("this", PrimitiveType.OBJECT, Messages.This_Description); //$NON-NLS-1$
@@ -187,6 +197,16 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public void setScope(final Scope scope) { this.scope = scope; }
 	public boolean isUsed() { return used; }
 	public void setUsed(final boolean used) { this.used = used; }
+	public boolean isDeclared() { return isDeclared; }
+	public void setDeclared(boolean is) { isDeclared = is; }
+	public boolean isAssignmentVariable() { return isAssignmentVariable; }
+	public void setAssignmentVariable(boolean is) { isAssignmentVariable = is; }
+
+	/**
+	 * A {@link Variable} is considered dynamic if it was created by assignment and was not declared
+	 * @return
+	 */
+	public boolean isDynamic() { return isAssignmentVariable && !isDeclared; }
 
 	/**
 	 * The scope of a variable

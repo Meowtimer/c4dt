@@ -40,7 +40,6 @@ import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.c4script.AssignmentVariable;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Function.FunctionScope;
@@ -1589,7 +1588,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void addFieldToScript(final T node, final IType type, final ASTNode origin, final Visitor visitor) {
-				final Variable var = new AssignmentVariable(Variable.Scope.LOCAL, node.name());
+				final Variable var = new Variable(Variable.Scope.LOCAL, node.name());
+				var.setAssignmentVariable(true);
 				initializeFromAssignment(node, type, origin, visitor, var);
 				visitor.script().addDeclaration(var);
 				node.setDeclaration(var);
