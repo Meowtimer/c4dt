@@ -117,13 +117,12 @@ public final class EntityRegion {
 	public Set<? extends IIndexEntity> potentialEntities() {
 		return potentialEntities;
 	}
+
 	@Override
 	public String toString() {
-		if (entity != null && region != null)
-			return String.format("%s@(%s) %s", entity.toString(), region.toString(), text); //$NON-NLS-1$
-		else if (potentialEntities != null)
-			return String.format("<%d potential regions>@(%s) %s", potentialEntities.size(), region.toString(), text); //$NON-NLS-1$
-		else
-			return "Empty DeclarationRegion"; //$NON-NLS-1$
+		return
+			entity != null && region != null ? String.format("%s@(%s) %s", entity.toString(), region.toString(), text) : //$NON-NLS-1$
+			potentialEntities != null ? String.format("<%d potential regions>@(%s) %s", potentialEntities.size(), region.toString(), text) : //$NON-NLS-1$
+			"Empty DeclarationRegion"; //$NON-NLS-1$
 	}
 }
