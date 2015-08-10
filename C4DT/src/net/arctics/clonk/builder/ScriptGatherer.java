@@ -1,13 +1,22 @@
 package net.arctics.clonk.builder;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.findMemberCaseInsensitively;
-import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.runtime.CoreException;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
@@ -26,15 +35,6 @@ import net.arctics.clonk.ini.DefCoreUnit;
 import net.arctics.clonk.ini.IniUnit;
 import net.arctics.clonk.ini.IniUnitParser;
 import net.arctics.clonk.util.Sink;
-
-import org.eclipse.core.filesystem.EFS;
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.runtime.CoreException;
 
 public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 
@@ -230,16 +230,16 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			final String ln = resource.getName().toLowerCase();
 			final IFile file = (IFile) resource;
 			try {
-				return
-					Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent()) ?
-						new SystemScript(builder.index(), file) :
-					ln.equals("map.c") && Scenario.get(resource.getParent()) != null ? //$NON-NLS-1$
-						new MapScript(builder.index(), file) :
-					ln.equals("objects.c") && Scenario.get(resource.getParent()) != null ? //$NON-NLS-1$
-						new ObjectsScript(builder.index(), file) :
-					LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.at(resource.getParent()) != null ?
-						new LocalizedScript(builder.index(), file) :
-					null;
+				if (Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent()))
+					return new SystemScript(builder.index(), file);
+				else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
+					return new MapScript(builder.index(), file);
+				else if (ln.equals("objects.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
+					return new ObjectsScript(builder.index(), file);
+				else if (LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.at(resource.getParent()) != null)
+					return new LocalizedScript(builder.index(), file);
+				else
+					return null;
 			} catch (final CoreException ce) {
 				ce.printStackTrace();
 				return null;

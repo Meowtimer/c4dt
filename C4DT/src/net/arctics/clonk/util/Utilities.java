@@ -16,13 +16,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -39,6 +32,13 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 
 /**
  * Contains various utility functions
@@ -437,10 +437,13 @@ public abstract class Utilities {
 
 	@SuppressWarnings("unchecked")
 	public static <T> Stream<T> flatten(Class<T> cls, Object... items) {
-		return stream(items).flatMap(item ->
-			cls.isInstance(item) ? one((T)item) :
-			item instanceof Stream ? (Stream<T>)item : Stream.empty()
-		);
+		return stream(items).flatMap(item -> {
+			if (cls.isInstance(item))
+				return one((T)item);
+			if (item instanceof Stream)
+				return (Stream<T>)item;
+			return Stream.empty();
+		});
 	}
 
 	public static <K, V> V getOrAdd(Map<K, V> dictionary, K key, Supplier<V> creation)

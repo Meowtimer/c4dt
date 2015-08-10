@@ -17,6 +17,20 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.eclipse.core.resources.ICommand;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.equinox.app.IApplication;
+import org.eclipse.equinox.app.IApplicationContext;
+
 import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.builder.ProjectConverter;
@@ -43,20 +57,6 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Callable;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
-
-import org.eclipse.core.resources.ICommand;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.equinox.app.IApplication;
-import org.eclipse.equinox.app.IApplicationContext;
 
 /**
  * Commandline interface to some of the c4dt features, like verification of scripts.
@@ -103,8 +103,8 @@ public class CLI implements IApplication, AutoCloseable {
 	}
 	{ CLIFunction.register(Command.BASE, CLI.class); }
 	public static void main(final String[] args) throws Exception {
-		try {
-			new CLI().mainImpl(args);
+		try (final CLI cli = new CLI()) {
+			cli.mainImpl(args);
 			System.exit(0);
 		} catch (final Exception e) {
 			System.out.println(e.getMessage());

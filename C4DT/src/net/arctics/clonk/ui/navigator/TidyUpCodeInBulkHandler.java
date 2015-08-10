@@ -3,7 +3,6 @@ package net.arctics.clonk.ui.navigator;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
-import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.printingException;
 import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 
@@ -11,13 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.ScriptParser;
-import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
-import net.arctics.clonk.util.UI;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -34,6 +26,13 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ScriptParser;
+import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
+import net.arctics.clonk.util.UI;
+
 public class TidyUpCodeInBulkHandler extends AbstractHandler {
 	@Override
 	public boolean isEnabled() {
@@ -49,8 +48,8 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 			return null;
 		if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null))
 			return null;
-		final List<IContainer> selectedContainers = ((List<Object>)ssel.toList()).stream().flatMap(obj ->
-			obj instanceof IProject ? block(() -> {
+		final List<IContainer> selectedContainers = ((List<Object>)ssel.toList()).stream().flatMap(obj -> {
+			if (obj instanceof IProject)
 				try {
 					final IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
 					return ofType(stream(selectedResources), IContainer.class).filter(s -> !s.getName().startsWith(".")); //$NON-NLS-1$
@@ -59,10 +58,11 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 					ex.printStackTrace();
 					return Stream.empty();
 				}
-			}) :
-			obj instanceof IContainer ? stream(new IContainer[] { (IContainer)obj }) :
-			Stream.empty()
-		).collect(Collectors.toList());
+			else if (obj instanceof IContainer)
+				return stream(new IContainer[] { (IContainer)obj });
+			else
+				return Stream.empty();
+		}).collect(Collectors.toList());
 		if (!selectedContainers.isEmpty()) {
 			final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 			try {

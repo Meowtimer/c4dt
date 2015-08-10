@@ -634,6 +634,7 @@ public class CPPTemplate {
 	@SuppressWarnings("unchecked")
 	public Stream<String> flatten() {
 
+		@SuppressWarnings("serial")
 		class Indent extends AtomicInteger {
 			private Indented indentify(Object item) {
 				final String str = as(item, String.class);

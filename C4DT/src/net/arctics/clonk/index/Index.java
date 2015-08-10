@@ -37,6 +37,13 @@ import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.runtime.CoreException;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
@@ -65,13 +72,6 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Sink.Decision;
 import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.runtime.CoreException;
 
 /**
  * <p>An index managing lists of various objects created from parsing the folder structure of a Clonk project. Managed objects are
@@ -563,16 +563,20 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The chosen definition.
 	 */
 	public Definition definitionNearestTo(final IResource resource, final ID id) {
+
+		final java.util.function.Function<Index, Definition> quadratHuhn = index -> {
+			if (resource != null) {
+				final List<? extends Definition> objs = index.definitionsWithID(id);
+				return
+					objs == null ? null :
+					objs.size() == 1 ? objs.get(0) :
+					pickNearest(objs, resource, null);
+			} else
+				return index.lastDefinitionWithId(id);
+		};
+
 		return relevantIndexes().stream()
-			.map(index ->
-				resource != null ? block(() -> {
-					final List<? extends Definition> objs = index.definitionsWithID(id);
-					return
-						objs == null ? null :
-						objs.size() == 1 ? objs.get(0) :
-						pickNearest(objs, resource, null);
-				}) : index.lastDefinitionWithId(id)
-			)
+			.map(quadratHuhn)
 			.filter(x -> x != null)
 			.findFirst()
 			.orElse(null);

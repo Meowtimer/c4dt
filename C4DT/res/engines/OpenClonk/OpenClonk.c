@@ -448,7 +448,7 @@ global func object GetPlrView(int player);
 
 global func int GetPlrViewMode(int player);
 global func string GetProcedure();
-global func array GetProperties(proplist object);
+global func array[string] GetProperties(proplist object);
 global func any GetProperty(string key, proplist object);
 global func int GetR();
 global func int GetRank();

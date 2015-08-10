@@ -484,7 +484,6 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	private final Map<Problem, ProblemFixer> fixes = Arrays.asList(
-
 		problems(Problem.KeywordInWrongPlace).fixedBy(site -> {
 			site.addRemoveReplacement();
 		}),
