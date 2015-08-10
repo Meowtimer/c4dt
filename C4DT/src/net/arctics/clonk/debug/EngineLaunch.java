@@ -2,9 +2,9 @@ package net.arctics.clonk.debug;
 
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StreamUtil.ofType;
+import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.flatten;
-import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.walk;
 
 import java.io.File;
@@ -15,20 +15,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import net.arctics.clonk.Core;
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.FileExtension;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.typing.StaticTypingUtil;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.StringUtil;
-import net.arctics.clonk.util.Utilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
@@ -46,6 +35,18 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.ILaunchesListener2;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.FileExtension;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.typing.StaticTypingUtil;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.Utilities;
 
 public class EngineLaunch implements ILaunchesListener2 {
 	private final ILaunchConfiguration configuration;
@@ -145,6 +146,21 @@ public class EngineLaunch implements ILaunchesListener2 {
 
 	public Collection<String> determineArguments() throws CoreException {
 		final Engine engine = nature.index().engine();
+
+		final Function<IContainer, Stream<IContainer>> itsReallyQuitePathetic = container -> {
+			final IResource[] members = attempt(() -> container.members(), CoreException.class, e -> e.printStackTrace());
+			return members != null
+				? ofType(stream(members), IContainer.class)
+					.filter(res -> {
+						final FileExtension ext = engine.extensionForFileName(res.getName());
+						return
+							!res.getName().startsWith(".") &&
+							(ext == FileExtension.DefinitionGroup || ext == FileExtension.ResourceGroup) &&
+							!Utilities.resourceInside(scenarioFolder, res);
+					})
+				: Stream.empty();
+		};
+
 		return flatten(String.class,
 
 			// Engine
@@ -159,19 +175,7 @@ public class EngineLaunch implements ILaunchesListener2 {
 					final IContainer projectLevel = index.nature().getProject();
 					return walk(scenarioFolder.getParent(), c -> c != null && c != projectLevel, c -> c.getParent());
 				})
-				.flatMap(c -> {
-					final IResource[] mems = attempt(() -> c.members(), CoreException.class, e -> e.printStackTrace());
-					return mems != null
-						? ofType(stream(mems), IContainer.class)
-							.filter(res -> {
-								final FileExtension ext = engine.extensionForFileName(res.getName());
-								return
-									!res.getName().startsWith(".") &&
-									(ext == FileExtension.DefinitionGroup || ext == FileExtension.ResourceGroup) &&
-									!Utilities.resourceInside(scenarioFolder, res);
-							})
-						: Stream.empty();
-				})
+				.flatMap(itsReallyQuitePathetic)
 				.map(this::workspaceDependency),
 
 			// Full screen/console

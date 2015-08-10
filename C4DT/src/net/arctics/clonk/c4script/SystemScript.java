@@ -7,6 +7,12 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.builder.ClonkProjectNature;
@@ -17,12 +23,6 @@ import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Path;
 
 /**
  * Standalone-script inside a project.
@@ -120,16 +120,18 @@ public class SystemScript extends Script implements Serializable {
 		});
 	}
 
+	private Definition definitionFromDirective(Directive directive) {
+		final ID id = directive.contentAsID();
+		return id != null ? index().definitionNearestTo(file(), id) : null;
+	}
+
 	@Override
 	public String typeName(final boolean special) {
 		if (!special)
 			return PrimitiveType.OBJECT.typeName(false);
 		final List<Definition> targets = directives().stream()
 			.filter(d -> d.type() == DirectiveType.APPENDTO)
-			.map(d -> {
-				final ID id = d.contentAsID();
-				return id != null ? index().definitionNearestTo(file(), id) : null;
-			})
+			.map(this::definitionFromDirective)
 			.filter(x -> x != null)
 			.collect(Collectors.toList());
 		return targets.size() == 1 ? String.format("%s+", targets.get(0).typeName(true)) : super.typeName(special);

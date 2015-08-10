@@ -28,6 +28,12 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.eclipse.core.runtime.Path;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Variable;
@@ -38,12 +44,6 @@ import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
-
-import org.eclipse.core.runtime.Path;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 public class XMLDocImporter {
 
@@ -191,24 +191,32 @@ public class XMLDocImporter {
 				final ExtractedDeclarationDocumentation result = new ExtractedDeclarationDocumentation();
 				result.name = getTextIncludingTags(titleNode);
 				if (parmNodes != null && (parmNodes.getLength() > 0 || !Declaration.looksLikeConstName(result.name)))
-					IntStream.range(0, parmNodes.getLength()).mapToObj(parmNodes::item).map(n -> {
-						final Node nameNode  = (Node) evaluatePathExpression(parmNameExpr, n, XPathConstants.NODE);
-						final Node typeNode  = (Node) evaluatePathExpression(parmTypeExpr, n, XPathConstants.NODE);
-						final Node descNode_ = importDocumentation ? (Node) evaluatePathExpression(parmDescExpr, n, XPathConstants.NODE) : null;
-						final String typeStr = typeNode != null ? getTextIncludingTags(typeNode) : PrimitiveType.ANY.toString();
-						return nameNode != null ? block(() -> {
-							final Variable parm = new Variable(getTextIncludingTags(nameNode), PrimitiveType.fromString(typeStr));
-							if (descNode_ != null)
-								parm.setUserDescription(getTextIncludingTags(descNode_));
-							return parm;
-						}) : null;
-					}).filter(x -> x != null).forEach(result.parameters::add);
+					IntStream.range(0, parmNodes.getLength())
+						.mapToObj(parmNodes::item)
+						.map(this.mapNode(flags))
+						.filter(x -> x != null)
+						.forEach(result.parameters::add);
 				result.returnType = PrimitiveType.fromString(getTextIncludingTags(rTypeNode));
 				if (descNode != null)
 					result.description = getTextIncludingTags(descNode);
 				return result;
 			}) : null;
 		}, IOException.class, Exception::printStackTrace);
+	}
+
+	private final java.util.function.Function<Node, Variable> mapNode(final int flags) {
+		return node -> {
+			final Node nameNode  = (Node) evaluatePathExpression(parmNameExpr, node, XPathConstants.NODE);
+			final Node typeNode  = (Node) evaluatePathExpression(parmTypeExpr, node, XPathConstants.NODE);
+			final Node descNode_ = (flags & DOCUMENTATION) != 0 ? (Node) evaluatePathExpression(parmDescExpr, node, XPathConstants.NODE) : null;
+			final String typeStr = typeNode != null ? getTextIncludingTags(typeNode) : PrimitiveType.ANY.toString();
+			return nameNode != null ? block(() -> {
+				final Variable parm = new Variable(getTextIncludingTags(nameNode), PrimitiveType.fromString(typeStr));
+				if (descNode_ != null)
+					parm.setUserDescription(getTextIncludingTags(descNode_));
+				return parm;
+			}) : null;
+		};
 	}
 
 	private Document parseDocument(final DocumentBuilder builder, final String text_) {

@@ -630,25 +630,34 @@ public class CPPTemplate {
 			this.item = item;
 		}
 	}
+
 	@SuppressWarnings("unchecked")
 	public Stream<String> flatten() {
-		final AtomicInteger indent = new AtomicInteger();
-		return skeleton.stream()
-			.map(item -> {
+
+		class Indent extends AtomicInteger {
+			private Indented indentify(Object item) {
 				final String str = as(item, String.class);
-				final int currentIndentation = indent.get();
+				final int currentIndentation = get();
 				if (str != null)
 					if (str.contains("}"))
-						indent.decrementAndGet();
+						decrementAndGet();
 					else if (str.contains("{"))
-						indent.incrementAndGet();
+						incrementAndGet();
 				return new Indented(currentIndentation, item);
-			})
-			.flatMap(s ->
-				s.item instanceof String ? stream(new String[] {(String)s.item}) :
-				s.item instanceof Stream ? ((Stream<String>)s.item).map(str -> StringUtil.multiply("\t", s.indentation) + str) :
-				Stream.empty()
-			);
+			}
+
+			Stream<String> youAreAllSoStupid(Indented s) {
+				return
+					s.item instanceof String ? stream(new String[] {(String)s.item}) :
+					s.item instanceof Stream ? ((Stream<String>)s.item).map(str -> StringUtil.multiply("\t", s.indentation) + str) :
+					Stream.empty();
+			}
+		}
+
+		final Indent indent = new Indent();
+		return skeleton.stream()
+			.map(indent::indentify)
+			.flatMap(indent::youAreAllSoStupid);
 	}
 
 	public static void render(Index index, Script script, PrintWriter output) {

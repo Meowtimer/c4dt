@@ -160,7 +160,7 @@ public class C4GroupFileSystem extends FileSystem {
 				this.file = file;
 			}
 		}
-		final GroupAndFile group =
+		final GroupAndFile group = (GroupAndFile)
 			walk(file, f -> f.getParentFile()).map(f -> {
 				final WeakReference<C4Group> ref = rootGroups.get(f);
 				final C4Group g = ref != null ? ref.get() : null;

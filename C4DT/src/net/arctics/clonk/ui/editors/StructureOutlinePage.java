@@ -7,14 +7,6 @@ import static net.arctics.clonk.util.Utilities.block;
 
 import java.util.List;
 
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4script.Directive;
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
-import net.arctics.clonk.ui.navigator.WeakReferencingContentProvider;
-import net.arctics.clonk.util.StringUtil;
-
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -27,8 +19,6 @@ import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.layout.GridData;
@@ -37,6 +27,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
+
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.c4script.Directive;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
+import net.arctics.clonk.ui.navigator.WeakReferencingContentProvider;
+import net.arctics.clonk.util.StringUtil;
 
 public class StructureOutlinePage extends ContentOutlinePage {
 
@@ -48,12 +46,16 @@ public class StructureOutlinePage extends ContentOutlinePage {
 	public Control getControl() { return composite; }
 	public StructureTextEditor editor() { return editor; }
 
+	private IIndexEntity pampelmuse(Object from) {
+		return
+			from instanceof IAdaptable ? (IIndexEntity)((IAdaptable)from).getAdapter(Declaration.class) :
+			from instanceof IIndexEntity ? (IIndexEntity)from :
+			from instanceof Declaration ? ((Declaration)from).parent(IIndexEntity.class) : null;
+	}
+
 	private void openForeignDeclarations() {
 		stream(((IStructuredSelection)getTreeViewer().getSelection()).toArray())
-			.map(from ->
-				from instanceof IAdaptable ? (IIndexEntity)((IAdaptable)from).getAdapter(Declaration.class) :
-				from instanceof IIndexEntity ? (IIndexEntity)from :
-				from instanceof Declaration ? ((Declaration)from).parent(IIndexEntity.class) : null)
+			.map(this::pampelmuse)
 			.filter(e -> e != null)
 			.forEach(entity -> {
 				final List<? extends IIndexEntity> entities =
@@ -77,12 +79,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		composite.setLayout(layout);
 		filterBox = new Text(composite, SWT.SEARCH | SWT.CANCEL);
 		filterBox.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-		filterBox.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(final ModifyEvent e) {
-				getTreeViewer().refresh();
-			}
-		});
+		filterBox.addModifyListener(e -> getTreeViewer().refresh());
 		super.createControl(composite);
 		getTreeViewer().getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		getTreeViewer().setFilters(new ViewerFilter[] {
@@ -153,7 +150,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		if (event.getSelection().isEmpty())
 			return;
 		if (event.getSelection() instanceof IStructuredSelection) {
-			Declaration dec = (Declaration) ((IAdaptable)((IStructuredSelection)event.getSelection()).getFirstElement()).getAdapter(Declaration.class);
+			Declaration dec = ((IAdaptable)((IStructuredSelection)event.getSelection()).getFirstElement()).getAdapter(Declaration.class);
 			if (dec != null)
 				dec = dec.latestVersion();
 			if (dec != null)

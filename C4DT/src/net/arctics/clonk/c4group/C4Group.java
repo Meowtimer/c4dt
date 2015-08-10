@@ -17,13 +17,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import net.arctics.clonk.Core;
-import net.arctics.clonk.util.DispatchCase;
-import net.arctics.clonk.util.INode;
-import net.arctics.clonk.util.ITreeNode;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileInfo;
@@ -39,6 +35,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.util.DispatchCase;
+import net.arctics.clonk.util.INode;
+import net.arctics.clonk.util.ITreeNode;
 
 /**
  * Represents a C4Group in memory.
@@ -169,6 +170,35 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		final InputStream stream = stream0 != null ? stream0 : stream();
 		final String[] files;
 
+		final Function<String, C4GroupItem> mapChildFileName = childFileName -> {
+			final File child = new File(origin, childFileName);
+			final C4GroupEntryHeader header = new C4GroupEntryHeader(child);
+			return filter.accepts(header, this) ? block(() -> {
+				final boolean isFile = !header.isGroup();
+				final C4GroupItem childItem = isFile
+					? new C4GroupFile(this, header)
+					: child.isDirectory()
+					? new C4GroupUncompressed(this, child.getName(), child)
+					: new C4GroupTopLevelCompressed(this, child.getName(), child);
+				final InputStream fstream = isFile ? attempt(() -> new FileInputStream(child), IOException.class, Exception::printStackTrace) : stream;
+				try {
+					if (fstream != null && recursively || !(childItem instanceof C4Group))
+						childItem.readIntoMemory(true, filter, fstream);
+				} catch (final Exception e) {
+					e.printStackTrace();
+				}
+				finally {
+					if (isFile && fstream != null)
+						try {
+							fstream.close();
+						} catch (final Exception e) {
+							e.printStackTrace();
+						}
+				}
+				return childItem;
+			}) : null;
+		};
+
 		if (!loaded) {
 			loaded = true;
 			childEntries =
@@ -219,35 +249,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 					)).collect(Collectors.toList());
 				}) :
 				// uncompressed
-				origin != null && (files = origin.list()) != null ? Arrays.stream(files).map(childFileName -> {
-					final File child = new File(origin, childFileName);
-					final C4GroupEntryHeader header = new C4GroupEntryHeader(child);
-					return filter.accepts(header, this) ? block(() -> {
-						final boolean isFile = !header.isGroup();
-						final C4GroupItem childItem =
-							isFile
-							? new C4GroupFile(this, header)
-						: child.isDirectory()
-						? new C4GroupUncompressed(this, child.getName(), child)
-							: new C4GroupTopLevelCompressed(this, child.getName(), child);
-						final InputStream fstream = isFile ? attempt(() -> new FileInputStream(child), IOException.class, Exception::printStackTrace) : stream;
-						try {
-							if (fstream != null && recursively || !(childItem instanceof C4Group))
-								childItem.readIntoMemory(true, filter, fstream);
-						} catch (final Exception e) {
-							e.printStackTrace();
-						}
-						finally {
-							if (isFile && fstream != null)
-								try {
-									fstream.close();
-								} catch (final Exception e) {
-									e.printStackTrace();
-								}
-						}
-						return childItem;
-					}) : null;
-				}).filter(x -> x != null).collect(Collectors.toList())
+				origin != null && (files = origin.list()) != null ? Arrays.stream(files)
+					.map(mapChildFileName)
+					.filter(x -> x != null).collect(Collectors.toList())
 				// wa?
 				: null;
 		}

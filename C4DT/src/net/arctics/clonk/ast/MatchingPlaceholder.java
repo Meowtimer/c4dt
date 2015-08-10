@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.eclipse.core.resources.IStorage;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.builder.CodeConverter.ICodeConverterContext;
@@ -49,8 +51,6 @@ import net.arctics.clonk.util.ScriptAccessibles;
 import net.arctics.clonk.util.ScriptAccessibles.Callable;
 import net.arctics.clonk.util.SelfcontainedStorage;
 import net.arctics.clonk.util.StringUtil;
-
-import org.eclipse.core.resources.IStorage;
 
 public class MatchingPlaceholder extends Placeholder {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -426,10 +426,10 @@ public class MatchingPlaceholder extends Placeholder {
 		if (n == null)
 			return null;
 
-		Stream<Object> s = stream(n);
+		Stream<Object> stream = stream(n);
 
 		if (property != null)
-			s = s.map(v -> {
+			stream = stream.map(v -> {
 				try {
 					final Callable getter = v == null ? null : ScriptAccessibles.getter(v.getClass(), property);
 					return getter != null ? getter.invoke(v) : null;
@@ -440,7 +440,7 @@ public class MatchingPlaceholder extends Placeholder {
 			});
 
 		if (code != null)
-			s = s.map(v -> {
+			stream = stream.map(v -> {
 				try {
 					return code.invoke(code.new Invocation(new Object[] {v, this}, code.script(), context));
 				} catch (final Exception e) {
@@ -449,15 +449,19 @@ public class MatchingPlaceholder extends Placeholder {
 				}
 			});
 
-		return s.map(item ->
+		return stream.map(this::pfirsichZitrone).toArray(l -> new ASTNode[l]);
+	}
+
+	private ASTNode pfirsichZitrone(Object item) {
+		return
 			item instanceof ASTNode ? (ASTNode)item :
 			item instanceof String ?
 				subElements().length > 0 ? new CallDeclaration((String)item, subElements()) :
 				new AccessVar((String)item) :
 			item instanceof Long ? new IntegerLiteral((long)item) :
-			new GarbageStatement(defaulting(item, "<null>").toString(), 0)
-		).toArray(l -> new ASTNode[l]);
+			new GarbageStatement(defaulting(item, "<null>").toString(), 0);
 	}
+
 
 	public boolean satisfiedBy(final ASTNode element) {
 		boolean r = internalSatisfied(element);

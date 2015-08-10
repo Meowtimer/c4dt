@@ -91,9 +91,22 @@ public class TypeChoice implements IType {
 	 * @param types Collection of types to fold into a type choice
 	 * @return
 	 */
-	public static IType make(final Collection<? extends IType> types) {
-		return types.isEmpty() ? null : types.size() == 1 ? types.iterator().next() :
-			((TypeChoice)types.stream().reduce(TypeChoice::new).get()).removeDuplicates();
+	public static <T extends IType> IType make(final Collection<T> types) {
+		return
+			types.isEmpty() ? null :
+			types.size() == 1 ? types.iterator().next() :
+			combine(types);
+	}
+
+	private static <T extends IType> IType combine(final Collection<T> types) {
+		IType result = null;
+		for (final IType t : types)
+			result = result == null ? t : new TypeChoice(result, t);
+		return result;
+	}
+
+	static <T extends IType> IType combine(T a, T b) {
+		return new TypeChoice(a, b);
 	}
 
 	protected TypeChoice(final IType left, final IType right) {
@@ -204,8 +217,7 @@ public class TypeChoice implements IType {
 	}
 
 	public IType assumed() {
-		return
-			left == PrimitiveType.ANY ? right : right == PrimitiveType.ANY ? left : null;
+		return left == PrimitiveType.ANY ? right : right == PrimitiveType.ANY ? left : null;
 	}
 
 }

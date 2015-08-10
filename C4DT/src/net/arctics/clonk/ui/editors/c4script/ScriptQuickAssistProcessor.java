@@ -100,7 +100,6 @@ import org.eclipse.ui.views.markers.WorkbenchMarkerResolution;
 /**
  * Offers various quick assists/fixes for C4Script source files
  * @author ZokRadonh
- *
  */
 public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
@@ -141,8 +140,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		if (model == null)
 			return NO_SUGGESTIONS;
 		@SuppressWarnings("rawtypes")
-		final
-		Iterator iter = model.getAnnotationIterator();
+		final Iterator iter = model.getAnnotationIterator();
 		while (iter.hasNext()) {
 			final Annotation annotation = (Annotation)iter.next();
 			if (canFix(annotation)) {
