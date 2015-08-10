@@ -12,6 +12,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4script.FindDeclarationInfo;
@@ -31,13 +37,6 @@ import net.arctics.clonk.util.IHasRelatedResource;
 import net.arctics.clonk.util.INode;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.jface.text.IRegion;
-
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
@@ -366,6 +365,7 @@ public abstract class Declaration extends ASTNode implements
 			return name();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object getAdapter(@SuppressWarnings("rawtypes") final Class adapter) {
 		return adapter.isInstance(this) ? this : null;

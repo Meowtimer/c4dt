@@ -2,10 +2,6 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import java.lang.ref.WeakReference;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.util.ITreeNode;
-
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -17,15 +13,19 @@ import org.eclipse.ui.IPathEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.IStorageEditorInput;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.util.ITreeNode;
+
 public class ScriptWithStorageEditorInput extends PlatformObject implements IEditorInput, IPathEditorInput, IStorageEditorInput, IPersistableElement {
 
 	private static final String FACTORY_ID = Core.id("ui.editors.scriptWithStorageEditorInputFactory");   //$NON-NLS-1$
-	
+
 	private final WeakReference<Script> script;
-	
+
 	public ScriptWithStorageEditorInput(final Script script) {
 		super();
-		
+
 		if (!(script.source() instanceof IStorage))
 			throw new IllegalArgumentException("script"); //$NON-NLS-1$
 		this.script = new WeakReference<Script>(script);
@@ -52,7 +52,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getAdapter(final Class cls) {
 		return null;
 	}
@@ -68,7 +68,7 @@ public class ScriptWithStorageEditorInput extends PlatformObject implements IEdi
 			return null;
 		}
 	}
-	
+
 	@Override
 	public boolean equals(final Object obj) {
 		return (obj instanceof ScriptWithStorageEditorInput && ((ScriptWithStorageEditorInput)obj).script() == script());

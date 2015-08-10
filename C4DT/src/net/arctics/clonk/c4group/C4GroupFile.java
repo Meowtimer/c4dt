@@ -10,9 +10,6 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.util.ITreeNode;
-
 import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileInfo;
@@ -24,6 +21,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.util.ITreeNode;
 
 /**
  * Represents one file in a {@link C4Group} file.
@@ -196,7 +196,7 @@ public class C4GroupFile extends C4GroupItem implements Serializable {
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getAdapter(final Class cls) {
 		if (cls == C4GroupFile.class)
 			return this;

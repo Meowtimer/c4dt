@@ -28,6 +28,7 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 			final Object o = get();
 			return o != null ? o.toString() : "<Lost>";
 		}
+		@SuppressWarnings("unchecked")
 		@Override
 		public Object getAdapter(final Class adapter) {
 			final Object obj = get();

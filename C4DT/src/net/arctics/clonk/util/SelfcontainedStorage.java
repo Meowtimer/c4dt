@@ -4,12 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
 
-import net.arctics.clonk.Core;
-
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+
+import net.arctics.clonk.Core;
 
 /**
  * Simple implementation of {@link IStorage} which stores its contents as final string field.
@@ -34,6 +34,6 @@ public class SelfcontainedStorage implements IStorage, Serializable {
 	@Override
 	public boolean isReadOnly() { return true; }
 	@Override
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getAdapter(final Class cls) { return null; }
 }
