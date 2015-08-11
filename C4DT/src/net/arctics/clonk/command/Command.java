@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.StringUtil.multiply;
+import static net.arctics.clonk.util.Utilities.block;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,6 +22,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Flags;
@@ -52,55 +63,51 @@ import net.arctics.clonk.ui.editors.EntityHyperlink;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
 import net.arctics.clonk.util.SelfcontainedStorage;
 
-import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.PlatformUI;
-
 /**
  * Macro execution engine based on the C4Script parser. Naturally, macros are written in C4Script.
  *
  */
 public class Command {
-	public static final Script BASE;
-	public static final Index INDEX = new Index();
-	static {
-		BASE = new Script(INDEX) {
-			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-			@Override
-			public IStorage source() {
-				return new SelfcontainedStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			@Override
-			public String name() {
-				return "CommandBaseScript"; //$NON-NLS-1$
-			};
-			@Override
-			public String nodeName() {
-				return name();
-			};
-		};
 
+	/** INDEX used for command script */
+	public static final Index INDEX = new Index();
+
+	/** Base script other command scripts are derived from */
+	public static final Script BASE = block(() -> new Script(INDEX) {
+		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		@Override
+		public IStorage source() {
+			return new SelfcontainedStorage("CommandBase", ""); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		@Override
+		public String name() {
+			return "CommandBaseScript"; //$NON-NLS-1$
+		};
+		@Override
+		public String nodeName() {
+			return name();
+		};
+	});
+
+	static {
 		for (final Class<?> c : Command.class.getDeclaredClasses())
 			registerCommandsFromClass(BASE, c);
 		registerCommandsFromClass(BASE, StaticTypingUtil.class);
 	}
 
+	/** Create an executable script from the given statement string */
 	public static ExecutableScript executableScriptFromCommand(final String command) {
 		return new ExecutableScript("command", String.format("func Main() {%s;}", command), Command.INDEX);
 	}
 
+	/** Make methods from the given class which are annotated with CommandFunction available to scripts */
 	public static void registerCommandsFromClass(final Script script, final Class<?> classs) {
 		for (final Method m : classs.getMethods())
 			if (m.getAnnotation(CommandFunction.class) != null)
 				addCommand(script, m);
 	}
 
+	/** Function which calls a java method */
 	private static class NativeCommandFunction extends Function {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final transient Method method;
@@ -135,6 +142,7 @@ public class Command {
 		}
 	}
 
+	/** Add a java method as a callbale script function */
 	public static void addCommand(final Script script, final Method method) {
 		if (script.findLocalDeclaration(method.getName(), Function.class) == null)
 			script.addDeclaration(new NativeCommandFunction(script, method));
@@ -183,14 +191,17 @@ public class Command {
 	}
 
 	public static class CodeConversionCommands {
+
 		@CommandFunction
 		public static void SetCodeConversionOption(final Object context, final String option, final Object value) {
 			setFieldValue(Conf.class, option, value);
 		}
+
 		@CommandFunction
 		public static void WriteEngineScript(final Object context, final String engineName) throws IOException {
 			Core.instance().loadEngine(engineName).writeEngineScript();
 		}
+
 		private static void _WriteDescriptionsToFile(final String writeToFile, final Engine engine) throws FileNotFoundException, IOException {
 			final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(writeToFile));
 			writer.append("[Descriptions]\n"); //$NON-NLS-1$
@@ -200,12 +211,14 @@ public class Command {
 			}
 			writer.close();
 		}
+
 		@CommandFunction
 		public static void WriteDescriptionsToFile(final Object context, final String writeToFile, final String engineName) throws FileNotFoundException, IOException {
 			final Engine engine = Core.instance().loadEngine(engineName);
 			if (engine != null)
 				_WriteDescriptionsToFile(writeToFile, engine);
 		}
+
 		@CommandFunction
 		public static void ConvertProject(final Object context, final String source, final String dest) {
 			final ProjectConverter converter = new ProjectConverter(
@@ -214,13 +227,16 @@ public class Command {
 			);
 			converter.convert(new NullProgressMonitor());
 		}
+
 	}
 
 	public static class EngineConfiguration {
+
 		@CommandFunction
 		public static void SetEngineProperty(final Object context, final String name, final Object value) {
 			setFieldValue(Core.instance().activeEngine().settings(), name, value);
 		}
+
 		@CommandFunction
 		public static void IntrinsicizeEngineProperty(final Object context, final String name) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
 			final Engine engine = Core.instance().activeEngine();
@@ -229,9 +245,11 @@ public class Command {
 				engine.settings().getClass().getField(name).get(engine.settings())
 			);
 		}
+
 	}
 
 	public static class Diagnostics {
+
 		@CommandFunction
 		public static void ReadIndex(final Object context, final String path, final String engine) {
 			final Index index = Index.loadShallow(Index.class, new File(path), null, Core.instance().loadEngine(engine));
@@ -250,14 +268,17 @@ public class Command {
 			for (final Scenario scen : index.scenarios())
 				System.out.println(scen.toString());
 		}
+
 		@CommandFunction
 		public static void GC(final Object context) { System.gc(); }
+
 		@CommandFunction
 		public static void ReloadIndex(final Object context, final String projectName) {
 			final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 			if (nature != null)
 				nature.reloadIndex();
 		}
+
 		@CommandFunction
 		public static void PrintHashCodes(final Object context, final String projectName) {
 			final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
@@ -272,6 +293,7 @@ public class Command {
 					}
 				});
 		}
+
 		@CommandFunction
 		public static void CountNodes(final Object context, final String projectName) {
 			class Counter {
@@ -287,6 +309,7 @@ public class Command {
 			}
 			System.out.println(String.format("%d", new Counter().count(ClonkProjectNature.get(projectName).index())));
 		}
+
 		@CommandFunction
 		public static void ToggleFlag(final Object context, final String flag) {
 			try {
@@ -296,6 +319,7 @@ public class Command {
 				e.printStackTrace();
 			}
 		}
+
 		@CommandFunction
 		public static void OutputTree(final Object context, final String projectName, final String outputFile) {
 			final ClonkProjectNature nat = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
@@ -342,6 +366,7 @@ public class Command {
 				e.printStackTrace();
 			}
 		}
+
 		@CommandFunction
 		public static void XmlDefinition(final Object context, final String _name) {
 			final Engine oc = Core.instance().loadEngine("OpenClonk");
@@ -367,6 +392,7 @@ public class Command {
 				System.out.println(declaration.printed());
 			}
 		}
+
 		@CommandFunction
 		public static void AllDefinitions(final Object context, final String proj, final String format) {
 			final ClonkProjectNature cpn = ClonkProjectNature.get(proj);
@@ -384,6 +410,12 @@ public class Command {
 			final Clipboard clipboard = new Clipboard(Display.getCurrent());
 			clipboard.setContents(new Object[] { swriter.toString() }, new Transfer[] { TextTransfer.getInstance() });
 		}
+
+		@CommandFunction
+		public static void ReparseEngineScript(final Object context) {
+			Core.instance().loadedEngines().forEach(engine -> engine.parseEngineScript());
+		}
+
 	}
 
 }

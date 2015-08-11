@@ -25,6 +25,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.util.Util;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.console.IOConsoleOutputStream;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Declaration;
@@ -59,16 +69,6 @@ import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.UI;
 import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.util.Util;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.console.IOConsoleOutputStream;
 
 /**
  * Container for engine functions and constants. Will be either initialized by parsing a special 'engine script' embedded into the plugin jar which
@@ -436,26 +436,26 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 		}
 	}
 
-	private void parseEngineScript() {
-		final String lang = ClonkPreferences.languagePref();
-		for (final IStorageLocation loc : storageLocations) {
-			final URL url = loc.locatorForEntry(String.format("%s.c", name()), false); //$NON-NLS-1$
-			if (url != null) {
-				try (InputStream stream = url.openStream()) {
-					final String engineScript = StreamUtil.stringFromInputStream(stream);
-					final ScriptParser parser = new EngineScriptParser(engineScript, this, null, url);
-					try {
-						parser.parse();
-					} catch (final ProblemException e) {
-						e.printStackTrace();
-					}
-					postLoad((Declaration)null, (Index)null);
-				} catch (final IOException e1) {
-					e1.printStackTrace();
+	public void parseEngineScript() {
+		final URL url = stream(storageLocations)
+			.map(loc -> loc.locatorForEntry(String.format("%s.c", name()), false)) //$NON-NLS-1$
+			.filter(x -> x != null)
+			.findFirst()
+			.orElse(null);
+		if (url != null) {
+			try (final InputStream stream = url.openStream()) {
+				final String engineScript = StreamUtil.stringFromInputStream(stream);
+				final ScriptParser parser = new EngineScriptParser(engineScript, this, null, url);
+				try {
+					parser.parse();
+				} catch (final ProblemException e) {
+					e.printStackTrace();
 				}
-				new IniDescriptionsLoader(this).loadDescriptions(lang);
-				break;
+				postLoad((Declaration)null, (Index)null);
+			} catch (final IOException e1) {
+				e1.printStackTrace();
 			}
+			new IniDescriptionsLoader(this).loadDescriptions(ClonkPreferences.languagePref());
 		}
 	}
 

@@ -2,6 +2,8 @@ package net.arctics.clonk.index;
 
 import java.net.URL;
 
+import org.eclipse.core.resources.IFile;
+
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.c4script.Function;
@@ -14,17 +16,18 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeAnnotation;
 import net.arctics.clonk.util.LineNumberObtainer;
 
-import org.eclipse.core.resources.IFile;
-
 final class EngineScriptParser extends ScriptParser {
+
 	private final URL url;
 	private final LineNumberObtainer lno;
 	private boolean firstMessage = true;
+
 	EngineScriptParser(final String engineScript, final Script script, final IFile scriptFile, final URL url) {
 		super(engineScript, script, scriptFile);
 		this.url = url;
 		this.lno = new LineNumberObtainer(engineScript);
 	}
+
 	@Override
 	public void marker(final Problem code,
 		final int errorStart, final int errorEnd, final int flags,
@@ -41,13 +44,16 @@ final class EngineScriptParser extends ScriptParser {
 		));
 		super.marker(code, errorStart, errorEnd, flags, severity, args);
 	}
+
 	@Override
 	protected TypeAnnotation typeAnnotation(final int s, final int e, final IType type) {
 		// undo authority boost -.-
 		return super.typeAnnotation(s, e, type instanceof PrimitiveType.Unified ? ((PrimitiveType.Unified)type).base() : type);
 	}
+
 	@Override
 	protected Function newFunction(final String nameWillBe) { return new EngineFunction(); }
+
 	@Override
 	public Variable newVariable(final Scope scope, final String varName) { return new EngineVariable(scope, varName); }
 }

@@ -4,9 +4,11 @@ public class LineNumberObtainer {
 	private final String string;
 	private int currentPos, currentLine;
 	private int lastLineBreak, lastQueriedPos;
+
 	public LineNumberObtainer(final String string) {
 		this.string = string;
 	}
+
 	public int obtainLineNumber(final int pos) {
 		assert(pos < string.length());
 		lastQueriedPos = pos;
@@ -21,7 +23,9 @@ public class LineNumberObtainer {
 			}
 		return string.charAt(currentPos) == '\n' ? -1 : currentLine+1;
 	}
+
 	public int obtainCharNumberInObtainedLine() {
 		return lastQueriedPos - lastLineBreak + 1;
 	}
+
 }
