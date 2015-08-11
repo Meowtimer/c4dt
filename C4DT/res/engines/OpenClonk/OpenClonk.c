@@ -119,6 +119,7 @@ static const int C4FO_AnyContainer;
 static const int C4FO_Owner;
 static const int C4FO_Controller;
 static const int C4FO_Func;
+static const int C4FO_InArray;
 static const int C4FO_Layer;
 static const int MD_DragSource;
 static const int MD_DropTarget;
@@ -605,6 +606,7 @@ global func bool SortArrayByArrayElement(array array2sort, int element_index, bo
 global func bool SortArrayByProperty(array array2sort, string property_name, bool descending);
 global func bool SortScoreboard(int coloumn_id, bool reverse);
 global func bool Sound(string name, bool global, int volume, int player, int loop_count, bool multiple, int customFallOffDistance);
+global func bool SoundAt(string sound, int iX, int iY, int iLevel, int atPlayer, int customFalloffDistance, int pitch);
 global func int Sqrt(int value);
 global func bool StartScriptProfiler(id definition_script);
 global func bool StopAnimation(int animation_number);
@@ -743,3 +745,7 @@ global func bool GainScenarioAchievement(string achievement_name, int avalue, in
 global func int GetPXSCount();
 
 global func void SetLightRange(int range, int fadeout_range);
+global func void SetLightColor(object obj, int value);
+
+global func void SetAmbientBrightness(int brightness);
+global func int GetAmbientBrightness();
