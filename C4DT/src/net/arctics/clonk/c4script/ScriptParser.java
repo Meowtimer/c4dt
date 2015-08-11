@@ -12,6 +12,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -91,11 +96,6 @@ import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.CStyleScanner;
 import net.arctics.clonk.parser.Markers;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 
 /**
  * A C4Script parser. Parses declarations in a script and stores it in a {@link Script} object (sold separately). Also parses syntax trees of functions.
@@ -1297,7 +1297,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				break;
 			}
 			// kind of a hack; stop at 'in' but only if there were other things before it
-			if (num > 0 && Keywords.In.equals(readIdent())) {
+			if (prevElm instanceof AccessVar && Keywords.In.equals(readIdent())) {
 				this.seek(elmStart);
 				break;
 			}
