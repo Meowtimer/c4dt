@@ -687,7 +687,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	@Override
 	public Engine engine() {
-		return Core.instance().activeEngine();
+		final Core core = Core.instance();
+		return core != null ? core.activeEngine() : null;
 	}
 
 	@Override
