@@ -233,6 +233,8 @@ public class StringUtil {
 	 * @return The string containing the repetitions
 	 */
 	public static String multiply(final String s, final int times) {
+		if (times <= 0)
+			return "";
 		final StringBuilder builder = new StringBuilder(s.length()*times);
 		for (int i = 0; i < times; i++)
 			builder.append(s);
