@@ -3,11 +3,11 @@ package net.arctics.clonk.c4script.cpp;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.function.Function.identity;
-import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.DispatchCase.caze;
 import static net.arctics.clonk.util.DispatchCase.dispatch;
 import static net.arctics.clonk.util.StreamUtil.concatStreams;
 import static net.arctics.clonk.util.StreamUtil.ofType;
+import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
@@ -24,15 +24,16 @@ import java.util.stream.Stream;
 
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.AppendableBackedNodePrinter;
+import net.arctics.clonk.ast.Raw;
+import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Operator;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.SynthesizedFunction;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.ast.AccessVar;
-import net.arctics.clonk.c4script.ast.ArrayElementExpression;
+import net.arctics.clonk.c4script.ast.ArrayExpression;
 import net.arctics.clonk.c4script.ast.BinaryOp;
-import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.CallDeclaration;
 import net.arctics.clonk.c4script.ast.Ellipsis;
 import net.arctics.clonk.c4script.ast.ForStatement;
@@ -57,7 +58,7 @@ public class CPPTemplate {
 	static String cppTypeString(PrimitiveType type) {
 		switch ((type)) {
 		case ARRAY:
-			return "C4ValueArray*";
+			return "C4ValueArray";
 		case BOOL:
 			return "bool";
 		case FUNCTION:
@@ -77,10 +78,16 @@ public class CPPTemplate {
 		}
 	}
 
-	static String primitiveDispatch(IType type, java.util.function.Function<PrimitiveType, String> pfn) {
+	static PrimitiveType primitiveTypeFromType(IType type) {
 		return
-			type instanceof PrimitiveType ? pfn.apply((PrimitiveType)type) :
-			type.simpleType() instanceof PrimitiveType ? pfn.apply((PrimitiveType)type.simpleType()) :
+			type instanceof PrimitiveType ? (PrimitiveType)type :
+			type.simpleType() instanceof PrimitiveType ? (PrimitiveType)type.simpleType() :
+			null;
+	}
+
+	static String primitiveDispatch(IType type, java.util.function.Function<PrimitiveType, String> pfn) {
+		final PrimitiveType primitiveType = primitiveTypeFromType(type);
+		return primitiveType != null ? pfn.apply(primitiveType) :
 			format("any /* %s: %s */", type.typeName(true), type.getClass().getSimpleName());
 	}
 
@@ -111,8 +118,14 @@ public class CPPTemplate {
 		}
 	}
 
-	static String valueConversionSuffix(IType targetType) {
-		return primitiveDispatch(targetType, CPPTemplate::valueConversionSuffix);
+	static String valueConversionSuffix(IType sourceType, IType targetType) {
+		final PrimitiveType primitiveSourceType = primitiveTypeFromType(sourceType);
+		final PrimitiveType primitiveTargetType = primitiveTypeFromType(targetType);
+		if (primitiveSourceType == primitiveTargetType)
+			return null;
+		if (primitiveTargetType != null)
+			return valueConversionSuffix(primitiveTargetType);
+		return null;
 	}
 
 	static String unclashKeyword(String name) {
@@ -255,23 +268,80 @@ public class CPPTemplate {
 		final StringWriter output = new StringWriter();
 		final java.util.function.Function<String, Integer> strNum = s -> defaulting(strTable.get(s), -1);
 		node.print(new AppendableBackedNodePrinter(output) {
-			private void printConversionSuffix(IType targetType, ASTNode node) {
-				final IType ty = node.ty();
-				final String suffix = !(node instanceof Literal || node instanceof AccessVar || node instanceof Nil)
-					? valueConversionSuffix(ty) : null;
-				if (suffix != null)
-					output.append(suffix);
+			IType effectiveType(ASTNode node) {
+				System.out.println(node.getClass().getSimpleName());
+				if (node instanceof AccessVar || node instanceof Literal || node instanceof ArrayExpression)
+					return node.ty();
+				final BinaryOp bop = as(node, BinaryOp.class);
+				if (bop != null)
+					return bop.operator().returnType();
+				return PrimitiveType.ANY;
+			}
+			private void printNodeWithConversion(PrimitiveType targetType, ASTNode node, int depth) {
+				final PrimitiveType sourceType = as(effectiveType(node).simpleType(), PrimitiveType.class);
+
+				if (targetType == null || targetType == sourceType) {
+					node.print(this, depth);
+					return;
+				}
+
+				switch (targetType) {
+				case ANY: case UNKNOWN: case VOID:
+					switch (sourceType) {
+					case ARRAY: case BOOL: case OBJECT: case PROPLIST: case NUM: case STRING:
+						append("C4Value(");
+						node.print(this, depth);
+						append(")");
+						break;
+					default:
+						node.print(this, depth);
+						break;
+					}
+					break;
+				default:
+					final String suffix = valueConversionSuffix(sourceType, targetType);
+					node.print(this, depth);
+					if (suffix != null)
+						output.append(suffix);
+					break;
+				}
 			}
 			private LeftRightType leftRightTypes(BinaryOp bop) {
 				return
 					bop.operator() == Operator.Assign ? new LeftRightType(bop.leftSide().ty(), bop.rightSide().ty()) :
 					new LeftRightType(bop.operator().firstArgType(), bop.operator().secondArgType());
 			}
+			private void printString(String str) {
+				append(String.format("D.S._%d", strNum.apply(str)));
+			}
+			private void printPiece(IType targetType, Sequence.Piece piece, int depth) {
+				switch (piece.kind) {
+				case ArrayElement:
+					output.append("arrayElement(");
+					printPiece(PrimitiveType.ARRAY, piece.previous, depth);
+					output.append(", ");
+					printNodeWithConversion(PrimitiveType.INT, piece.node, depth);
+					output.append(")");
+					break;
+				case Property:
+					output.append("property(");
+					printPiece(PrimitiveType.PROPLIST, piece.previous, depth);
+					output.append(", ");
+					printString(((StringLiteral)piece.node).literal());
+					output.append(")");
+					break;
+				default:
+					break;
+				}
+			}
+			PrimitiveType primitiveType(IType type) {
+				return (PrimitiveType) type.simpleType();
+			}
 			@Override
 			public boolean doCustomPrinting(final ASTNode node, final int depth) {
 				return defaulting(dispatch(node,
 					caze(StringLiteral.class, lit -> {
-						append(String.format("D.S._%d", strNum.apply(lit.stringValue())));
+						printString(lit.stringValue());
 						return true;
 					}),
 					caze(VarDeclarationStatement.class, statement -> {
@@ -284,8 +354,7 @@ public class CPPTemplate {
 							final ASTNode init = var.initializationExpression();
 							if (init != null) {
 								append(" = "); //$NON-NLS-1$
-								init.print(this, depth+1);
-								printConversionSuffix(var.type(), init);
+								printNodeWithConversion(primitiveType(var.type()), init, depth + 1);
 							}
 							append(";\n");
 						});
@@ -294,8 +363,10 @@ public class CPPTemplate {
 					caze(CallDeclaration.class, call -> {
 						if (call.function() != null && call.predecessor() == null)
 							append(format("Exec(D.G.%s", call.name()));
-						else
-							append(format("Exec(D.S._%d", strNum.apply(call.name())));
+						else {
+							append("Exec(");
+							printString(call.name());
+						}
 						if (call.params().length > 0)
 							stream(call.params()).forEach(par -> {
 								if (par instanceof Ellipsis) {
@@ -328,7 +399,8 @@ public class CPPTemplate {
 							append(format("D.ID.%s", av.name()));
 							return true;
 						} else if (av.predecessor() != null) {
-							append(format("GetPropertyByS(D.S._%d)", strNum.apply(av.name())));
+							append("GetPropertyByS(");
+							printString(av.name());
 							return true;
 						}
 						else
@@ -345,9 +417,9 @@ public class CPPTemplate {
 						boolean needsBrackets = leftSide instanceof BinaryOp && operator.priority() > ((BinaryOp)leftSide).operator().priority();
 						if (needsBrackets)
 							output.append("("); //$NON-NLS-1$
-						leftSide.print(this, depth);
+
 						final LeftRightType lr = leftRightTypes(bop);
-						printConversionSuffix(lr.left, leftSide);
+						printNodeWithConversion(primitiveType(lr.left), leftSide, depth);
 
 						if (needsBrackets)
 							output.append(")"); //$NON-NLS-1$
@@ -358,21 +430,26 @@ public class CPPTemplate {
 						needsBrackets = rightSide instanceof BinaryOp && operator.priority() > ((BinaryOp)rightSide).operator().priority();
 						if (needsBrackets)
 							output.append(" ("); //$NON-NLS-1$
-						else {
-							final String printed = rightSide.printed(depth);
-							if (!printed.startsWith("\n"))
-								output.append(" ");
-							rightSide.print(this, depth);
-							printConversionSuffix(lr.right, rightSide);
-						}
+
+						final String printed = rightSide.printed(depth);
+						if (!printed.startsWith("\n"))
+							output.append(" ");
+						printNodeWithConversion(primitiveType(lr.right), rightSide, depth);
+
 						if (needsBrackets)
 							output.append(")"); //$NON-NLS-1$
 						return true;
 					}),
 					caze(FunctionBody.class, body -> {
-						Block.printBlock(concat(body.statements(),
-							new AccessVar(format("return C4Value()%s;", valueConversionSuffix(body.owner().returnType())))),
-							this, depth);
+						output.append("{\n");
+ 						stream(body.statements()).forEach(statement -> {
+ 							statement.print(this, depth + 1);
+ 							output.append("\n");
+ 						});
+ 						output.append("\treturn ");
+ 						printNodeWithConversion(primitiveType(body.owner().returnType()), new Raw("C4Value()", PrimitiveType.ANY), depth);
+ 						output.append(";\n");
+ 						output.append("}");
 						return true;
 					}),
 					caze(ReturnStatement.class, ret -> {
@@ -382,24 +459,22 @@ public class CPPTemplate {
 						} else
 							return false;
 					}),
-					caze(ArrayElementExpression.class, ee -> {
-						if (ee.predecessor() != null && ee.argument() != null) {
-							if (ee.argument().ty().simpleType() == PrimitiveType.STRING) {
-								printConversionSuffix(PrimitiveType.PROPLIST, ee.predecessor());
-								output.append("->GetPropertyByS(");
-								ee.argument().print(this, depth);
-								printConversionSuffix(PrimitiveType.STRING, ee.argument());
-								output.append(")");
-							} else {
-								printConversionSuffix(PrimitiveType.ARRAY, ee.predecessor());
-								output.append("->GetItem(");
-								ee.argument().print(this, depth);
-								printConversionSuffix(PrimitiveType.INT, ee.argument());
-								output.append(")");
+					caze(Sequence.class, sequence -> {
+						printPiece(null, sequence.toPieces(), depth);
+						return true;
+					}),
+					caze(ArrayExpression.class, arrayExpression -> {
+						output.append("array(");
+						boolean first = true;
+						for (final ASTNode parameter : arrayExpression.subElements()) {
+							if (first) {
+								first = false;
+								output.append(", ");
 							}
-							return true;
-						} else
-							return false;
+							printNodeWithConversion(PrimitiveType.ANY, parameter, depth + 1);
+						}
+						output.append(")");
+						return true;
 					})
 				), Boolean.FALSE);
 			}
@@ -468,17 +543,16 @@ public class CPPTemplate {
 		final Stream<String> assignFuncs = uniqueFuncNames.stream().map(fn -> format("%1$s = Strings.RegString(\"%1$s\");", fn));
 		final Stream<String> natives = uniqueFuncNames.stream().map(fn -> format("C4AulFunc* %s;", fn));
 		final Stream<String> nativeWrappers = numberedFunctions.stream()
-			.map(nf -> {
-				final Function f = nf.function;
-				return format(
-					"static %s %s(%s* __this__%s) { return __this__->s_%2$s(%s); }",
-					cppTypeString(f.returnType()),
-					nf.name(),
-					script.name(),
-					parmsString(f, true),
-					f.parameters().stream().map(Variable::name).map(CPPTemplate::unclashKeyword).collect(Collectors.joining(", "))
-				);
-			});
+			.map(nf -> (
+				"static " +
+				cppTypeString(nf.function.returnType()) + " " + nf.name() +
+				"(C4PropList* self"+parmsString(nf.function, true)+")" +
+				" { return static_cast<" + script.name() + "*>(self)->s_" + nf.name() + "(" +
+					nf.function.parameters().stream()
+						.map(Variable::name)
+						.map(CPPTemplate::unclashKeyword)
+						.collect(Collectors.joining(", ")) + "); }"
+			));
 		final Stream<String> assignNatives = uniqueFuncNames.stream().map(n -> format("%s = AddFunc(&def.Script, \"%1$s\", W::%1$s);", n));
 		final Stream<String> stringTable = strTable.entrySet().stream().map(e -> format("C4String* _%d;", e.getValue()));
 		final Stream<String> assignStringTable = strTable.entrySet().stream()
@@ -493,7 +567,7 @@ public class CPPTemplate {
 		));
 		final Stream<String> getPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { *pResult = C4Value(%1$s); return true; }", f.unclashedName()));
 		final Stream<String> addNativeFields = fields.stream().map(f -> format("(*properties)[i++] = C4Value(%s);", f.unclashedName()));
-		final Stream<String> setPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = to%s; return; }", f.unclashedName(), valueConversionSuffix(f.type())));
+		final Stream<String> setPropertyByS = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = to%s; return; }", f.unclashedName(), valueConversionSuffix(PrimitiveType.ANY, f.type())));
 		final Stream<String> resetProperty = fields.stream().map(f -> format("if (k == D.L.%s) { %1$s = {}; return; }", f.unclashedName()));
 		final Stream<String> idTable = idRefs.stream().map(id -> format("C4Def* %s;", id.name()));
 		final Stream<String> assignIDTable = idRefs.stream().map(id -> format("%s = Definitions.GetByName(StdStrBuf(\"%1$s\"));", id.name()));
@@ -509,12 +583,17 @@ public class CPPTemplate {
 		);
 
 		this.skeleton = Arrays.<Object>asList(
+			"#include <C4Include.h>",
+			"#include <C4NativeDef.h>",
+			"#include <C4ValueHelpers.h>",
+			"",
 			"class "+script.name()+" : public C4Object",
 			"{",
 			"public:",
 			"	// meta",
 			"	class Def : public C4NativeDef",
 			"	{",
+			"	private:",
 			"	public:",
 			"		virtual C4Object* NewInstance();",
 			"		using C4NativeDef::C4NativeDef;",
@@ -586,6 +665,10 @@ public class CPPTemplate {
 			"	// functions",
 			instanceFuncs,
 			"",
+			"	// Exec overloads",
+			"	C4Value Exec(C4AulFunc* func);",
+			getExecOverloads(script, true),
+			"",
 			"	// property management",
 			"	virtual bool GetPropertyByS(C4String *k, C4Value *pResult) const",
 			"	{",
@@ -615,12 +698,29 @@ public class CPPTemplate {
 			"	}",
 			"};",
 			"",
-			"C4Object* %s::Def::NewInstance() { return new %s(); }",
+			"C4Value " + script.name() + "::Exec(C4AulFunc* func) { if (!func) { return {}; } return func->Exec(this); }",
+			getExecOverloads(script, false),
+			"",
+			format("C4Object* %s::Def::NewInstance() { return new %s(); }", script.name(), script.name()),
 			"",
 			convertedFunctions,
 			format("decltype(%s::D) %1$s::D(\"%s\");", script.name(), script.resource() != null ? script.resource().getProjectRelativePath().toPortableString() : "")
 		);
 	}
+
+	private Stream<String> getExecOverloads(Script script, boolean declaration) {
+		return IntStream.range(1, 11)
+			.mapToObj(num -> {
+				final List<String> parameterNames = IntStream
+					.range(0, num).mapToObj(parameterIndex -> "parameter" + (parameterIndex+1))
+					.collect(Collectors.toList());
+				return
+					"C4Value "+(declaration?"":(script.name()+"::"))+"Exec(C4AulFunc* func, " +
+					blockString("", "", ", ", parameterNames.stream().map(parameterName -> "const C4Value& " + parameterName)) + ")" +
+					(declaration ? ";" : (" { if (!func) { return {}; } return func->Exec(this, &C4AulParSet("+blockString("", "", ", ", parameterNames)+")); }"));
+			});
+	}
+
 	class Indented {
 		public int indentation;
 		public Object item;
@@ -631,34 +731,41 @@ public class CPPTemplate {
 		}
 	}
 
+	private static int countNumOccurencesOfCharacterInString(String string, char character) {
+		int result = 0;
+		for (int i = 0; i < string.length(); i++)
+			if (string.charAt(i) == character)
+				result++;
+		return result;
+	}
+
 	@SuppressWarnings("unchecked")
 	public Stream<String> flatten() {
 
-		@SuppressWarnings("serial")
-		class Indent extends AtomicInteger {
+		class Context {
+
+			int indent = 0;
+
 			private Indented indentify(Object item) {
 				final String str = as(item, String.class);
-				final int currentIndentation = get();
+				final int currentIndentation = indent;
 				if (str != null)
-					if (str.contains("}"))
-						decrementAndGet();
-					else if (str.contains("{"))
-						incrementAndGet();
+					indent = Math.max(0, indent + countNumOccurencesOfCharacterInString(str, '{') - countNumOccurencesOfCharacterInString(str, '}'));
 				return new Indented(currentIndentation, item);
 			}
 
-			Stream<String> youAreAllSoStupid(Indented s) {
+			Stream<String> flatten(Indented indented) {
 				return
-					s.item instanceof String ? stream(new String[] {(String)s.item}) :
-					s.item instanceof Stream ? ((Stream<String>)s.item).map(str -> StringUtil.multiply("\t", s.indentation) + str) :
+					indented.item instanceof String ? stream(new String[] {(String)indented.item}) :
+					indented.item instanceof Stream ? ((Stream<String>)indented.item).map(str -> StringUtil.multiply("\t", indented.indentation) + str) :
 					Stream.empty();
 			}
 		}
 
-		final Indent indent = new Indent();
+		final Context indent = new Context();
 		return skeleton.stream()
 			.map(indent::indentify)
-			.flatMap(indent::youAreAllSoStupid);
+			.flatMap(indent::flatten);
 	}
 
 	public static void render(Index index, Script script, PrintWriter output) {
