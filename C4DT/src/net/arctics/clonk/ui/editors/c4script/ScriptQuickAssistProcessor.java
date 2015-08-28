@@ -19,6 +19,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
+import org.eclipse.jface.text.quickassist.IQuickAssistProcessor;
+import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.ui.texteditor.MarkerAnnotation;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ast.ASTNode;
@@ -65,19 +78,6 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.StringUtil;
 
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.Position;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
-import org.eclipse.jface.text.quickassist.IQuickAssistProcessor;
-import org.eclipse.jface.text.source.Annotation;
-import org.eclipse.jface.text.source.IAnnotationModel;
-import org.eclipse.ui.texteditor.MarkerAnnotation;
-
 /**
  * Offers various quick assists/fixes for C4Script source files
  * @author ZokRadonh
@@ -100,12 +100,10 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 	@Override
 	public boolean canFix(final Annotation annotation) {
+		final MarkerAnnotation markerAnnotation = as(annotation, MarkerAnnotation.class);
 		return
-			annotation instanceof MarkerAnnotation &&
-			Core.MARKER_C4SCRIPT_ERROR.equals(attempt(
-				((MarkerAnnotation)annotation).getMarker()::getType,
-				CoreException.class, e -> {}
-			)) &&
+			markerAnnotation != null &&
+			Core.MARKER_C4SCRIPT_ERROR.equals(markerAnnotation.getType()) &&
 			fixes.keySet().contains(Markers.problem(((MarkerAnnotation)annotation).getMarker()));
 	}
 
