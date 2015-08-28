@@ -19,10 +19,8 @@ import net.arctics.clonk.util.FileOperations;
 import net.arctics.clonk.util.Pair;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
@@ -62,18 +60,14 @@ public class C4GroupExporter implements IRunnableWithProgress {
 			FileDialog fileDialog = null;
 			for (final Pair<IContainer, String> toExport : packs) {
 				String packPath;
-				final boolean alwaysAskForPath = true;
-				if (alwaysAskForPath || !(toExport.first().getParent() instanceof IProject)) {
-					if (fileDialog == null)
-						fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
-					fileDialog.setFileName(toExport.first().getName());
-					fileDialog.setText(String.format(Messages.WhereToSave, toExport.first().getName()));
-					fileDialog.setFilterPath(destinationPath);
-					packPath = fileDialog.open();
-					if (packPath == null)
-						return false;
-				} else
-					packPath = new Path(destinationPath).append(toExport.first().getName()).toOSString();
+				if (fileDialog == null)
+					fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
+				fileDialog.setFileName(toExport.first().getName());
+				fileDialog.setText(String.format(Messages.WhereToSave, toExport.first().getName()));
+				fileDialog.setFilterPath(destinationPath);
+				packPath = fileDialog.open();
+				if (packPath == null)
+					return false;
 				toExport.setSecond(packPath);
 			}
 		}
