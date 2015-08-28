@@ -609,10 +609,10 @@ global func bool SortScoreboard(int coloumn_id, bool reverse);
 global func bool Sound(string name, bool global, int volume, int player, int loop_count, bool multiple, int customFallOffDistance);
 global func bool SoundAt(string sound, int iX, int iY, int iLevel, int atPlayer, int customFalloffDistance, int pitch);
 
-static const C4SMT_None;
-static const C4SMT_Reverb;
-static const C4SMT_Echo;
-static const C4SMT_Equalizer;
+static const int C4SMT_None;
+static const int C4SMT_Reverb;
+static const int C4SMT_Echo;
+static const int C4SMT_Equalizer;
 
 global func bool ChangeSoundModifier(proplist modifier_props, bool release);
 
