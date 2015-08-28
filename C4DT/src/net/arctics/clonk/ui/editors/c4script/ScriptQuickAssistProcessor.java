@@ -139,7 +139,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 
 	public static final Pattern validIdentifierPattern = Pattern.compile("[a-zA-Z_]\\w*"); //$NON-NLS-1$
 
-	private static String parmNameFromExpression(final ASTNode expression, final int index) {
+	private static String parameterNameFromExpression(final ASTNode expression, final int index) {
 		final String exprString = expression.toString();
 		final Matcher m = validIdentifierPattern.matcher(exprString);
 		return m.matches() ? m.group() : "par"+index; //$NON-NLS-1$
@@ -236,7 +236,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					final List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 					int p = 0;
 					for (final ASTNode parm : callFunc.params())
-						parms.add(new Variable(parmNameFromExpression(parm, ++p), site.script.typings().get(parm)));
+						parms.add(new Variable(parameterNameFromExpression(parm, ++p), site.script.typings().get(parm)));
 					function.setParameters(parms);
 				}
 
@@ -247,8 +247,8 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				final List<ICompletionProposal> possible = ScriptCompletionProcessor.computeProposalsForExpression
 					(site.document, site.func, expr);
 				
-				ofType(possible.stream(), DeclarationProposal.class).forEach(clonkProposal -> {
-					final Declaration dec = clonkProposal.declaration();
+				ofType(possible.stream(), DeclarationProposal.class).forEach(proposal -> {
+					final Declaration dec = proposal.declaration();
 					if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
 						return;
 					final int similarity = StringUtil.similarityOf(dec.name(), accessDec.name());
