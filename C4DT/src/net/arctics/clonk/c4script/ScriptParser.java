@@ -2455,7 +2455,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 		final int backtrack = this.offset;
 		eatWhitespace();
-		if ((script == engine || engine.settings().supportsVarArgsDeclaration) && parseEllipsis())
+		if ((script == engine || engine == null || engine.settings().supportsVarArgsDeclaration) && parseEllipsis())
 			return addVarParmsParm(function);
 		if (peek() == ')') {
 			seek(backtrack);
