@@ -531,6 +531,7 @@ global func int SetAlive(bool alive);
 global func bool SetAnimationPosition(int animation_number, array position);
 global func bool SetAnimationWeight(int animation_number, array weight);
 global func bool SetAttachBones(int attach_number, string parent_bone, string child_bone);
+global func int TransformBone(string bone_name, array transformation, int slot, array weightProvider, int sibling, int attach_number);
 global func bool SetAttachTransform(int attach_number, array transformation);
 global func bool SetBridgeActionData(int bridge_length, bool move_clonk, bool build_wall, int bridge_material);
 global func any SetCategory(int category);
@@ -607,6 +608,14 @@ global func bool SortArrayByProperty(array array2sort, string property_name, boo
 global func bool SortScoreboard(int coloumn_id, bool reverse);
 global func bool Sound(string name, bool global, int volume, int player, int loop_count, bool multiple, int customFallOffDistance);
 global func bool SoundAt(string sound, int iX, int iY, int iLevel, int atPlayer, int customFalloffDistance, int pitch);
+
+static const C4SMT_None;
+static const C4SMT_Reverb;
+static const C4SMT_Echo;
+static const C4SMT_Equalizer;
+
+global func bool ChangeSoundModifier(proplist modifier_props, bool release);
+
 global func int Sqrt(int value);
 global func bool StartScriptProfiler(id definition_script);
 global func bool StopAnimation(int animation_number);
