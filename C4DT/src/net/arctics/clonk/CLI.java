@@ -163,8 +163,10 @@ public class CLI implements IApplication, AutoCloseable {
 	 */
 	private void mainImpl(String[] args) {
 		final int methodIndex = parseOptions(args);
-		if (methodIndex == args.length)
-			throw new IllegalArgumentException("Missing command");
+		if (methodIndex == args.length) {
+			System.out.println("Missing command");
+			return;
+		}
 		final String methodName = args[methodIndex];
 		final Method method = stream(getClass().getMethods())
 			.filter(m -> m.getName().equals(methodName) && m.getAnnotation(Callable.class) != null)
