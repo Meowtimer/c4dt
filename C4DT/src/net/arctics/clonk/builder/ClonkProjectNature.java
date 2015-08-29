@@ -223,7 +223,8 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	private void saveSettings(final SettingsBase settings, String suffix) throws IOException {
-		StreamUtil.writeToFile(settingsFilePath(null).toFile(),
+		StreamUtil.writeToFile(
+			settingsFilePath(suffix).toFile(),
 			(file, stream, writer) -> attempt(voidResult(
 				() -> CustomIniUnit.save(new AppendableBackedNodePrinter(writer), settings, null)
 			))

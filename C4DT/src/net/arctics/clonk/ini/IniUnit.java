@@ -20,6 +20,14 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.content.IContentType;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -49,14 +57,6 @@ import net.arctics.clonk.util.IHasChildren;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.content.IContentType;
 
 /**
  * Reads Windows ini style configuration files
@@ -89,15 +89,16 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	}
 
 	public void save(final boolean discardEmptySections) {
-		if (file() != null)
+		if (file() != null) {
 			Core.instance().performActionsOnFileDocument(file(), document -> {
 				final StringWriter writer = new StringWriter();
 				save(new AppendableBackedNodePrinter(writer), discardEmptySections);
 				document.set(writer.toString());
 				return null;
 			}, true);
-		else
+		} else {
 			throw new IllegalStateException(String.format("%s has no associated file", toString()));
+		}
 	}
 
 	/**
@@ -116,9 +117,9 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	 * @return <tt>true</tt> if valid
 	 */
 	protected boolean isSectionNameValid(final String name, final IniSection parentSection) {
-		if (parentSection != null)
+		if (parentSection != null) {
 			return parentSection.definition() == null || parentSection.definition().hasSection(name);
-		else {
+		} else {
 			final IniConfiguration conf = configuration();
 			return conf == null || conf.hasSection(name);
 		}
@@ -153,13 +154,17 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	 */
 	protected IniEntry validateEntry(final IniEntry entry, final IniSection section, final boolean modifyMarkers) throws IniParserException {
 		final IniConfiguration configuration = configuration();
-		if (configuration == null)
+		if (configuration == null) {
 			return entry;
+		}
 		final IniSectionDefinition sectionConfig = ((IniSection)entry.parentDeclaration()).definition();
 		if (sectionConfig == null)
+		 {
 			return entry; // don't throw errors in unknown section
-		if (!sectionConfig.hasEntry(entry.key()))
+		}
+		if (!sectionConfig.hasEntry(entry.key())) {
 			throw new IniParserException(IMarker.SEVERITY_WARNING, String.format(Messages.UnknownOption, entry.key()), entry.start(), entry.key().length() + entry.start(), null);
+		}
 		final IniDataBase dataItem = sectionConfig.entryForKey(entry.key());
 		if (dataItem instanceof IniEntryDefinition) {
 			final IniEntryDefinition entryConfig = (IniEntryDefinition) dataItem;
@@ -173,7 +178,9 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 					final String key = entry.key();
 					String value = entry.stringValue();
 					if (value == null)
+					 {
 						value = ""; //$NON-NLS-1$
+					}
 					e.offsets(
 						entry.start() + key.length() + 1,
 						entry.start() + key.length() + 1 + value.length()
@@ -181,8 +188,9 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 				}
 				throw e;
 			}
-		} else
+		} else {
 			throw new IniParserException(IMarker.SEVERITY_ERROR, String.format("No definition for ini entry '%s'", entry.key()));
+		}
 	}
 
 	public IniSection sectionWithName(final String name, final boolean create, final IniSectionDefinition sectionData) {
@@ -278,8 +286,10 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 			String val = ((IniEntry) nameEntry).stringValue();
 			val = StringTbl.evaluateEntries(this, val, true).evaluated;
 			return "["+val+"]"; //$NON-NLS-1$ //$NON-NLS-2$
-		} else
+		}
+		else {
 			return "["+section.name()+"]"; //$NON-NLS-1$ //$NON-NLS-2$
+		}
 	}
 
 	@Override
@@ -296,8 +306,9 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	@Override
 	public Declaration findLocalDeclaration(final String declarationName,
 			final Class<? extends Declaration> declarationClass) {
-		if (declarationClass.isAssignableFrom(IniSection.class))
+		if (declarationClass.isAssignableFrom(IniSection.class)) {
 			return findDeclaration(declarationName);
+		}
 		return null;
 	}
 
@@ -313,31 +324,35 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 
 	@Override
 	public String toString() {
-		if (file() != null)
+		if (file() != null) {
 			return file().getFullPath().toOSString();
-		else
+		} else {
 			return super.toString();
+		}
 	}
 
 	public static void register() {
 		Structure.registerStructureFactory((resource, duringBuild) -> {
-			if (resource instanceof IFile)
+			if (resource instanceof IFile) {
 				try {
 					final IniUnit unit = createAdequateIniUnit((IFile) resource);
-					if (unit != null)
+					if (unit != null) {
 						new IniUnitParser(unit).parse(duringBuild);
+					}
 					return unit;
 				} catch (final Exception e) {
 					e.printStackTrace();
 				}
+			}
 			return null;
 		});
 	}
 
 	public static IniUnit createAdequateIniUnit(final IFile file) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 		final Class<? extends IniUnit> cls = iniUnitClassForResource(file);
-		if (cls == null)
+		if (cls == null) {
 			return null;
+		}
 		final Constructor<? extends IniUnit> ctor = cls.getConstructor(Object.class);
 		final IniUnit result = ctor.newInstance(file);
 		return result;
@@ -373,8 +388,9 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	public static Class<? extends IniUnit> iniUnitClassForResource(final IResource resource) {
 		try {
 			final IContentType contentType = resource.getProject().getContentTypeMatcher().findContentTypeFor(resource.getName());
-			if (contentType == null)
+			if (contentType == null) {
 				return null;
+			}
 			final Class<? extends IniUnit> cls = INIREADER_CLASSES.get(contentType.getId());
 			return cls != null ? cls : null;
 		} catch (final CoreException ce) {
@@ -385,8 +401,9 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	@Override
 	public void validate(final Markers markers) throws ProblemException {
 		// don't bother letting items complain if errors shouldn't be shown anyway (in linked groups)
-		if (C4GroupItem.groupItemBackingResource(file()) != null)
+		if (C4GroupItem.groupItemBackingResource(file()) != null) {
 			return;
+		}
 		try {
 			file().deleteMarkers(Core.MARKER_C4SCRIPT_ERROR, true, 0);
 		} catch (final CoreException e) {
@@ -434,10 +451,11 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	public String name() {
 		String n = super.name();
 		if (n == null) {
-			if (file() != null)
+			if (file() != null) {
 				n = file().getName();
-			else
+			} else {
 				n = getClass().getName();
+			}
 			setName(n);
 		}
 		return n;
@@ -453,10 +471,11 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 
 	@Override
 	public <T extends Declaration> T addDeclaration(final T declaration) {
-		if (declaration instanceof IniSection)
+		if (declaration instanceof IniSection) {
 			return super.addDeclaration(declaration);
-		else
+		} else {
 			throw new IllegalArgumentException();
+		}
 	}
 
 	@Override
@@ -479,8 +498,9 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 			final IniField annot = f.getAnnotation(IniField.class);
 			if (annot != null) {
 				final String category = IniData.category(annot, object.getClass());
-				if (defaults != null && Utilities.eq(f.get(object), f.get(defaults)))
+				if (defaults != null && Utilities.eq(f.get(object), f.get(defaults))) {
 					continue;
+				}
 				final IniSectionDefinition dataSection = configuration().sections().get(category);
 				if (dataSection != null) {
 					final IniDataBase dataItem = dataSection.entryForKey(f.getName());
@@ -511,13 +531,15 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 
 	public <T> T complexValue(final String path, final Class<T> cls) {
 		final String[] p = path.split("\\.");
-		if (p.length < 2)
+		if (p.length < 2) {
 			return null;
+		}
 		IniSection section = null;
 		for (int i = 0; i < p.length-1; i++) {
 			section = section != null ? as(section.item(p[i]), IniSection.class) : this.sectionWithName(p[i], false, null);
-			if (section == null)
+			if (section == null) {
 				return null;
+			}
 		}
 		final IniEntry entry = section != null ? as(section.item(p[p.length-1]), IniEntry.class) : null;
 		return entry != null ? as(entry.value(), cls) : null;
@@ -547,8 +569,9 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 			final IniSection section = (IniSection) from;
 			final IniEntry entry = (IniEntry) section.item(nameEntryName(section.parentSection()));
 			return entry != null ? (T) sectionMatching(nameMatcherPredicate(entry.stringValue())) : null;
-		} else
+		} else {
 			return null;
+		}
 	}
 
 	public interface INode<T> {
