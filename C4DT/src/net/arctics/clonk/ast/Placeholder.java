@@ -14,20 +14,26 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.stringtbl.StringTbl;
 
 public class Placeholder extends ASTNode implements IRefinedPrimitiveType {
+	
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	
 	protected String entryName;
+	
 	public Placeholder(final String entryName) { this.entryName = entryName; }
+	
 	@Override
 	public boolean isValidAtEndOfSequence() { return true; }
 	@Override
 	public boolean isValidInSequence(final ASTNode predecessor) { return true; }
 	public String entryName() { return entryName; }
+	
 	@Override
 	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append('$');
 		builder.append(entryName);
 		builder.append('$');
 	}
+	
 	@Override
 	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
 		final StringTbl stringTbl = parent(Script.class).localStringTblMatchingLanguagePref();
@@ -38,6 +44,7 @@ public class Placeholder extends ASTNode implements IRefinedPrimitiveType {
 		}
 		return super.entityAt(offset, locator);
 	}
+	
 	@Override
 	public boolean hasSideEffects() { return true; /* let's just assume that */ }
 	@Override
@@ -48,9 +55,11 @@ public class Placeholder extends ASTNode implements IRefinedPrimitiveType {
 	public IType simpleType() { return PrimitiveType.ANY; }
 	@Override
 	public PrimitiveType primitiveType() { return PrimitiveType.ANY; }
+	
 	@Override
 	protected boolean equalAttributes(ASTNode other) {
 		final Placeholder o = as(other, Placeholder.class);
 		return o != null && eq(entryName, o.entryName) && super.equalAttributes(other);
 	}
+
 }
