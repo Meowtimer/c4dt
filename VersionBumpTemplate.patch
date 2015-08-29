@@ -1,0 +1,55 @@
+# HG changeset patch
+# User Mortimer <mardmol@gmx.de>
+# Date 1426855394 -3600
+#      Fri Mar 20 13:43:14 2015 +0100
+# Node ID b156f04f63a10fc24389b6b9c3e080e83195f779
+# Parent  aac051f751023ecdcf49be236f35a0a72a7c1506
+Version: $NEW
+
+diff --git a/C4DT/META-INF/MANIFEST.MF b/C4DT/META-INF/MANIFEST.MF
+--- a/C4DT/META-INF/MANIFEST.MF
++++ b/C4DT/META-INF/MANIFEST.MF
+@@ -2,7 +2,7 @@
+ Bundle-ManifestVersion: 2
+ Bundle-Name: C4DT
+ Bundle-SymbolicName: net.arctics.clonk;singleton:=true
+-Bundle-Version: $OLD.qualifier
++Bundle-Version: $NEW.qualifier
+ Bundle-Activator: net.arctics.clonk.Core
+ Bundle-Localization: res/plugin
+ Require-Bundle: org.eclipse.core.expressions;bundle-version="[3.4.100,4.5.0)",
+diff --git a/C4DTFeature/feature.xml b/C4DTFeature/feature.xml
+--- a/C4DTFeature/feature.xml
++++ b/C4DTFeature/feature.xml
+@@ -2,7 +2,7 @@
+ <feature
+       id="net.arctics.clonk.c4dtFeature"
+       label="Clonk Development Tools"
+-      version="$OLD.qualifier">
++      version="$NEW.qualifier">
+ 
+    <description url="http://www.example.com/description">
+       Clonk Development Tools for Eclipse.
+diff --git a/C4DT_DE/META-INF/MANIFEST.MF b/C4DT_DE/META-INF/MANIFEST.MF
+--- a/C4DT_DE/META-INF/MANIFEST.MF
++++ b/C4DT_DE/META-INF/MANIFEST.MF
+@@ -2,6 +2,6 @@
+ Bundle-ManifestVersion: 2
+ Bundle-Name: C4DT German
+ Bundle-SymbolicName: net.arctics.clonk.nl_de;singleton:=true
+-Bundle-Version: $OLD.qualifier
++Bundle-Version: $NEW.qualifier
+ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+ Fragment-Host: net.arctics.clonk
+diff --git a/C4DT_DE_Feature/feature.xml b/C4DT_DE_Feature/feature.xml
+--- a/C4DT_DE_Feature/feature.xml
++++ b/C4DT_DE_Feature/feature.xml
+@@ -2,7 +2,7 @@
+ <feature
+       id="net.arctics.clonk.c4dt_de_feature"
+       label="Clonk Development Tools - Deutsches Sprachpaket"
+-      version="$OLD.qualifier">
++      version="$NEW.qualifier">
+ 
+    <description url="http://www.example.com/description">
+       Deutsche Lokalisierung für die Clonk Development Tools (c4dt)
