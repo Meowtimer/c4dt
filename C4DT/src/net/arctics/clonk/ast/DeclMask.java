@@ -1,11 +1,12 @@
 package net.arctics.clonk.ast;
 
 import net.arctics.clonk.c4script.Directive;
+import net.arctics.clonk.c4script.Variable;
 
 /** Contains constants to combine as mask for {@link Declaration#subDeclarations(Index, int)} */
 public class DeclMask {
 	/**
-	 * Return accessible {@link ConcreteVariable}s
+	 * Return accessible {@link Variable}s
 	 */
 	public static final int VARIABLES = 1;
 	/**
@@ -21,7 +22,7 @@ public class DeclMask {
 	 */
 	public static final int IMPLICIT = 16;
 	/**
-	 * Return static {@link ConcreteVariable}s
+	 * Return static {@link Variable}s
 	 */
 	public static final int STATIC_VARIABLES = 32;
 	/**

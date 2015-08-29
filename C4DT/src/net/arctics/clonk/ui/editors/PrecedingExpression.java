@@ -2,6 +2,9 @@ package net.arctics.clonk.ui.editors;
 
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
+
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
 import net.arctics.clonk.ast.ExpressionLocator;
@@ -15,14 +18,26 @@ import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.jface.text.Region;
-
+/**
+ * Base class for {@link ProposalsSite}, I guess.
+ * @author madeen
+ *
+ */
 public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
+	
 	public ASTNode contextExpression;
 	public Sequence contextSequence;
 	public IType precedingType;
 	public final Function function;
 	public void pos(final int pos) { this.exprRegion = new Region(pos, 0); exprAtRegion = null; }
+	
+	/**
+	 * Create in the context of a function
+	 * @param function
+	 * @param contextExpression
+	 * @param contextSequence
+	 * @param precedingType
+	 */
 	public PrecedingExpression(final Function function, final ASTNode contextExpression, final Sequence contextSequence, final IType precedingType) {
 		super(-1);
 		this.function = function;
@@ -30,6 +45,7 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 		this.contextSequence = contextSequence;
 		this.precedingType = precedingType;
 	}
+	
 	@Override
 	public TraversalContinuation visitNode(final ASTNode expression, final ProblemReporter context) {
 		if (context.function() != this.function)
@@ -53,27 +69,30 @@ public class PrecedingExpression extends ExpressionLocator<ProblemReporter> {
 			super.visitNode(expression, context);
 		return c;
 	}
+	
 	public IType precedingType() { return defaulting(precedingType, PrimitiveType.UNKNOWN); }
+	
+	/**
+	 * Decide what kind of declarations to propose after this expression.
+	 * @return Mask consisting of {@link DeclMask} fields |-ed together.
+	 */
 	public int declarationsMask() {
 		int mask = DeclMask.VARIABLES|DeclMask.FUNCTIONS;
 		if (contextSequence == null)
 			mask |= DeclMask.STATIC_VARIABLES;
 
-		final ASTNode mo = memberOperator();
-		if (mo instanceof MemberOperator)
-			if (((MemberOperator) mo).dotNotation())
-				return DeclMask.VARIABLES;
-			else
-				mask &= ~DeclMask.VARIABLES;
+		final MemberOperator memberOperator = memberOperator();
+		if (memberOperator != null && !memberOperator.dotNotation())
+			mask &= ~DeclMask.VARIABLES;
 
 		return mask;
 	}
+	
 	public MemberOperator memberOperator() {
-		if (contextExpression instanceof MemberOperator)
-			return (MemberOperator)contextExpression;
-		else if (contextExpression != null)
-			return as(contextExpression.predecessor(), MemberOperator.class);
-		else
-			return null;
+		return contextExpression instanceof MemberOperator ?
+			(MemberOperator)contextExpression :
+			contextExpression != null ? as(contextExpression.predecessor(), MemberOperator.class) :
+			null;
 	}
+
 }

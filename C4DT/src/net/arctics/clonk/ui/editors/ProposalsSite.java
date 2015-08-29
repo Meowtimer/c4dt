@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
+
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Sequence;
@@ -18,11 +22,8 @@ import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.ui.editors.c4script.ProposalCycle;
 
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
-
 public class ProposalsSite extends PrecedingExpression {
+	
 	public final StructureEditingState<?, ?> state;
 	public final List<ICompletionProposal> proposals;
 	public final int offset;
@@ -32,6 +33,7 @@ public class ProposalsSite extends PrecedingExpression {
 	public final Map<Class<? extends Declaration>, Map<String, DeclarationProposal>> declarationProposals;
 	public final Index index;
 	public final Script script;
+	
 	public void addProposal(final ICompletionProposal proposal) {
 		final DeclarationProposal ccp = as(proposal, DeclarationProposal.class);
 		if (ccp != null && (ccp.declaration() instanceof Variable || ccp.declaration() instanceof Function)) {
@@ -47,6 +49,7 @@ public class ProposalsSite extends PrecedingExpression {
 		}
 		proposals.add(proposal);
 	}
+
 	public void removeProposalForDeclaration(final Declaration declaration) {
 		final Map<String, DeclarationProposal> props = declarationProposals.get(declaration.getClass());
 		if (props != null) {
@@ -57,6 +60,7 @@ public class ProposalsSite extends PrecedingExpression {
 			}
 		}
 	}
+
 	public ProposalsSite(
 		final StructureEditingState<?, ?> state,
 		final int offset, final int wordOffset, final IDocument document,
@@ -83,6 +87,7 @@ public class ProposalsSite extends PrecedingExpression {
 		this.index = index;
 		this.script = script;
 	}
+
 	public ICompletionProposal[] finish(final ProposalCycle cycle) {
 		if (proposals.size() > 0) {
 			if (cycle != ProposalCycle.ALL)
@@ -92,6 +97,7 @@ public class ProposalsSite extends PrecedingExpression {
 		else
 			return null;
 	}
+
 	private void outcycle(final ProposalCycle cycle) {
 		final Collection<DeclarationProposal> outcycled = new ArrayList<DeclarationProposal>(proposals.size());
 		for (final ICompletionProposal cp : proposals) {
@@ -108,6 +114,7 @@ public class ProposalsSite extends PrecedingExpression {
 		}
 		proposals.removeAll(outcycled);
 	}
+
 	public String updatePrefix(final int currentOffset) {
 		try {
 			untamperedPrefix = document.get(offset, currentOffset - offset);
@@ -117,4 +124,5 @@ public class ProposalsSite extends PrecedingExpression {
 		}
 		return prefix = untamperedPrefix.toLowerCase();
 	}
+
 }
