@@ -10,6 +10,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IProject;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.c4script.ProblemReportingStrategy;
@@ -18,8 +20,6 @@ import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.ini.IniField;
 import net.arctics.clonk.util.SettingsBase;
-
-import org.eclipse.core.resources.IProject;
 
 public class ProjectSettings extends SettingsBase {
 
@@ -46,8 +46,9 @@ public class ProjectSettings extends SettingsBase {
 		if (cachedEngine == null) {
 			// engineName can be "" or null since that is handled by loadEngine
 			cachedEngine = Core.instance().loadEngine(engineName);
-			if (cachedEngine == null)
+			if (cachedEngine == null) {
 				cachedEngine = Core.instance().activeEngine();
+			}
 		}
 		return cachedEngine;
 	}
@@ -58,8 +59,8 @@ public class ProjectSettings extends SettingsBase {
 			this.cls = cls;
 			this.args = args;
 		}
-		public Class<? extends ProblemReportingStrategy> cls;
-		public String args;
+		public final Class<? extends ProblemReportingStrategy> cls;
+		public final String args;
 	}
 
 	private Collection<ProblemReportingStrategyInfo> _problemReportingStrategies;
@@ -70,16 +71,16 @@ public class ProjectSettings extends SettingsBase {
 			if (problemReportingStrategies != null && problemReportingStrategies.length() > 0) {
 				final Matcher strategyRefMatcher = Pattern.compile("(.*?)(\\[(.*?)\\])?").matcher("");
 				final String[] classNames = problemReportingStrategies.split(",");
-				for (int i = 0; i < classNames.length; i++) {
-					final String strategyRef = classNames[i];
+				for (final String strategyRef : classNames) {
 					if (strategyRefMatcher.reset(strategyRef).matches()) {
 						final String className = strategyRefMatcher.group(1);
 						final String args = strategyRefMatcher.group(3);
 						try {
 							@SuppressWarnings("unchecked")
 							final Class<? extends ProblemReportingStrategy> cls = (Class<? extends ProblemReportingStrategy>) ProblemReportingStrategy.class.getClassLoader().loadClass(Core.id(className));
-							if (ProblemReportingStrategy.class.isAssignableFrom(cls))
+							if (ProblemReportingStrategy.class.isAssignableFrom(cls)) {
 								strats.add(new ProblemReportingStrategyInfo(cls, args));
+							}
 						} catch (final ClassNotFoundException e) {
 							e.printStackTrace();
 							continue;
@@ -87,8 +88,9 @@ public class ProjectSettings extends SettingsBase {
 					}
 				}
 			}
-			if (strats.isEmpty())
+			if (strats.isEmpty()) {
 				strats.add(new ProblemReportingStrategyInfo(DabbleInference.class, ""));
+			}
 			return _problemReportingStrategies = strats;
 		}
 		return _problemReportingStrategies;
@@ -109,21 +111,25 @@ public class ProjectSettings extends SettingsBase {
 	private void guessEngine(final ClonkProjectNature nature) {
 		final List<IProject> referencingProjects = nature.referencingClonkProjects();
 		final Map<String, Integer> score = new HashMap<String, Integer>();
-		for (final String engine : Core.instance().namesOfAvailableEngines())
+		for (final String engine : Core.instance().namesOfAvailableEngines()) {
 			score.put(engine, 0);
+		}
 		for (final IProject proj : referencingProjects) {
 			final String projName = proj.getName();
 			final String engine =
 				projName.equalsIgnoreCase("OPENCLONK") || projName.equalsIgnoreCase("OC") ? "OpenClonk" :
 				projName.equalsIgnoreCase("ClonkRage") || projName.equalsIgnoreCase("CR") ? "ClonkRage" :
 				null;
-			if (engine != null)
+			if (engine != null) {
 				score.put(engine, score.get(engine)+1);
+			}
 		}
 		Entry<String, Integer> best = null;
-		for (final Entry<String, Integer> entry : score.entrySet())
-			if (best == null || entry.getValue() > best.getValue())
+		for (final Entry<String, Integer> entry : score.entrySet()) {
+			if (best == null || entry.getValue() > best.getValue()) {
 				best = entry;
+			}
+		}
 		setEngineName(best.getKey());
 	}
 
