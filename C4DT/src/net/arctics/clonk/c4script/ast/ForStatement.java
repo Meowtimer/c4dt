@@ -11,13 +11,16 @@ import net.arctics.clonk.c4script.typing.TypeUtil;
 public class ForStatement extends ConditionalStatement implements ILoop {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+	
 	private ASTNode initializer, increment;
+
 	public ForStatement(final ASTNode initializer, final ASTNode condition, final ASTNode increment, final ASTNode body) {
 		super(condition, body);
 		this.initializer = initializer;
 		this.increment = increment;
 		assignParentToSubElements();
 	}
+
 	@Override
 	public String keyword() { return Keywords.For; }
 	public ASTNode initializer() { return initializer; }
@@ -39,6 +42,7 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 		builder.append(")"); //$NON-NLS-1$
 		printBody(builder, depth);
 	}
+
 	@Override
 	public ASTNode[] subElements() {
 		return new ASTNode[] {initializer, condition, increment, body};
