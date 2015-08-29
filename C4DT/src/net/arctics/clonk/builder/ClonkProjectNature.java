@@ -2,7 +2,9 @@ package net.arctics.clonk.builder;
 
 import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.voidResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,24 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-
-import net.arctics.clonk.Core;
-import net.arctics.clonk.Milestones;
-import net.arctics.clonk.ast.AppendableBackedNodePrinter;
-import net.arctics.clonk.builder.ProjectSettings.ProblemReportingStrategyInfo;
-import net.arctics.clonk.c4script.ProblemReportingStrategy;
-import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.SystemScript;
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.Index;
-import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.ini.CustomIniUnit;
-import net.arctics.clonk.ini.IniUnit;
-import net.arctics.clonk.ini.ProblemHandlingMap;
-import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.StreamUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -53,6 +37,26 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Display;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.Milestones;
+import net.arctics.clonk.ast.AppendableBackedNodePrinter;
+import net.arctics.clonk.builder.ProjectSettings.ProblemReportingStrategyInfo;
+import net.arctics.clonk.c4script.ProblemReportingStrategy;
+import net.arctics.clonk.c4script.ProblemReportingStrategy.Capabilities;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.SystemScript;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.EngineSettings;
+import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.ini.CustomIniUnit;
+import net.arctics.clonk.ini.IniUnit;
+import net.arctics.clonk.ini.ProblemHandlingMap;
+import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.SettingsBase;
+import net.arctics.clonk.util.StreamUtil;
+
 /**
  * project nature for Clonk projects
  */
@@ -62,6 +66,7 @@ public class ClonkProjectNature implements IProjectNature {
 
 	public static final Function<ClonkProjectNature, Index> SELECT_INDEX = nature -> nature.index();
 	public static final Function<IProject, ClonkProjectNature> SELECT_NATURE = project -> get(project);
+	public static final String ENGINE_SETTINGS_SUFFIX = "engine";
 
 	public static ClonkProjectNature[] allInWorkspace() {
 		return map(clonkProjectsInWorkspace(), ClonkProjectNature.class, SELECT_NATURE);
@@ -71,12 +76,14 @@ public class ClonkProjectNature implements IProjectNature {
 		@SuppressWarnings("serial")
 		class ProjectSet extends HashSet<ClonkProjectNature> {
 			void addRecursive(final ClonkProjectNature n) {
-				if (add(n))
+				if (add(n)) {
 					for (final IProject p : n.getProject().getReferencingProjects()) {
 						final ClonkProjectNature referencing = get(p);
-						if (referencing != null)
+						if (referencing != null) {
 							addRecursive(referencing);
+						}
 					}
+				}
 			}
 			ProjectSet(final ClonkProjectNature start) {
 				addRecursive(start);
@@ -141,8 +148,9 @@ public class ClonkProjectNature implements IProjectNature {
 			final IResource res = delta.getResource();
 			if (res.getParent() instanceof IProject && res.getName().equals(PROBLEM_HANDLING_MAP_FILE)) {
 				final ClonkProjectNature n = get(res.getProject());
-				if (n != null)
+				if (n != null) {
 					n.problemHandlingMap = null;
+				}
 			}
 			return true;
 		}
@@ -176,14 +184,19 @@ public class ClonkProjectNature implements IProjectNature {
 			loadSettings();
 			final File indexFolder = indexFolder();
 			// legacy index file - delete
-			if (indexFolder.isFile())
+			if (indexFolder.isFile()) {
 				indexFolder.delete();
+			}
 			return index = new ProjectIndex(project, indexFolder);
 		}
 	}
 
-	public IPath settingsFilePath() {
-		return Core.instance().getStateLocation().append(getProject().getName()+".ini");
+	public IPath settingsFilePath(String suffix) {
+		return Core.instance().getStateLocation().append(
+			getProject().getName() +
+			(suffix != null ? ("." + suffix) : "") + 
+			".ini"
+		);
 	}
 
 	/**
@@ -199,23 +212,34 @@ public class ClonkProjectNature implements IProjectNature {
 
 	public void saveSettings() {
 		try {
-			settings();
-			StreamUtil.writeToFile(settingsFilePath().toFile(), (file, stream, writer) -> {
-				try {
-					CustomIniUnit.save(new AppendableBackedNodePrinter(writer), settings, null);
-				} catch (final Exception e) {
-					e.printStackTrace();
-				}
-			});
+			final ProjectSettings settings = settings();
+			saveSettings(settings, null);
+			if (settings.customEngineSettings() != null) {
+				saveSettings(settings.customEngineSettings(), ENGINE_SETTINGS_SUFFIX);
+			}
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	private void saveSettings(final SettingsBase settings, String suffix) throws IOException {
+		StreamUtil.writeToFile(settingsFilePath(null).toFile(),
+			(file, stream, writer) -> attempt(voidResult(
+				() -> CustomIniUnit.save(new AppendableBackedNodePrinter(writer), settings, null)
+			))
+		);
+	}
+
 	private void loadSettings() {
 		try {
 			settings = new ProjectSettings();
-			CustomIniUnit.load(StreamUtil.stringFromFile(settingsFilePath().toFile()), settings);
+			CustomIniUnit.load(StreamUtil.stringFromFile(settingsFilePath(null).toFile()), settings);
+			final File engineSettingsFile = settingsFilePath(ENGINE_SETTINGS_SUFFIX).toFile();
+			if (engineSettingsFile.exists()) {
+				final EngineSettings engineSettings = new EngineSettings();
+				CustomIniUnit.load(StreamUtil.stringFromFile(engineSettingsFile), engineSettings);
+				settings.customEngineSettings(engineSettings);
+			}
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -253,8 +277,9 @@ public class ClonkProjectNature implements IProjectNature {
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
-			if (Core.instance().versionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0)
+			if (Core.instance().versionFromLastRun().compareTo(Milestones.VERSION_THAT_INTRODUCED_PROJECT_SETTINGS) < 0) {
 				settings().guessValues(ClonkProjectNature.this);
+			}
 		});
 	}
 
@@ -268,12 +293,14 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return the nature
 	 */
 	public static ClonkProjectNature get(final IResource res) {
-		if (res == null)
+		if (res == null) {
 			return null;
+		}
 		final IProject project = res.getProject();
 		try {
-			if (project == null || !project.isOpen() || !project.hasNature(Core.NATURE_ID))
+			if (project == null || !project.isOpen() || !project.hasNature(Core.NATURE_ID)) {
 				return null;
+			}
 		} catch (final CoreException e1) {
 			return null;
 		}
@@ -292,32 +319,38 @@ public class ClonkProjectNature implements IProjectNature {
 	 * @return the nature
 	 */
 	public static ClonkProjectNature get(final Script script) {
-		if (script == null)
+		if (script == null) {
 			return null;
-		if (script instanceof Definition)
+		}
+		if (script instanceof Definition) {
 			return get(((Definition)script).definitionFolder());
-		if (script instanceof SystemScript)
+		}
+		if (script instanceof SystemScript) {
 			return get(((SystemScript)script).source());
-		else
+		} else {
 			return null;
+		}
 	}
 
 	public static ClonkProjectNature get(final String projectName) {
-		for (final IProject proj : clonkProjectsInWorkspace())
-			if (proj.getName().equals(projectName))
+		for (final IProject proj : clonkProjectsInWorkspace()) {
+			if (proj.getName().equals(projectName)) {
 				try {
 					return (ClonkProjectNature) proj.getNature(Core.NATURE_ID);
 				} catch (final CoreException e) {
 					e.printStackTrace();
 					return null;
 				}
+			}
+		}
 		return null;
 	}
 
 	public ProjectSettings settings() {
 		synchronized (lock) {
-			if (settings == null)
+			if (settings == null) {
 				loadSettings();
+			}
 		}
 		return settings;
 	}
@@ -332,9 +365,11 @@ public class ClonkProjectNature implements IProjectNature {
 
 		// Filter out all projects with Clonk nature
 		final Collection<IProject> c = new LinkedList<IProject>();
-		for(final IProject proj : projects)
-			if (ClonkProjectNature.get(proj) != null)
+		for(final IProject proj : projects) {
+			if (ClonkProjectNature.get(proj) != null) {
 				c.add(proj);
+			}
+		}
 
 		return c.toArray(new IProject [c.size()]);
 	}
@@ -344,12 +379,14 @@ public class ClonkProjectNature implements IProjectNature {
 			final List<IProject> newOnes = new LinkedList<IProject>();
 			for (final IProject p : proj.getReferencedProjects()) {
 				final ClonkProjectNature n = ClonkProjectNature.get(p);
-				if (n != null && !newOnes.contains(p))
+				if (n != null && !newOnes.contains(p)) {
 					newOnes.add(p);
+				}
 			}
 			result.addAll(newOnes);
-			for (final IProject i : newOnes)
+			for (final IProject i : newOnes) {
 				addProjectsFromReferencedProjects(result, i);
+			}
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
@@ -373,24 +410,27 @@ public class ClonkProjectNature implements IProjectNature {
 	}
 
 	public static Engine engineFromSelection(final ISelection selection) {
-		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource)
+		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource) {
 			return engineFromResource((IResource) ((IStructuredSelection)selection).getFirstElement());
-		else
+		} else {
 			return null;
+		}
 	}
 
 	private static final List<ProblemReportingStrategy> NULL_PROBLEM_REPORTERS = Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
 
 	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(final int requiredCapabilities) {
 		try {
-			if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true))
+			if (!ClonkPreferences.toggle(ClonkPreferences.ANALYZE_CODE, true)) {
 				return NULL_PROBLEM_REPORTERS;
+			}
 			final Collection<ProblemReportingStrategyInfo> classes = settings().problemReportingStrategies();
 			final List<ProblemReportingStrategy> instances = new ArrayList<ProblemReportingStrategy>(classes.size());
 			for (final ProblemReportingStrategyInfo c : classes) {
 				final Capabilities caps = c.cls.getAnnotation(Capabilities.class);
-				if (caps == null || (caps.capabilities() & requiredCapabilities) != requiredCapabilities)
+				if (caps == null || (caps.capabilities() & requiredCapabilities) != requiredCapabilities) {
 					continue;
+				}
 				try {
 					final ProblemReportingStrategy instance = c.cls.newInstance();
 					instance.configure(index(), c.args);

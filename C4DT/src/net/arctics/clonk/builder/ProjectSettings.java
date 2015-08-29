@@ -20,6 +20,7 @@ import net.arctics.clonk.c4script.ProblemReportingStrategy;
 import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.EngineSettings;
 import net.arctics.clonk.ini.IniField;
 import net.arctics.clonk.util.SettingsBase;
 
@@ -41,6 +42,19 @@ public class ProjectSettings extends SettingsBase {
 	public String problemReportingStrategies;
 
 	private Engine cachedEngine;
+	
+	private EngineSettings customEngineSettings;
+	
+	/**
+	 * Custom settings for this project
+	 */
+	public EngineSettings customEngineSettings() {
+		return customEngineSettings;
+	}
+	
+	public void customEngineSettings(EngineSettings engineSettings) {
+		this.customEngineSettings = engineSettings;
+	}
 
 	public ProjectSettings() {}
 

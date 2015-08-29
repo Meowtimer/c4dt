@@ -91,18 +91,23 @@ public abstract class Utilities {
 		IContainer c;
 		int dist = 0;
 		for (c = a instanceof IContainer ? (IContainer)a : a.getParent(); c != null; c = c.getParent()) {
-			if (resourceInside(b, c))
+			if (resourceInside(b, c)) {
 				break;
+			}
 			dist++;
 		}
-		if (aScenario == null)
+		if (aScenario == null) {
 			aScenario = Scenario.containingScenario(a);
-		if (bScenario == null)
+		}
+		if (bScenario == null) {
 			bScenario = Scenario.containingScenario(b);
+		}
 		if (aScenario != bScenario) {
 			dist += 500; // penalty for scenario boundary
 			if (aScenario != null && bScenario != null)
+			 {
 				dist += 500; // double penalty for different scenarios
+			}
 		}
 		return dist;
 	}
@@ -133,8 +138,9 @@ public abstract class Utilities {
 
 	public static Class<?> baseClass(final Class<?> a, final Class<?> b) {
 		Class<?> result = a;
-		while (!result.isAssignableFrom(b))
+		while (!result.isAssignableFrom(b)) {
 			result = result.getSuperclass();
+		}
 		return result;
 	}
 
@@ -142,10 +148,12 @@ public abstract class Utilities {
 		int start, end;
 		relativeOffset = clamp(relativeOffset, 0, line.length()-1);
 		start = end = relativeOffset;
-		for (int s = relativeOffset; s >= 0 && BufferedScanner.isWordPart(line.charAt(s)); s--)
+		for (int s = relativeOffset; s >= 0 && BufferedScanner.isWordPart(line.charAt(s)); s--) {
 			start = s;
-		for (int e = relativeOffset+1; e < line.length() && BufferedScanner.isWordPart(line.charAt(e)); e++)
+		}
+		for (int e = relativeOffset+1; e < line.length() && BufferedScanner.isWordPart(line.charAt(e)); e++) {
 			end = e;
+		}
 		return new Region(start, end-start+1);
 	}
 
@@ -195,11 +203,13 @@ public abstract class Utilities {
 		for (int i = 0; i < value.length(); i++) {
 			final char c = value.charAt(i);
 			if (Character.isUpperCase(c)) {
-				if (i > 0)
+				if (i > 0) {
 					builder.append('_');
+				}
 				builder.append(c);
-			} else
+			} else {
 				builder.append(Character.toUpperCase(c));
+			}
 		}
 		return builder.toString();
 	}
@@ -226,8 +236,9 @@ public abstract class Utilities {
 	}
 
 	public static IResource findMemberCaseInsensitively(final IContainer container, final String name) {
-		if (container == null)
+		if (container == null) {
 			return null;
+		}
 		final IResource[] members = attempt(() -> container.members(), CoreException.class, e -> {});
 		return members != null ? stream(members).filter(c -> c.getName().equalsIgnoreCase(name)).findFirst().orElse(null) : null;
 	}
@@ -281,8 +292,9 @@ public abstract class Utilities {
 	}
 
 	public static void removeRecursively(final File f) {
-		if (f.isDirectory())
+		if (f.isDirectory()) {
 			stream(f.listFiles()).forEach(Utilities::removeRecursively);
+		}
 		f.delete();
 	}
 
@@ -328,10 +340,11 @@ public abstract class Utilities {
 			try {
 				throwing.accept(item);
 			} catch (final Exception e) {
-				if (expectedException.isInstance(e))
+				if (expectedException.isInstance(e)) {
 					exceptionHandler.accept((E)e);
-				else
+				} else {
 					unexpectedException(e);
+				}
 			}
 		};
 	}
@@ -346,8 +359,9 @@ public abstract class Utilities {
 	public static <T> Stream<T> walk(T start, Predicate<T> condition, Function<T, T> next) {
 		T s;
 		final LinkedList<T> l = new LinkedList<>();
-		for (s = start; condition.test(s); s = next.apply(s))
+		for (s = start; condition.test(s); s = next.apply(s)) {
 			l.add(s);
+		}
 		return l.stream();
 	}
 
@@ -406,10 +420,11 @@ public abstract class Utilities {
 
 	@SuppressWarnings("unchecked")
 	private static <O, E extends Exception> O tryHandleException(Class<E> expectedException, Consumer<E> exceptionHandler, Exception e) {
-		if (expectedException.isInstance(e))
+		if (expectedException.isInstance(e)) {
 			exceptionHandler.accept((E)e);
-		else
+		} else {
 			unexpectedException(e);
+		}
 		return null;
 	}
 
@@ -438,10 +453,12 @@ public abstract class Utilities {
 	@SuppressWarnings("unchecked")
 	public static <T> Stream<T> flatten(Class<T> cls, Object... items) {
 		return stream(items).flatMap(item -> {
-			if (cls.isInstance(item))
+			if (cls.isInstance(item)) {
 				return one((T)item);
-			if (item instanceof Stream)
+			}
+			if (item instanceof Stream) {
 				return (Stream<T>)item;
+			}
 			return Stream.empty();
 		});
 	}
@@ -459,8 +476,9 @@ public abstract class Utilities {
 		final HashMap<K, List<T>> result = new HashMap<>();
 		list.forEach(e -> {
 			final K k = keySelector.apply(e);
-			if (k == null)
+			if (k == null) {
 				return;
+			}
 			final List<T> bucket = getOrAdd(result, k, LinkedList<T>::new);
 			bucket.add(e);
 		});
