@@ -2,10 +2,6 @@ package net.arctics.clonk.ui.navigator;
 
 import java.io.File;
 
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.C4GroupImporter;
-import net.arctics.clonk.util.ArrayUtil;
-
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandlerListener;
@@ -19,6 +15,10 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
+
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.C4GroupImporter;
+import net.arctics.clonk.util.ArrayUtil;
 
 public class QuickImportHandler extends ClonkResourceHandler {
 	@Override
@@ -34,15 +34,18 @@ public class QuickImportHandler extends ClonkResourceHandler {
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		Display.getDefault().asyncExec(() -> {
 			final ISelection selection = HandlerUtil.getCurrentSelection(event);
-			if (selection == null || selection.isEmpty() || !(selection instanceof IStructuredSelection))
+			if (selection == null || selection.isEmpty() || !(selection instanceof IStructuredSelection)) {
 				return;
+			}
 			final IStructuredSelection ssel = (IStructuredSelection) selection;
-			if (!(ssel.getFirstElement() instanceof IContainer))
+			if (!(ssel.getFirstElement() instanceof IContainer)) {
 				return;
+			}
 			final IContainer container = (IContainer) ssel.getFirstElement();
 			final File[] files = selectFiles(Messages.QuickImportAction_SelectFiles, container, false);
-			if (files != null)
+			if (files != null) {
 				importFiles(HandlerUtil.getActiveShell(event), container, files);
+			}
 		});
 		return null;
 	}
