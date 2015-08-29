@@ -7,10 +7,15 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.FunctionScope;
 import net.arctics.clonk.c4script.IHasIncludes.GatherIncludesOptions;
 import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.MetaDefinition;
 
@@ -163,6 +168,30 @@ public enum Typing {
 
 		if (a instanceof CallTargetType)
 			return unify(PrimitiveType.OBJECT, b);
+		
+		if (a instanceof FunctionType && b instanceof FunctionType) {
+			final FunctionType functionTypeA = (FunctionType) a;
+			final FunctionType functionTypeB = (FunctionType) b;
+			final List<Variable> unifiedParameters = IntStream.range(0, Math.max(
+				functionTypeA.prototype().parameters().size(),
+				functionTypeB.prototype().parameters().size()
+			)).mapToObj(parameterIndex -> {
+				Variable parameterA = functionTypeA.prototype().parameter(parameterIndex);
+				Variable parameterB = functionTypeB.prototype().parameter(parameterIndex);
+				return (Variable)(
+					parameterA == null ? new Variable(parameterB.name(), parameterB.type()) :
+					parameterB == null ? new Variable(parameterA.name(), parameterA.type()) :
+					new Variable(
+						eq(parameterA.name(), parameterB.name())
+							? parameterA.name() : String.format("%s/%s", parameterA.name(), parameterB.name()),
+						unify(parameterA.type(), parameterB.type())
+					)
+				);
+			}).collect(Collectors.toList());
+			final Function unifiedFunction = new Function("<unified>", FunctionScope.GLOBAL);
+			unifiedFunction.setParameters(unifiedParameters);
+			return new FunctionType(unifiedFunction);
+		}
 
 		return null;
 	}
