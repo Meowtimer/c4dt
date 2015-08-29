@@ -13,7 +13,6 @@ import net.arctics.clonk.index.Scenario;
 /**
  * Helper object containing context information when doing a search for a declaration.
  * @author madeen
- *
  */
 public final class FindDeclarationInfo {
 	public String name;
@@ -39,21 +38,24 @@ public final class FindDeclarationInfo {
 
 	@Override
 	public String toString() {
-		if (declarationClass != null)
+		if (declarationClass != null) {
 			return format("%s: %s", name, declarationClass.getSimpleName());
+		}
 		return name;
 	}
 
 	public boolean startSearchingIn(final Script script) {
-		if (script == first)
+		if (script == first) {
 			return false;
-		else if (first == null)
+		} else if (first == null) {
 			first = script;
-		else {
-			if (alreadySearched == null)
+		} else {
+			if (alreadySearched == null) {
 				alreadySearched = new HashSet<>(3);
-			if (!alreadySearched.add(script))
+			}
+			if (!alreadySearched.add(script)) {
 				return false;
+			}
 		}
 		return true;
 	}
@@ -85,13 +87,13 @@ public final class FindDeclarationInfo {
 	}
 
 	/**
-	 * This {@link FindDeclarationInfo} has opinions on your declaration.
-	 * @param d The declaration to reject
-	 * @return Whether this declaration is reject as a search result
+	 * This {@link FindDeclarationInfo} has opinions on your {@link Declaration}.
+	 * @param declaration The declaration to reject
+	 * @return Whether this declaration is rejected as a search result
 	 */
-	public boolean reject(Declaration d) {
-		final Variable v = as(d, Variable.class);
+	public boolean reject(Declaration declaration) {
+		final Variable variable = as(declaration, Variable.class);
 		// reject variables which were only created via assignment
-		return findGlobalVariables && v != null && v.isDynamic();
+		return findGlobalVariables && variable != null && variable.isDynamic();
 	}
 }

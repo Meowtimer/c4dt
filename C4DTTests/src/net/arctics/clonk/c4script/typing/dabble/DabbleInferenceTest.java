@@ -8,6 +8,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.junit.Assert;
+import org.junit.Test;
+import org.paukov.combinatorics.Factory;
+import org.paukov.combinatorics.Generator;
+import org.paukov.combinatorics.ICombinatoricsVector;
+
 import net.arctics.clonk.DefinitionInfo;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.TestBase;
@@ -23,13 +30,6 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.StringUtil;
-
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.junit.Assert;
-import org.junit.Test;
-import org.paukov.combinatorics.Factory;
-import org.paukov.combinatorics.Generator;
-import org.paukov.combinatorics.ICombinatoricsVector;
 
 public class DabbleInferenceTest extends TestBase {
 
@@ -203,10 +203,10 @@ public class DabbleInferenceTest extends TestBase {
 		final Script wipf = setup.scripts.get(3);
 		setup.performInference();
 
-		Assert.assertEquals(clonk, base.typings().functionTypings.get("MakeObject").returnType);
-		Assert.assertEquals(new MetaDefinition((Definition) clonk), base.typings().functionTypings.get("Type").returnType);
-		Assert.assertEquals(wipf, derived.typings().functionTypings.get("MakeObject").returnType);
-		Assert.assertEquals(new MetaDefinition((Definition) wipf), derived.typings().functionTypings.get("Type").returnType);
+		Assert.assertEquals(clonk, base.typings().getFunctionTyping("MakeObject").returnType);
+		Assert.assertEquals(new MetaDefinition((Definition) clonk), base.typings().getFunctionTyping("Type").returnType);
+		Assert.assertEquals(wipf, derived.typings().getFunctionTyping("MakeObject").returnType);
+		Assert.assertEquals(new MetaDefinition((Definition) wipf), derived.typings().getFunctionTyping("Type").returnType);
 	}
 
 	@Test
@@ -313,7 +313,7 @@ public class DabbleInferenceTest extends TestBase {
 		setup.performInference();
 
 		final Script derived = setup.scripts.get(1);
-		final IType t = derived.typings().functionTypings.get("TakeObject").returnType;
+		final IType t = derived.typings().getFunctionTyping("TakeObject").returnType;
 		Assert.assertEquals(derived, t);
 	}
 
@@ -364,11 +364,11 @@ public class DabbleInferenceTest extends TestBase {
 		final Script user = setup.scripts.get(4);
 		setup.performInference();
 
-		Assert.assertEquals(clonk, base.typings().functionTypings.get("MakeObject").returnType);
-		Assert.assertEquals(new MetaDefinition((Definition) clonk), base.typings().functionTypings.get("Type").returnType);
-		Assert.assertEquals(wipf, derived.typings().functionTypings.get("MakeObject").returnType);
-		Assert.assertEquals(new MetaDefinition((Definition) wipf), derived.typings().functionTypings.get("Type").returnType);
-		Assert.assertEquals(wipf, user.typings().functionTypings.get("Usage").returnType);
+		Assert.assertEquals(clonk, base.typings().getFunctionTyping("MakeObject").returnType);
+		Assert.assertEquals(new MetaDefinition((Definition) clonk), base.typings().getFunctionTyping("Type").returnType);
+		Assert.assertEquals(wipf, derived.typings().getFunctionTyping("MakeObject").returnType);
+		Assert.assertEquals(new MetaDefinition((Definition) wipf), derived.typings().getFunctionTyping("Type").returnType);
+		Assert.assertEquals(wipf, user.typings().getFunctionTyping("Usage").returnType);
 	}
 
 	@Test
@@ -461,10 +461,12 @@ public class DabbleInferenceTest extends TestBase {
 				Assert.assertEquals(Maybe.make(abyss), rescuesBuilder.findFunction("PrepareAbyssTwo").parameter(0).type());
 				Assert.assertEquals(new ArrayType(abyss), rescuesBuilder.findFunction("MakeAbyssMarkers").returnType());
 			} catch (final AssertionError e) {
-				if (prepareAbyssIndex > makeAbyssMarkersIndex)
+				if (prepareAbyssIndex > makeAbyssMarkersIndex) {
 					System.out.println("--- PrepareAbyss after MakeAbyssMarkers");
-				if (prepareAbyssOneIndex < prepareAbyssIndex || prepareAbyssTwoIndex < prepareAbyssIndex)
+				}
+				if (prepareAbyssOneIndex < prepareAbyssIndex || prepareAbyssTwoIndex < prepareAbyssIndex) {
 					System.out.println("--- PrepareAbyssOne or PrepareAbyssTwo before PrepareAbyss");
+				}
 				final String msg = String.format("%s: %s (%d)",
 					fnOrderStr,
 					e.getMessage(),
@@ -509,9 +511,9 @@ public class DabbleInferenceTest extends TestBase {
 
 		Assert.assertEquals(
 			new ArrayType(setup.scripts.get(2)),
-			setup.scripts.get(0).typings().variableTypes.get("items")
+			setup.scripts.get(0).typings().getVariableType("items")
 		);
-		Assert.assertEquals(new ArrayType(setup.scripts.get(2)), setup.scripts.get(1).typings().functionTypings.get("ToArray").returnType);
+		Assert.assertEquals(new ArrayType(setup.scripts.get(2)), setup.scripts.get(1).typings().getFunctionTyping("ToArray").returnType);
 	}
 
 	@Test

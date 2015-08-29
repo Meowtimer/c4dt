@@ -6,6 +6,9 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -25,9 +28,6 @@ import net.arctics.clonk.index.IVariableFactory;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.text.IRegion;
 
 /**
  * Represents a variable.
@@ -118,8 +118,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	@Override
 	public IType type() {
-		if (type == null)
+		if (type == null) {
 			type = PrimitiveType.UNKNOWN;
+		}
 		return type;
 	}
 
@@ -127,16 +128,18 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		IType type = null;
 		switch (scope()) {
 		case LOCAL:
-			if (script != null)
-				type = script.typings().variableTypes.get(name());
+			if (script != null) {
+				type = script.typings().getVariableType(name());
+			}
 			break;
 		case PARAMETER:
 			if (script != null) {
 				final Function f = parent(Function.class);
-				final Function.Typing t = script.typings().functionTypings.get(f.name());
+				final Function.Typing t = script.typings().get(f);
 				final int ndx = this.parameterIndex();
-				if (t != null && t.parameterTypes.length > ndx)
+				if (t != null && t.parameterTypes.length > ndx) {
 					type = t.parameterTypes[ndx];
+				}
 			}
 			break;
 		default:
@@ -150,8 +153,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 */
 	@Override
 	public void forceType(IType type) {
-		if (type == null)
+		if (type == null) {
 			type = PrimitiveType.UNKNOWN;
+		}
 		this.type = type;
 	}
 
@@ -305,8 +309,9 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public boolean isGlobal() { return scope == Scope.STATIC || scope == Scope.CONST; }
 
 	private void ensureTypeLockedIfPredefined(final ASTNode declaration) {
-		if (!typePinned && declaration instanceof Engine)
+		if (!typePinned && declaration instanceof Engine) {
 			typePinned = true;
+		}
 	}
 
 	@Override
@@ -319,10 +324,12 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	public void postLoad(final Declaration parent, final Index root) {
 		super.postLoad(parent, root);
 		ensureTypeLockedIfPredefined(parent);
-		if (initializationExpression != null)
+		if (initializationExpression != null) {
 			initializationExpression.postLoad(this);
-		if (initializationExpression instanceof PropListExpression)
+		}
+		if (initializationExpression instanceof PropListExpression) {
 			((PropListExpression)initializationExpression).definedDeclaration().postLoad(this, root);
+		}
 	}
 
 	/**
@@ -349,10 +356,11 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 
 	@Override
 	public List<? extends Declaration> subDeclarations(final Index contextIndex, final int mask) {
-		if (initializationExpression instanceof Declaration)
+		if (initializationExpression instanceof Declaration) {
 			return ((Declaration)initializationExpression).subDeclarations(contextIndex, mask);
-		else
+		} else {
 			return super.subDeclarations(contextIndex, mask);
+		}
 	}
 
 	/**

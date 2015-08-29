@@ -4,6 +4,13 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
@@ -13,10 +20,6 @@ import net.arctics.clonk.c4script.ProplistDeclaration;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.ini.ScenarioUnit;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 
 /**
  * A scenario.
@@ -29,6 +32,30 @@ public class Scenario extends Definition {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	private transient Declaration scenarioPropList; { createScenarioProplist(); }
+	
+	private Map<String, Variable> staticVariables;
+	
+	/**
+	 * Set internal static variables map by collecting the provided stream.
+	 * @param staticVariables Stream of {@link Variable} objects representing static variables
+	 */
+	public void setStaticVariables(Stream<Variable> staticVariables) {
+		this.staticVariables = staticVariables
+			.collect(Collectors.groupingBy(variable -> variable.name()))
+			.entrySet().stream().collect(Collectors.toMap(
+				group -> group.getKey(),
+				group -> group.getValue().get(0)
+			));
+	}
+	
+	/**
+	 * Get a static variable declared inside this scenario
+	 * @param name Name of the static variable to get
+	 * @return The static variable or null if it does not exist
+	 */
+	public Variable getStaticVariable(String name) {
+		return staticVariables != null ? staticVariables.get(name) : null;
+	}
 
 	@Override
 	public void deriveInformation() {
@@ -91,21 +118,25 @@ public class Scenario extends Definition {
 	}
 
 	public static Scenario containingScenario(final IResource res) {
-		if (res == null)
+		if (res == null) {
 			return null;
+		}
 		for (IContainer c = res instanceof IContainer ? (IContainer)res : res.getParent(); c != null; c = c.getParent()) {
 			final Scenario s = get(c);
-			if (s != null)
+			if (s != null) {
 				return s;
+			}
 		}
 		return null;
 	}
 
 	public static Scenario nearestScenario(IResource resource) {
 		Scenario scenario;
-		for (scenario = null; scenario == null && resource != null; resource = resource.getParent())
-			if (resource instanceof IContainer)
+		for (scenario = null; scenario == null && resource != null; resource = resource.getParent()) {
+			if (resource instanceof IContainer) {
 				scenario = get((IContainer)resource);
+			}
+		}
 		return scenario;
 	}
 
