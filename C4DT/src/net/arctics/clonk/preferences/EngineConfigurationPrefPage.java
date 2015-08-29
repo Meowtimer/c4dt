@@ -4,11 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.EngineSettings;
-import net.arctics.clonk.ui.navigator.ClonkFolderView;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExecutableExtension;
@@ -33,6 +28,11 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.EngineSettings;
+import net.arctics.clonk.ui.navigator.ClonkFolderView;
+
 /**
  * Configuration page for configuring one {@link Engine}. At the moment, two such pages are created, parameterized to let the user edit settings for ClonkRage and OpenClonk. respectively.
  * @author madeen
@@ -56,15 +56,17 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		}
 
 		public String c4GroupAccordingToOS() {
-			if (Util.isWindows())
+			if (Util.isWindows()) {
 				return "c4group.exe"; //$NON-NLS-1$
-			else
+			}
+			else {
 				return "c4group"; //$NON-NLS-1$
+			}
 		}
 
 		public void setFile(final IPath gamePath, final String gamePathText, final FileFieldEditor editor, final String... values) {
 			final String val = editor.getStringValue();
-			if (val.equals("") || !new File(val).exists())
+			if (val.equals("") || !new File(val).exists()) {
 				for (final String s : values) {
 					File f;
 					if ((f = gamePath.append(s).toFile()).exists()) {
@@ -72,6 +74,7 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 						break;
 					}
 				}
+			}
 		}
 
 		@Override
@@ -98,8 +101,9 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		protected String changePressed() {
 			final FileDialog dialog = new FileDialog(getShell(), SWT.OPEN | SWT.SHEET);
 			dialog.setFilterPath(gamePathEditor().getStringValue());
-			if (extensions != null)
+			if (extensions != null) {
 				dialog.setFilterExtensions(extensions);
+			}
 			return dialog.open();
 		}
 	}
@@ -115,11 +119,13 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 			if (selection != null) {
 				File d = new File(selection);
 				if (Util.isMac() && d.isDirectory() && d.getName().endsWith(".app"))
+				 {
 					d = new File(d.getAbsolutePath()+"/Contents/MacOS/"+d.getName().substring(0, d.getName().length()-".app".length())); //$NON-NLS-1$ //$NON-NLS-2$
+				}
 				return d.getAbsolutePath();
-			}
-			else
+			} else {
 				return null;
+			}
 		}
 	}
 
@@ -175,8 +181,9 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 
 		public void apply() {
 			Core.instance().loadEngine(myEngine).applySettings(settings);
-			if (ClonkFolderView.instance() != null)
+			if (ClonkFolderView.instance() != null) {
 				ClonkFolderView.instance().update();
+			}
 		}
 
 		public void reset() {
@@ -188,7 +195,9 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 	private static String[] appExtensions(final boolean engine) {
 		if (Util.isWindows()) {
 			if (engine)
+			 {
 				return new String[] { "*.exe", "*.c4x" }; //$NON-NLS-1$ //$NON-NLS-2$
+			}
 			return new String[] { "*.exe" }; //$NON-NLS-1$
 		}
 		return null;
@@ -249,8 +258,9 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 				@Override
 				public void setEnabled(final boolean enabled, final Composite parent) {
 					super.setEnabled(enabled, parent);
-					if (checker != null)
+					if (checker != null) {
 						checker.setEnabled(enabled);
+					}
 				};
 				@Override
 				protected String changePressed() {
@@ -315,8 +325,9 @@ public class EngineConfigurationPrefPage extends FieldEditorPreferencePage imple
 		}
 		setValid(true);
 		final boolean result = super.performOk();
-		if (result)
+		if (result) {
 			engineConfigPrefStore.apply();
+		}
 		return result;
 	}
 

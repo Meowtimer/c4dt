@@ -10,33 +10,42 @@ import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.ini.CustomIniUnit;
 
 public abstract class SettingsBase implements Cloneable {
+	
 	public SettingsBase() {
 		try {
-			for (final Field f : getClass().getFields())
-				if (f.getType() == String.class)
+			for (final Field f : getClass().getFields()) {
+				if (f.getType() == String.class) {
 					f.set(this, "");
+				}
+			}
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
+	
 	@Override
 	public boolean equals(final Object obj) {
-		if (obj == this)
+		if (obj == this) {
 			return true;
-		if (obj.getClass() != this.getClass())
+		}
+		if (obj.getClass() != this.getClass()) {
 			return false;
-		for (final Field f : getClass().getFields())
+		}
+		for (final Field f : getClass().getFields()) {
 			try {
 				final Object fVal = f.get(this);
 				final Object objVal = f.get(obj);
-				if (!Utilities.eq(fVal, objVal))
+				if (!Utilities.eq(fVal, objVal)) {
 					return false;
+				}
 			} catch (final Exception e) {
 				e.printStackTrace();
 				return false;
 			}
+		}
 		return true;
 	}
+	
 	public void loadFrom(final InputStream stream) {
 		try {
 			CustomIniUnit.load(stream, this);
@@ -44,6 +53,7 @@ public abstract class SettingsBase implements Cloneable {
 			e.printStackTrace();
 		}
 	}
+	
 	public void saveTo(final OutputStream stream, final SettingsBase defaults) {
 		try {
 			try (Writer writer = new OutputStreamWriter(stream)) {
@@ -53,6 +63,7 @@ public abstract class SettingsBase implements Cloneable {
 			e.printStackTrace();
 		}
 	}
+	
 	public static <T extends SettingsBase> T createFrom(final Class<T> cls, final InputStream stream) {
 		try {
 			final T settings = cls.newInstance();
@@ -62,6 +73,7 @@ public abstract class SettingsBase implements Cloneable {
 			return null;
 		}
 	}
+	
 	@Override
 	public SettingsBase clone() {
 		try {

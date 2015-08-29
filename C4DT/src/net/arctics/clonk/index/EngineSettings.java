@@ -218,8 +218,9 @@ public class EngineSettings extends SettingsBase {
 	 * @return The extension list
 	 */
 	public List<String> supportedSoundFileExtensions() {
-		if (supportedSoundFileExtensions_ == null)
+		if (supportedSoundFileExtensions_ == null) {
 			supportedSoundFileExtensions_ = Arrays.asList(supportedSoundFileExtensions.split("\\;"));
+		}
 		return supportedSoundFileExtensions_;
 	}
 

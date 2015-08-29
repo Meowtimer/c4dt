@@ -78,14 +78,17 @@ public class ProblemHandlingMap implements IniUnit.INode<ProblemHandlingMap> {
 			}
 			ProblemHandlingMap map() { return map.item; }
 			void test(ASTNode node) {
-				if (current == null)
+				if (current == null) {
 					return;
-				while (patternIndex > -1 && current.item.patterns[patternIndex].match(node) != null)
+				}
+				while (patternIndex > -1 && current.item.patterns[patternIndex].match(node) != null) {
 					patternIndex--;
+				}
 				if (patternIndex == -1) {
 					current = current.tag;
-					if (current != null)
+					if (current != null) {
 						patternIndex = current.item.patterns.length-1;
+					}
 				}
 			}
 			boolean finished() { return current == null; }
@@ -113,12 +116,14 @@ public class ProblemHandlingMap implements IniUnit.INode<ProblemHandlingMap> {
 		final List<ASTNode> patternNodes = new LinkedList<>();
 		while (!p.reachedEOF()) {
 			final ASTNode pat = p.parseNode();
-			if (pat == null)
+			if (pat == null) {
 				break;
+			}
 			patternNodes.add(ASTNodeMatcher.prepareForMatching(pat));
 			p.eatWhitespace();
-			if (p.peek() == ',')
+			if (p.peek() == ',') {
 				p.read();
+			}
 		}
 		return patternNodes;
 	}

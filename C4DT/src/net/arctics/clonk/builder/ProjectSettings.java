@@ -1,6 +1,8 @@
 package net.arctics.clonk.builder;
 
 
+import static net.arctics.clonk.util.Utilities.defaulting;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,10 +47,10 @@ public class ProjectSettings extends SettingsBase {
 	public synchronized Engine engine() {
 		if (cachedEngine == null) {
 			// engineName can be "" or null since that is handled by loadEngine
-			cachedEngine = Core.instance().loadEngine(engineName);
-			if (cachedEngine == null) {
-				cachedEngine = Core.instance().activeEngine();
-			}
+			cachedEngine = defaulting(
+				Core.instance().loadEngine(engineName),
+				Core.instance().activeEngine()
+			);
 		}
 		return cachedEngine;
 	}
