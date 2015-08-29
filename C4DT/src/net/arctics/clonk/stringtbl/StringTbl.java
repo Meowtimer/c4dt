@@ -10,6 +10,11 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
@@ -20,11 +25,6 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StreamUtil;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.jface.text.Region;
 
 public class StringTbl extends Structure implements ITreeNode {
 
@@ -162,9 +162,19 @@ public class StringTbl extends Structure implements ITreeNode {
 	}
 
 	public static class EvaluationResult {
-		public String evaluated;
-		public EntityRegion singleDeclarationRegionUsed;
-		public boolean anySubstitutionsApplied;
+		public final String evaluated;
+		public final EntityRegion singleDeclarationRegionUsed;
+		public final boolean anySubstitutionsApplied;
+		public EvaluationResult(
+			String evaluated,
+			EntityRegion singleDeclarationRegionUsed,
+			boolean anySubstitutionsApplied
+		) {
+			super();
+			this.evaluated = evaluated;
+			this.singleDeclarationRegionUsed = singleDeclarationRegionUsed;
+			this.anySubstitutionsApplied = anySubstitutionsApplied;
+		}
 	}
 
 	/**
@@ -204,11 +214,11 @@ public class StringTbl extends Structure implements ITreeNode {
 				}
 			builder.append(value.charAt(i++));
 		}
-		final EvaluationResult r = new EvaluationResult();
-		r.evaluated = builder.toString();
-		r.singleDeclarationRegionUsed = moreThanOneSubstitution ? null : reg;
-		r.anySubstitutionsApplied = substitutionsApplied;
-		return r;
+		return new EvaluationResult(
+			builder.toString(),
+			moreThanOneSubstitution ? null : reg,
+			substitutionsApplied
+		);
 	}
 	
 	@Override

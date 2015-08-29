@@ -5,10 +5,10 @@ import static net.arctics.clonk.util.Utilities.as;
 
 import java.util.Set;
 
-import net.arctics.clonk.index.IIndexEntity;
-
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
+
+import net.arctics.clonk.index.IIndexEntity;
 
 /**
  * A region in some document referring to one or potentially many {@link IIndexEntity}s.
@@ -16,10 +16,12 @@ import org.eclipse.jface.text.Region;
  *
  */
 public final class EntityRegion {
+	
 	private IIndexEntity entity;
 	private IRegion region;
 	private String text;
 	private Set<? extends IIndexEntity> potentialEntities;
+	
 	/**
 	 * Return the {@link #entity()} cast to <T>.
 	 * @param cls Class specifying what to cast {@link #entity()} to.
@@ -29,6 +31,7 @@ public final class EntityRegion {
 	public <T> T entityAs(final Class<T> cls) {
 		return as(entity, cls);
 	}
+	
 	/**
 	 * Return the {@link IIndexEntity} this region refers to.
 	 * @return The entity
@@ -36,6 +39,7 @@ public final class EntityRegion {
 	public IIndexEntity entity() {
 		return entity;
 	}
+	
 	/**
 	 * Create a region with an entity, a text region and text representing the it.
 	 * @param entity The entity
@@ -48,6 +52,7 @@ public final class EntityRegion {
 		this.region = region;
 		this.text = text;
 	}
+	
 	/**
 	 * Same as {@link #EntityRegion(IIndexEntity, IRegion, String)}, but with {@link #text()} set to null.
 	 * @param entity The entity
