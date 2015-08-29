@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -53,9 +56,6 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.text.IRegion;
-
 /**
  * A function in a script.
  * @author ZokRadonh
@@ -85,8 +85,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		public void printNodeTypes(final Function containing) {
 			System.out.println("===================== This is " + containing.qualifiedName() + "=====================");
 			containing.traverse((node, context) -> {
-				if (node.localIdentifier() <= 0)
+				if (node.localIdentifier() <= 0) {
 					return TraversalContinuation.Continue;
+				}
 				System.out.println(String.format("%s: %s",
 					node.printed(), defaulting(context.nodeTypes[node.localIdentifier()], PrimitiveType.UNKNOWN)));
 				return TraversalContinuation.Continue;
@@ -158,8 +159,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	public Variable addLocal(final Variable local) {
 		synchronized (parameters) {
-			if (locals == null)
+			if (locals == null) {
 				locals = new ArrayList<>();
+			}
 			locals.add(local);
 		}
 		return local;
@@ -200,12 +202,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	public Variable[] locals() {
 		final List<Variable> locs = locals;
-		if (locs == null)
+		if (locs == null) {
 			return NO_VARIABLES;
-		else
+		} else {
 			synchronized (parameters) {
 				return locs.toArray(new Variable[locs.size()]);
 			}
+		}
 	}
 
 	public int numLocals() {
@@ -215,12 +218,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	public Variable local(String name) {
 		final List<Variable> locs = locals;
-		if (locs == null)
+		if (locs == null) {
 			return null;
+		}
 		synchronized (parameters) {
-			for (final Variable v : locs)
-				if (v.name().equals(name))
+			for (final Variable v : locs) {
+				if (v.name().equals(name)) {
 					return v;
+				}
+			}
 		}
 		return null;
 	}
@@ -230,17 +236,20 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public void setParameters(final List<Variable> parameters) {
 		this.parameters = parameters;
-		if (parameters != null)
-			for (final Variable p : parameters)
+		if (parameters != null) {
+			for (final Variable p : parameters) {
 				p.setParent(this);
+			}
+		}
 	}
 
 	/**
 	 * @return the returnType
 	 */
 	public IType returnType() {
-		if (returnType == null)
+		if (returnType == null) {
 			returnType = PrimitiveType.UNKNOWN;
+		}
 		return returnType instanceof TypeAnnotation ? ((TypeAnnotation)returnType).type() : returnType;
 	}
 
@@ -252,15 +261,17 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public IType parameterType(final int parameterIndex, final IType context) {
 		boolean fallback = true;
 		IType t = PrimitiveType.UNKNOWN;
-		for (final IType p : context)
+		for (final IType p : context) {
 			if (p instanceof Script) {
 				final Typing typing = ((Script)p).typings().get(this);
 				if (typing != null) {
 					fallback = false;
-					if (typing != null && typing.parameterTypes.length > parameterIndex)
+					if (typing != null && typing.parameterTypes.length > parameterIndex) {
 						t = this.typing().unify(t, typing.parameterTypes[parameterIndex]);
+					}
 				}
 			}
+		}
 		return fallback && parameterIndex < numParameters() ? parameter(parameterIndex).type() : t;
 	}
 
@@ -298,26 +309,30 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			final String aname = access.name();
 			if (access.predecessor() == null) {
 				final int i = ArrayUtil.indexOfItemSatisfying(parameters, p -> p.name().equals(aname));
-				if (i != -1)
+				if (i != -1) {
 					return new Constant(args[i]);
+				}
 				final int l = Function.this.locals != null
 					? ArrayUtil.indexOfItemSatisfying(Function.this.locals, loc -> loc.name().equals(aname))
 					: -1;
-				if (l != -1)
+				if (l != -1) {
 					return locals[l];
+				}
 			} else {
 				final Object self = evaluateVariable(access.predecessor().evaluate(this));
-				if (self == null)
+				if (self == null) {
 					throw new IllegalStateException(format("%s yields null result",
 						access.predecessor().parent(Sequence.class).subSequenceIncluding(access.predecessor()).printed()));
+				}
 				try {
 					return new Constant(self.getClass().getMethod(aname).invoke(self));
 				} catch (final NoSuchMethodException n) {
 					try {
 						return new Constant(self.getClass().getField(aname).get(self));
 					} catch (final NoSuchFieldException nf) {
-						if (self instanceof Object[] && aname.equals("length"))
+						if (self instanceof Object[] && aname.equals("length")) {
 							return new Constant(Array.getLength(self));
+						}
 					} catch (final Exception e) {
 						e.printStackTrace();
 						return null;
@@ -358,8 +373,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 		private static final Map<String, FunctionScope> scopeMap = new HashMap<String, FunctionScope>();
 		static {
-			for (final FunctionScope s : values())
+			for (final FunctionScope s : values()) {
 				scopeMap.put(s.name().toLowerCase(), s);
+			}
 		}
 
 		private String lowerCaseName;
@@ -370,8 +386,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 		@Override
 		public String toString() {
-			if (lowerCaseName == null)
+			if (lowerCaseName == null) {
 				lowerCaseName = this.name().toLowerCase();
+			}
 			return lowerCaseName;
 		}
 
@@ -413,7 +430,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		printParametersString(new AppendableBackedNodePrinter(string), options);
 		if (options.functionName)
+		 {
 			string.append(")"); //$NON-NLS-1$
+		}
 		return string.toString();
 	}
 
@@ -424,7 +443,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	private void printParametersString(final ASTNodePrinter output, final PrintParametersOptions options) {
-		if (numParameters() > 0)
+		if (numParameters() > 0) {
 			StringUtil.writeBlock(output, "", "", ", ", parameters().stream().map(new java.util.function.Function<Variable, String>() {
 				final Function.Typing typing = options.typing;
 				int i = -1;
@@ -434,8 +453,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					final IType type = options.engineCompatible ?
 						(par.staticallyTyped() ? par.type().simpleType() : PrimitiveType.ANY)
 						: typing != null && typing.parameterTypes.length > i ? typing.parameterTypes[i] : par.type();
-					if (options.engineCompatible && par.isEllipsis())
+					if (options.engineCompatible && par.isEllipsis()) {
 						return null;
+					}
 					final String comment = par.userDescription() != null && options.parameterComments ? ("/* " + par.userDescription().trim() + " */ ") : "";
 					final boolean includeType =
 						options.engineCompatible ? (type != PrimitiveType.ANY && type != PrimitiveType.UNKNOWN) :
@@ -443,6 +463,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 					return comment + (includeType ? (type.typeName(!options.engineCompatible) + " ") : "") + par.name();
 				}
 			}));
+		}
 	}
 
 	/**
@@ -469,17 +490,19 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public SourceLocation bodyLocation() { return bodyLocation; }
 
 	public SourceLocation wholeBody() {
-		if (bodyLocation == null)
+		if (bodyLocation == null) {
 			return null;
-		if (isOldStyle())
+		}
+		if (isOldStyle()) {
 			return bodyLocation;
-		else
+		} else {
 			return new SourceLocation(bodyLocation.start()-1, bodyLocation.end()+1);
+		}
 	}
 
 	@Override
 	public int sortCategory() {
-		return Variable.Scope.values().length + visibility.ordinal();
+		return Variable.Scope.values().length;
 	}
 
 	public static String documentationURLForFunction(final String functionName, final Engine engine) {
@@ -501,8 +524,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	private Typing defaultTyping() {
 		final IType[] parTypes = new IType[numParameters()];
-		for (int i = 0; i < numParameters(); i++)
+		for (int i = 0; i < numParameters(); i++) {
 			parTypes[i] = parameter(i).type();
+		}
 		return new Typing(parTypes, returnType(), null);
 	}
 
@@ -519,12 +543,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			"<br/>", //$NON-NLS-1$
 			description != null && !description.equals("") ? description : Messages.DescriptionNotAvailable, //$NON-NLS-1$
 			"<br/>", //$NON-NLS-1$
-		})
+		}) {
 			builder.append(line);
+		}
 		if (numParameters() > 0) {
 			builder.append(MessageFormat.format("<br/><b>{0}</b><br/>", Messages.Parameters)); //$NON-NLS-1$
 			for (final Variable p : parameters())
+			 {
 				builder.append(MessageFormat.format("<b>{0} {1}</b> {2}<br/>", StringUtil.htmlerize(typing.parameterType(p).typeName(true)), p.name(), p.userDescription())); //$NON-NLS-1$
+			}
 			builder.append("<br/>"); //$NON-NLS-1$
 		}
 		final IType retType = typing.returnType;
@@ -533,8 +560,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			builder.append(MessageFormat.format("<br/><b>{0} </b>{1}<br/>", //$NON-NLS-1$
 				Messages.Returns,
 				StringUtil.htmlerize(retType.typeName(true))));
-			if (returnDescription != null)
+			if (returnDescription != null) {
 				builder.append(returnDescription+"<br/>");
+			}
 		}
 		return builder.toString();
 	}
@@ -547,23 +575,31 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public Variable findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
 		if (declarationClass.isAssignableFrom(Variable.class)) {
-			if (declarationName.equals(Variable.THIS.name()))
+			if (declarationName.equals(Variable.THIS.name())) {
 				return Variable.THIS;
-			if (locals != null)
-				for (final Variable v : locals)
-					if (v.name().equals(declarationName))
+			}
+			if (locals != null) {
+				for (final Variable v : locals) {
+					if (v.name().equals(declarationName)) {
 						return v;
-			for (final Variable p : parameters)
-				if (p.name().equals(declarationName))
+					}
+				}
+			}
+			for (final Variable p : parameters) {
+				if (p.name().equals(declarationName)) {
 					return p;
+				}
+			}
 		}
 		return null;
 	}
 
 	public Variable findParameter(final String parameterName) {
-		for (final Variable p : parameters())
-			if (p.name().equals(parameterName))
+		for (final Variable p : parameters()) {
+			if (p.name().equals(parameterName)) {
 				return p;
+			}
+		}
 		return null;
 	}
 
@@ -594,23 +630,27 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		final boolean globalFn = this.isGlobal();
 		for (int i = includes.length-1; i >= 0; i--) {
 			final Function fun = (globalFn || includes[i] instanceof Definition) ? includes[i].findFunction(name()) : null;
-			if (fun != null && fun != this)
+			if (fun != null && fun != this) {
 				return fun;
+			}
 		}
 
 		// search global
 		final Index thisNdx = index();
-		if (thisNdx != null	)
+		if (thisNdx != null	) {
 			for (final Index ndx : thisNdx.relevantIndexes()) {
 				final Function global = ndx.findGlobal(Function.class, name());
-				if (global != null && global != this)
+				if (global != null && global != this) {
 					return global;
+				}
 
 				// search in engine
 				final Function f = ndx.engine().findFunction(name());
-				if (f != null)
+				if (f != null) {
 					return f;
+				}
 			}
+		}
 
 		return null;
 	}
@@ -623,8 +663,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		Function result = this;
 		final Set<Function> alreadyVisited = new HashSet<Function>();
 		for (Function f = this; f != null; f = f.inheritedFunction()) {
-			if (!alreadyVisited.add(f))
+			if (!alreadyVisited.add(f)) {
 				break;
+			}
 			result = f;
 		}
 		return result;
@@ -642,7 +683,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public void createParameters(final int num) {
 		for (int i = parameters.size(); i < num; i++)
+		 {
 			parameters.add(new Variable(Scope.VAR, "par"+i)); //$NON-NLS-1$
+		}
 	}
 
 	/**
@@ -684,8 +727,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			case DYNAMIC:
 				break;
 			case INFERRED:
-				if (eq(returnType, PrimitiveType.REFERENCE))
+				if (eq(returnType, PrimitiveType.REFERENCE)) {
 					output.append(" &");
+				}
 				break;
 			case STATIC:
 				output.append(" ");
@@ -704,8 +748,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			));
 			output.append(")"); //$NON-NLS-1$
 		}
-		else
+		else {
 			output.append(":"); //$NON-NLS-1$
+		}
 	}
 
 	/**
@@ -727,8 +772,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	public TypeAnnotation typeAnnotation() { return as(returnType, TypeAnnotation.class); }
 	public void setTypeAnnotation(final TypeAnnotation annot) {
-		if (annot != null)
+		if (annot != null) {
 			annot.setParent(this);
+		}
 		forceType(annot);
 	}
 
@@ -755,8 +801,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public boolean inheritsFrom(final Function otherFunc, final Set<Function> recursionCatcher) {
 		Function f = this;
 		while (f != null && recursionCatcher.add(f)) {
-			if (otherFunc == f)
+			if (otherFunc == f) {
 				return true;
+			}
 			f = f.inheritedFunction();
 		}
 		return false;
@@ -769,13 +816,15 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 */
 	public boolean isRelatedFunction(final Function otherFunc) {
 		final Set<Function> recursionCatcher = new HashSet<Function>();
-		if (this.inheritsFrom(otherFunc, recursionCatcher))
+		if (this.inheritsFrom(otherFunc, recursionCatcher)) {
 			return true;
+		}
 		Function f = this;
 		while (f != null && !recursionCatcher.contains(f)) {
 			recursionCatcher.add(f);
-			if (otherFunc.inheritsFrom(f, recursionCatcher))
+			if (otherFunc.inheritsFrom(f, recursionCatcher)) {
 				return true;
+			}
 			f = f.inheritedFunction();
 		}
 		return false;
@@ -785,8 +834,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public List<Declaration> subDeclarations(final Index contextIndex, final int mask) {
 		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		if ((mask & DeclMask.VARIABLES) != 0) {
-			if (locals != null)
+			if (locals != null) {
 				decs.addAll(locals);
+			}
 			decs.addAll(parameters);
 		}
 		return decs;
@@ -832,29 +882,33 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public boolean staticallyTyped() { return staticallyTyped; }
 
 	public void resetLocalVarTypes() {
-		for (final Variable v : locals())
+		for (final Variable v : locals()) {
 			v.forceType(PrimitiveType.UNKNOWN);
+		}
 	}
 
 	private static final IASTVisitor<Function> AST_ASSIGN_IDENTIFIER_VISITOR = (node, context) -> {
-		if (node != null)
+		if (node != null) {
 			node.localIdentifier(context.totalNumASTNodes++);
+		}
 		return TraversalContinuation.Continue;
 	};
 
 	public void storeBody(final ASTNode block, final String source) {
 		body = FunctionBody.fromBlock((Block)block);
 		blockSourceHash = source.hashCode();
-		if (bodyLocation != null)
+		if (bodyLocation != null) {
 			body.setLocation(0, bodyLocation.getLength());
+		}
 		assignLocalIdentifiers();
 		body.setParent(this);
 	}
 
 	public void assignLocalIdentifiers() {
 		totalNumASTNodes = 0;
-		if (body != null)
+		if (body != null) {
 			body.traverse(AST_ASSIGN_IDENTIFIER_VISITOR, this);
+		}
 	}
 
 	@Override
@@ -869,27 +923,30 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return The code block or null if it was created from differing source.
 	 */
 	public FunctionBody bodyMatchingSource(final String source) {
-		if (source == null || (blockSourceHash != -1 && blockSourceHash == source.hashCode()))
+		if (source == null || (blockSourceHash != -1 && blockSourceHash == source.hashCode())) {
 			//if (body != null)
 			//	body.postLoad(this, TypeUtil.problemReportingContext(this));
 			return body;
-		else
+		} else {
 			return body = null;
+		}
 	}
 
 	@Override
 	public <T extends Declaration> T latestVersionOf(final T from) {
-		if (from instanceof Variable)
+		if (from instanceof Variable) {
 			return super.latestVersionOf(from);
-		else
+		} else {
 			return null;
+		}
 	}
 	@Override
 	public IVariable variable(final AccessDeclaration access, final Object obj) {
 		if (access.predecessor() == null) {
 			final Variable v = findVariable(access.name());
-			if (v != null)
+			if (v != null) {
 				return new Constant(v);
+			}
 		}
 		return null;
 	}
@@ -925,8 +982,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 	@Override
 	public void setSubElements(final ASTNode[] nodes) {
-		if (nodes[0] instanceof TypeAnnotation)
+		if (nodes[0] instanceof TypeAnnotation) {
 			setTypeAnnotation((TypeAnnotation) nodes[0]);
+		}
 		storeBody(nodes[nodes.length-1], "");
 	}
 	@Override
@@ -946,8 +1004,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			public Script script() { return context; }
 		};
 		f.assignType(PrimitiveType.ANY, true);
-		for (final Variable p : parameters)
+		for (final Variable p : parameters) {
 			f.addParameter(p);
+		}
 		final ASTNodePrinter printer = new AppendableBackedNodePrinter(builder);
 		f.printHeader(printer);
 		Conf.blockPrelude(printer, 0);
@@ -964,8 +1023,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		if (body != null) {
 			Conf.blockPrelude(output, depth);
 			body.print(output, depth);
-		} else
+		} else {
 			output.append(';');
+		}
 	}
 
 	@Override
