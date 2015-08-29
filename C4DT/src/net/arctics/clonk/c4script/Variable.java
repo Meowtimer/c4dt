@@ -261,8 +261,11 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 		}
 	}
 
+	/**
+	 * This should be at least 1 to come after functions because Zapper likes it that way
+	 */
 	@Override
-	public int sortCategory() { return (scope != null ? scope : Scope.VAR).ordinal(); }
+	public int sortCategory() { return 1 + (scope != null ? scope : Scope.VAR).ordinal(); }
 
 	@Override
 	public String infoText(final IIndexEntity context) {

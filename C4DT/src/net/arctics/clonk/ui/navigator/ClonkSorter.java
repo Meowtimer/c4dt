@@ -4,16 +4,16 @@ import java.text.Collator;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.FileExtension;
-import net.arctics.clonk.index.Engine;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
+
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.FileExtension;
+import net.arctics.clonk.index.Engine;
 
 public class ClonkSorter extends ViewerSorter {
 
@@ -40,13 +40,18 @@ public class ClonkSorter extends ViewerSorter {
 			cachedEngine = ClonkProjectNature.engineFromResource(resource);
 		}
 		FileExtension gt;
-		if (cachedEngine != null && (gt = cachedEngine.extensionForFileName(resource.getName())) != FileExtension.Other)
-			for (int i = 0; i < groupSortOrder.length; i++)
-				if (groupSortOrder[i] == gt)
+		if (cachedEngine != null && (gt = cachedEngine.extensionForFileName(resource.getName())) != FileExtension.Other) {
+			for (int i = 0; i < groupSortOrder.length; i++) {
+				if (groupSortOrder[i] == gt) {
 					return i;
-		for(int i = 0; i < sortPriorities.length;i++)
-			if (resource.getName().toLowerCase().endsWith(sortPriorities[i]))
+				}
+			}
+		}
+		for(int i = 0; i < sortPriorities.length;i++) {
+			if (resource.getName().toLowerCase().endsWith(sortPriorities[i])) {
 				return i+groupSortOrder.length;
+			}
+		}
 		return sortPriorities.length+1;
 	}
 	
@@ -62,21 +67,24 @@ public class ClonkSorter extends ViewerSorter {
 		Integer tagCateg;
 		if (relatedTag != null) {
 			tagCateg = colorTagToCategory.get(relatedTag);
-			if (tagCateg == null)
+			if (tagCateg == null) {
 				colorTagToCategory.put(relatedTag, tagCateg = colorTagToCategory.size());
-		} else
+			}
+		} else {
 			tagCateg = colorTagToCategory.size()+1;
+		}
 		return tagCateg * (groupSortOrder.length+sortPriorities.length) + simplePriority;
 	}
 	
 	@Override
 	public int category(final Object element) {
-		if (element instanceof Declaration)
+		if (element instanceof Declaration) {
 			return ((Declaration) element).sortCategory();
-		else if (element instanceof IResource)
+		} else if (element instanceof IResource) {
 			return getSortPriority((IResource) element);
-		else
+		} else {
 			return 0;
+		}
 	}
 	
 	@Override

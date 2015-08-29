@@ -500,9 +500,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 	}
 
+	/**
+	 * Functions first.
+	 */
 	@Override
 	public int sortCategory() {
-		return Variable.Scope.values().length;
+		return 0;
 	}
 
 	public static String documentationURLForFunction(final String functionName, final Engine engine) {
