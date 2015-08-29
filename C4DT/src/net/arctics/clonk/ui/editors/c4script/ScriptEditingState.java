@@ -1,6 +1,8 @@
 package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.attempt;
+import static net.arctics.clonk.util.Utilities.voidResult;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -13,6 +15,43 @@ import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultInformationControl;
+import org.eclipse.jface.text.DefaultTextDoubleClickStrategy;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IAutoEditStrategy;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextDoubleClickStrategy;
+import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextOperationTarget;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.contentassist.ContentAssistant;
+import org.eclipse.jface.text.contentassist.IContentAssistant;
+import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
+import org.eclipse.jface.text.presentation.IPresentationReconciler;
+import org.eclipse.jface.text.presentation.PresentationReconciler;
+import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
+import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
+import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
+import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
@@ -66,43 +105,6 @@ import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.DefaultInformationControl;
-import org.eclipse.jface.text.DefaultTextDoubleClickStrategy;
-import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IAutoEditStrategy;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextDoubleClickStrategy;
-import org.eclipse.jface.text.ITextHover;
-import org.eclipse.jface.text.ITextOperationTarget;
-import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.contentassist.ContentAssistant;
-import org.eclipse.jface.text.contentassist.IContentAssistant;
-import org.eclipse.jface.text.hyperlink.IHyperlink;
-import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
-import org.eclipse.jface.text.presentation.IPresentationReconciler;
-import org.eclipse.jface.text.presentation.PresentationReconciler;
-import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
-import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
-import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
-import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.PlatformUI;
-
 /**
  * C4Script-specific specialization of {@link StructureEditingState} that tries to only trigger a full reparse of the script when necessary (i.e. not when editing inside of a function)
  * @author madeen
@@ -114,8 +116,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		private ScriptCompletionProcessor processor;
 		public Assistant() {
 			processor = new ScriptCompletionProcessor(ScriptEditingState.this);
-			for (final String s : CStylePartitionScanner.PARTITIONS)
+			for (final String s : CStylePartitionScanner.PARTITIONS) {
 				setContentAssistProcessor(processor, s);
+			}
 			setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
 			setRepeatedInvocationMode(true);
 			setStatusLineVisible(true);
@@ -139,8 +142,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		public boolean isProposalPopupActive() { return super.isProposalPopupActive(); }
 		public ScriptCompletionProcessor processor() { return processor; }
 		public void showParameters(final ITextOperationTarget target) {
-			if (target.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION))
+			if (target.canDoOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION)) {
 				target.doOperation(ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION);
+			}
 		}
 	}
 
@@ -149,14 +153,15 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		public IHyperlink[] detectHyperlinks(final ITextViewer viewer, final IRegion region, final boolean canShowMultipleHyperlinks) {
 			try {
 				final EntityLocator locator = new EntityLocator(structure(), viewer.getDocument(), region);
-				if (locator.entity() != null)
+				if (locator.entity() != null) {
 					return new IHyperlink[] {
 						new EntityHyperlink(locator.expressionRegion(), locator.entity())
 					};
-				else if (locator.potentialEntities() != null)
+				} else if (locator.potentialEntities() != null) {
 					return new IHyperlink[] {
 						new EntityHyperlink(locator.expressionRegion(), locator.potentialEntities())
 					};
+				}
 				return null;
 			} catch (final Exception e) {
 				e.printStackTrace();
@@ -176,12 +181,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			return messageBuilder.toString();
 		}
 		private void appendEntityInfo(final ITextViewer viewer, final IRegion region, final StringBuilder messageBuilder) {
-			if (entityLocator != null && entityLocator.entity() != null)
+			if (entityLocator != null && entityLocator.entity() != null) {
 				messageBuilder.append(entityLocator.infoText());
-			else {
+			} else {
 				final String superInfo = super.getHoverInfo(viewer, region);
-				if (superInfo != null)
+				if (superInfo != null) {
 					messageBuilder.append(superInfo);
+				}
 			}
 		}
 		private void appendMarkerInfo(final IRegion region, final IFile scriptFile, final StringBuilder messageBuilder) {
@@ -197,7 +203,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					if (Utilities.regionContainsOtherRegion(markerRegion, region)) {
 						if (!foundSomeMarkers) {
 							if (messageBuilder.length() > 0)
+							 {
 								messageBuilder.append("<br/><br/><b>"+Messages.C4ScriptTextHover_Markers1+"</b><br/>"); //$NON-NLS-1$
+							}
 							foundSomeMarkers = true;
 						}
 						String msg = m.getAttribute(IMarker.MESSAGE).toString();
@@ -229,8 +237,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		protected IRegion findExtendedDoubleClickSelection(final IDocument document, final int pos) {
 			final IRegion word = findWord(document, pos);
 			try {
-				if (word != null && document.get(word.getOffset(), word.getLength()).matches("(\\w|\\|d)+"))
+				if (word != null && document.get(word.getOffset(), word.getLength()).matches("(\\w|\\|d)+")) {
 					return word;
+				}
 			} catch (final BadLocationException e) {
 				return word;
 			}
@@ -239,16 +248,20 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				final ExpressionLocator<Void> locator = new ExpressionLocator<Void>(pos-func.bodyLocation().start());
 				func.traverse(locator, null);
 				ASTNode expr = locator.expressionAtRegion();
-				if (expr == null)
+				if (expr == null) {
 					return new Region(func.wholeBody().getOffset(), func.wholeBody().getLength());
-				else for (; expr != null; expr = expr.parent())
-					if (expr instanceof Literal)
-						return new Region(func.bodyLocation().getOffset()+expr.start(), expr.getLength());
-					else if (expr instanceof AccessDeclaration) {
-						final AccessDeclaration accessDec = (AccessDeclaration) expr;
-						return new Region(func.bodyLocation().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
-					} else if (expr instanceof PropListExpression || expr instanceof Block)
-						return new Region(expr.start()+func.bodyLocation().getOffset(), expr.getLength());
+				} else {
+					for (; expr != null; expr = expr.parent()) {
+						if (expr instanceof Literal) {
+							return new Region(func.bodyLocation().getOffset()+expr.start(), expr.getLength());
+						} else if (expr instanceof AccessDeclaration) {
+							final AccessDeclaration accessDec = (AccessDeclaration) expr;
+							return new Region(func.bodyLocation().getOffset()+accessDec.identifierStart(), accessDec.identifierLength());
+						} else if (expr instanceof PropListExpression || expr instanceof Block) {
+							return new Region(expr.start()+func.bodyLocation().getOffset(), expr.getLength());
+						}
+					}
+				}
 			}
 			return null;
 		}
@@ -275,22 +288,25 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	public void documentChanged(final DocumentEvent event) {
 		super.documentChanged(event);
 		final Function f = structure().funcAt(event.getOffset());
-		if (f != null && !f.isOldStyle())
+		if (f != null && !f.isOldStyle()) {
 			// editing inside new-style function: adjust locations of declarations without complete reparse
 			// only recheck the function and display problems after delay
 			scheduleProblemReport(f);
-		else
+		} else {
 			// only schedule reparsing when editing outside of existing function
 			scheduleReparsing(false);
+		}
 	}
 
 	@Override
 	protected void adjustDec(final Declaration declaration, final int offset, final int add) {
 		super.adjustDec(declaration, offset, add);
-		if (declaration instanceof Function)
+		if (declaration instanceof Function) {
 			incrementLocationOffsetsExceedingThreshold(((Function)declaration).bodyLocation(), offset, add);
-		for (final Declaration v : declaration.subDeclarations(declaration.index(), DeclMask.ALL))
+		}
+		for (final Declaration v : declaration.subDeclarations(declaration.index(), DeclMask.ALL)) {
 			adjustDec(v, offset, add);
+		}
 	}
 
 	private void reparse() throws ProblemException {
@@ -310,20 +326,20 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			final IWorkbenchPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart();
 			if (part instanceof C4ScriptEditor && ((C4ScriptEditor)part).state() == this) {
 				final Function f = ((C4ScriptEditor)part).functionAtCursor();
-				if (f != null)
-					for (final ProblemReportingStrategy strategy : problemReportingStrategies())
+				if (f != null) {
+					for (final ProblemReportingStrategy strategy : problemReportingStrategies()) {
 						reportProblemsOnCalledFunctions(f, markers, strategy);
+					}
+				}
 			}
 		} catch (final Exception e) {}
 	}
 
 	private Runnable refreshEditorsRunnable() {
-		return () -> {
-			for (final C4ScriptEditor ed : editors) {
-				ed.refreshOutline();
-				try { ed.handleCursorPositionChanged(); } catch (final Exception e) {}
-			}
-		};
+		return () -> editors.forEach(editor -> {
+			editor.refreshOutline();
+			attempt(voidResult(editor::handleCursorPositionChanged));
+		});
 	}
 
 	void reparseWithDocumentContents(final Runnable uiRefreshRunnable) throws ProblemException {
@@ -343,18 +359,20 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			reportProblems(markers);
 		}
 		markers.deploy();
-		if (uiRefreshRunnable != null)
+		if (uiRefreshRunnable != null) {
 			Display.getDefault().asyncExec(uiRefreshRunnable);
+		}
 	}
 
 	private void reportProblems(final Markers markers) {
-		for (final ProblemReportingStrategy s : problemReportingStrategies())
+		for (final ProblemReportingStrategy s : problemReportingStrategies()) {
 			s.steer(() -> {
 				s.initialize(markers, new NullProgressMonitor(), new Script[] {structure()});
 				s.run();
 				s.apply();
 				s.run2();
 			});
+		}
 	}
 
 	public List<ProblemReportingStrategy> problemReportingStrategies() {
@@ -367,13 +385,15 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	public void scheduleReparsing(final boolean onlyDeclarations) {
 		reparseTask = cancelTimerTask(reparseTask);
-		if (timer == null || structure() == null)
+		if (timer == null || structure() == null) {
 			return;
+		}
 		timer.schedule(reparseTask = new TimerTask() {
 			@Override
 			public void run() {
-				if (errorsWhileTypingDisabled())
+				if (errorsWhileTypingDisabled()) {
 					return;
+				}
 				try {
 					try {
 						reparseWithDocumentContents(() -> {
@@ -393,7 +413,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	public static void removeMarkers(final Function func, final Script script) {
-		if (script != null && script.resource() != null)
+		if (script != null && script.resource() != null) {
 			try {
 				// delete regular markers that are in the region of interest
 				final IMarker[] markers = script.resource().findMarkers(Core.MARKER_C4SCRIPT_ERROR, false, 3);
@@ -410,23 +430,26 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
+		}
 	}
 
 	private final class StructureMarkers extends Markers {
 		StructureMarkers(final boolean functionBodies){
 			applyProjectSettings(structure().index());
-			if (functionBodies)
+			if (functionBodies) {
 				captureMarkersInFunctionBodies();
-			else
+			} else {
 				captureExistingMarkers(structure().file());
+			}
 		}
 		private void captureMarkersInFunctionBodies() {
 			try {
 				final Set<IMarker> _captured = new HashSet<>(Arrays.asList(structure().file().findMarkers(Core.MARKER_C4SCRIPT_ERROR, true, IResource.DEPTH_ONE)));
 				for (final Iterator<IMarker> it = _captured.iterator(); it.hasNext();) {
 					final IMarker c = it.next();
-					if (structure().funcAt(c.getAttribute(IMarker.CHAR_START, -1)) == null)
+					if (structure().funcAt(c.getAttribute(IMarker.CHAR_START, -1)) == null) {
 						it.remove();
+					}
 				}
 				this.capture(_captured);
 			} catch (final CoreException e) {
@@ -445,18 +468,22 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			final int markerStart, final int markerEnd, final int flags,
 			final int severity, final Object... args
 		) {
-			if (node == null)
+			if (node == null) {
 				return Decision.DropCharges;
-			for (final ASTNode confine : this)
-				if (node.containedIn(confine))
+			}
+			for (final ASTNode confine : this) {
+				if (node.containedIn(confine)) {
 					return Decision.PassThrough;
+				}
+			}
 			return Decision.DropCharges;
 		}
 	}
 
 	private void scheduleProblemReport(final Function fn) {
-		if (timer == null || errorsWhileTypingDisabled())
+		if (timer == null || errorsWhileTypingDisabled()) {
 			return;
+		}
 		reportFunctionProblemsTask = cancelTimerTask(reportFunctionProblemsTask);
 		timer.schedule(reportFunctionProblemsTask = new TimerTask() {
 			@Override
@@ -475,14 +502,15 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	public Markers reportProblems(final Function function) {
 		// ignore this request when errors while typing disabled
-		if (errorsWhileTypingDisabled())
+		if (errorsWhileTypingDisabled()) {
 			return new Markers();
+		}
 
 		final Markers markers = new Markers();
 		markers.applyProjectSettings(structure().index());
 
 		structure().deriveInformation();
-		for (final ProblemReportingStrategy strategy : problemReportingStrategies())
+		for (final ProblemReportingStrategy strategy : problemReportingStrategies()) {
 			strategy.steer(() -> {
 				// visit the function
 				strategy.initialize(markers, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
@@ -491,6 +519,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				strategy.apply();
 				strategy.run2();
 			});
+		}
 		return markers;
 	}
 
@@ -513,13 +542,16 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					final Variable v = as(av.declaration(), Variable.class);
 					if (v != null && v.scope() == Scope.LOCAL) {
 						final List<AccessVar> vr = context.varReferences().get(av.name());
-						if (vr != null)
-							for (final AccessVar o : vr)
+						if (vr != null) {
+							for (final AccessVar o : vr) {
 								if (o.declaration() == v) {
 									final Function f = o.parent(Function.class);
-									if (f != null)
+									if (f != null) {
 										follow(f, context);
+									}
 								}
+							}
+						}
 					}
 				}
 				return TraversalContinuation.Continue;
@@ -531,27 +563,33 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			{ function.traverse(this, entry); }
 			@Override
 			public TraversalContinuation visitNode(final ASTNode node, final Pair<Script, Function> context) {
-				if (typing == null)
+				if (typing == null) {
 					return TraversalContinuation.Cancel;
+				}
 				if (node instanceof CallDeclaration) {
-					if (depth == 0)
+					if (depth == 0) {
 						localCall = (CallDeclaration) node;
+					}
 					final CallDeclaration cd = (CallDeclaration) node;
 					final Function f = as(cd.declaration(), Function.class);
-					if (f != null && f.body() != null && !f.isGlobal())
+					if (f != null && f.body() != null && !f.isGlobal()) {
 						try {
 							final IType targetTy = cd.predecessor() != null ? typing.nodeTypes[cd.predecessor().localIdentifier()] : context.first();
-							if (targetTy != null)
-								for (final IType t : targetTy)
+							if (targetTy != null) {
+								for (final IType t : targetTy) {
 									if (t instanceof Script) {
 										final Script s = (Script) t;
 										follow(f, s);
 									}
+								}
+							}
 						} catch (final Exception e) {
 							e.printStackTrace();
 						}
-					if (depth == 0)
+					}
+					if (depth == 0) {
 						localCall = null;
+					}
 				} else if (node instanceof BinaryOp) {
 					final BinaryOp op = (BinaryOp) node;
 					op.leftSide().traverse(this.assignmentFollower, context.first());
@@ -559,11 +597,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				return TraversalContinuation.Continue;
 			}
 			private void follow(final Function f, final Script s) {
-				if (localCall == null)
+				if (localCall == null) {
 					return;
+				}
 				final Function fn = s.findFunction(f.name());
-				if (fn == null)
+				if (fn == null) {
 					return;
+				}
 				final Pair<Script, Function> pair = Pair.pair(s, fn);
 				if (!pair.equals(entry)) {
 					Set<CallDeclaration> calls = this.get(pair);
@@ -579,8 +619,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 							depth--;
 							typing = old;
 						}
-					} else
+					} else {
 						calls.add(localCall);
+					}
 				}
 			}
 			public Collection<Pair<Script, Function>> expandedFunctionSet() {
@@ -589,31 +630,35 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 				for (final Pair<Script, Function> p : keySet()) {
 					final Function base = p.second().baseFunction();
 					final Script baseDef = as(base.script(), Definition.class);
-					if (baseDef != null)
+					if (baseDef != null) {
 						ndx.allScripts(item -> {
 							if (item != p.first() && item.doesInclude(ndx, baseDef)) {
 								final Function ovrld = item.findLocalFunction(base.name(), true);
-								if (ovrld != null)
+								if (ovrld != null) {
 									result.add(new Pair<Script, Function>(item, ovrld));
+								}
 							}
 						});
+					}
 				}
 				for (final Iterator<Pair<Script, Function>> it = result.iterator(); it.hasNext();) {
 					final Pair<Script, Function> p = it.next();
-					if (p.first() == structure())
+					if (p.first() == structure()) {
 						it.remove();
+					}
 				}
 				return result;
 			}
 		}
 		final DepthCallsCollector collector = new DepthCallsCollector();
-		if (!collector.isEmpty())
+		if (!collector.isEmpty()) {
 			strategy.steer(() -> {
 				strategy.initialize(markers, new NullProgressMonitor(), collector.expandedFunctionSet());
 				strategy.captureMarkers();
 				strategy.run();
 				strategy.apply();
 			});
+		}
 	}
 
 	private boolean errorsWhileTypingDisabled() {
@@ -629,14 +674,16 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	@Override
 	public void cleanupAfterRemoval() {
-		if (timer != null)
+		if (timer != null) {
 			timer.cancel();
+		}
 		try {
 			if (structure().source() instanceof IFile) {
 				final IFile file = (IFile)structure().source();
 				// might have been closed due to removal of the file - don't cause exception by trying to reparse that file now
-				if (file.exists())
+				if (file.exists()) {
 					reparseWithDocumentContents(null);
+				}
 			}
 		} catch (final ProblemException e) {
 			e.printStackTrace();
@@ -681,8 +728,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					reparse();
 					result.traverse((node, parser) -> {
 						final AccessDeclaration ad = as(node, AccessDeclaration.class);
-						if (ad != null && ad.declaration() != null)
+						if (ad != null && ad.declaration() != null) {
 							ad.setDeclaration(ad.declaration().latestVersion());
+						}
 						return TraversalContinuation.Continue;
 					}, result);
 				} catch (final Exception e) {
@@ -710,12 +758,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		final boolean typingContextVisitInAnyCase
 	) {
 		synchronized (structureModificationLock) {
-			if (oldFunctionBody == null)
+			if (oldFunctionBody == null) {
 				oldFunctionBody = function.body();
+			}
 			final FunctionFragmentParser fparser = new FunctionFragmentParser(document, structure(), function, null);
 			final boolean change = fparser.update();
-			if (change || (observer != null && typingContextVisitInAnyCase))
-				for (final ProblemReportingStrategy s : problemReportingStrategies())
+			if (change || (observer != null && typingContextVisitInAnyCase)) {
+				for (final ProblemReportingStrategy s : problemReportingStrategies()) {
 					s.steer(() -> {
 						s.initialize(null, new NullProgressMonitor(), Arrays.asList(Pair.pair(structure(), function)));
 						s.setObserver(observer);
@@ -723,6 +772,8 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 						s.apply();
 						s.run2();
 					});
+				}
+			}
 			return fparser;
 		}
 	}
@@ -738,9 +789,11 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 					final Markers markers = new StructureMarkers(true);
 					synchronized (structureModificationLock) {
 						reportProblems(markers);
-						if (cf != null)
-							for (final ProblemReportingStrategy strategy : problemReportingStrategies())
+						if (cf != null) {
+							for (final ProblemReportingStrategy strategy : problemReportingStrategies()) {
 								reportProblemsOnCalledFunctions(cf, markers, strategy);
+							}
+						}
 					}
 					markers.deploy();
 					Display.getDefault().asyncExec(refreshEditorsRunnable());
@@ -779,8 +832,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	public Call innermostFunctionCallParmAtOffset(final int offset) throws BadLocationException, ProblemException {
 		final Function f = functionAt(offset);
-		if (f == null)
+		if (f == null) {
 			return null;
+		}
 		updateFunctionFragment(f, null, false);
 		final EntityLocator locator = new EntityLocator(structure(), document, new Region(offset, 0));
 		ASTNode expr;
@@ -791,16 +845,19 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			expr = locator.expressionAtRegion();
 			expr != null;
 			expr = expr.parent()
-		)
-			if (expr instanceof IFunctionCall && offset-bodyStart >= ((IFunctionCall)expr).parmsStart())
-				 break;
+		) {
+			if (expr instanceof IFunctionCall && offset-bodyStart >= ((IFunctionCall)expr).parmsStart()) {
+				break;
+			}
+		}
 		if (expr != null) {
 			final IFunctionCall callFunc = (IFunctionCall) expr;
 			ASTNode prev = null;
 			for (final ASTNode parm : callFunc.params()) {
 				if (bodyStart+parm.end() > offset) {
-					if (prev == null)
+					if (prev == null) {
 						break;
+					}
 					final String docText = document.get(bodyStart+prev.end(), parm.start()-prev.end());
 					final CStyleScanner scanner = new CStyleScanner(docText);
 					scanner.eatWhitespace();
@@ -818,26 +875,29 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	public void completionProposalApplied(final DeclarationProposal proposal) {
 		autoEditStrategy().completionProposalApplied(proposal);
 		try {
-			if (proposal.requiresDocumentReparse())
+			if (proposal.requiresDocumentReparse()) {
 				reparse();
+			}
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
 		Display.getCurrent().asyncExec(() -> {
-			for (final C4ScriptEditor ed : editors)
+			for (final C4ScriptEditor ed : editors) {
 				ed.showParameters();
+			}
 		});
 		super.completionProposalApplied(proposal);
 	}
 
 	protected Function functionFromEntity(final IIndexEntity entity) {
 		Function function = null;
-		if (entity instanceof Function)
+		if (entity instanceof Function) {
 			function = (Function)entity;
-		else if (entity instanceof Variable) {
+		} else if (entity instanceof Variable) {
 			final IType type = ((Variable)entity).type();
-			if (type instanceof FunctionType)
+			if (type instanceof FunctionType) {
 				function = ((FunctionType)type).prototype();
+			}
 		}
 		return function;
 	}
@@ -847,25 +907,32 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		call.locator.initializePotentialEntities(structure(), null, (ASTNode)call.callFunc);
 		Function commono = null;
 		final Set<? extends IIndexEntity> potentials = call.locator.potentialEntities();
-		if (potentials != null)
-			if (potentials.size() == 1)
+		if (potentials != null) {
+			if (potentials.size() == 1) {
 				entity = potentials.iterator().next();
-			else for (final IIndexEntity e : potentials) {
-				if (commono == null)
-					commono = new Function(Messages.C4ScriptCompletionProcessor_MultipleCandidates, FunctionScope.PRIVATE);
-				entity = commono;
-				final Function f = functionFromEntity(e);
-				if (f != null)
-					for (int i = 0; i < f.numParameters(); i++) {
-						final Variable fpar = f.parameter(i);
-						final Variable cpar = commono.numParameters() > i
-							? commono.parameter(i)
-								: commono.addParameter(new Variable(fpar.name(), fpar.type()));
-							cpar.forceType(structure().typing().unify(cpar.type(), fpar.type()));
-							if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name())) //$NON-NLS-1$
-								cpar.setName(cpar.name()+"/"+fpar.name()); //$NON-NLS-1$
+			} else {
+				for (final IIndexEntity e : potentials) {
+					if (commono == null) {
+						commono = new Function(Messages.C4ScriptCompletionProcessor_MultipleCandidates, FunctionScope.PRIVATE);
 					}
+					entity = commono;
+					final Function f = functionFromEntity(e);
+					if (f != null) {
+						for (int i = 0; i < f.numParameters(); i++) {
+							final Variable fpar = f.parameter(i);
+							final Variable cpar = commono.numParameters() > i
+								? commono.parameter(i)
+									: commono.addParameter(new Variable(fpar.name(), fpar.type()));
+								cpar.forceType(structure().typing().unify(cpar.type(), fpar.type()));
+								if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name()))
+								 {
+									cpar.setName(cpar.name()+"/"+fpar.name()); //$NON-NLS-1$
+								}
+						}
+					}
+				}
 			}
+		}
 		return entity;
 	}
 
@@ -927,8 +994,9 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 	@Override
 	public ITextHover getTextHover(final ISourceViewer sourceViewer, final String contentType) {
-	    if (hover == null)
-	    	hover = new ScriptTextHover();
+	    if (hover == null) {
+			hover = new ScriptTextHover();
+		}
 	    return hover;
 	}
 	@Override

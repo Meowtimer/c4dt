@@ -11,7 +11,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
@@ -87,8 +87,9 @@ public class StructureOutlinePage extends ContentOutlinePage {
 				@SuppressWarnings({ })
 				@Override
 				public boolean select(final Viewer viewer, final Object parentElement, final Object element) {
-					if (StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(((ILabelProvider)getTreeViewer().getLabelProvider()).getText(element)).find())
+					if (StringUtil.patternFromRegExOrWildcard(filterBox.getText()).matcher(((ILabelProvider)getTreeViewer().getLabelProvider()).getText(element)).find()) {
 						return true;
+					}
 					if (element instanceof Declaration) {
 						final Object[] subDecs = ((Declaration)element).subDeclarationsForOutline();
 						return subDecs != null && stream(subDecs).anyMatch(sd -> select(viewer, element, sd));
@@ -100,8 +101,9 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		getTreeViewer().getTree().addKeyListener(new KeyListener() {
 			@Override
 			public void keyReleased(final KeyEvent e) {
-				if (e.keyCode == SWT.CR)
+				if (e.keyCode == SWT.CR) {
 					openForeignDeclarations();
+				}
 			}
 			@Override
 			public void keyPressed(final KeyEvent e) {}
@@ -116,8 +118,9 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		});
 		if (editor != null) {
 			final Declaration topLevelDeclaration = editor().structure();
-			if (topLevelDeclaration != null)
+			if (topLevelDeclaration != null) {
 				setTreeViewerInput(topLevelDeclaration);
+			}
 		}
 		parent.layout();
 	}
@@ -128,15 +131,17 @@ public class StructureOutlinePage extends ContentOutlinePage {
 			if (element instanceof Declaration) {
 				final Declaration d = (Declaration)element;
 				return d.sortCategory() * (d.containedIn(editor.structure()) ? 1 : 1000);
-			} else
+			} else {
 				return 10000;
+			}
 		}
 	};
 
 	private void setTreeViewerInput(final Declaration obj) {
 		final TreeViewer treeViewer = this.getTreeViewer();
-		if (treeViewer == null)
+		if (treeViewer == null) {
 			return;
+		}
 		final WeakReferencingContentProvider<ClonkOutlineProvider> provider = new WeakReferencingContentProvider<ClonkOutlineProvider>(new ClonkOutlineProvider());
 		treeViewer.setLabelProvider(provider);
 		treeViewer.setContentProvider(provider);
@@ -147,15 +152,19 @@ public class StructureOutlinePage extends ContentOutlinePage {
 
 	@Override
 	public void selectionChanged(final SelectionChangedEvent event) {
-		if (event.getSelection().isEmpty())
+		if (isRefreshing || event.getSelection().isEmpty()) {
 			return;
+		}
 		if (event.getSelection() instanceof IStructuredSelection) {
 			Declaration dec = ((IAdaptable)((IStructuredSelection)event.getSelection()).getFirstElement()).getAdapter(Declaration.class);
-			if (dec != null)
+			if (dec != null) {
 				dec = dec.latestVersion();
-			if (dec != null)
-				if (dec.containedIn(editor.structure()))
+			}
+			if (dec != null) {
+				if (dec.containedIn(editor.structure())) {
 					editor.selectAndReveal(dec.regionToSelect());
+				}
+			}
 		}
 	}
 
@@ -165,28 +174,25 @@ public class StructureOutlinePage extends ContentOutlinePage {
 	public void setEditor(final StructureTextEditor editor) {
 		this.editor = editor;
 	}
+	
+	private boolean isRefreshing;
 
 	public void refresh() {
-		final Declaration newInput = editor().structure();
-		final Declaration section = as(editor().section(), Declaration.class);
-		if (getTreeViewer().getInput() != newInput)
-			setTreeViewerInput(newInput);
-		else
-			getTreeViewer().refresh();
-		if (section != null) {
-			final Object[] subs = section.subDeclarationsForOutline();
-			if (subs.length > 0)
-				getTreeViewer().reveal(subs[0]);
-		}
-	}
-
-	public void select(final Declaration field) {
-		final TreeViewer viewer = getTreeViewer();
-		viewer.removeSelectionChangedListener(this);
+		isRefreshing = true;
 		try {
-			this.setSelection(new StructuredSelection(field));
-		} finally {
-			viewer.addSelectionChangedListener(this);
+			final Declaration newInput = editor().structure();
+			final TreeViewer treeViewer = getTreeViewer();
+			final TreeSelection selection = as(getSelection(), TreeSelection.class);
+			if (treeViewer.getInput() != newInput) {
+				setTreeViewerInput(newInput);
+			} else {
+				treeViewer.refresh();
+			}
+			if (selection != null) {
+				setSelection(selection);
+			}
+		} finally  {
+			isRefreshing = false;
 		}
 	}
 

@@ -6,6 +6,27 @@ import static net.arctics.clonk.util.Utilities.fileEditedBy;
 import java.io.IOException;
 import java.util.ResourceBundle;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentPartitioner;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextOperationTarget;
+import org.eclipse.jface.text.rules.FastPartitioner;
+import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -27,27 +48,6 @@ import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
 import net.arctics.clonk.ui.editors.actions.c4script.ToggleCommentAction;
 import net.arctics.clonk.ui.search.ScriptSearchAction;
 import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.preference.PreferenceConverter;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentPartitioner;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextOperationTarget;
-import org.eclipse.jface.text.rules.FastPartitioner;
-import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 /**
  * Text editor for C4Scripts.
@@ -82,10 +82,11 @@ public class C4ScriptEditor extends StructureTextEditor {
 		@Override
 		public void run() {
 			final C4ScriptEditor ed = ed();
-			if (ed.showParametersEnabled = !ed.showParametersEnabled)
+			if (ed.showParametersEnabled = !ed.showParametersEnabled) {
 				ed.showParameters();
-			else
+			} else {
 				ed.hideContentAssistance();
+			}
 		}
 	}
 
@@ -105,13 +106,15 @@ public class C4ScriptEditor extends StructureTextEditor {
 
 	public void showParameters() {
 		// show parameter help
-		if (!showParametersEnabled)
+		if (!showParametersEnabled) {
 			return;
+		}
 		try {
 			if (PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart() == C4ScriptEditor.this) {
 				final ScriptEditingState.Assistant a = as(contentAssistant(), ScriptEditingState.Assistant.class);
-				if (a != null && !a.isProposalPopupActive())
+				if (a != null && !a.isProposalPopupActive()) {
 					a.showParameters((ITextOperationTarget)getSourceViewer());
+				}
 			}
 		} catch (final NullPointerException nullP) {
 			// might just be not that much of an issue
@@ -120,10 +123,11 @@ public class C4ScriptEditor extends StructureTextEditor {
 
 	@Override
 	protected void setDocumentProvider(final IEditorInput input) {
-		if (input instanceof ScriptWithStorageEditorInput)
+		if (input instanceof ScriptWithStorageEditorInput) {
 			setDocumentProvider(new ExternalScriptsDocumentProvider(this));
-		else
+		} else {
 			super.setDocumentProvider(input);
+		}
 	}
 
 	@Override
@@ -151,8 +155,9 @@ public class C4ScriptEditor extends StructureTextEditor {
 	@Override
 	public void refreshOutline() {
 		final ScriptEditingState state = state();
-		if (state != null)
+		if (state != null) {
 			state.invalidate();
+		}
 		super.refreshOutline();
 	}
 
@@ -173,10 +178,11 @@ public class C4ScriptEditor extends StructureTextEditor {
 				this.getDocumentProvider().getDocument(this.getEditorInput()),
 				region
 			);
-			if (info.entity() != null)
+			if (info.entity() != null) {
 				return info.entity();
-			else if (fallbackToCurrentFunction)
+			} else if (fallbackToCurrentFunction) {
 				return state().functionAt(region.getOffset());
+			}
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -185,15 +191,17 @@ public class C4ScriptEditor extends StructureTextEditor {
 
 	@Override
 	protected void editorSaved() {
-		if (script() instanceof ScratchScript)
+		if (script() instanceof ScratchScript) {
 			try {
 				reparse(false);
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
+		}
 		final ScriptEditingState state = state();
-		if (state != null)
+		if (state != null) {
 			state.saved();
+		}
 		super.editorSaved();
 	}
 
@@ -255,8 +263,9 @@ public class C4ScriptEditor extends StructureTextEditor {
 	protected void handleCursorPositionChanged() {
 		super.handleCursorPositionChanged();
 		final ScriptEditingState state = state();
-		if (state == null)
+		if (state == null) {
 			return;
+		}
 		// highlight active function
 		final Function f = functionAtCursor();
 		boolean noHighlight = true;
@@ -264,8 +273,9 @@ public class C4ScriptEditor extends StructureTextEditor {
 			this.setHighlightRange(f.start(), f.getLength(), false);
 			noHighlight = false;
 		}
-		if (noHighlight)
+		if (noHighlight) {
 			this.resetHighlightRange();
+		}
 		// inform auto edit strategy about cursor position change so it can delete its override regions
 		state.autoEditStrategy().removeOverrideRegionsNotAtLine(
 			cursorPos(), getDocumentProvider().getDocument(getEditorInput()));
@@ -275,11 +285,12 @@ public class C4ScriptEditor extends StructureTextEditor {
 	public ScriptEditingState state() {
 		try {
 			final Script script = Script.get(Utilities.fileEditedBy(this), true);
-			if (state == null && script != null && script.isEditable())
+			if (state == null && script != null && script.isEditable()) {
 				state = StructureEditingState.request(
 					ScriptEditingState.class, getDocumentProvider().getDocument(getEditorInput()),
 					script, this
 				);
+			}
 			setSourceViewerConfiguration(state);
 			return state;
 		} catch (final Exception e) {
@@ -304,10 +315,12 @@ public class C4ScriptEditor extends StructureTextEditor {
 	}
 
 	public void reparse(final boolean onlyDeclarations) throws IOException, ProblemException {
-		if (script() == null)
+		if (script() == null) {
 			return;
-		if (state != null)
+		}
+		if (state != null) {
 			state.cancelReparsingTimer();
+		}
 		state.reparseWithDocumentContents(() -> {
 			refreshOutline();
 			handleCursorPositionChanged();
@@ -317,8 +330,9 @@ public class C4ScriptEditor extends StructureTextEditor {
 	@Override
 	protected void initializeEditor() {
 		final IFile file = fileEditedBy(this);
-		if (file != null)
+		if (file != null) {
 			ClonkProjectNature.get(file).index();
+		}
 		super.initializeEditor();
 	}
 

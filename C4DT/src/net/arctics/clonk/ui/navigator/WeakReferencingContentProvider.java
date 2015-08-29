@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.navigator;
 
+import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
 import java.lang.ref.WeakReference;
@@ -16,34 +18,46 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.graphics.Image;
 
+import net.arctics.clonk.ast.Declaration;
+
 @SuppressWarnings("rawtypes")
 public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeContentProvider & IStyledLabelProvider> implements ILabelProvider, ITreeContentProvider, IStyledLabelProvider {
+	
 	private final T wrapped;
+	
 	private static class WeakItem extends WeakReference<Object> implements IAdaptable {
 		public WeakItem(final Object referent) {
 			super(referent);
 		}
+		
 		@Override
 		public String toString() {
 			final Object o = get();
 			return o != null ? o.toString() : "<Lost>";
 		}
+		
 		@SuppressWarnings("unchecked")
 		@Override
 		public Object getAdapter(final Class adapter) {
 			final Object obj = get();
-			if (adapter.isInstance(obj))
-				return obj;
-			else
-				return null;
+			return adapter.isInstance(obj) ? obj : null;
 		}
+		
+		private Object getLatest() {
+			final Object weakReferenced = get();
+			final Declaration declaration = as(weakReferenced, Declaration.class);
+			final Declaration latestDeclaration = declaration != null ? declaration.latestVersion() : null;
+			return defaulting(latestDeclaration, weakReferenced);
+		}
+		
 		@Override
 		public boolean equals(Object obj) {
-			if (obj instanceof WeakItem)
-				obj = ((WeakItem)obj).get();
-			return eq(obj, this.get());
+			final WeakItem otherWeakItem = as(obj, WeakItem.class);
+			return eq(getLatest(), otherWeakItem != null ? otherWeakItem.getLatest() : obj);
 		}
+		
 	}
+	
 	private static class LabelProviderListenerWrapper implements ILabelProviderListener {
 		private final ILabelProviderListener wrapped;
 		public LabelProviderListenerWrapper(final ILabelProviderListener wrapped) {
@@ -56,54 +70,69 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 		}
 		@Override
 		public boolean equals(final Object obj) {
-			if (obj instanceof LabelProviderListenerWrapper)
+			if (obj instanceof LabelProviderListenerWrapper) {
 				return ((LabelProviderListenerWrapper)obj).wrapped == this.wrapped;
-			else
+			} else {
 				return false;
+			}
 		}
 	}
+	
 	public WeakReferencingContentProvider(final T wrapped) { this.wrapped = wrapped; }
+	
 	private static Object[] wrap(final Object[] raw) {
-		if (raw == null)
+		if (raw == null) {
 			return null;
+		}
 		final Object[] r = new WeakItem[raw.length];
-		for (int i = 0; i < raw.length; i++)
+		for (int i = 0; i < raw.length; i++) {
 			r[i] = new WeakItem(raw[i]);
+		}
 		return r;
 	}
+	
 	private static Object unwrap(final Object item) {
 		return item instanceof WeakItem ? ((WeakItem)item).get() : item;
 	}
+	
 	@Override
 	public void addListener(final ILabelProviderListener listener) {
 		wrapped.addListener(new LabelProviderListenerWrapper(listener));
 	}
+	
 	@Override
 	public void dispose() { wrapped.dispose(); }
+	
 	@Override
 	public boolean isLabelProperty(final Object element, final String property) {
 		return wrapped.isLabelProperty(unwrap(element), property);
 	}
+	
 	@Override
 	public void removeListener(final ILabelProviderListener listener) {
 		wrapped.removeListener(new LabelProviderListenerWrapper(listener));
 	}
+	
 	@Override
 	public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
 		wrapped.inputChanged(viewer, unwrap(oldInput), unwrap(newInput));
 	}
+	
 	@Override
 	public StyledString getStyledText(final Object element) { return wrapped.getStyledText(unwrap(element)); }
+	
 	@Override
 	public Object[] getElements(final Object inputElement) {
 		final Object[] raw = wrapped.getElements(unwrap(inputElement));
 		return wrap(raw);
 	}
+	
 	@Override
 	public Object[] getChildren(final Object parentElement) {
 		final Object[] raw = wrapped.getChildren(unwrap(parentElement));
 		return wrap(raw);
 	}
+	
 	@Override
 	public Object getParent(final Object element) { return wrapped.getParent(unwrap(element)); }
 	@Override
@@ -112,6 +141,7 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 	public Image getImage(final Object element) { return wrapped.getImage(unwrap(element)); }
 	@Override
 	public String getText(final Object element) { return wrapped.getText(unwrap(element)); }
+	
 	public ViewerSorter sorter(final ViewerSorter wrappedSorter) {
 		return new ViewerSorter() {
 			@Override

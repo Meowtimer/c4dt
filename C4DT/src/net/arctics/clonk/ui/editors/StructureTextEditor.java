@@ -4,21 +4,6 @@ import static java.util.Arrays.stream;
 
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.DeclarationLocation;
-import net.arctics.clonk.ast.IASTSection;
-import net.arctics.clonk.ast.IASTVisitor;
-import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
-import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
-import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
-import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -65,6 +50,21 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.DeclarationLocation;
+import net.arctics.clonk.ast.IASTSection;
+import net.arctics.clonk.ast.IASTVisitor;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.ast.TraversalContinuation;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
+import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
+import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
+import net.arctics.clonk.ui.editors.actions.c4script.RenameDeclarationAction;
+
 /**
  * Base class for Clonk text editors.
  * @author madeen
@@ -97,8 +97,9 @@ public class StructureTextEditor extends TextEditor {
 	 * Clear the outline.
 	 */
 	public void clearOutline() {
-		if (outlinePage != null)
+		if (outlinePage != null) {
 			outlinePage.clear();
+		}
 	}
 
 	public final ISourceViewer sourceViewer() { return getSourceViewer(); }
@@ -107,10 +108,12 @@ public class StructureTextEditor extends TextEditor {
 	 * Refresh the outline so the new contents of the {@link #structure()} will be shown.
 	 */
 	public void refreshOutline() {
-		if (structure() == null)
+		if (structure() == null) {
 			return;
-		if (outlinePage != null) // don't start lazy loading of outlinePage
+		}
+		if (outlinePage != null) {
 			outlinePage.refresh();
+		}
 	}
 
 	/**
@@ -131,11 +134,13 @@ public class StructureTextEditor extends TextEditor {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(final Class adapter) {
-		if (adapter.equals(IContentOutlinePage.class))
+		if (adapter.equals(IContentOutlinePage.class)) {
 			return outlinePage();
+		}
 		if (adapter.equals(IShowInSource.class) || adapter.equals(IShowInTargetList.class)) {
-			if (showInAdapter == null)
+			if (showInAdapter == null) {
 				showInAdapter = new ShowInAdapter(this);
+			}
 			return showInAdapter;
 		}
 		return super.getAdapter(adapter);
@@ -158,27 +163,29 @@ public class StructureTextEditor extends TextEditor {
 		}
 		if (structure != null) {
 			final IEditorInput input = structure.makeEditorInput();
-			if (input != null)
+			if (input != null) {
 				try {
 					final IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
 					if (descriptor != null) {
 						final IEditorPart editor = IDE.openEditor(workbenchPage, input, descriptor.getId(), activate);
 						revealInEditor(target, structure, editor);
 						return editor;
-					} else
+					} else {
 						return null;
+					}
 				} catch (final PartInitException e) {
 					e.printStackTrace();
 				}
-			else if (structure instanceof Definition) {
+			} else if (structure instanceof Definition) {
 				final Definition obj = (Definition) structure;
 				final IFile defCore = obj.defCoreFile();
-				if (defCore != null)
+				if (defCore != null) {
 					try {
 						IDE.openEditor(workbenchPage, defCore);
 					} catch (final PartInitException e) {
 						e.printStackTrace();
 					}
+				}
 			}
 		}
 		return null;
@@ -208,11 +215,13 @@ public class StructureTextEditor extends TextEditor {
 			}
 			else if (location.resource() instanceof IContainer) {
 				final Definition def = Definition.at((IContainer) location.resource());
-				if (def != null)
+				if (def != null) {
 					ed = openDeclaration(def);
+				}
 			}
-			if (ed instanceof StructureTextEditor)
+			if (ed instanceof StructureTextEditor) {
 				((StructureTextEditor) ed).selectAndReveal(location.location());
+			}
 			return ed;
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -238,10 +247,12 @@ public class StructureTextEditor extends TextEditor {
 			if (target != structure) {
 				final Declaration old = target;
 				target = target.latestVersion();
-				if (target == null)
+				if (target == null) {
 					target = old;
-				if (target != null)
+				}
+				if (target != null) {
 					clonkTextEditor.selectAndReveal(target.regionToSelect());
+				}
 			}
 		} else if (editor instanceof AbstractTextEditor) {
 			final AbstractTextEditor ed = (AbstractTextEditor) editor;
@@ -283,8 +294,9 @@ public class StructureTextEditor extends TextEditor {
 			final SectionFinder finder = new SectionFinder();
 			structure.traverse(finder, null);
 			return finder.section;
-		} else
+		} else {
 			return null;
+		}
 	}
 
 	public static final ResourceBundle MESSAGES_BUNDLE = ResourceBundle.getBundle(Core.id("ui.editors.actionsBundle")); //$NON-NLS-1$
@@ -344,15 +356,18 @@ public class StructureTextEditor extends TextEditor {
 	protected void doSetInput(final IEditorInput input) throws CoreException {
 		super.doSetInput(input);
 		updatePartName();
-		if (state() != null)
+		if (state() != null) {
 			state().invalidate();
+		}
 	}
 
 	private void updatePartName() {
 		// set part name to reflect the folder the file is in
-		final IResource res = (IResource) getEditorInput().getAdapter(IResource.class);
+		final IResource res = getEditorInput().getAdapter(IResource.class);
 		if (res != null && res.getParent() != null)
+		 {
 			setPartName(res.getParent().getName() + "/" + res.getName()); //$NON-NLS-1$
+		}
 	}
 
 	@Override
@@ -393,14 +408,18 @@ public class StructureTextEditor extends TextEditor {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends StructureTextEditor> T getEditorForResource(final IResource resource, final Class<T> cls) {
-		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows())
-			for (final IWorkbenchPage page : window.getPages())
+		for (final IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			for (final IWorkbenchPage page : window.getPages()) {
 				for (final IEditorReference reference : page.getEditorReferences()) {
 					final IEditorPart editor = reference.getEditor(false);
-					if (editor != null && cls.isAssignableFrom(editor.getClass()))
-						if (editor.getEditorInput() instanceof FileEditorInput && ((FileEditorInput)editor.getEditorInput()).getFile().equals(resource))
+					if (editor != null && cls.isAssignableFrom(editor.getClass())) {
+						if (editor.getEditorInput() instanceof FileEditorInput && ((FileEditorInput)editor.getEditorInput()).getFile().equals(resource)) {
 							return (T) editor;
+						}
+					}
 				}
+			}
+		}
 		return null;
 	}
 
@@ -428,7 +447,9 @@ public class StructureTextEditor extends TextEditor {
 		final ISourceViewer viewer= getSourceViewer();
 
 		if (!(viewer instanceof ISourceViewerExtension2))
+		 {
 			return; // cannot unconfigure - do nothing
+		}
 
 		((ISourceViewerExtension2)viewer).unconfigure();
 		viewer.configure(getSourceViewerConfiguration());
