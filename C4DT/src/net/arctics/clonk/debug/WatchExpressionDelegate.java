@@ -7,17 +7,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.arctics.clonk.debug.Target.Commands;
-import net.arctics.clonk.debug.Target.ILineReceivedListener;
-import net.arctics.clonk.debug.Target.LineReceivedResult;
-import net.arctics.clonk.util.ICreate;
-
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugElement;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IWatchExpressionDelegate;
 import org.eclipse.debug.core.model.IWatchExpressionListener;
 import org.eclipse.debug.core.model.IWatchExpressionResult;
+
+import net.arctics.clonk.debug.Target.Commands;
+import net.arctics.clonk.debug.Target.ILineReceivedListener;
+import net.arctics.clonk.debug.Target.LineReceivedResult;
+import net.arctics.clonk.util.ICreate;
 
 /**
  * Delegate handling C4Script watch expressions.
@@ -107,8 +107,9 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 			}
 			boolean noneLeft;
 			synchronized (listeners) {
-				if (toRemove != null)
+				if (toRemove != null) {
 					listeners.remove(toRemove);
+				}
 				noneLeft = listeners.size() == 0;
 			}
 			return processed
@@ -136,7 +137,7 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 	@Override
 	public void evaluateExpression(final String expression, final IDebugElement context, final IWatchExpressionListener listener) {
 		final Target target = (Target) context.getDebugTarget();
-		if (target.isDisconnected())
+		if (target.isDisconnected()) {
 			listener.watchEvaluationFinished(new IWatchExpressionResult() {
 				@Override
 				public boolean hasErrors() { return false; }
@@ -149,7 +150,7 @@ public class WatchExpressionDelegate extends Object implements IWatchExpressionD
 				@Override
 				public String[] getErrorMessages() { return null; }
 			});
-		else {
+		} else {
 			target.requestLineReceivedListener(new ICreate<EvaluationResultListener>() {
 				@Override
 				public Class<EvaluationResultListener> cls() {

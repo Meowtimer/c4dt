@@ -114,13 +114,13 @@ public class Command {
 
 	/** Function which calls a java method */
 	private static class NativeCommandFunction extends Function {
-		
+
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		
+
 		private final transient Method method;
 		private final transient int parametersCount;
 		private final transient boolean variadic;
-		
+
 		private Object[] suitifyArguments(Object[] arguments) {
 			if (arguments.length > parametersCount || (arguments.length == parametersCount && variadic)) {
 				return concat(
@@ -133,15 +133,15 @@ public class Command {
 				return arguments;
 			}
 		}
-		
+
 		@Override
 		public Object invoke(final IEvaluationContext context) {
-			
+
 			final Object[] arguments = concat(
 				context,
 				suitifyArguments(stream(context.arguments()).map(ASTNode::evaluateVariable).toArray())
 			);
-			
+
 			try {
 				return method.invoke(context, arguments);
 			} catch (final IllegalArgumentException iae) {
@@ -161,7 +161,7 @@ public class Command {
 				return null;
 			}
 		}
-		
+
 		public NativeCommandFunction(final Script parent, final Method method) {
 			super(parent, FunctionScope.PUBLIC, method.getName());
 			this.method = method;
@@ -200,7 +200,7 @@ public class Command {
 	}
 
 	public static class BaseCommands {
-	
+
 		@CommandFunction
 		public static void Log(final Object context, final String messageFormat, Object... formatArguments) {
 			System.out.println(String.format(messageFormat, formatArguments));

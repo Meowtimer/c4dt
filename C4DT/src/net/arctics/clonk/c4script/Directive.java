@@ -36,9 +36,11 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		private final String lowerCase = name().toLowerCase();
 
 		public static DirectiveType makeType(final String arg) {
-			for (final DirectiveType d : values())
-				if (d.toString().equals(arg))
+			for (final DirectiveType d : values()) {
+				if (d.toString().equals(arg)) {
 					return d;
+				}
+			}
 			return null;
 		}
 
@@ -80,8 +82,9 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 			if (type == DirectiveType.APPENDTO || type == DirectiveType.INCLUDE) {
 				final Index index = this.index();
 				final Definition d = index != null ? index.anyDefinitionWithID(this.contentAsID()) : null;
-				if (d != null)
+				if (d != null) {
 					return String.format("#%s %s (%s)", type.toString(), content, d.name());
+				}
 			}
 			return String.format("#%s %s", type.toString(), content); //$NON-NLS-1$
 		}
@@ -94,15 +97,17 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 	}
 
 	public ID contentAsID() {
-		if (cachedID == null)
+		if (cachedID == null) {
 			cachedID = ID.get(this.contents());
+		}
 		return cachedID;
 	}
 
 	public static String[] arrayOfDirectiveStrings() {
 		final String[] result = new String[DirectiveType.values().length];
-		for (final DirectiveType d : DirectiveType.values())
+		for (final DirectiveType d : DirectiveType.values()) {
 			result[d.ordinal()] = d.toString();
+		}
 		return result;
 	}
 
@@ -111,13 +116,14 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 		case APPENDTO:
 			break; // don't create error marker when appending to unknown object
 		case INCLUDE:
-			if (contents() == null)
+			if (contents() == null) {
 				parser.markers().error(parser, Problem.MissingDirectiveArgs, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, this.toString());
-			else {
+			} else {
 				final ID id = contentAsID();
 				final Definition obj = parser.script().index().definitionNearestTo(parser.script().resource(), id);
-				if (obj == null)
+				if (obj == null) {
 					parser.markers().error(parser, Problem.UndeclaredIdentifier, null, this, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, contents());
+				}
 			}
 			break;
 		default:
@@ -127,8 +133,9 @@ public class Directive extends Declaration implements Serializable, IPlaceholder
 
 	@Override
 	public boolean matchedBy(final Matcher matcher) {
-		if (matcher.reset(type().name()).lookingAt() || matcher.reset("#"+type().name()).lookingAt())
+		if (matcher.reset(type().name()).lookingAt() || matcher.reset("#"+type().name()).lookingAt()) {
 			return true;
+		}
 		return contents() != null && matcher.reset(contents()).lookingAt();
 	}
 

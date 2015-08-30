@@ -5,16 +5,16 @@ import static net.arctics.clonk.util.Utilities.as;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.Function.PrintParametersOptions;
-import net.arctics.clonk.c4script.Variable;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
+
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Function.PrintParametersOptions;
+import net.arctics.clonk.c4script.Variable;
 
 public class StackFrame extends DebugElement implements IStackFrame {
 
@@ -27,9 +27,11 @@ public class StackFrame extends DebugElement implements IStackFrame {
 
 	public int index() throws DebugException {
 		final IStackFrame[] frames = thread.getStackFrames();
-		for (int i = 0; i < frames.length; i++)
-			if (frames[i] == this)
+		for (int i = 0; i < frames.length; i++) {
+			if (frames[i] == this) {
 				return i;
+			}
+		}
 		return -1;
 	}
 
@@ -45,26 +47,31 @@ public class StackFrame extends DebugElement implements IStackFrame {
 		if (function instanceof Function) {
 			final Function f = (Function) function;
 			final List<DebugVariable> l = new LinkedList<DebugVariable>();
-			for (final Variable parm : f.parameters())
-				if (!parm.isEllipsis())
+			for (final Variable parm : f.parameters()) {
+				if (!parm.isEllipsis()) {
 					l.add(new DebugVariable(this, parm));
-			for (final Variable local : f.locals())
+				}
+			}
+			for (final Variable local : f.locals()) {
 				l.add(new DebugVariable(StackFrame.this, local));
+			}
 			variables = l.toArray(new DebugVariable[l.size()]);
-		} else
+		} else {
 			variables = NO_VARIABLES;
+		}
 	}
 
 	@Override
 	public String getName() {
 		final Function f = as(function, Function.class);
-		if (f != null)
+		if (f != null) {
 			return String.format(NAME_FORMAT, f.script().name(), f.parameterString
 				(new PrintParametersOptions(f.script().typings().get(f), true, true, false)), line);
-		else if (function != null)
+		} else if (function != null) {
 			return function.toString();
-		else
+		} else {
 			return null;
+		}
 	}
 
 	public void setLine(final int line) { this.line = line; }
@@ -120,10 +127,11 @@ public class StackFrame extends DebugElement implements IStackFrame {
 		if (function instanceof Function) {
 			final Function f = (Function) function;
 			final IResource r = f.script().resource();
-			if (r instanceof IContainer)
+			if (r instanceof IContainer) {
 				return r.getProjectRelativePath().append("Script.c").toOSString(); //$NON-NLS-1$
-			else if (r != null)
+			} else if (r != null) {
 				return r.getProjectRelativePath().toOSString();
+			}
 		}
 		return null;
 	}

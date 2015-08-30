@@ -28,18 +28,22 @@ public class IndexEntityOutputStream extends ObjectOutputStream {
 			if (obj instanceof IDeferredDeclaration) {
 				final IDeferredDeclaration deferred = (IDeferredDeclaration)obj;
 				obj = deferred.saveReplacement(index);
-				if (obj == null || obj instanceof IDeferredDeclaration)
+				if (obj == null || obj instanceof IDeferredDeclaration) {
 					throw new IllegalStateException(format("Deferred declaration while serializing: %s", deferred.toString()));
+				}
 			}
-			if (obj instanceof IReplacedWhenSaved)
+			if (obj instanceof IReplacedWhenSaved) {
 				return ((IReplacedWhenSaved)obj).saveReplacement(index);
-			if (obj instanceof Declaration && !(obj instanceof Index))
+			}
+			if (obj instanceof Declaration && !(obj instanceof Index)) {
 				return index.saveReplacementForEntityDeclaration((Declaration)obj, entity);
+			}
 			if (entity != null && obj instanceof ASTNode) {
 				final ASTNode elm = (ASTNode)obj;
 				final Declaration owner = elm.owner();
-				if (owner != null && !owner.containedIn(entity))
+				if (owner != null && !owner.containedIn(entity)) {
 					return new ASTNodeTicket(owner, elm);
+				}
 			}
 
 			return super.replaceObject(obj);

@@ -19,14 +19,16 @@ public class IndexEntityInputStream extends ObjectInputStream {
 	}
 	@Override
 	protected Object resolveObject(final Object obj) throws IOException {
-		if (obj instanceof String)
+		if (obj instanceof String) {
 			return ((String)obj).intern();
-		if (index == null && obj instanceof Index)
+		}
+		if (index == null && obj instanceof Index) {
 			index = (Index)obj;
-		else if (obj instanceof IDeserializationResolvable)
+		} else if (obj instanceof IDeserializationResolvable) {
 			return ((IDeserializationResolvable)obj).resolve(index, entity);
-		else
+		} else {
 			return super.resolveObject(obj);
+		}
 		return obj;
 	}
 }

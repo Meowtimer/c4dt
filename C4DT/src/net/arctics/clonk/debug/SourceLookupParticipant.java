@@ -9,8 +9,8 @@ public class SourceLookupParticipant extends AbstractSourceLookupParticipant {
 		if (object instanceof StackFrame) {
 			final StackFrame stackFrame = (StackFrame) object;
 			return stackFrame.getSourcePath();
-		}
-		else
+		} else {
 			return null;
+		}
 	}
 }

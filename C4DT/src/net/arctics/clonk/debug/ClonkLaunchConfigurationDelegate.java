@@ -100,7 +100,7 @@ public class ClonkLaunchConfigurationDelegate extends LaunchConfigurationDelegat
 				.map(name -> new File(gamePath, name))
 				.filter(File::exists)
 				.findFirst().orElse(null);
-		
+
 		if (enginePath == null || !enginePath.exists()) {
 			Utilities.abort(IStatus.ERROR, String.format(
 				Messages.CouldNotFindEngine,

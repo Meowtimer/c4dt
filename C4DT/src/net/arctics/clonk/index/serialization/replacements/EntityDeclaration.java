@@ -63,39 +63,44 @@ public class EntityDeclaration implements Serializable, IDeserializationResolvab
 		if (containingEntity != null) {
 			containingEntity.requireLoaded();
 			result = containingEntity.findDeclarationByPath(declarationPath, declarationClass);
-		} else
+		} else {
 			result = null;
-		if (result == null)
-			if (containingEntity != null)
+		}
+		if (result == null) {
+			if (containingEntity != null) {
 				return makeDeferred();
-			else if (DEBUG)
+			} else if (DEBUG) {
 				System.out.println(format("Giving up on resolving '%s::%s'",
 					containingEntity != null ? containingEntity.qualifiedName() : "<null>",
 					declarationPath
 				));
+			}
+		}
 		return result;
 	}
 
 	private Declaration makeDeferred() {
-		if (IType.class.isAssignableFrom(declarationClass))
+		if (IType.class.isAssignableFrom(declarationClass)) {
 			return new DeferredType();
-		else if (Variable.class.isAssignableFrom(declarationClass))
+		} else if (Variable.class.isAssignableFrom(declarationClass)) {
 			return new DeferredVariable();
-		else if (Function.class.isAssignableFrom(declarationClass))
+		} else if (Function.class.isAssignableFrom(declarationClass)) {
 			return new DeferredFunction();
-		else
+		} else {
 			return null;
+		}
 	}
 
 	private Object resolveDeferred() {
 		final Declaration d = containingEntity.findDeclarationByPath(declarationPath, declarationClass);
-		if (d == null && DEBUG)
+		if (d == null && DEBUG) {
 			System.out.println(format("%s: Failed to resolve %s::%s (%s)",
 				deserializee != null ? deserializee.qualifiedName() : "<null>",
 				containingEntity.qualifiedName(),
 				declarationPath,
 				declarationClass.getSimpleName()
 			));
+		}
 		return d;
 	}
 

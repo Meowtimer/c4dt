@@ -5,16 +5,16 @@ import static java.util.Arrays.stream;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.ui.editors.text.EditorsUI;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.ast.BraceStyleType;
 import net.arctics.clonk.preferences.ClonkPreferences;
 import net.arctics.clonk.util.StringUtil;
-
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.ui.editors.text.EditorsUI;
-import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 /**
  * Container class containing some global configuration values affecting
@@ -40,10 +40,12 @@ public abstract class Conf {
 	 * @param indentDepth Indentation depth
 	 */
 	public static void printIndent(final ASTNodePrinter output, final int indentDepth) {
-		if (output.flag(ASTNodePrinter.SINGLE_LINE))
+		if (output.flag(ASTNodePrinter.SINGLE_LINE)) {
 			return;
-		for (int i = 0; i < indentDepth; i++)
+		}
+		for (int i = 0; i < indentDepth; i++) {
 			output.append(indentString);
+		}
 	}
 
 	/**
@@ -67,15 +69,17 @@ public abstract class Conf {
 
 	private static void configureByEditorPreferences() {
 		final boolean tabsToSpaces = EditorsUI.getPreferenceStore().getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
-		if (tabsToSpaces)
+		if (tabsToSpaces) {
 			indentString = StringUtil.multiply(" ", EditorsUI.getPreferenceStore().getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH));
-		else
+		} else {
 			indentString = "\t";
+		}
 		final boolean javaStyleBlocks = Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.JAVA_STYLE_BLOCKS);
-		if (javaStyleBlocks)
+		if (javaStyleBlocks) {
 			braceStyle = BraceStyleType.SameLine;
-		else
+		} else {
 			braceStyle = BraceStyleType.NewLine;
+		}
 	}
 
 	static {
@@ -85,9 +89,11 @@ public abstract class Conf {
 					AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
 					ClonkPreferences.JAVA_STYLE_BLOCKS
 				};
-				for (final String pref : relevantPrefValues)
-					if (event.getProperty().equals(pref))
+				for (final String pref : relevantPrefValues) {
+					if (event.getProperty().equals(pref)) {
 						configureByEditorPreferences();
+					}
+				}
 			};
 			EditorsUI.getPreferenceStore().addPropertyChangeListener(listener);
 			Core.instance().getPreferenceStore().addPropertyChangeListener(listener);
@@ -108,9 +114,9 @@ public abstract class Conf {
 			.map(from -> from.printed(depth+(braceStyle==BraceStyleType.NewLine?1:0)).trim())
 			.collect(Collectors.toList());
 		final int len = parmStrings.stream().mapToInt(ps -> ps.length()).sum();
-		if (len < 80)
+		if (len < 80) {
 			StringUtil.writeBlock(output, blockStart, blockEnd, ", ", parmStrings.stream());
-		else {
+		} else {
 			final String indent = "\n"+StringUtil.multiply(indentString, depth+1);
 			switch (braceStyle) {
 			case NewLine:

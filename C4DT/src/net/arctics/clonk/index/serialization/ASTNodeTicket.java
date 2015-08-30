@@ -20,7 +20,9 @@ public class ASTNodeTicket implements IDeserializationResolvable, Serializable, 
 	private transient ASTNode found;
 	private static int depth(ASTNode elm) {
 		int depth;
-		for (depth = 1, elm = elm.parent(); elm != null; elm = elm.parent(), depth++);
+		for (depth = 1, elm = elm.parent(); elm != null; elm = elm.parent(), depth++) {
+			;
+		}
 		return depth;
 	}
 	public ASTNodeTicket(final Declaration owner, final ASTNode elm) {
@@ -31,11 +33,13 @@ public class ASTNodeTicket implements IDeserializationResolvable, Serializable, 
 	@Override
 	public Object resolve(final Index index, final IndexEntity deserializee) {
 		if (owner instanceof IHasCode) {
-			if (owner instanceof IndexEntity)
+			if (owner instanceof IndexEntity) {
 				((IndexEntity) owner).requireLoaded();
+			}
 			final ASTNode code = ((IHasCode) owner).code();
-			if (code != null)
+			if (code != null) {
 				code.traverse(this, null);
+			}
 			return found;
 		}
 		return null;
@@ -47,9 +51,10 @@ public class ASTNodeTicket implements IDeserializationResolvable, Serializable, 
 			found = expression;
 			return TraversalContinuation.Cancel;
 		}
-		else if (ed > depth)
+		else if (ed > depth) {
 			return TraversalContinuation.SkipSubElements;
-		else
+		} else {
 			return TraversalContinuation.Continue;
+		}
 	}
 }

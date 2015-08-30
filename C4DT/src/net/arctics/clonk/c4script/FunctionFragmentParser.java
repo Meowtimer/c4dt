@@ -16,7 +16,9 @@ import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.Markers;
 
 public class FunctionFragmentParser extends ScriptParser {
+
 	private final Function function;
+
 	private static String fragmentString(final IDocument doc, final Function function) {
 		final IRegion statementRegion = function.bodyLocation();
 		return defaulting(
@@ -25,21 +27,25 @@ public class FunctionFragmentParser extends ScriptParser {
 			""
 		);
 	}
+
 	public FunctionFragmentParser(final IDocument document, final Script script, final Function function, final Markers markers) {
 		super(fragmentString(document, function), script, null);
 		setMarkers(markers);
 		this.function = function;
 		this.offsetOfScriptFragment = function.bodyLocation().start();
 	}
+
 	@Override
 	public int sectionOffset() { return 0; }
 	@Override
 	protected String functionSource(final Function function) { return new String(buffer); }
+
 	public boolean update() {
 		synchronized (function) {
 			return doUpdate();
 		}
 	}
+
 	private boolean doUpdate() {
 		final String functionSource = functionSource(function);
 		final FunctionBody cachedBlock = function != null ? function.bodyMatchingSource(functionSource) : null;

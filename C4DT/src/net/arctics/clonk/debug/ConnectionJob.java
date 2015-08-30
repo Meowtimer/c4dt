@@ -43,10 +43,11 @@ class ConnectionJob extends Job {
 				() -> monitor.isCanceled() ? null : new Socket("localhost", port),
 				Exception.class,
 				e -> {
-					if (e instanceof UnknownHostException || e instanceof IOException)
+					if (e instanceof UnknownHostException || e instanceof IOException) {
 						try {
 							Thread.sleep(Target.CONNECTION_ATTEMPT_WAITTIME);
 						} catch (final InterruptedException interrupt) {}
+					}
 				}
 			))
 			.limit(30)

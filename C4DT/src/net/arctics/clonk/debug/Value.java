@@ -1,18 +1,18 @@
 package net.arctics.clonk.debug;
 
-import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 
+import net.arctics.clonk.c4script.Keywords;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.util.Utilities;
+
 public class Value extends DebugElement implements IValue {
-	
+
 	private Object value;
 	private PrimitiveType type;
-	
+
 	public Value(final Target target, final Object value) {
 		super(target);
 		setValue(value, PrimitiveType.correspondingToInstance(value));
@@ -21,7 +21,7 @@ public class Value extends DebugElement implements IValue {
 	public Object getValue() {
 		return value;
 	}
-	
+
 	public PrimitiveType getType() {
 		return type;
 	}
@@ -38,7 +38,7 @@ public class Value extends DebugElement implements IValue {
 
 	@Override
 	public String getValueString() throws DebugException {
-		return value != null ? value.toString() : Keywords.Nil; 
+		return value != null ? value.toString() : Keywords.Nil;
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class Value extends DebugElement implements IValue {
 	public boolean isAllocated() throws DebugException {
 		return true;
 	}
-	
+
 	@Override
 	public boolean equals(final Object obj) {
 		if (obj instanceof Value) {

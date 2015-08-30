@@ -12,8 +12,9 @@ public class BreakpointAdapterFactory implements IAdapterFactory {
 	public Object getAdapter(final Object adaptableObject, final Class adapterType) {
 		if (adaptableObject instanceof C4ScriptEditor) {
 			final IResource resource = ((C4ScriptEditor)adaptableObject).getEditorInput().getAdapter(IResource.class);
-			if (resource != null)
+			if (resource != null) {
 				return new BreakpointAdapter();
+			}
 		}
 		return null;
 	}

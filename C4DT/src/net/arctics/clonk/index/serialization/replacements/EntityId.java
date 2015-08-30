@@ -29,8 +29,8 @@ public class EntityId implements Serializable, IDeserializationResolvable {
 		final Index externalIndex = index(index);
 		if (externalIndex != null) {
 			result = externalIndex.entityWithId(referencedEntityId);
-			if (result == null || !Utilities.eq(result.additionalEntityIdentificationToken(), referencedEntityToken))
-				if (referencedEntityToken != null)
+			if (result == null || !Utilities.eq(result.additionalEntityIdentificationToken(), referencedEntityToken)) {
+				if (referencedEntityToken != null) {
 					for (final IndexEntity e : externalIndex.entities()) {
 						final Object token = e.additionalEntityIdentificationToken();
 						if (e != null && referencedEntityToken.equals(token)) {
@@ -38,9 +38,11 @@ public class EntityId implements Serializable, IDeserializationResolvable {
 							break;
 						}
 					}
-		}
-		else
+				}
+			}
+		} else {
 			System.out.println(String.format("Warning: Failed to obtain index when resolving '%s' from '%s'", this.toString(), index.name()));
+		}
 		return result;
 	}
 }

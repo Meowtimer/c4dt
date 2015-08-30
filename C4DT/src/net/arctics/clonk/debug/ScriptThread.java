@@ -7,6 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugEvent;
+import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.model.IBreakpoint;
+import org.eclipse.debug.core.model.IStackFrame;
+import org.eclipse.debug.core.model.IThread;
+
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.MutableRegion;
 import net.arctics.clonk.c4script.Script;
@@ -15,14 +23,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.ProjectIndex;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.util.StreamUtil;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.DebugEvent;
-import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.model.IBreakpoint;
-import org.eclipse.debug.core.model.IStackFrame;
-import org.eclipse.debug.core.model.IThread;
 
 public class ScriptThread extends DebugElement implements IThread {
 
@@ -37,21 +37,25 @@ public class ScriptThread extends DebugElement implements IThread {
 	}
 
 	public Script findScript(final String path, final Index index, final Set<Index> alreadySearched) throws CoreException {
-		if (alreadySearched.contains(index))
+		if (alreadySearched.contains(index)) {
 			return null;
+		}
 		final Script script = index.findScriptByPath(path);
-		if (script != null)
+		if (script != null) {
 			return script;
+		}
 		alreadySearched.add(index);
-		if (index instanceof ProjectIndex)
+		if (index instanceof ProjectIndex) {
 			for (final IProject proj : ((ProjectIndex) index).nature().getProject().getReferencedProjects()) {
 				final ProjectIndex projIndex = ProjectIndex.get(proj);
 				if (projIndex != null) {
 					final Script _result = findScript(path, projIndex, alreadySearched);
-					if (_result != null)
+					if (_result != null) {
 						return _result;
+					}
 				}
 			}
+		}
 		return null;
 	}
 
@@ -81,8 +85,9 @@ public class ScriptThread extends DebugElement implements IThread {
 			if (stillToBeReused > 0 && stackFrames[stillToBeReused-1].getFunction().equals(funObj)) {
 				newStackFrames[i] = stackFrames[--stillToBeReused];
 				newStackFrames[i].setLine(line);
-			} else
+			} else {
 				newStackFrames[i] = new StackFrame(this, f != null ? f : fullSourcePath, line);
+			}
 		}
 		stackFrames = newStackFrames;
 	}
@@ -110,8 +115,9 @@ public class ScriptThread extends DebugElement implements IThread {
 			switch (read) {
 			case '\r':
 				newLine = true;
-				if (scanner.read() != '\n')
+				if (scanner.read() != '\n') {
 					scanner.unread();
+				}
 				break;
 			case '\n':
 				newLine = true;
@@ -123,8 +129,9 @@ public class ScriptThread extends DebugElement implements IThread {
 				region.setOffset(lineStart);
 				region.setLength(lineEnd-lineStart);
 				Function f = script.funcAt(region);
-				if (f == null)
+				if (f == null) {
 					f = script.funcAt(lineEnd);
+				}
 				mappingAsList.add(f);
 				lineStart = scanner.tell();
 				lineEnd = lineStart;
@@ -142,8 +149,9 @@ public class ScriptThread extends DebugElement implements IThread {
 		}
 		for (int x = line; line-x < 3; x--) {
 			final Function f = x >= 0 && x < map.length ? map[x] : null;
-			if (f != null)
+			if (f != null) {
 				return f;
+			}
 		}
 		return null;
 	}

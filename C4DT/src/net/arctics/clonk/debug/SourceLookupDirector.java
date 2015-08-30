@@ -19,11 +19,12 @@ public class SourceLookupDirector extends AbstractSourceLookupDirector {
 	public void initializeDefaults(final ILaunchConfiguration configuration) throws CoreException {
 		super.initializeDefaults(configuration);
 		final String projName = configuration.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
-		final IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
-		if (proj != null)
+		final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
+		if (project != null) {
 			this.setSourceContainers(new ISourceContainer[] {
-				new ProjectSourceContainer(proj, true)
+				new ProjectSourceContainer(project, true)
 			});
+		}
 	}
 	@Override
 	public Object getSourceElement(final Object element) {

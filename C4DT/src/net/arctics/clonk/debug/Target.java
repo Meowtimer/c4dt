@@ -11,13 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.FileExtension;
-import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.parser.BufferedScanner;
-import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
-import net.arctics.clonk.util.ICreate;
-
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -35,6 +28,13 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
+
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.FileExtension;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.parser.BufferedScanner;
+import net.arctics.clonk.ui.debug.ClonkDebugModelPresentation;
+import net.arctics.clonk.util.ICreate;
 
 /**
  * Debug target representing a running Clonk engine.
@@ -173,7 +173,7 @@ public class Target extends DebugElement implements IDebugTarget {
 		protected IStatus run(final IProgressMonitor monitor) {
 			addLineReceiveListener(this);
 			String event = ""; //$NON-NLS-1$
-			while (!isTerminated() && event != null)
+			while (!isTerminated() && event != null) {
 				try {
 					event = receive();
 					if (event != null && event.length() > 0) {
@@ -181,12 +181,14 @@ public class Target extends DebugElement implements IDebugTarget {
 						boolean processed = false;
 						synchronized (lineReceiveListeners) {
 							Outer: for (final ILineReceivedListener listener : lineReceiveListeners) {
-								if (!listener.active())
+								if (!listener.active()) {
 									continue;
+								}
 								switch (listener.lineReceived(event, Target.this)) {
 								case NotProcessedDontRemove:
-									if (listener.exclusive())
+									if (listener.exclusive()) {
 										break Outer;
+									}
 									break;
 								case ProcessedDontRemove:
 									processed = true;
@@ -201,8 +203,9 @@ public class Target extends DebugElement implements IDebugTarget {
 								}
 							}
 						}
-						if (!processed)
+						if (!processed) {
 							lostLines.offer(event);
+						}
 						if (listenerToRemove != null) {
 							removeLineReceiveListener(listenerToRemove);
 							reshuffleLines();
@@ -211,6 +214,7 @@ public class Target extends DebugElement implements IDebugTarget {
 				} catch (final IOException e) {
 					break;
 				}
+			}
 			terminated();
 			return Status.OK_STATUS;
 		}
@@ -230,18 +234,20 @@ public class Target extends DebugElement implements IDebugTarget {
 				send(Commands.SENDSTACKTRACE);
 				while (!isTerminated() && event != null) {
 					event = receive();
-					if (event != null && event.length() > 0)
-						if (event.equals(Commands.ENDSTACKTRACE))
+					if (event != null && event.length() > 0) {
+						if (event.equals(Commands.ENDSTACKTRACE)) {
 							break;
-						else if (event.startsWith(Commands.AT + " ")) { //$NON-NLS-1$
+						} else if (event.startsWith(Commands.AT + " ")) { //$NON-NLS-1$
 							if (stackTrace.size() > 512) {
 								System.out.println("Runaway stacktrace"); //$NON-NLS-1$
 								break;
-							} else
+							} else {
 								stackTrace.add(event.substring(Commands.AT.length()+1));
-						}
-						else
+							}
+						} else {
 							break;
+						}
+					}
 				}
 
 				stoppedWithStackTrace(stackTrace);
@@ -250,14 +256,17 @@ public class Target extends DebugElement implements IDebugTarget {
 					if (thread.getTopStackFrame() != null && thread.getTopStackFrame().getVariables() != null) {
 						final DebugVariable[] varArray = ((StackFrame)thread.getTopStackFrame()).getVariables();
 						final Map<String, DebugVariable> vars = new HashMap<String, DebugVariable>(varArray.length);
-						for (final DebugVariable var : varArray)
+						for (final DebugVariable var : varArray) {
 							vars.put(var.getName(), var);
+						}
 						for (final DebugVariable var : vars.values())
+						 {
 							send(String.format("%s %s", Commands.VAR, var.getName())); //$NON-NLS-1$
+						}
 						while (!isTerminated() && event != null && !vars.isEmpty()) {
 						//	System.out.println("missing " + vars.toString());
 							event = receive();
-							if (event != null && event.length() > 0)
+							if (event != null && event.length() > 0) {
 								if (event.startsWith(Commands.VAR)) {
 									event = event.substring(Commands.VAR.length());
 									final BufferedScanner scanner = new BufferedScanner(event);
@@ -275,6 +284,7 @@ public class Target extends DebugElement implements IDebugTarget {
 										}
 									}
 								}
+							}
 						}
 					}
 				} catch (final DebugException e) {
@@ -309,13 +319,15 @@ public class Target extends DebugElement implements IDebugTarget {
 
 	private void setBreakpoints() {
 		final IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(ClonkDebugModelPresentation.ID);
-		for (final IBreakpoint b : breakpoints)
+		for (final IBreakpoint b : breakpoints) {
 			try {
-				if (b.isEnabled())
+				if (b.isEnabled()) {
 					breakpointAdded(b);
+				}
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
+		}
 	}
 
 	private void stoppedWithStackTrace(final List<String> stackTrace) {
@@ -399,8 +411,9 @@ public class Target extends DebugElement implements IDebugTarget {
 	}
 
 	public void send(final String command, final ILineReceivedListener listener) {
-		if (listener != null)
+		if (listener != null) {
 			addLineReceiveListener(listener);
+		}
 		synchronized (socketWriter) {
 			System.out.println("Sending " + command + " to engine"); //$NON-NLS-1$ //$NON-NLS-2$
 			socketWriter.println(command);
@@ -423,13 +436,15 @@ public class Target extends DebugElement implements IDebugTarget {
 	public final String receive() throws IOException {
 		if (reshuffledLines != null) {
 			final String lost = reshuffledLines.poll();
-			if (lost != null)
+			if (lost != null) {
 				return lost;
+			}
 		}
 		String r = socketReader.readLine();
 		if (r != null) {
-			if (r.charAt(r.length()-1) == 0)
+			if (r.charAt(r.length()-1) == 0) {
 				r = r.substring(0, r.length()-1);
+			}
 			System.out.println("Got line from Clonk: " + r); //$NON-NLS-1$
 		}
 		return r;
@@ -465,23 +480,27 @@ public class Target extends DebugElement implements IDebugTarget {
 		final IPath relPath = res.getProjectRelativePath();
 		final ClonkProjectNature cpn = ClonkProjectNature.get(res);
 		final String scenSuffix = "." + cpn.index().engine().settings().canonicalToConcreteExtension().get(FileExtension.ScenarioGroup);
-		for (int i = relPath.segmentCount()-1; i >= 0; i--)
-			if (relPath.segment(i).endsWith(scenSuffix))
+		for (int i = relPath.segmentCount()-1; i >= 0; i--) {
+			if (relPath.segment(i).endsWith(scenSuffix)) {
 				return relPath.removeFirstSegments(i);
+			}
+		}
 		return relPath;
 	}
 
 	@Override
 	public void breakpointChanged(final IBreakpoint breakpoint, final IMarkerDelta delta) {
-		if (delta.getAttribute(IBreakpoint.ENABLED) != null)
+		if (delta.getAttribute(IBreakpoint.ENABLED) != null) {
 			breakpointAdded(breakpoint);
+		}
 	}
 
 	@Override
 	public void breakpointRemoved(final IBreakpoint breakpoint, final IMarkerDelta delta) {
 		try {
-			if (breakpoint.isEnabled())
+			if (breakpoint.isEnabled()) {
 				breakpointAdded(breakpoint);
+			}
 		} catch (final CoreException e) {
 			e.printStackTrace();
 		}

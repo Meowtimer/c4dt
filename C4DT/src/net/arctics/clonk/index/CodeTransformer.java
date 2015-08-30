@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import org.eclipse.core.runtime.Path;
+
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
@@ -47,8 +49,6 @@ import net.arctics.clonk.c4script.ast.Whitespace;
 import net.arctics.clonk.ini.DefinitionPack;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
-
-import org.eclipse.core.runtime.Path;
 
 /**
  * Helper class containing information about how to transform a Clonk project written for one engine to one consumable by another engine.
@@ -86,14 +86,16 @@ public class CodeTransformer extends CodeConverter {
 		private Extract extract(final ASTNode stmt) {
 			final BinaryOp op = as(stmt, BinaryOp.class);
 			final CallDeclaration cd = as(stmt, CallDeclaration.class);
-			if (op != null && op.operator() == Operator.Transform)
+			if (op != null && op.operator() == Operator.Transform) {
 				return new Extract (op.leftSide(), op.rightSide(), false);
-			if (op != null && op.operator() == Operator.TransformExhaustive)
+			}
+			if (op != null && op.operator() == Operator.TransformExhaustive) {
 				return new Extract (op.leftSide(), op.rightSide(), true);
-			else if (cd != null && cd.name().equals("Transform") && cd.params().length == 2)
+			} else if (cd != null && cd.name().equals("Transform") && cd.params().length == 2) {
 				return new Extract(cd.params()[0], cd.params()[1], false);
-			else
+			} else {
 				return null;
+			}
 		}
 		public CodeTransformation(final ASTNode stmt, final CodeTransformation chain) {
 			this.chain = chain;
@@ -102,8 +104,9 @@ public class CodeTransformer extends CodeConverter {
 				this.template = ASTNodeMatcher.prepareForMatching(tt.left);
 				this.transformation = ASTNodeMatcher.parsePlaceholders(tt.right);
 				this.exhaustive = tt.exhaustive;
-			} else
+			} else {
 				throw new IllegalArgumentException(String.format("'%s' is not a transformation statement", stmt.toString()));
+			}
 		}
 		public CodeTransformation(final ASTNode[] tuple, final int tupleElementIndex) {
 			this(tuple[tupleElementIndex], tuple.length > tupleElementIndex+1
@@ -125,11 +128,12 @@ public class CodeTransformer extends CodeConverter {
 				final Map<String, Object> matched = template().match(result);
 				if (matched != null) {
 					result = transformation().transform(matched, context);
-					if (!exhaustive)
+					if (!exhaustive) {
 						break;
-				}
-				else
+					}
+				} else {
 					break;
+				}
 			} while (true);
 			return result == expression ? null : result;
 		}
@@ -163,8 +167,9 @@ public class CodeTransformer extends CodeConverter {
 				final ASTNode targetNode = defPar != null ? defPar : objPar;
 				return (targetNode instanceof Whitespace || targetNode instanceof IntegerLiteral)
 					? c : new Sequence(targetNode, new MemberOperator(false, false, null, 0), c);
-			} else
+			} else {
 				return call;
+			}
 		}
 	}
 	private final Map<String, ObjParConversion> objParConversions;
@@ -175,42 +180,50 @@ public class CodeTransformer extends CodeConverter {
 		URL codeTransformations = null;
 		URL idMap = null;
 		final BiFunction<String[], String, String[]> subSeqToRight = (segments, startIndicator) -> {
-			for (int i = segments.length - 1; i >= 0; i--)
-				if (segments[i].equals(startIndicator))
+			for (int i = segments.length - 1; i >= 0; i--) {
+				if (segments[i].equals(startIndicator)) {
 					return Arrays.copyOfRange(segments, i+1, segments.length);
+				}
+			}
 			return null;
 		};
 		for (final URL f : files1) {
 			final String[] segments = f.getFile().split("/");
 			final String last = segments[segments.length-1];
 			String[] s;
-			if (last.equals("codeTransformations.c"))
+			if (last.equals("codeTransformations.c")) {
 				codeTransformations = f;
-			else if (last.equals("idMap.txt"))
+			} else if (last.equals("idMap.txt")) {
 				idMap = f;
-			else if ((s = subSeqToRight.apply(segments, "compatibility")) != null && !s[s.length-1].startsWith("."))
+			} else if ((s = subSeqToRight.apply(segments, "compatibility")) != null && !s[s.length-1].startsWith(".")) {
 				switch (s[s.length-1]) {
 				case FROM_REPO:
-					if (nullOrEmpty(targetEngine.settings().repositoryPath))
+					if (nullOrEmpty(targetEngine.settings().repositoryPath)) {
 						throw new IllegalStateException();
+					}
 					final File repoDir = new File(targetEngine.settings().repositoryPath);
 					lines(new StringReader(StreamUtil.stringFromURL(f))).forEach(repoFile -> {
 						final byte[] bytes = StreamUtil.bytesFromFile(new File(repoDir, "planet/" + repoFile));
-						if (bytes != null)
+						if (bytes != null) {
 							compatibilityFiles.put(repoFile, bytes);
+						}
 					});
 					break;
 				default:
 					final byte[] bytes = StreamUtil.bytesFromURL(f);
-					if (bytes != null)
+					if (bytes != null) {
 						compatibilityFiles.put(blockString("", "", "/", iterable(s)), bytes);
+					}
 				}
+			}
 		}
 		objParConversions = prepareObjParConversions();
-		if (codeTransformations != null)
+		if (codeTransformations != null) {
 			loadCodeTransformations(codeTransformations);
-		if (idMap != null)
+		}
+		if (idMap != null) {
 			loadIDMap(idMap);
+		}
 	}
 	private void addTransformationFromStatement(ASTNode stmt) {
 		try {
@@ -230,28 +243,33 @@ public class CodeTransformer extends CodeConverter {
 			final int objNdx = indexOfItemSatisfying(sf.parameters(), p -> p.name().equals("pObj"));
 			final int idNdx = indexOfItemSatisfying(sf.parameters(), p -> p.name().equals("idDef"));
 			final int diff = (objNdx != -1 ? - 1 : 0) - (idNdx != -1 ? 1 : 0);
-			if (diff == 0)
+			if (diff == 0) {
 				return null;
+			}
 			final Function tf = targetEngine.findLocalFunction(sf.name(), false);
-			if (tf == null || tf.numParameters() - diff != sf.numParameters())
+			if (tf == null || tf.numParameters() - diff != sf.numParameters()) {
 				return null;
+			}
 			return new ObjParConversion(sf, tf, objNdx, idNdx);
 		}).filter(f -> f != null).collect(Collectors.toMap(c -> c.sourceFunction.name(), identity()));
 	}
 	private void loadIDMap(final URL idMap) {
 		final String text = StreamUtil.stringFromURL(idMap);
-		if (text != null)
+		if (text != null) {
 			for (final String line : StringUtil.lines(new StringReader(text))) {
 				final String[] mapping = line.split("=");
-				if (mapping.length == 2)
+				if (mapping.length == 2) {
 					this.idMap.put(ID.get(mapping[0]), ID.get(mapping[1]));
+				}
 			}
+		}
 	}
 	private void loadCodeTransformations(final URL transformationsFile) {
 		try {
 			String text = StreamUtil.stringFromURL(transformationsFile);
-			if (text == null)
+			if (text == null) {
 				return;
+			}
 			final StringBuilder builder = new StringBuilder();
 			builder.append("func Transformations() {\n");
 			builder.append(text);
@@ -261,42 +279,48 @@ public class CodeTransformer extends CodeConverter {
 			final ScriptParser parser = new Standalone.Parser(text, script);
 			parser.parse();
 			final Function transformations = parser.script().findLocalFunction("Transformations", false);
-			if (transformations != null && transformations.body() != null)
+			if (transformations != null && transformations.body() != null) {
 				for (final ASTNode stmt : transformations.body().statements()) {
-					if (stmt instanceof Comment)
+					if (stmt instanceof Comment) {
 						continue;
+					}
 					addTransformationFromStatement(stmt);
 				}
+			}
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
 	}
 	public void apply(Map<String, Object> conf) {
 		final Map<?, ?> idMap = as(conf.getOrDefault("idMap", null), Map.class);
-		if (idMap != null)
+		if (idMap != null) {
 			idMap.forEach((key, value) -> {
 				final String target = value.toString();
 				final String nonConflict = targetEngine.findLocalDeclaration(target, Declaration.class) != null ? target + "_" : target;
 				this.idMap.put(ID.get(key.toString()), ID.get(nonConflict));
 			});
+		}
 	}
 	@Override
 	public ASTNode performConversion(ASTNode expression, Declaration declaration, ICodeConverterContext context) {
 		final ITransformer transformer = new ITransformer() {
 			@Override
 			public Object transform(final ASTNode prev, final Object prevT, ASTNode expression) {
-				if (expression == null)
+				if (expression == null) {
 					return null;
+				}
 				if (expression instanceof IDLiteral) {
 					final IDLiteral lit = (IDLiteral) expression;
 					final ID mapped = idMap().get(lit.literal());
-					if (mapped != null)
+					if (mapped != null) {
 						return new IDLiteral(mapped);
+					}
 				}
 				else if (expression instanceof AccessVar && (((AccessVar)expression).proxiedDefinition()) != null) {
 					final ID mapped = idMap().get(ID.get(expression.toString()));
-					if (mapped != null)
+					if (mapped != null) {
 						return new AccessVar(mapped.stringValue());
+					}
 				}
 				else if (expression instanceof DefinitionPack) {
 					final DefinitionPack dp = (DefinitionPack) expression;
@@ -312,7 +336,7 @@ public class CodeTransformer extends CodeConverter {
 						success = true;
 					}
 				}
-				if (!success)
+				if (!success) {
 					for (final CodeTransformer.CodeTransformation ct : transformations()) {
 						for (CodeTransformation c = ct; c != null; c = c.chain()) {
 							final ASTNode transformed = c.transform(expression, context);
@@ -321,17 +345,20 @@ public class CodeTransformer extends CodeConverter {
 								success = true;
 							}
 						}
-						if (success)
+						if (success) {
 							break;
+						}
 					}
+				}
 				return expression;
 			}
 		};
 		ASTNode node = as(transformer.transform(null, null, expression), ASTNode.class);
-		if (node != null)
+		if (node != null) {
 			try {
 				node = new Tidy(declaration.topLevelStructure(), 2).tidyExhaustive(node);
 			} catch (final CloneNotSupportedException e) {}
+		}
 		return node;
 	}
 }

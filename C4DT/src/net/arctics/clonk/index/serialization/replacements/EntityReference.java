@@ -10,16 +10,18 @@ public class EntityReference extends EntityId {
 	protected String referencedProjectName;
 	public EntityReference(final IndexEntity referencedEntity) {
 		super(referencedEntity);
-		if (referencedEntity != null && referencedEntity.index() != null)
+		if (referencedEntity != null && referencedEntity.index() != null) {
 			referencedProjectName = referencedEntity.index().name();
+		}
 	}
 	@Override
 	protected Index index(final Index context) {
 		if (referencedProjectName != null) {
 			final ClonkProjectNature nat = ClonkProjectNature.get(referencedProjectName);
 			return nat != null ? nat.index() : null;
-		} else
+		} else {
 			return null;
+		}
 	}
 	@Override
 	public String toString() {
