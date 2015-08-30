@@ -1,6 +1,7 @@
 package net.arctics.clonk;
 
 import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,8 +65,10 @@ import net.arctics.clonk.util.StringUtil;
  *
  */
 public class CLI implements IApplication, AutoCloseable {
+	
 	private static final String CLONK_RAGE = "ClonkRage";
 	private static final String OPEN_CLONK = "OpenClonk";
+	
 	private static class CLIFunction<T> extends Function {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final transient Method method;
@@ -73,7 +76,7 @@ public class CLI implements IApplication, AutoCloseable {
 		public Object invoke(final IEvaluationContext context) {
 			try {
 				return method.invoke(context.self(), context.arguments());
-			} catch (final IllegalArgumentException iae) {
+			} catch (final IllegalArgumentException illegalArgument) {
 				System.out.println(String.format("Function: %s; Passed: %s; Expected: %s",
 					method.getName(),
 					stream(context.arguments())
@@ -101,21 +104,28 @@ public class CLI implements IApplication, AutoCloseable {
 				.forEach(m -> script.addDeclaration(new CLIFunction<C>(script, m)));
 		}
 	}
+	
 	{ CLIFunction.register(Command.BASE, CLI.class); }
+	
 	public static void main(final String[] args) throws Exception {
 		try (final CLI cli = new CLI()) {
-			cli.mainImpl(args);
+			cli.actualMain(args);
 			System.exit(0);
 		} catch (final Exception e) {
 			System.out.println(e.getMessage());
 			System.exit(2);
 		}
 	}
+	
+	// those are public so they can be set via reflection!
 	public String engine;
 	public String engineConfigurationRoot;
+	
 	private final Scanner input = new Scanner(System.in);
+	
 	@Override
 	public void close() throws Exception { input.close(); }
+	
 	private int parseOptions(final String[] args) {
 		readSettingsFromHome();
 		for (int i = 0; i < args.length; i++) {
@@ -127,27 +137,31 @@ public class CLI implements IApplication, AutoCloseable {
 			if (a.startsWith("--")) {
 				final String option = a.substring(2);
 				++i;
-				if (i >= args.length)
+				if (i >= args.length) {
 					throw new IllegalArgumentException("Value required for " + option);
+				}
 				final String value = args[i];
 				try {
 					getClass().getField(option).set(this, value);
 				} catch (final Exception e) {
 					throw new IllegalArgumentException(String.format("Invalid value for '%s': '%s'", option, value));
 				}
-			} else
+			} else {
 				return i;
+			}
 		}
 		return args.length;
 	}
+	
 	private void readSettingsFromHome() {
 		final File settingsFile = new File(new File(System.getenv().get("HOME")), ".c4dt");
 		if (settingsFile.exists()) {
 			final String[] settings = StreamUtil.stringFromFile(settingsFile).split("\n");
 			for (final String s : settings) {
 				final String[] split = s.split("=");
-				if (split.length != 2)
+				if (split.length != 2) {
 					continue;
+				}
 				try {
 					getClass().getField(split[0]).set(this, split[1]);
 				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
@@ -156,12 +170,13 @@ public class CLI implements IApplication, AutoCloseable {
 			}
 		}
 	}
+	
 	/**
 	 * Main entry point. Will interpret arguments of the form --<option>=<value> as assignment to the instance field <option>
 	 * and the rest of the arguments as <method> <parameters...>
 	 * @param args Arguments to interpret. Passed from {@link #main(String[])}
 	 */
-	private void mainImpl(String[] args) {
+	private void actualMain(String[] args) {
 		final int methodIndex = parseOptions(args);
 		if (methodIndex == args.length) {
 			System.out.println("Missing command");
@@ -171,7 +186,7 @@ public class CLI implements IApplication, AutoCloseable {
 		final Method method = stream(getClass().getMethods())
 			.filter(m -> m.getName().equals(methodName) && m.getAnnotation(Callable.class) != null)
 			.findFirst().orElse(null);
-		if (method != null)
+		if (method != null) {
 			try {
 				initialize();
 				method.invoke(this,
@@ -186,43 +201,56 @@ public class CLI implements IApplication, AutoCloseable {
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		else
+		} else {
 			throw new IllegalArgumentException(String.format("Invalid command: '%s'", methodName));
+		}
 	}
+	
 	private void restore() {
-		oc = existingProj(OPEN_CLONK);
-		cr = existingProj(CLONK_RAGE);
+		oc = getExistingProject(OPEN_CLONK);
+		cr = getExistingProject(CLONK_RAGE);
 	}
-	public IProject existingProj(String projName) {
-		final IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
-		return proj.exists() ? proj : null;
+	
+	public IProject getExistingProject(String projName) {
+		return attempt(() -> {
+			final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
+			return project.exists() ? project : null;
+		});
 	}
+	
 	private void initialize() {
-		if (engine == null || engineConfigurationRoot == null)
+		if (engine == null || engineConfigurationRoot == null) {
 			throw new IllegalArgumentException("--engine and --engineConfigurationRoot command required");
+		}
 		Core.headlessInitialize(engineConfigurationRoot, engine);
 		restore();
 	}
+	
 	private class DoneToken implements AutoCloseable {
 		public DoneToken() { doneTokens.push(this); }
 		public boolean done = false;
 		@Override
 		public void close() {
-			if (doneTokens.peek() != this)
+			if (doneTokens.peek() != this) {
 				throw new UnsupportedOperationException();
-			else
+			} else {
 				doneTokens.pop();
+			}
 		}
 	}
+	
 	private final Stack<DoneToken> doneTokens = new Stack<>();
+	
 	@CommandFunction
 	public static void exit(Invocation context) {
 		((CLI)context.self()).exit();
 	}
+	
 	@Callable
 	public void exit() {
 		doneTokens.peek().done = true;
 	}
+	
 	/**
 	 * repl interface using c4script expressions
 	 */
@@ -232,29 +260,34 @@ public class CLI implements IApplication, AutoCloseable {
 			while (!done.done) {
 				final String command = input.nextLine();
 				final ExecutableScript script = Command.executableScriptFromCommand(command);
-				if (script != null) try {
-					final Object result = script.main().invoke(script.main().new Invocation(new Object[0], null, this));
-					if (result != null)
-						System.out.println(result.toString());
-				} catch (final Exception e) {
-					e.printStackTrace();
+				if (script != null) {
+					try {
+						final Object result = script.main().invoke(script.main().new Invocation(new Object[0], null, this));
+						if (result != null) {
+							System.out.println(result.toString());
+						}
+					} catch (final Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
 	}
+	
 	@Callable
 	public void interactive() {
 		try (final DoneToken done = new DoneToken()) {
 			while (!done.done && input.hasNextLine()) {
 				final String command = input.nextLine();
 				try {
-					mainImpl(command.split("\\s"));
+					actualMain(command.split("\\s"));
 				} catch (final Exception e) {
 					System.err.println(e.getMessage());
 				}
 			}
 		}
 	}
+	
 	@Callable
 	public void verifyScript(final String fileName) {
 		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
@@ -270,9 +303,11 @@ public class CLI implements IApplication, AutoCloseable {
 			e.printStackTrace();
 		}
 	}
+	
 	private static String readFile() {
 		return StreamUtil.stringFromInputStream(System.in);
 	}
+	
 	@Callable
 	public void printAST(final String fileName) throws ProblemException {
 		final String scriptText = fileName != null ? StreamUtil.stringFromFile(new File(fileName)) : readFile();
@@ -286,6 +321,7 @@ public class CLI implements IApplication, AutoCloseable {
 		parser.parse();
 		System.out.println(parser.script().printed());
 	}
+	
 	@Callable
 	public void c4script2cpp(final String fileName) throws ProblemException, IOException {
 		final String scriptText = fileName != null ? StreamUtil.stringFromFile(new File(fileName)) : readFile();
@@ -309,21 +345,27 @@ public class CLI implements IApplication, AutoCloseable {
 			CPPTemplate.render(parser.script().index(), parser.script(), output);
 		}
 	}
+	
 	@Callable
 	public void help(String on) {
 		System.out.println("I dunno");
 	}
+	
 	private IProject oc, cr;
+	
 	@Callable
 	public void setupWorkspace(String ocRepo, String crFolder) {
 		try {
-			if (ocRepo != null)
+			if (ocRepo != null) {
 				setupOCProject(ocRepo);
-			if (crFolder != null)
+			}
+			if (crFolder != null) {
 				setupCRProject(crFolder);
+			}
 		} catch (final CoreException e) { e.printStackTrace(); }
 		System.out.println("Set up workspace");
 	}
+	
 	@Callable
 	public void setupCRProject(String _crFolder) throws CoreException {
 		final String crFolder = resolvePath(new File(_crFolder)).toString();
@@ -333,8 +375,9 @@ public class CLI implements IApplication, AutoCloseable {
 		desc.setBuildSpec(new ICommand[0]);
 
 		cr = ResourcesPlugin.getWorkspace().getRoot().getProject(CLONK_RAGE);
-		if (cr.exists())
+		if (cr.exists()) {
 			cr.delete(true, true, npm);
+		}
 		cr.create(desc, npm);
 		cr.open(npm);
 		final String[] packs = new String[] {
@@ -370,6 +413,7 @@ public class CLI implements IApplication, AutoCloseable {
 		cr.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 		cr.build(IncrementalProjectBuilder.FULL_BUILD, npm);
 	}
+	
 	private void link(final IProject cr, String crFolder, String name, NullProgressMonitor npm) {
 		final IFolder linkedFolder = cr.getFolder(name);
 		try {
@@ -381,6 +425,7 @@ public class CLI implements IApplication, AutoCloseable {
 			e.printStackTrace();
 		}
 	}
+	
 	@Callable
 	public void setupOCProject(String ocRepo) throws CoreException {
 		final NullProgressMonitor npm = new NullProgressMonitor();
@@ -394,8 +439,9 @@ public class CLI implements IApplication, AutoCloseable {
 		ocEngine.saveSettings();
 
 		oc = ResourcesPlugin.getWorkspace().getRoot().getProject(OPEN_CLONK);
-		if (oc.exists())
+		if (oc.exists()) {
 			oc.delete(false, true, npm);
+		}
 		oc.create(desc, npm);
 		oc.open(npm);
 		oc.refreshLocal(IResource.DEPTH_INFINITE, npm);
@@ -416,12 +462,14 @@ public class CLI implements IApplication, AutoCloseable {
 		oc.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 		oc.build(IncrementalProjectBuilder.FULL_BUILD, npm);
 	}
+	
 	@Callable
 	public void linkFolderAsProject(String path, String projectName, String engineName) throws CoreException {
 		final NullProgressMonitor npm = new NullProgressMonitor();
 		final IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-		if (proj.exists())
+		if (proj.exists()) {
 			proj.delete(false, true, npm);
+		}
 
 		IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
 		desc.setLocation(new Path(resolvePath(new File(path)).toString()));
@@ -451,10 +499,13 @@ public class CLI implements IApplication, AutoCloseable {
 		proj.build(IncrementalProjectBuilder.CLEAN_BUILD, npm);
 		proj.build(IncrementalProjectBuilder.FULL_BUILD, npm);
 	}
+	
 	private File workingDir = new File(".");
+	
 	private File resolvePath(File path) {
 		return path.isAbsolute() ? path : new File(workingDir, path.toString());
 	}
+	
 	@Callable
 	public void run(String fileName) {
 		final File f = new File(fileName);
@@ -475,29 +526,34 @@ public class CLI implements IApplication, AutoCloseable {
 			}
 		};
 		final Function main = script.findFunction("Main");
-		if (main != null)
+		if (main != null) {
 			main.invoke(main.new Invocation(new Object[0], null, this));
+		}
 	}
+	
 	@Callable
 	public void convertProject(final String source, final String dest, Map<String, Object> conf) {
 		final ProjectConverter converter = new ProjectConverter(
 			ResourcesPlugin.getWorkspace().getRoot().getProject(source),
 			ResourcesPlugin.getWorkspace().getRoot().getProject(dest)
 		);
-		if (conf != null)
+		if (conf != null) {
 			converter.configuration().apply(conf);
+		}
 		converter.convert(new NullProgressMonitor());
 	}
+	
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
 		try {
-			mainImpl(Platform.getApplicationArgs());
+			actualMain(Platform.getApplicationArgs());
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return 2;
 		}
 		return EXIT_OK;
 	}
+	
 	@Callable
 	public void listFunctionsInBothEngineAndProject(String projectName) {
 		final ClonkProjectNature cpn = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
@@ -506,13 +562,15 @@ public class CLI implements IApplication, AutoCloseable {
 				gf.file().getParent().getName().equals("System.ocg") &&
 				gf.name().equals(efn.name())
 			).findFirst().orElse(null);
-			if (f != null)
+			if (f != null) {
 				System.out.println(f.name());
+			}
 		});
 	}
+	
 	@Callable
 	public Map<ID, ID> mapIDToName(String projectName, Map<?, ?> override) {
-		final ClonkProjectNature cpn = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
+		final ClonkProjectNature nature = ClonkProjectNature.get(ResourcesPlugin.getWorkspace().getRoot().getProject(projectName));
 		final Map<ID, ID> result = override != null
 			? override.entrySet().stream().collect(Collectors.toMap(
 				e -> ID.get(e.getKey().toString()),
@@ -521,7 +579,7 @@ public class CLI implements IApplication, AutoCloseable {
 			: new HashMap<>();
 		final Map<ID, ID> reverse = new HashMap<>();
 		result.forEach((key, value) -> reverse.put(value, key));
-		cpn.index().allDefinitions((Definition def) -> {
+		nature.index().allDefinitions((Definition def) -> {
 			if (!result.containsKey(def.id())) {
 				final String defName = StringUtil.rawFileName(def.definitionFolder().getName());
 				if (defName != null) {
@@ -537,6 +595,8 @@ public class CLI implements IApplication, AutoCloseable {
 		});
 		return result;
 	}
+	
 	@Override
 	public void stop() {}
+
 }

@@ -2,6 +2,8 @@ package net.arctics.clonk.command;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.ArrayUtil.arrayRange;
+import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.StringUtil.multiply;
 import static net.arctics.clonk.util.Utilities.block;
@@ -90,8 +92,9 @@ public class Command {
 	});
 
 	static {
-		for (final Class<?> c : Command.class.getDeclaredClasses())
+		for (final Class<?> c : Command.class.getDeclaredClasses()) {
 			registerCommandsFromClass(BASE, c);
+		}
 		registerCommandsFromClass(BASE, StaticTypingUtil.class);
 	}
 
@@ -102,27 +105,49 @@ public class Command {
 
 	/** Make methods from the given class which are annotated with CommandFunction available to scripts */
 	public static void registerCommandsFromClass(final Script script, final Class<?> classs) {
-		for (final Method m : classs.getMethods())
-			if (m.getAnnotation(CommandFunction.class) != null)
+		for (final Method m : classs.getMethods()) {
+			if (m.getAnnotation(CommandFunction.class) != null) {
 				addCommand(script, m);
+			}
+		}
 	}
 
 	/** Function which calls a java method */
 	private static class NativeCommandFunction extends Function {
+		
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+		
 		private final transient Method method;
+		private final transient int parametersCount;
+		private final transient boolean variadic;
+		
+		private Object[] suitifyArguments(Object[] arguments) {
+			if (arguments.length > parametersCount || (arguments.length == parametersCount && variadic)) {
+				return concat(
+					arrayRange(arguments, 0, parametersCount - 1, Object.class),
+					(Object)arrayRange(arguments, parametersCount - 1, arguments.length - (parametersCount - 1), Object.class)
+				);
+			} else if (arguments.length == parametersCount - 1 && variadic) {
+				return concat(arguments, (Object)(new Object[0]));
+			} else {
+				return arguments;
+			}
+		}
+		
 		@Override
 		public Object invoke(final IEvaluationContext context) {
-			final Object[] args = new Object[method.getParameterTypes().length];
-			args[0] = context;
-			final Object[] evaluatedArgs = stream(context.arguments()).map(ASTNode::evaluateVariable).toArray();
-			System.arraycopy(evaluatedArgs, 0, args, 1, context.arguments().length);
+			
+			final Object[] arguments = concat(
+				context,
+				suitifyArguments(stream(context.arguments()).map(ASTNode::evaluateVariable).toArray())
+			);
+			
 			try {
-				return method.invoke(context, args);
+				return method.invoke(context, arguments);
 			} catch (final IllegalArgumentException iae) {
 				System.out.println(String.format("Function: %s; Passed: %s; Expected: %s",
 					method.getName(),
-					stream(args)
+					stream(arguments)
 						.map(a -> a != null ? a.getClass().getSimpleName() : "null")
 						.collect(Collectors.joining(", ")),
 					stream(method.getParameterTypes())
@@ -136,18 +161,22 @@ public class Command {
 				return null;
 			}
 		}
+		
 		public NativeCommandFunction(final Script parent, final Method method) {
 			super(parent, FunctionScope.PUBLIC, method.getName());
 			this.method = method;
+			this.parametersCount = method.getParameterCount() - 1 /* context */;
+			this.variadic = method.isVarArgs();
 		}
 	}
 
-	/** Add a java method as a callbale script function */
+	/** Add a java method as a callable script function */
 	public static void addCommand(final Script script, final Method method) {
-		if (script.findLocalDeclaration(method.getName(), Function.class) == null)
+		if (script.findLocalDeclaration(method.getName(), Function.class) == null) {
 			script.addDeclaration(new NativeCommandFunction(script, method));
-		else
+		} else {
 			System.out.println(format("Skipping %s", method.getName()));
+		}
 	}
 
 	public static void addCommand(final Method method) {
@@ -159,10 +188,11 @@ public class Command {
 		final Class<?> c = obj instanceof Class<?> ? (Class<?>)obj : obj.getClass();
 		try {
 			final Field f = c.getField(name);
-			if (value instanceof Long && f.getType() == Integer.TYPE)
+			if (value instanceof Long && f.getType() == Integer.TYPE) {
 				value = ((Long)value).intValue();
-			else if (value instanceof String && f.getType().isEnum())
+			} else if (value instanceof String && f.getType().isEnum()) {
 				value = Enum.valueOf((Class<Enum>)f.getType(), (String)value);
+			}
 			f.set(obj, value);
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -170,9 +200,10 @@ public class Command {
 	}
 
 	public static class BaseCommands {
+	
 		@CommandFunction
-		public static void Log(final Object context, final String message) {
-			System.out.println(message);
+		public static void Log(final Object context, final String messageFormat, Object... formatArguments) {
+			System.out.println(String.format(messageFormat, formatArguments));
 		}
 
 		@CommandFunction
@@ -215,8 +246,9 @@ public class Command {
 		@CommandFunction
 		public static void WriteDescriptionsToFile(final Object context, final String writeToFile, final String engineName) throws FileNotFoundException, IOException {
 			final Engine engine = Core.instance().loadEngine(engineName);
-			if (engine != null)
+			if (engine != null) {
 				_WriteDescriptionsToFile(writeToFile, engine);
+			}
 		}
 
 		@CommandFunction
@@ -262,11 +294,13 @@ public class Command {
 			System.out.println("===Objects==="); //$NON-NLS-1$
 			index.allDefinitions(item -> System.out.println(item.toString()));
 			System.out.println("===Scripts==="); //$NON-NLS-1$
-			for (final Script script : index.scripts())
+			for (final Script script : index.scripts()) {
 				System.out.println(script.toString());
+			}
 			System.out.println("===Scenarios==="); //$NON-NLS-1$
-			for (final Scenario scen : index.scenarios())
+			for (final Scenario scen : index.scenarios()) {
 				System.out.println(scen.toString());
+			}
 		}
 
 		@CommandFunction
@@ -275,23 +309,26 @@ public class Command {
 		@CommandFunction
 		public static void ReloadIndex(final Object context, final String projectName) {
 			final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
-			if (nature != null)
+			if (nature != null) {
 				nature.reloadIndex();
+			}
 		}
 
 		@CommandFunction
 		public static void PrintHashCodes(final Object context, final String projectName) {
 			final ClonkProjectNature nature = ClonkProjectNature.get(projectName);
 			final Map<Integer, Declaration> m = new HashMap<>();
-			if (nature != null)
+			if (nature != null) {
 				nature.index().allScripts(item -> {
 					System.out.println(item.toString());
 					for (final Declaration d : item.subDeclarations(nature.index(), DeclMask.ALL)) {
-						if (m.containsKey(d.hashCode()))
+						if (m.containsKey(d.hashCode())) {
 							System.out.println(String.format("\tconflict:%d", d.hashCode()));
+						}
 						m.put(d.hashCode(), d);
 					}
 				});
+			}
 		}
 
 		@CommandFunction
@@ -301,8 +338,9 @@ public class Command {
 				public int count(final ASTNode node) {
 					if (node != null) {
 						result++;
-						for (final ASTNode sn : node.subElements())
+						for (final ASTNode sn : node.subElements()) {
 							count(sn);
+						}
 					}
 					return result;
 				}
@@ -342,20 +380,23 @@ public class Command {
 					final ASTNode[] subs = node.subElements();
 					try {
 						writer.append(multiply("\t", depth));
-						if (node instanceof Declaration)
+						if (node instanceof Declaration) {
 							writer.append(String.format("%s (%s)", ((Declaration) node).name(), node.getClass().getSimpleName()));
-						else if (subs.length == 0)
+						} else if (subs.length == 0) {
 							writer.append(node.printed());
-						else
+						} else {
 							writer.append(node.getClass().getSimpleName());
+						}
 						writer.append('\n');
 					} catch (final Exception e) {
 						return TraversalContinuation.Cancel;
 					}
 					depth++;
-					for (final ASTNode s : subs)
-						if (s != null)
+					for (final ASTNode s : subs) {
+						if (s != null) {
 							s.traverse(this, context);
+						}
+					}
 					depth--;
 					return TraversalContinuation.SkipSubElements;
 				}
@@ -384,11 +425,13 @@ public class Command {
 				s.addDeclaration(declaration);
 				if (declaration instanceof Function) {
 					final Function f = (Function)declaration;
-					if (doc.parameters != null)
+					if (doc.parameters != null) {
 						f.setParameters(doc.parameters);
+					}
 				}
-				if (doc.returnType != null && declaration instanceof ITypeable)
+				if (doc.returnType != null && declaration instanceof ITypeable) {
 					((ITypeable)declaration).forceType(doc.returnType);
+				}
 				System.out.println(declaration.printed());
 			}
 		}
