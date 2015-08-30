@@ -615,6 +615,7 @@ static const int C4SMT_Echo;
 static const int C4SMT_Equalizer;
 
 global func bool ChangeSoundModifier(proplist modifier_props, bool release);
+global func bool SetGlobalSoundModifier(proplist modifier_props, int at_player);
 
 global func int Sqrt(int value);
 global func bool StartScriptProfiler(id definition_script);
