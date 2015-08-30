@@ -1,1 +1,2 @@
-$ECLIPSE_HOME/eclipse -application net.arctics.clonk.CLI -data . -nosplash $*
+#!/bin/sh
+java net.arctics.clonk.CLIEntry repl;

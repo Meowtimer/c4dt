@@ -14,22 +14,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4script.SystemScript;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.ini.IniUnit;
-import net.arctics.clonk.landscapescript.LandscapeScript;
-import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.stringtbl.StringTbl;
-import net.arctics.clonk.util.APIReflection;
-import net.arctics.clonk.util.FolderStorageLocation;
-import net.arctics.clonk.util.IStorageLocation;
-import net.arctics.clonk.util.PathUtil;
-import net.arctics.clonk.util.ReadOnlyIterator;
-import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.UI;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -52,6 +36,22 @@ import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
+
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4script.SystemScript;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.ini.IniUnit;
+import net.arctics.clonk.landscapescript.LandscapeScript;
+import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.stringtbl.StringTbl;
+import net.arctics.clonk.util.APIReflection;
+import net.arctics.clonk.util.FolderStorageLocation;
+import net.arctics.clonk.util.IStorageLocation;
+import net.arctics.clonk.util.PathUtil;
+import net.arctics.clonk.util.ReadOnlyIterator;
+import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.UI;
 
 /**
  * The core of the plugin. The singleton instance of this class stores various global things, like engine objects and preferences.
@@ -154,11 +154,13 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 		// react to active engine being changed
 		getPreferenceStore().addPropertyChangeListener(event -> {
-			if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE))
+			if (event.getProperty().equals(ClonkPreferences.ACTIVE_ENGINE)) {
 				setActiveEngineByName(ClonkPreferences.value(ClonkPreferences.ACTIVE_ENGINE));
-			else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID))
-				for (final Engine e : loadedEngines())
+			} else if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
+				for (final Engine e : loadedEngines()) {
 					e.loadDeclarations();
+				}
+			}
 		});
 	}
 
@@ -181,20 +183,24 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		// get built-in engine definitions
 		for (final Enumeration<String> paths = getBundle().getEntryPaths("res/engines"); paths.hasMoreElements();) { //$NON-NLS-1$
 			final String engineName = engineNameFromPath(paths.nextElement());
-			if (engineName != null)
+			if (engineName != null) {
 				result.add(engineName);
+			}
 		}
 		// get engine definitions from workspace
 		final File[] workspaceEngines = workspaceStorageLocationForEngines().toFile().listFiles();
-		if (workspaceEngines != null)
+		if (workspaceEngines != null) {
 			for (final File wEngine : workspaceEngines) {
 				// only accepting folders should be sufficient
-				if (!wEngine.isDirectory())
+				if (!wEngine.isDirectory()) {
 					continue;
+				}
 				final String engineName = engineNameFromPath(new Path(wEngine.getAbsolutePath()).toString());
-				if (engineName != null && !result.contains(engineName))
+				if (engineName != null && !result.contains(engineName)) {
 					result.add(engineName);
+				}
 			}
+		}
 		return result;
 	}
 
@@ -205,26 +211,30 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	public void reloadEngines() {
 		final String[] ens = loadedEngines.keySet().toArray(new String[loadedEngines.keySet().size()]);
 		loadedEngines.clear();
-		for (final String e : ens)
+		for (final String e : ens) {
 			loadEngine(e);
+		}
 	}
 
 	public Engine loadEngine(final String engineName) {
-		if (engineName == null || engineName.equals("")) //$NON-NLS-1$
+		if (engineName == null || engineName.equals("")) {
 			return null;
+		}
 		synchronized (loadedEngines) {
 			final Engine loaded = loadedEngines.get(engineName);
-			if (loaded != null)
+			if (loaded != null) {
 				return loaded;
+			}
 			final IStorageLocation[] locations = getBundle() != null
 				// bundle given; assume the usual storage locations (workspace and plugin bundle contents) are present
 				? storageLocations(engineName)
 				// no bundle? seems to run headlessly
 				: headlessStorageLocations(engineName);
-			final Engine ngn = Engine.loadFromStorageLocations(locations);
-			if (ngn != null)
-				loadedEngines.put(engineName, ngn);
-			return ngn;
+			final Engine engine = Engine.loadFromStorageLocations(locations);
+			if (engine != null) {
+				loadedEngines.put(engineName, engine);
+			}
+			return engine;
 		}
 	}
 
@@ -255,11 +265,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				public void collectURLsOfContainer(String containerPath, final boolean recurse, final List<URL> listToAddTo) {
 					final Enumeration<URL> urls = Core.instance().getBundle().findEntries(String.format("res/engines/%s/%s", engineName, containerPath), "*.*", recurse); //$NON-NLS-1$ //$NON-NLS-2$
 					containerPath = name() + "/" + containerPath;
-					if (urls != null)
+					if (urls != null) {
 						while (urls.hasMoreElements()) {
 							final URL url = urls.nextElement();
 							PathUtil.addURLIfNotDuplicate(containerPath, url, listToAddTo);
 						}
+					}
 				};
 				@Override
 				public File toFolder() {
@@ -294,8 +305,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		IPath path = workspaceStorageLocationForEngines();
 		path = path.append(String.format("%s", engineName));
 		final File dir = path.toFile();
-		if (!dir.exists())
+		if (!dir.exists()) {
 			dir.mkdir();
+		}
 		return path;
 	}
 
@@ -372,8 +384,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		// Already exists?
 		final ImageRegistry reg = getImageRegistry();
 		Image img = reg.get(iconName);
-		if (img != null)
+		if (img != null) {
 			return img;
+		}
 
 		// Create
 		final ImageDescriptor descriptor = iconImageDescriptorFor(iconName);
@@ -383,8 +396,9 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	public ImageDescriptor iconImageDescriptorFor(final String iconName) {
 		ImageDescriptor descriptor = imageDescriptorFor("icons/" + iconName + ".png"); //$NON-NLS-1$ //$NON-NLS-2$
-		if(descriptor == null)
+		if(descriptor == null) {
 			descriptor = ImageDescriptor.getMissingImageDescriptor();
+		}
 		return descriptor;
 	}
 
@@ -403,23 +417,27 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		case ISaveContext.PROJECT_SAVE:
 			{
 				final ClonkProjectNature cpn = ClonkProjectNature.get(context.getProject());
-				if (cpn != null)
+				if (cpn != null) {
 					cpn.saveIndex();
+				}
 			}
 			break;
 		case ISaveContext.SNAPSHOT:
 		case ISaveContext.FULL_SAVE:
 			rememberCurrentVersion();
-			for (final Engine engine : loadedEngines.values())
+			for (final Engine engine : loadedEngines.values()) {
 				engine.saveSettings();
-			for (final IProject project : ClonkProjectNature.clonkProjectsInWorkspace())
+			}
+			for (final IProject project : ClonkProjectNature.clonkProjectsInWorkspace()) {
 				try {
 					final ClonkProjectNature cpn = ClonkProjectNature.get(project);
-					if (cpn != null)
+					if (cpn != null) {
 						cpn.saveIndex();
+					}
 				} catch (final Exception e) {
 					UI.informAboutException(Messages.ErrorWhileSavingIndex, e, project.getName());
 				}
+			}
 			break;
 		}
 	}
@@ -482,11 +500,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 				return null;
 			}
 		});
-		if (document == null)
+		if (document == null) {
 			return null;
+		}
 		try {
 			final T result = action.run(document);
-			if (save)
+			if (save) {
 				synchronized (provider) {
 					try {
 						//textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
@@ -495,6 +514,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 						out.println(format("Failed to save %s: %s", file.getFullPath(), e.getMessage()));
 					}
 				}
+			}
 			return result;
 		} finally {
 			synchronized (provider) {
