@@ -1,3 +1,8 @@
+2.1.0:
+-Non-GUI way to specify per-project-engine path
+-Outline sort order: Functions, Variables, no sorting of functions by visibility. Function nodes don't get automatically expanded
+2.0.3:
+-???
 2.0.2:
 -Differentiate between regular locals and locals created by assigning a property - the latter ones always require qualification and thus do not hide definitions with the same name as the assigned local
 2.0.1:
