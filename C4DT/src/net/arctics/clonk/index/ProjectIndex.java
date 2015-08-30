@@ -4,6 +4,12 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.Structure;
@@ -14,12 +20,6 @@ import net.arctics.clonk.c4script.typing.Typing;
 import net.arctics.clonk.util.ObjectFinderVisitor;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Path;
 
 /**
  * A {@link Index} geared towards storing information about Eclipse Clonk projects.<br\>
@@ -84,18 +84,23 @@ public class ProjectIndex extends Index {
 					return !item.refreshDefinitionFolderReference(project);
 				}
 			});
-			for (final Scenario scenario : scenarios())
-				if (!scenario.refreshDefinitionFolderReference(project))
+			for (final Scenario scenario : scenarios()) {
+				if (!scenario.refreshDefinitionFolderReference(project)) {
 					stuffToBeRemoved.add(scenario);
-			for (final Script script : scripts())
+				}
+			}
+			for (final Script script : scripts()) {
 				if (script instanceof SystemScript) {
 					final SystemScript standalone = (SystemScript) script;
-					if (!standalone.refreshFileReference(project))
+					if (!standalone.refreshFileReference(project)) {
 						stuffToBeRemoved.add(standalone);
+					}
 				}
+			}
 			// purge objects that seem to be non-existent
-			for (final Script s : stuffToBeRemoved)
+			for (final Script s : stuffToBeRemoved) {
 				this.removeScript(s);
+			}
 		}
 	}
 
@@ -114,23 +119,26 @@ public class ProjectIndex extends Index {
 			final IResource res = findScriptFileMatchingPath(path);
 			if (res != null) {
 				final Script result = Utilities.scriptForResource(res);
-				if (result != null)
+				if (result != null) {
 					return result;
+				}
 			}
 			return super.findScriptByPath(pathString);
 		}
 	}
-	
+
 	private IResource findScriptFileMatchingPath(final Path path) {
 		final IResource perfect = nature().getProject().findMember(path);
-		if (perfect != null)
+		if (perfect != null) {
 			return perfect;
+		}
 		for (final Scenario s : scenarios()) {
 			final IContainer scenarioFolder = s.definitionFolder();
 			if (scenarioFolder != null && path.segment(0).equals(scenarioFolder.getName())) {
 				final IResource res = scenarioFolder.findMember(path.removeFirstSegments(1));
-				if (res != null)
+				if (res != null) {
 					return res;
+				}
 			}
 		}
 		return null;
@@ -157,8 +165,9 @@ public class ProjectIndex extends Index {
 			@SuppressWarnings("unchecked")
 			@Override
 			public boolean visit(final IResource resource) throws CoreException {
-				if (!resource.getName().equals(fileName))
+				if (!resource.getName().equals(fileName)) {
 					return true;
+				}
 				final Structure s = Structure.pinned(resource, create, false);
 				if (s != null && cls.isAssignableFrom(s.getClass()) && s.name().equals(name)) {
 					result = (T) s;
@@ -168,7 +177,7 @@ public class ProjectIndex extends Index {
 			}
 		};
 		final List<T> r = new LinkedList<T>();
-		for (final Index i : relevantIndexes())
+		for (final Index i : relevantIndexes()) {
 			if (i instanceof ProjectIndex) {
 				finder.reset();
 				try {
@@ -177,17 +186,20 @@ public class ProjectIndex extends Index {
 					e.printStackTrace();
 					continue;
 				}
-				if (finder.result() != null)
+				if (finder.result() != null) {
 					r.add(finder.result());
+				}
 			}
+		}
 		return Utilities.pickNearest(r, pivot, null);
 	}
 
 	public static ProjectIndex fromResource(final IResource res) {
 		if (res != null) {
 			final ClonkProjectNature nature = ClonkProjectNature.get(res);
-			if (nature != null)
+			if (nature != null) {
 				return nature.index();
+			}
 		}
 		return null;
 	}
