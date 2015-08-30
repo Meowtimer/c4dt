@@ -70,14 +70,16 @@ public class EngineLaunch implements ILaunchesListener2 {
 
 	public static void scriptsBuilt(final Script[] scripts) {
 		synchronized (list) {
-			if (list.isEmpty())
+			if (list.isEmpty()) {
 				return;
+			}
 		}
 		stream(scripts).forEach(s -> {
 			final Scenario scen = s.scenario();
 			final EngineLaunch l = scen != null ? get(scen.resource().getFullPath()) : null;
-			if (l != null)
+			if (l != null) {
 				l.eraseTypeAnnotations(s);
+			}
 		});
 	}
 
@@ -114,23 +116,25 @@ public class EngineLaunch implements ILaunchesListener2 {
 
 	private void register() throws MultipleLaunchesException {
 		synchronized (list) {
-			if (list.get(scenarioFolderPath) != null)
+			if (list.get(scenarioFolderPath) != null) {
 				throw new MultipleLaunchesException(new Status(IStatus.ERROR, Core.PLUGIN_ID,
 					String.format("Already launched: %s", scenarioFolderPath)));
-			else
+			} else {
 				list.put(scenarioFolderPath, this);
+			}
 		}
 	}
 
 	public File maybeTempFolder() {
 		File tf = null;
-		if (nature.settings().typing.allowsNonParameterAnnotations())
+		if (nature.settings().typing.allowsNonParameterAnnotations()) {
 			try {
 				tf = Files.createTempDirectory("c4dt").toFile().getCanonicalFile(); //$NON-NLS-1$
 				StaticTypingUtil.mirrorDirectoryWithTypingAnnotationsRemoved(StaticTypingUtil.toFile(nature.getProject()), tf, true);
 			} catch (final IOException e) {
 				e.printStackTrace();
 			}
+		}
 		return tf;
 	}
 
@@ -228,8 +232,9 @@ public class EngineLaunch implements ILaunchesListener2 {
 		if (ownLaunchTerminated) {
 			DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
 			try {
-				if (tempFolder != null)
+				if (tempFolder != null) {
 					Utilities.removeRecursively(tempFolder);
+				}
 			} catch (final Exception e) {}
 		}
 	}
@@ -240,29 +245,31 @@ public class EngineLaunch implements ILaunchesListener2 {
 			final File workDirectory = engineFile.getParentFile();
 
 			// Progress
-			if (monitor.isCanceled())
+			if (monitor.isCanceled()) {
 				return;
+			}
 			monitor.worked(1);
 			monitor.subTask(Messages.StartingClonkEngine);
 
 			// Run the engine
 			try {
-				if (mode.equals(ILaunchManager.DEBUG_MODE) && scenario != null && !scenario.engine().settings().supportsDebugging)
+				if (mode.equals(ILaunchManager.DEBUG_MODE) && scenario != null && !scenario.engine().settings().supportsDebugging) {
 					Utilities.abort(IStatus.ERROR,
 							String.format(Messages.EngineDoesNotSupportDebugging, scenario.engine().name()));
-				else {
+				} else {
 					final Process process = new ProcessBuilder(arguments()).directory(workDirectory).start();
 					final Map<String, String> processAttributes = new HashMap<String, String>();
 					processAttributes.put(IProcess.ATTR_PROCESS_TYPE, "clonkEngine"); //$NON-NLS-1$
 					processAttributes.put(IProcess.ATTR_PROCESS_LABEL, scenarioFolder.getProjectRelativePath().toOSString());
 					final IProcess p = DebugPlugin.newProcess(launch, process, configuration.getName(), processAttributes);
-					if (mode.equals(ILaunchManager.DEBUG_MODE))
+					if (mode.equals(ILaunchManager.DEBUG_MODE)) {
 						try {
 							final IDebugTarget target = new Target(launch, p, ClonkLaunchConfigurationDelegate.DEFAULT_DEBUG_PORT, scenarioFolder);
 							launch.addDebugTarget(target);
 						} catch (final Exception e) {
 							e.printStackTrace();
 						}
+					}
 				}
 			} catch (final IOException e) {
 				Utilities.abort(IStatus.ERROR, Messages.CouldNotStartEngine, e);
@@ -273,14 +280,15 @@ public class EngineLaunch implements ILaunchesListener2 {
 	}
 
 	private void eraseTypeAnnotations(final Script script) {
-		if (tempFolder == null)
+		if (tempFolder == null) {
 			return;
+		}
 		final String purged = StaticTypingUtil.eraseTypeAnnotations(script);
 		if (purged != null) {
 			final IResource res = script.file();
 			final List<String> breadcrumb = new LinkedList<>();
 			breadcrumb.add(res.getName());
-			for (IContainer c = res.getParent(); c != null; c = c.getParent())
+			for (IContainer c = res.getParent(); c != null; c = c.getParent()) {
 				if (c == nature.getProject()) {
 					final File dest = new File(tempFolder, StringUtil.blockString("", "", File.separator, breadcrumb));
 					try {
@@ -289,8 +297,10 @@ public class EngineLaunch implements ILaunchesListener2 {
 						e.printStackTrace();
 					}
 					break;
-				} else
+				} else {
 					breadcrumb.add(0, c.getName());
+				}
+			}
 		}
 	}
 

@@ -10,11 +10,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -357,16 +359,35 @@ public abstract class Utilities {
 	}
 
 	public static <T> Stream<T> walk(T start, Predicate<T> condition, Function<T, T> next) {
-		T s;
-		final LinkedList<T> l = new LinkedList<>();
-		for (s = start; condition.test(s); s = next.apply(s)) {
-			l.add(s);
-		}
-		return l.stream();
+		return StreamSupport.stream(new Spliterator<T>() {
+			
+			private T current = start;
+			
+			@Override
+			public boolean tryAdvance(Consumer<? super T> action) {
+				if (current != null) {
+					action.accept(current);
+					do {
+						current = next.apply(current);
+					} while (current != null && !condition.test(current));
+					return true;
+				} else {
+					return false;
+				}
+			}
+
+			@Override
+			public Spliterator<T> trySplit() { return null; }
+			@Override
+			public long estimateSize() { return 0; }
+			@Override
+			public int characteristics() { return Spliterator.IMMUTABLE|Spliterator.NONNULL; }
+
+		}, false);
 	}
 
 	public static <T> Stream<T> walk(T start, Function<T, T> next) {
-		return walk(start, i -> i != null, next);
+		return walk(start, quak -> true, next);
 	}
 
 	public static <T> T synchronizing(Object lock, Supplier<T> supplier) {
