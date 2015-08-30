@@ -794,7 +794,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			private void actualVisit(final boolean ownedFunction, final ASTNode[] statements, final TypeVariable[] callTypes) throws ProblemException {
 				if (ownedFunction) {
-					for (TypeVariable callType : callTypes) {
+					for (final TypeVariable callType : callTypes) {
 						callType.apply(false);
 					}
 				}

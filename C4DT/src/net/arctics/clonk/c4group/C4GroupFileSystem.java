@@ -104,15 +104,19 @@ public class C4GroupFileSystem extends FileSystem {
 	private void purgeDeadEntries() {
 		synchronized (rootGroups) {
 			List<File> markedForDeletion = null;
-			for (final Map.Entry<File, WeakReference<C4Group>> entry : rootGroups.entrySet())
+			for (final Map.Entry<File, WeakReference<C4Group>> entry : rootGroups.entrySet()) {
 				if (entry.getValue().get() == null) {
-					if (markedForDeletion == null)
+					if (markedForDeletion == null) {
 						markedForDeletion = new LinkedList<File>();
+					}
 					markedForDeletion.add(entry.getKey());
 				}
-			if (markedForDeletion != null)
-				for (final File f : markedForDeletion)
+			}
+			if (markedForDeletion != null) {
+				for (final File f : markedForDeletion) {
 					rootGroups.remove(f);
+				}
+			}
 		}
 	}
 
@@ -152,8 +156,8 @@ public class C4GroupFileSystem extends FileSystem {
 		final File file = new File(groupFilePath);
 
 		class GroupAndFile {
-			public C4Group group;
-			public File file;
+			public final C4Group group;
+			public final File file;
 			public GroupAndFile(C4Group group, File file) {
 				super();
 				this.group = group;
@@ -171,21 +175,22 @@ public class C4GroupFileSystem extends FileSystem {
 				final File physical = walk(file, f -> f != null && !f.exists(), f -> f.getParentFile())
 					.reduce((p, n) -> n)
 					.orElse(file);
-				if (physical != null && !physical.isDirectory())
+				if (physical != null && !physical.isDirectory()) {
 					synchronized (rootGroups) {
 						final WeakReference<C4Group> ref = rootGroups.get(physical);
 						final C4Group existingRootGroup = ref != null ? ref.get() : null;
 						final C4Group g = existingRootGroup != null ? existingRootGroup : readRootGroup(physical);
 						return new GroupAndFile(g, physical);
 					}
-				else if (file.isDirectory())
+				} else if (file.isDirectory()) {
 					synchronized (rootGroups) {
 						final C4Group g = new C4GroupUncompressed(null, file.getName(), file);
 						rootGroups.put(file, new WeakReference<C4Group>(g));
 						return new GroupAndFile(g, file);
 					}
-				else
+				} else {
 					return null;
+				}
 			});
 
 		return

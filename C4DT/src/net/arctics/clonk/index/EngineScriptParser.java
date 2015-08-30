@@ -19,13 +19,13 @@ import net.arctics.clonk.util.LineNumberObtainer;
 final class EngineScriptParser extends ScriptParser {
 
 	private final URL url;
-	private final LineNumberObtainer lno;
+	private final LineNumberObtainer lineNumberObtainer;
 	private boolean firstMessage = true;
 
 	EngineScriptParser(final String engineScript, final Script script, final IFile scriptFile, final URL url) {
 		super(engineScript, script, scriptFile);
 		this.url = url;
-		this.lno = new LineNumberObtainer(engineScript);
+		this.lineNumberObtainer = new LineNumberObtainer(engineScript);
 	}
 
 	@Override
@@ -39,8 +39,8 @@ final class EngineScriptParser extends ScriptParser {
 		System.out.println(String.format(
 			"%s @(%d, %d)", //$NON-NLS-1$
 			code.makeErrorString(args),
-			lno.obtainLineNumber(errorStart),
-			lno.obtainCharNumberInObtainedLine()
+			lineNumberObtainer.obtainLineNumber(errorStart),
+			lineNumberObtainer.obtainCharNumberInObtainedLine()
 		));
 		super.marker(code, errorStart, errorEnd, flags, severity, args);
 	}
@@ -56,4 +56,5 @@ final class EngineScriptParser extends ScriptParser {
 
 	@Override
 	public Variable newVariable(final Scope scope, final String varName) { return new EngineVariable(scope, varName); }
+	
 }

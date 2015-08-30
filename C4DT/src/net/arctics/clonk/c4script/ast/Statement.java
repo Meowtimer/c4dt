@@ -47,9 +47,10 @@ public class Statement extends ASTNode implements Cloneable {
 		public void applyAttachment(final Attachment.Position position, final ASTNodePrinter builder, final int depth) {
 			switch (position) {
 			case Pre:
-				for (int i = 0; i < num; i++)
+				for (int i = 0; i < num; i++) {
 					//printIndent(builder, depth);
 					builder.append("\n");
+				}
 				Conf.printIndent(builder, depth);
 				break;
 			default:
@@ -63,26 +64,32 @@ public class Statement extends ASTNode implements Cloneable {
 	private List<Attachment> attachments;
 
 	public void addAttachment(final Attachment attachment) {
-		if (attachments == null)
+		if (attachments == null) {
 			attachments = new LinkedList<Attachment>();
+		}
 		attachments.add(attachment);
-		if (attachment instanceof ASTNode)
+		if (attachment instanceof ASTNode) {
 			((ASTNode) attachment).setParent(this);
+		}
 	}
 
 	public void addAttachments(final Collection<? extends Attachment> attachmentsToAdd) {
-		for (final Attachment a : attachmentsToAdd)
+		for (final Attachment a : attachmentsToAdd) {
 			addAttachment(a);
+		}
 	}
 
 	public List<Attachment> attachments() { return attachments; }
 
 	@SuppressWarnings("unchecked")
 	public <T extends Attachment> T attachmentOfType(final Class<T> cls) {
-		if (attachments != null)
-			for (final Attachment a : attachments)
-				if (cls.isAssignableFrom(a.getClass()))
+		if (attachments != null) {
+			for (final Attachment a : attachments) {
+				if (cls.isAssignableFrom(a.getClass())) {
 					return (T) a;
+				}
+			}
+		}
 		return null;
 	}
 
@@ -92,8 +99,9 @@ public class Statement extends ASTNode implements Cloneable {
 
 	public void setInlineComment(final Comment inlineComment) {
 		final Comment old = inlineComment();
-		if (old != null)
+		if (old != null) {
 			attachments.remove(old);
+		}
 		addAttachment(inlineComment);
 	}
 
@@ -104,16 +112,20 @@ public class Statement extends ASTNode implements Cloneable {
 
 	@Override
 	public void printPrefix(final ASTNodePrinter builder, final int depth) {
-		if (attachments != null)
-			for (final Attachment a : attachments)
+		if (attachments != null) {
+			for (final Attachment a : attachments) {
 				a.applyAttachment(Attachment.Position.Pre, builder, depth);
+			}
+		}
 	}
 
 	@Override
 	public void printSuffix(final ASTNodePrinter builder, final int depth) {
-		if (attachments != null)
-			for (final Attachment a : attachments)
+		if (attachments != null) {
+			for (final Attachment a : attachments) {
 				a.applyAttachment(Attachment.Position.Post, builder, depth);
+			}
+		}
 	}
 
 	public static final Statement NULL_STATEMENT = new Statement() {
@@ -126,10 +138,11 @@ public class Statement extends ASTNode implements Cloneable {
 
 	@Override
 	protected ASTNode[] traversalSubElements() {
-		if (attachments != null)
+		if (attachments != null) {
 			return concat(super.traversalSubElements(), filter(attachments.toArray(), ASTNode.class));
-		else
+		} else {
 			return super.traversalSubElements();
+		}
 	}
 	
 	@Override
@@ -137,16 +150,18 @@ public class Statement extends ASTNode implements Cloneable {
 		final Statement clone = (Statement)super.clone();
 		if (this.attachments != null) {
 			clone.attachments = new ArrayList<Attachment>(this.attachments);
-			for (int i = 0; i < clone.attachments.size(); i++)
+			for (int i = 0; i < clone.attachments.size(); i++) {
 				try {
 					final Attachment a = clone.attachments.get(i).clone();
-					if (a instanceof ASTNode)
+					if (a instanceof ASTNode) {
 						((ASTNode)a).setParent(this);
+					}
 					clone.attachments.set(i, a);
 				} catch (final CloneNotSupportedException e) {
 					clone.attachments.remove(i);
 					i--;
 				}
+			}
 		}
 		return clone;
 	}

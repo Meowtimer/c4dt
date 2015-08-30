@@ -11,6 +11,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.Structure;
@@ -29,20 +43,6 @@ import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.StructureTextEditor;
 import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.UI;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.swt.SWTException;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.PlatformUI;
 
 /**
  * An incremental builder for all project data.<br>
@@ -84,8 +84,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	protected void clean(final IProgressMonitor monitor) throws CoreException {
 		System.out.println(buildTask(Messages.ClonkBuilder_CleaningProject));
 		// clean up this project
-		if (monitor != null)
+		if (monitor != null) {
 			monitor.beginTask(buildTask(Messages.CleaningUp), 1);
+		}
 		final IProject proj = this.getProject();
 		if (proj != null) {
 			proj.deleteMarkers(null, true, IResource.DEPTH_INFINITE);
@@ -116,8 +117,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			index.built(Built.Yes);
 			break;
 		case Yes:
-			if (delta != null && delta.getAffectedChildren().length > 0)
+			if (delta != null && delta.getAffectedChildren().length > 0) {
 				break;
+			}
 			System.out.println(String.format("%s: Skipping build", proj.getName()));
 			return new IProject[] { proj };
 		case LeaveAlone:
@@ -137,8 +139,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 				}
 
 				// validate files related to the scripts that have been parsed
-				for (final Script script : scripts)
+				for (final Script script : scripts) {
 					validateRelatedFiles(script);
+				}
 
 				EngineLaunch.scriptsBuilt(scripts);
 
@@ -154,12 +157,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private <T extends IResourceVisitor & IResourceDeltaVisitor> void visitDeltaOrWholeProject(final IResourceDelta delta, final IProject proj, final T visitor) throws CoreException {
-		if (delta != null)
+		if (delta != null) {
 			delta.accept(visitor);
-		else if (buildKind == FULL_BUILD || buildKind == CLEAN_BUILD)
+		} else if (buildKind == FULL_BUILD || buildKind == CLEAN_BUILD) {
 			proj.accept(visitor);
-		else
+		} else {
 			System.out.println("ClonkBuilder: Not visiting things - no delta but no full build either");
+		}
 	}
 
 	private Script[] performBuildPhases(
@@ -170,7 +174,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		visitDeltaOrWholeProject(delta, proj, new C4GroupStreamOpener(C4GroupStreamOpener.OPEN));
 		try {
 
-			// count num of resources to build
+			// count number of resources to build
 			final ResourceCounter resourceCounter = new ResourceCounter(ResourceCounter.COUNT_CONTAINER);
 			visitDeltaOrWholeProject(delta, proj, resourceCounter);
 
@@ -197,9 +201,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			if (Core.runsHeadless()) {
 				saveScripts.run(new NullProgressMonitor());
 				nature.saveIndex();
-			}
-			else
+			} else {
 				saveScripts.schedule();
+			}
 
 			performRequestedTypingMigration(proj, parsers);
 			return scripts;
@@ -210,8 +214,9 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void findTODOs() {
-		for (final Script s : scripts())
+		for (final Script s : scripts()) {
 			s.traverse(Comment.TODO_EXTRACTOR, markers);
+		}
 	}
 
 	private void gatherScripts(final IProject proj, final IResourceDelta delta) throws CoreException {
@@ -224,36 +229,42 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private void clearScripts(final Index index) {
 		// delete old declarations
-		for (final Script script : parserMap.keySet())
+		for (final Script script : parserMap.keySet()) {
 			script.clearDeclarations();
+		}
 		index.refresh(false);
 	}
 
 	private void performRequestedTypingMigration(final IProject proj, final ScriptParser[] parsers) {
 		final ProjectSettings settings = nature.settings();
-		if (buildKind == FULL_BUILD)
-			if (settings.migrationTyping != null) switch (settings.migrationTyping) {
-			case STATIC:
-				Display.getDefault().asyncExec(() -> {
-					if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-						String.format("Scripts in '%s' will now be migrated to static typing. This cannot be undone. Continue?", proj.getName()),
-						"Migration to Static Typing"
-					))
-						migrateToStaticTyping(parsers, settings);
-				});
-				break;
-			case DYNAMIC: case INFERRED:
-				Display.getDefault().asyncExec(() -> {
-					if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-						String.format("Scripts in '%s' will now be migrated to dynamic typing. This cannot be undone. Continue?", proj.getName()),
-						"Migration to Dynamic Typing"
-					))
-						migrateToDynamicTyping(parsers, settings);
-				});
-				break;
-			default:
-				break;
+		if (buildKind == FULL_BUILD) {
+			if (settings.migrationTyping != null) {
+				switch (settings.migrationTyping) {
+				case STATIC:
+					Display.getDefault().asyncExec(() -> {
+						if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+							String.format("Scripts in '%s' will now be migrated to static typing. This cannot be undone. Continue?", proj.getName()),
+							"Migration to Static Typing"
+						)) {
+							migrateToStaticTyping(parsers, settings);
+						}
+					});
+					break;
+				case DYNAMIC: case INFERRED:
+					Display.getDefault().asyncExec(() -> {
+						if (UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+							String.format("Scripts in '%s' will now be migrated to dynamic typing. This cannot be undone. Continue?", proj.getName()),
+							"Migration to Dynamic Typing"
+						)) {
+							migrateToDynamicTyping(parsers, settings);
+						}
+					});
+					break;
+				default:
+					break;
+				}
 			}
+		}
 	}
 
 	private void migrateToStaticTyping(final ScriptParser[] parsers, final ProjectSettings settings) {
@@ -274,14 +285,17 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		newEnqueued.putAll(parserMap);
 		do {
 			parserMapSize = parserMap.size();
-			for (final Script s : newEnqueued.keySet())
+			for (final Script s : newEnqueued.keySet()) {
 				nature.index().addScript(s);
+			}
 			innerParseDeclarations(newEnqueued);
-			if (monitor.isCanceled())
+			if (monitor.isCanceled()) {
 				return;
+			}
 			// don't queue dependent scripts during a clean build - if everything works right all scripts will have been added anyway
-			if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD)
+			if (buildKind == CLEAN_BUILD || buildKind == FULL_BUILD) {
 				break;
+			}
 			lastEnqueued = newEnqueued;
 			newEnqueued = new HashMap<Script, ScriptParser>();
 			indexRefresh(index);
@@ -294,13 +308,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private void innerParseDeclarations(final Map<Script, ScriptParser> newEnqueued) {
 		TaskExecution.threadPool(pool -> {
-			for (final Script script : newEnqueued.keySet())
+			for (final Script script : newEnqueued.keySet()) {
 				pool.execute(() -> {
-					if (monitor.isCanceled())
+					if (monitor.isCanceled()) {
 						return;
+					}
 					performParseDeclarations(script);
 					monitor.worked(1);
 				});
+			}
 		}, 20, newEnqueued.size());
 	}
 
@@ -309,13 +325,15 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		// without refreshing the index here, error markers would be created for TimerCall=... etc. assignments in ActMaps for example
 		// if the function being referenced is defined in an #appendto from this index
 		index.refresh(false);
-		for (final Script script : parserMap.keySet())
+		for (final Script script : parserMap.keySet()) {
 			script.deriveInformation();
+		}
 	}
 
 	private void refreshUI(final Map<Script, ScriptParser> newEnqueued) {
-		if (Core.runsHeadless())
+		if (Core.runsHeadless()) {
 			return;
+		}
 		try {
 			Display.getDefault().asyncExec(new UIRefresher(newEnqueued.keySet().toArray(new Script[newEnqueued.keySet().size()])));
 		} catch (final SWTException swt) {
@@ -324,31 +342,35 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void reportProblems(final ScriptParser[] parsers, final Script[] scripts) {
-		if (DEBUG)
+		if (DEBUG) {
 			System.out.println(String.format("%s: Reporting problems", getProject().getName()));
+		}
 		// report problems
 		monitor.subTask(String.format(Messages.ClonkBuilder_ReportingProblems, getProject().getName()));
 		final List<ProblemReportingStrategy> strats = index.nature().problemReportingStrategies();
-		for (final ProblemReportingStrategy strategy : strats)
+		for (final ProblemReportingStrategy strategy : strats) {
 			strategy.steer(() -> {
 				strategy.initialize(markers, monitor(), scripts);
 				strategy.run();
 				strategy.apply();
 			});
+		}
 		try {
 			if (!Core.runsHeadless()) {
 				Display.getDefault().asyncExec(new UIRefresher(scripts));
 				Display.getDefault().syncExec(() -> {
 					try {
 						final StructureTextEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), StructureTextEditor.class);
-						if (ed != null)
+						if (ed != null) {
 							ed.state().refreshAfterBuild(markers);
+						}
 					} catch (final Exception e) {}
 				});
 			}
 		} finally {
-			for (final ProblemReportingStrategy strategy : strats)
+			for (final ProblemReportingStrategy strategy : strats) {
 				strategy.steer(strategy::run2);
+			}
 			markers.deploy();
 		}
 	}
@@ -360,19 +382,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 
 	private void queueDependentScripts(final Map<Script, ScriptParser> scriptsToQueueDependenciesFrom, final Map<Script, ScriptParser> newlyAddedParsers) {
 		for (final ScriptParser parser : scriptsToQueueDependenciesFrom.values()) {
-			if (monitor.isCanceled())
+			if (monitor.isCanceled()) {
 				break;
-			if (parser == null)
+			}
+			if (parser == null) {
 				continue;
+			}
 			final Definition def = as(parser.script(), Definition.class);
-			if (def != null)
+			if (def != null) {
 				index().allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 					@Override
 					public void receive(final Script item) {
-						if (!parserMap.containsKey(item) && item.directlyIncludes(def))
+						if (!parserMap.containsKey(item) && item.directlyIncludes(def)) {
 							newlyAddedParsers.put(item, queueScript(item));
+						}
 					}
 				});
+			}
 		}
 		for (final Structure s : gatheredStructures) {
 			try {
@@ -392,21 +418,23 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private void validateRelatedFiles(final Script script) throws CoreException {
 		if (script instanceof Definition) {
 			final Definition def = (Definition) script;
-			for (final IResource r : def.definitionFolder().members())
+			for (final IResource r : def.definitionFolder().members()) {
 				if (r instanceof IFile) {
 					final Structure pinned = Structure.pinned(r, false, true);
-					if (pinned != null)
+					if (pinned != null) {
 						try {
 							pinned.validate(markers);
 						} catch (final ProblemException e) {}
+					}
 				}
+			}
 		}
 	}
 
 	public ScriptParser queueScript(final Script script) {
 		ScriptParser result;
 		if (!parserMap.containsKey(script)) {
-			if (script.source() != null)
+			if (script.source() != null) {
 				try {
 					result = new ScriptParser(script);
 					result.setMarkers(markers);
@@ -415,12 +443,14 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 					e.printStackTrace();
 					result = null;
 				}
-			else
+			} else {
 				result = null;
+			}
 
 			parserMap.put(script, result);
-		} else
+		} else {
 			result = parserMap.get(script);
+		}
 		return result;
 	}
 
@@ -429,12 +459,13 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 		synchronized (parserMap) {
 			parser = parserMap.get(script);
 		}
-		if (parser != null)
+		if (parser != null) {
 			try {
 				parser.parse();
 			} catch (final ProblemException e) {
 				e.printStackTrace();
 			}
+		}
 	}
 
 }

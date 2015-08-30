@@ -6,6 +6,8 @@ import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IMarker;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -24,8 +26,6 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.StringUtil;
 
-import org.eclipse.core.resources.IMarker;
-
 /**
  * A comment in the code. Instances of this class can be used as regular {@link ASTNode} objects or
  * be attached to {@link Statement}s as {@link Attachment}.
@@ -36,28 +36,32 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 
 	public static final IASTVisitor<Markers> TODO_EXTRACTOR = (node_, markers) -> {
 		final Comment node = as(node_, Comment.class);
-		if (node == null)
+		if (node == null) {
 			return TraversalContinuation.Continue;
+		}
 		final Script script = node.parent(Script.class);
-		if (script == null || script.file() == null)
+		if (script == null || script.file() == null) {
 			return TraversalContinuation.Continue;
+		}
 		final String s = node.text();
 		int markerPriority;
 		int searchStart = 0;
 		do {
 			markerPriority = IMarker.PRIORITY_LOW;
 			int todoIndex = s.indexOf("TODO", searchStart); //$NON-NLS-1$
-			if (todoIndex != -1)
+			if (todoIndex != -1) {
 				markerPriority = IMarker.PRIORITY_NORMAL;
-			else {
+			} else {
 				todoIndex = s.indexOf("FIXME", searchStart); //$NON-NLS-1$
-				if (todoIndex != -1)
+				if (todoIndex != -1) {
 					markerPriority = IMarker.PRIORITY_HIGH;
+				}
 			}
 			if (todoIndex != -1) {
 				int lineEnd = s.indexOf('\n', todoIndex);
-				if (lineEnd == -1)
+				if (lineEnd == -1) {
 					lineEnd = s.length();
+				}
 				searchStart = lineEnd;
 				markers.todo(script.file(), node, s.substring(todoIndex, lineEnd), node.start()+2+todoIndex, node.start()+2+lineEnd, markerPriority);
 			}
@@ -95,17 +99,19 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 	 * @return Return the comment string. If {@link #previousComment} is set, the returned string will be the text of all comments in the linked list concatenated.
 	 */
 	public String text() {
-		if (previousComment == null)
+		if (previousComment == null) {
 			return comment;
-		else {
+		} else {
 			int cap = 0;
 			final String lineBreak = "<br/>";
-			for (Comment c = this; c != null; c = c.previousComment)
+			for (Comment c = this; c != null; c = c.previousComment) {
 				cap += c.comment.length() + (c != this ? lineBreak.length() : 0);
+			}
 			final StringBuilder builder = new StringBuilder(cap);
 			for (Comment c = this; c != null; c = c.previousComment) {
-				if (c != this)
+				if (c != this) {
 					builder.insert(0, lineBreak);
+				}
 				builder.insert(0, c.comment);
 			}
 			return builder.toString();
@@ -125,15 +131,17 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 		final String c = comment;
 		if (multiLine = multiLine || c.contains("\n")) {
 			builder.append("/*"); //$NON-NLS-1$
-			if (javaDoc)
+			if (javaDoc) {
 				builder.append('*');
+			}
 			builder.append(c);
 			builder.append("*/"); //$NON-NLS-1$
 		}
 		else {
 			builder.append("//"); //$NON-NLS-1$
-			if (javaDoc)
+			if (javaDoc) {
 				builder.append('/');
+			}
 			builder.append(c);
 		}
 	}
@@ -169,10 +177,12 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 		int count = 0;
 		if (offset > absoluteOffset+getLength()) {
 			for (int i = absoluteOffset+getLength(); i < offset; i++) {
-				if (!BufferedScanner.isLineDelimiterChar(script[i]))
+				if (!BufferedScanner.isLineDelimiterChar(script[i])) {
 					return false;
-				if (script[i] == '\n' && ++count > 1)
+				}
+				if (script[i] == '\n' && ++count > 1) {
 					return false;
+				}
 			}
 			return true;
 		}
@@ -184,8 +194,9 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 		// parse comment as expression and see what goes
 		try {
 			final Script script = parent(Script.class);
-			if (script == null)
+			if (script == null) {
 				return null;
+			}
 			final ScriptParser commentParser = new ScriptParser(comment, script, script.file()) {
 				@Override
 				protected void initialize() {
@@ -199,10 +210,11 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 			commentParser.parseStandaloneStatement(parent(Function.class)).traverse(locator, this);
 			if (locator.expressionAtRegion() != null) {
 				final EntityRegion reg = locator.expressionAtRegion().entityAt(offset, locator);
-				if (reg != null)
+				if (reg != null) {
 					return reg.incrementRegionBy(start()+2);
-				else
+				} else {
 					return null;
+				}
 			}
 		} catch (final ProblemException e) {}
 		return super.entityAt(offset, l);
@@ -275,18 +287,20 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 					final String parmName = parmDescMatcher.group(1);
 					final String parmDesc = parmDescMatcher.group(2);
 					final Variable parm = function.findParameter(parmName);
-					if (parm != null)
+					if (parm != null) {
 						parm.setUserDescription(parmDesc);
-				} else if (returnDescMatcher.reset(line).matches())
+					}
+				} else if (returnDescMatcher.reset(line).matches()) {
 					function.setReturnDescription(returnDescMatcher.group(1));
-				else {
+				} else {
 					builder.append(line);
 					builder.append("\n");
 				}
 			}
 			function.setUserDescription(builder.toString());
-		} else
+		} else {
 			function.setUserDescription(this.text().trim());
+		}
 	}
 
 	private static String processTags(final String line, final Matcher lineStartMatcher) {
@@ -313,12 +327,14 @@ public class Comment extends Statement implements Statement.Attachment, IPlaceho
 
 	public static void printUserDescription(ASTNodePrinter output, int depth, String desc, boolean lineBreak) {
 		if (desc != null) {
-			if (!lineBreak)
+			if (!lineBreak) {
 				output.append(' ');
+			}
 			final String trimmed = " " + desc.trim() + " ";
 			new Comment(trimmed, trimmed.contains("\n"), false).print(output, depth);
-			if (lineBreak)
+			if (lineBreak) {
 				output.append('\n');
+			}
 		}
 	}
 

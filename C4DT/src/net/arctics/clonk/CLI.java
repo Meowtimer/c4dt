@@ -56,6 +56,7 @@ import net.arctics.clonk.index.Index.Built;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Callable;
+import net.arctics.clonk.util.LineNumberObtainer;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.StringUtil;
 
@@ -215,7 +216,7 @@ public class CLI implements IApplication, AutoCloseable {
 		return attempt(() -> {
 			final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
 			return project.exists() ? project : null;
-		});
+		}, Exception.class, e -> {});
 	}
 	
 	private void initialize() {
@@ -290,18 +291,33 @@ public class CLI implements IApplication, AutoCloseable {
 	
 	@Callable
 	public void verifyScript(final String fileName) {
-		final ScriptParser parser = new ScriptParser(new ExecutableScript(fileName, StreamUtil.stringFromFile(new File(fileName)), new Index() {
+		final Index index = new Index() {
 			private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 			@Override
 			public Engine engine() {
 				return Core.instance().activeEngine();
 			}
-		}));
+		};
+		final File scriptFile = new File(fileName);
+		final String scriptSource = StreamUtil.stringFromFile(scriptFile);
+		final Script script = new ExecutableScript(fileName, scriptSource, index);
+		final ScriptParser parser = new ScriptParser(script);
+		final Markers markers = new Markers(true);
 		try {
+			parser.setMarkers(markers);
 			parser.parse();
 		} catch (final ProblemException e) {
 			e.printStackTrace();
 		}
+		final LineNumberObtainer lineNumberObtainer = new LineNumberObtainer(scriptSource);
+		markers.forEach(marker -> {
+			final int line = lineNumberObtainer.obtainLineNumber(marker.start);
+			System.out.println(String.format("%s:%d: %s",
+				scriptFile.getAbsolutePath(),
+				line,
+				marker.code.makeErrorString(marker.arguments)
+			));
+		});
 	}
 	
 	private static String readFile() {
