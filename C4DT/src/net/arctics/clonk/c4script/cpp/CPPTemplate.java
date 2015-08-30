@@ -121,10 +121,12 @@ public class CPPTemplate {
 	static String valueConversionSuffix(IType sourceType, IType targetType) {
 		final PrimitiveType primitiveSourceType = primitiveTypeFromType(sourceType);
 		final PrimitiveType primitiveTargetType = primitiveTypeFromType(targetType);
-		if (primitiveSourceType == primitiveTargetType)
+		if (primitiveSourceType == primitiveTargetType) {
 			return null;
-		if (primitiveTargetType != null)
+		}
+		if (primitiveTargetType != null) {
 			return valueConversionSuffix(primitiveTargetType);
+		}
 		return null;
 	}
 
@@ -270,11 +272,13 @@ public class CPPTemplate {
 		node.print(new AppendableBackedNodePrinter(output) {
 			IType effectiveType(ASTNode node) {
 				System.out.println(node.getClass().getSimpleName());
-				if (node instanceof AccessVar || node instanceof Literal || node instanceof ArrayExpression)
+				if (node instanceof AccessVar || node instanceof Literal || node instanceof ArrayExpression) {
 					return node.ty();
+				}
 				final BinaryOp bop = as(node, BinaryOp.class);
-				if (bop != null)
+				if (bop != null) {
 					return bop.operator().returnType();
+				}
 				return PrimitiveType.ANY;
 			}
 			private void printNodeWithConversion(PrimitiveType targetType, ASTNode node, int depth) {
@@ -301,8 +305,9 @@ public class CPPTemplate {
 				default:
 					final String suffix = valueConversionSuffix(sourceType, targetType);
 					node.print(this, depth);
-					if (suffix != null)
+					if (suffix != null) {
 						output.append(suffix);
+					}
 					break;
 				}
 			}
@@ -345,8 +350,9 @@ public class CPPTemplate {
 						return true;
 					}),
 					caze(VarDeclarationStatement.class, statement -> {
-						if (statement.parent() instanceof ForStatement)
+						if (statement.parent() instanceof ForStatement) {
 							return false;
+						}
 						stream(statement.variableInitializations()).map(vi -> vi.variable).forEach(var -> {
 							append(cppTypeString(var.type()));
 							append(" ");
@@ -361,15 +367,15 @@ public class CPPTemplate {
 						return true;
 					}),
 					caze(CallDeclaration.class, call -> {
-						if (call.function() != null && call.predecessor() == null)
+						if (call.function() != null && call.predecessor() == null) {
 							append(format("Exec(D.G.%s", call.name()));
-						else {
+						} else {
 							append("Exec(");
 							printString(call.name());
 						}
-						if (call.params().length > 0)
-							stream(call.params()).forEach(par -> {
-								if (par instanceof Ellipsis) {
+						if (call.params().length > 0) {
+							stream(call.params()).forEach(parameter -> {
+								if (parameter instanceof Ellipsis) {
 									final Function f = call.parent(Function.class);
 									final String ellipsisExpansion = f.parameters().stream()
 										.map(Variable::name)
@@ -381,12 +387,14 @@ public class CPPTemplate {
 									}
 								} else {
 									append(", ");
-									if (par != null)
-										par.print(this, depth);
-									else
+									if (parameter != null) {
+										parameter.print(this, depth);
+									} else {
 										append(NIL);
+									}
 								}
 							});
+						}
 						append(")");
 						return true;
 					}),
@@ -402,9 +410,9 @@ public class CPPTemplate {
 							append("GetPropertyByS(");
 							printString(av.name());
 							return true;
-						}
-						else
+						} else {
 							return false;
+						}
 					}),
 					caze(MemberOperator.class, mo -> {
 						append("->");
@@ -416,28 +424,37 @@ public class CPPTemplate {
 						final Operator operator = bop.operator();
 						boolean needsBrackets = leftSide instanceof BinaryOp && operator.priority() > ((BinaryOp)leftSide).operator().priority();
 						if (needsBrackets)
+						 {
 							output.append("("); //$NON-NLS-1$
+						}
 
 						final LeftRightType lr = leftRightTypes(bop);
 						printNodeWithConversion(primitiveType(lr.left), leftSide, depth);
 
 						if (needsBrackets)
+						 {
 							output.append(")"); //$NON-NLS-1$
+						}
 
 						output.append(" "); //$NON-NLS-1$
 						output.append(operator.operatorName());
 
 						needsBrackets = rightSide instanceof BinaryOp && operator.priority() > ((BinaryOp)rightSide).operator().priority();
 						if (needsBrackets)
+						 {
 							output.append(" ("); //$NON-NLS-1$
+						}
 
 						final String printed = rightSide.printed(depth);
-						if (!printed.startsWith("\n"))
+						if (!printed.startsWith("\n")) {
 							output.append(" ");
+						}
 						printNodeWithConversion(primitiveType(lr.right), rightSide, depth);
 
 						if (needsBrackets)
+						 {
 							output.append(")"); //$NON-NLS-1$
+						}
 						return true;
 					}),
 					caze(FunctionBody.class, body -> {
@@ -456,8 +473,9 @@ public class CPPTemplate {
 						if (ret.returnExpr() == null) {
 							output.append("return {};");
 							return true;
-						} else
+						} else {
 							return false;
+						}
 					}),
 					caze(Sequence.class, sequence -> {
 						printPiece(null, sequence.toPieces(), depth);
@@ -733,9 +751,11 @@ public class CPPTemplate {
 
 	private static int countNumOccurencesOfCharacterInString(String string, char character) {
 		int result = 0;
-		for (int i = 0; i < string.length(); i++)
-			if (string.charAt(i) == character)
+		for (int i = 0; i < string.length(); i++) {
+			if (string.charAt(i) == character) {
 				result++;
+			}
+		}
 		return result;
 	}
 
@@ -749,8 +769,9 @@ public class CPPTemplate {
 			private Indented indentify(Object item) {
 				final String str = as(item, String.class);
 				final int currentIndentation = indent;
-				if (str != null)
+				if (str != null) {
 					indent = Math.max(0, indent + countNumOccurencesOfCharacterInString(str, '{') - countNumOccurencesOfCharacterInString(str, '}'));
+				}
 				return new Indented(currentIndentation, item);
 			}
 

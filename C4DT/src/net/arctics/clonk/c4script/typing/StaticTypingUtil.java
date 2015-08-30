@@ -12,19 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.IASTVisitor;
-import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.builder.ProjectSettings;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.ast.CastExpression;
-import net.arctics.clonk.command.CommandFunction;
-import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.StringUtil;
-import net.arctics.clonk.util.UI;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -37,6 +24,19 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.IRegion;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.IASTVisitor;
+import net.arctics.clonk.ast.TraversalContinuation;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.builder.ProjectSettings;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ast.CastExpression;
+import net.arctics.clonk.command.CommandFunction;
+import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.StringUtil;
+import net.arctics.clonk.util.UI;
 
 /**
  * Helper class to erase type annotations from C4ScriptST source files so that the resulting scripts will be accepted by the engine.
@@ -56,11 +56,13 @@ public class StaticTypingUtil {
 	 */
 	public static String eraseTypeAnnotations(final File file) {
 		final IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
-		if (files == null || files.length == 0)
+		if (files == null || files.length == 0) {
 			return null;
+		}
 		final Script script = Script.get(files[0], true);
-		if (script == null)
+		if (script == null) {
 			return null;
+		}
 		return eraseTypeAnnotations(script);
 	}
 
@@ -97,9 +99,9 @@ public class StaticTypingUtil {
 			}, builder);
 
 			return builder.toString();
-		}
-		else
+		} else {
 			return null;
+		}
 	}
 
 	private static List<TypeAnnotation> allTypeAnnotations(final Script script) {
@@ -109,8 +111,9 @@ public class StaticTypingUtil {
 			public Annots() { super(defaulting(script.typeAnnotations(), Collections.<TypeAnnotation>emptyList())); }
 			@Override
 			public TraversalContinuation visitNode(final ASTNode node, final Void context) {
-				if (node instanceof TypeAnnotation)
+				if (node instanceof TypeAnnotation) {
 					this.add((TypeAnnotation)node);
+				}
 				return TraversalContinuation.Continue;
 			}
 		};
@@ -132,32 +135,35 @@ public class StaticTypingUtil {
 	public static void mirrorDirectoryWithTypingAnnotationsRemoved(final File rawFolder, final File mirrorFolder, final boolean linkFiles) {
 		mirrorFolder.mkdirs();
 		for (final File originalFile : rawFolder.listFiles()) {
-			if (originalFile.getName().startsWith("."))
+			if (originalFile.getName().startsWith(".")) {
 				continue;
+			}
 			final File destinationFile = new File(mirrorFolder, originalFile.getName());
 			if (originalFile.isFile()) {
 				final String erased = eraseTypeAnnotations(originalFile);
-				if (erased != null)
+				if (erased != null) {
 					try {
 						StreamUtil.writeToFile(destinationFile, (file, stream, writer) -> writer.write(erased));
 					} catch (final IOException e1) {
 						e1.printStackTrace();
 					}
-				else if (linkFiles && !Script.looksLikeScriptFile(originalFile.getName()))
+				} else if (linkFiles && !Script.looksLikeScriptFile(originalFile.getName())) {
 					try {
 						Files.createSymbolicLink(destinationFile.toPath(), originalFile.toPath());
 					} catch (final IOException e) {
 						System.out.println(format("Failed to link %s", originalFile));
 					}
-				else
+				} else {
 					try {
 						Files.copy(originalFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 					} catch (final IOException e) {
 						System.out.println(format("Failed to copy %s", originalFile));
 					}
+				}
 			}
-			else if (originalFile.isDirectory())
+			else if (originalFile.isDirectory()) {
 				mirrorDirectoryWithTypingAnnotationsRemoved(originalFile, destinationFile, linkFiles);
+			}
 		}
 	}
 
@@ -177,8 +183,9 @@ public class StaticTypingUtil {
 						return Status.OK_STATUS;
 					}
 				}.schedule();
-			} else
+			} else {
 				UI.message(format("'%s' is already in that typing mode", projectName));
+			}
 		}
 	}
 

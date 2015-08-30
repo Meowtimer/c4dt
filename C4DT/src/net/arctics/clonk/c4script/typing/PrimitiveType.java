@@ -10,14 +10,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.omg.CORBA.UNKNOWN;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity;
 import net.arctics.clonk.util.ArrayUtil;
-
-import org.omg.CORBA.UNKNOWN;
 
 /**
  * The engine predefined variable types.
@@ -125,10 +125,11 @@ public enum PrimitiveType implements IType {
 
 	@Override
 	public String typeName(final boolean special) {
-		if (!special && this == UNKNOWN)
+		if (!special && this == UNKNOWN) {
 			return ANY.typeName(false);
-		else
+		} else {
 			return scriptName;
+		}
 	}
 
 	private static final Pattern NILLABLE_PATTERN = Pattern.compile("Nillable\\<(.*?)\\>");
@@ -142,15 +143,17 @@ public enum PrimitiveType implements IType {
 	public static PrimitiveType fromCPPString(final String type) {
 		Matcher m;
 		PrimitiveType ty = PrimitiveType.CPP_TO_C4SCRIPT_MAP.get(type);
-		if (ty != null)
+		if (ty != null) {
 			return ty;
-		if ((m = NILLABLE_PATTERN.matcher(type)).matches())
+		}
+		if ((m = NILLABLE_PATTERN.matcher(type)).matches()) {
 			return fromCPPString(m.group(1));
-		else if ((m = POINTERTYPE_PATTERN.matcher(type)).matches()) {
+		} else if ((m = POINTERTYPE_PATTERN.matcher(type)).matches()) {
 			final String t = m.group(1);
 			ty = fromCPPString(t);
-			if (ty != null)
+			if (ty != null) {
 				return ty;
+			}
 		}
 		return PrimitiveType.UNKNOWN;
 	}
@@ -178,10 +181,12 @@ public enum PrimitiveType implements IType {
 	 */
 	public static PrimitiveType fromString(final String typeString, final boolean allowSpecial) {
 		final PrimitiveType t = REGULAR_MAP.get(typeString);
-		if (t != null)
+		if (t != null) {
 			return t;
-		if (allowSpecial)
+		}
+		if (allowSpecial) {
 			return SPECIAL_MAPPING.get(typeString);
+		}
 		return null;
 	}
 
@@ -247,12 +252,13 @@ public enum PrimitiveType implements IType {
 		public PrimitiveType base() { return PrimitiveType.this; }
 		@Override
 		public boolean equals(final Object obj) {
-			if (obj instanceof PrimitiveType)
+			if (obj instanceof PrimitiveType) {
 				return obj == PrimitiveType.this;
-			else if (obj instanceof Unified)
+			} else if (obj instanceof Unified) {
 				return ((Unified)obj).simpleType() == this.simpleType();
-			else
+			} else {
 				return false;
+			}
 		}
 	}
 

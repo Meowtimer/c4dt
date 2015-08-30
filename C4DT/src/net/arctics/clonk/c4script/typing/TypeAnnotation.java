@@ -34,10 +34,11 @@ public final class TypeAnnotation extends ASTNode implements IType {
 	public ITypeable target() {return target;}
 	/** Set the target of this annotation. */
 	public void setTarget(final ITypeable typeable) {
-		if (this.target != null && this.target != typeable)
+		if (this.target != null && this.target != typeable) {
 			throw new IllegalArgumentException();
-		else
+		} else {
 			this.target = typeable;
+		}
 	}
 	/** The type this annotation refers to. */
 	public IType type() {return type;}
@@ -60,12 +61,15 @@ public final class TypeAnnotation extends ASTNode implements IType {
 	}
 	@Override
 	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
-		if (type == null)
+		if (type == null) {
 			return null;
+		}
 		final Set<IIndexEntity> entities = new HashSet<>();
-		for (final IType t : type)
-			if (t instanceof IIndexEntity)
+		for (final IType t : type) {
+			if (t instanceof IIndexEntity) {
 				entities.add((IIndexEntity)t);
+			}
+		}
 		return entities.size() > 0 ? new EntityRegion(entities, this) : null;
 	}
 	@Override

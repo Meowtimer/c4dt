@@ -8,15 +8,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Collection;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.IASTVisitor;
 import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.Pair;
-
-import org.eclipse.core.runtime.IProgressMonitor;
-
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
@@ -31,8 +30,9 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	protected static final Markers NULL_MARKERS = new Markers(false) {
 		@Override
 		public void enabled(final boolean value) {
-			if (value)
+			if (value) {
 				System.out.println("Nope");
+			}
 		}
 	};
 
@@ -165,8 +165,9 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	protected String projectName;
 	protected void findProjectName() {
 		String name = "UnknownProject";
-		if (index != null && index.nature() != null)
+		if (index != null && index.nature() != null) {
 			name = index.nature().getProject().getName();
+		}
 		projectName = name.intern();
 	}
 

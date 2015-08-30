@@ -2985,7 +2985,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return true;
 					}
 					for (final ASTNode expression : node.subElements()) {
-						if(expression != null && containsConst(expression)) {
+						if (expression != null && containsConst(expression)) {
 							return true;
 						}
 					}
@@ -3194,8 +3194,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							if (miss == null) {
 								miss = new StringBuilder(10);
 							}
-							if (miss.length() > 0)
-							 {
+							if (miss.length() > 0) {
 								miss.append(", "); //$NON-NLS-1$
 							}
 							miss.append(lang);
