@@ -22,7 +22,8 @@ public class Variables extends Declaration {
 	@Override
 	public void setSubElements(final ASTNode[] elms) {
 		initializations = new ArrayList<VarInitialization>(elms.length);
-		for (final ASTNode e : elms)
+		for (final ASTNode e : elms) {
 			initializations.add((VarInitialization)e);
+		}
 	}
 }

@@ -52,10 +52,12 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			public Decision decide(Script item) {
 				if (item instanceof Definition) {
 					final Definition d = (Definition)item;
-					if (d.definitionFolder() == null || !d.definitionFolder().equals(deleted))
+					if (d.definitionFolder() == null || !d.definitionFolder().equals(deleted)) {
 						return Decision.Continue;
-				} else if (item.file() == null || !item.file().equals(deleted))
+					}
+				} else if (item.file() == null || !item.file().equals(deleted)) {
 					return Decision.Continue;
+				}
 				obsoleted.add(item);
 				return Decision.AbortIteration;
 			}
@@ -66,25 +68,29 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		final IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
 		final IFile scenario = as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
 		final IFile script = Script.findScriptFile(folder);
-		if (defCore == null && scenario == null && script == null)
+		if (defCore == null && scenario == null && script == null) {
 			return null;
+		}
 		try {
 			Definition def = Definition.at(folder);
 			if (defCore != null) {
 				final DefCoreUnit defCoreWrapper = (DefCoreUnit) Structure.pinned(defCore, true, false);
-				if (def == null)
+				if (def == null) {
 					def = new Definition(builder.index(), defCoreWrapper.definitionID(), defCoreWrapper.name(), folder);
-				else {
+				} else {
 					def.setId(defCoreWrapper.definitionID());
 					def.setName(defCoreWrapper.name());
 				}
 			} else if (scenario != null) {
-				if (def == null)
+				if (def == null) {
 					def = new Scenario(builder.index(), folder.getName(), folder);
+				}
 			}
-			else if (script != null && builder.index().engine().extensionForFileName(folder.getName()) == FileExtension.DefinitionGroup)
-				if (def == null)
+			else if (script != null && builder.index().engine().extensionForFileName(folder.getName()) == FileExtension.DefinitionGroup) {
+				if (def == null) {
 					def = new Definition(builder.index(), ID.get(folder.getName()), folder.getName(), folder);
+				}
+			}
 			return def;
 		} catch (final Exception e) {
 			e.printStackTrace();
@@ -93,8 +99,9 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 	}
 	@Override
 	public boolean visit(final IResourceDelta delta) {
-		if (delta == null)
+		if (delta == null) {
 			return false;
+		}
 
 		boolean visitChildren = false;
 		If: if (delta.getResource() instanceof IFile) {
@@ -107,9 +114,9 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 						final SystemScript sy = attempt(() -> makeSystemScript(delta.getResource()), CoreException.class, Exception::printStackTrace);
 						return sy != null ? sy : createDefinition(delta.getResource().getParent());
 					}) : block(() -> {
-						if (Script.looksLikeScriptFile(file.getName()))
+						if (Script.looksLikeScriptFile(file.getName())) {
 							existing.setScriptFile(file); // ensure files match up
-						else {
+						} else {
 							final Structure s = Structure.pinned(file, true, true);
 							if (existing instanceof Definition && s instanceof DefCoreUnit) {
 								// reparse for good measure
@@ -120,21 +127,23 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 								}
 								final ID id = ((DefCoreUnit)s).definitionID();
 								final Definition def = (Definition)existing;
-								if (id != null)
+								if (id != null) {
 									def.setId(id);
+								}
 							}
 						}
 						obsoleted.remove(existing);
 						return existing;
 					});
-				if (script != null && file.equals(script.file()))
+				if (script != null && file.equals(script.file())) {
 					builder.queueScript(script);
-				else
+				} else {
 					try {
 						processAuxiliaryFiles(file, script);
 					} catch (final CoreException e) {
 						e.printStackTrace();
 					}
+				}
 				break;
 			case IResourceDelta.REMOVED:
 				obsoleteCorrespondingScriptFromIndex(file, builder.index());
@@ -144,7 +153,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		}
 		else if (delta.getResource() instanceof IContainer) {
 			final IContainer container = (IContainer)delta.getResource();
-			if (!INDEX_C4GROUPS)
+			if (!INDEX_C4GROUPS) {
 				try {
 					if (EFS.getStore(delta.getResource().getLocationURI()) instanceof C4Group) {
 						visitChildren = false;
@@ -153,6 +162,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				} catch (final CoreException e) {
 					e.printStackTrace();
 				}
+			}
 			// make sure the object has a reference to its folder (not to some obsolete deleted one)
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
@@ -173,15 +183,19 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 	}
 	@Override
 	public boolean visit(final IResource resource) throws CoreException {
-		if (builder.monitor().isCanceled())
+		if (builder.monitor().isCanceled()) {
 			return false;
+		}
 		if (resource instanceof IContainer) {
-			if (!INDEX_C4GROUPS)
-				if (EFS.getStore(resource.getLocationURI()) instanceof C4Group)
+			if (!INDEX_C4GROUPS) {
+				if (EFS.getStore(resource.getLocationURI()) instanceof C4Group) {
 					return false;
+				}
+			}
 			final Definition definition = createDefinition((IContainer) resource);
-			if (definition != null)
+			if (definition != null) {
 				builder.queueScript(definition);
+			}
 			return true;
 		}
 		else if (resource instanceof IFile) {
@@ -191,8 +205,9 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 				builder.queueScript(sy);
 				return true;
 			}
-			else if (processAuxiliaryFiles(file, Script.get(file, false)))
+			else if (processAuxiliaryFiles(file, Script.get(file, false))) {
 				return true;
+			}
 		}
 		return false;
 	}
@@ -202,22 +217,21 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		if ((structure = Structure.createStructureForFile(file, true)) != null) {
 			structure.commitTo(script, builder);
 			structure.pinTo(file);
-		}
-		else
+		} else {
 			structure = Structure.pinned(file, false, true);
-		if (structure != null)
+		}
+		if (structure != null) {
 			builder.addGatheredStructure(structure);
-		// not parsed as Structure - let definition process the file
-		else if (script instanceof Definition) {
+		} else if (script instanceof Definition) {
 			final Definition def = (Definition)script;
 			try {
 				def.processDefinitionFolderFile(file);
 			} catch (final IOException e) {
 				e.printStackTrace();
 			}
-		}
-		else
+		} else {
 			result = false;
+		}
 		return result;
 	}
 	public void removeObsoleteScripts() {
@@ -230,16 +244,17 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			final String ln = resource.getName().toLowerCase();
 			final IFile file = (IFile) resource;
 			try {
-				if (Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent()))
+				if (Script.looksLikeScriptFile(ln) && isSystemGroup(resource.getParent())) {
 					return new SystemScript(builder.index(), file);
-				else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
+				} else if (ln.equals("map.c") && Scenario.get(resource.getParent()) != null) {
 					return new MapScript(builder.index(), file);
-				else if (ln.equals("objects.c") && Scenario.get(resource.getParent()) != null) //$NON-NLS-1$
+				} else if (ln.equals("objects.c") && Scenario.get(resource.getParent()) != null) {
 					return new ObjectsScript(builder.index(), file);
-				else if (LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.at(resource.getParent()) != null)
+				} else if (LocalizedScript.FILENAME_PATTERN.matcher(ln).matches() && Definition.at(resource.getParent()) != null) {
 					return new LocalizedScript(builder.index(), file);
-				else
+				} else {
 					return null;
+				}
 			} catch (final CoreException ce) {
 				ce.printStackTrace();
 				return null;

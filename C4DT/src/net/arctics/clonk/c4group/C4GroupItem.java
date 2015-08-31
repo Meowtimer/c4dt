@@ -8,9 +8,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import net.arctics.clonk.util.INodeWithPath;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.provider.FileStore;
@@ -19,6 +16,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+
+import net.arctics.clonk.util.INodeWithPath;
+import net.arctics.clonk.util.Utilities;
 
 public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	public static final C4GroupHeaderFilterBase ACCEPT_EVERYTHING = (header, context) -> true;
@@ -94,11 +94,13 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 	public URI toURI() {
 		final C4Group masterGroup = (this instanceof C4Group ? (C4Group)this : parentGroup()).masterGroup();
 		final File origin = masterGroup.origin();
-		if (origin != null)
+		if (origin != null) {
 			try {
 				String path = new Path(origin.getParent()).append(path().toString()).toPortableString();
-				if (!path.startsWith("/")) //$NON-NLS-1$
+				if (!path.startsWith("/"))
+				 {
 					path = "/"+path; //$NON-NLS-1$
+				}
 				path = C4GroupFileSystem.replaceSpecialChars(path);
 				final URI uri = new URI("c4group", path, null); //$NON-NLS-1$
 				return uri;
@@ -106,6 +108,7 @@ public abstract class C4GroupItem extends FileStore implements INodeWithPath {
 				e.printStackTrace();
 				return null;
 			}
+		}
 		return null;
 	}
 

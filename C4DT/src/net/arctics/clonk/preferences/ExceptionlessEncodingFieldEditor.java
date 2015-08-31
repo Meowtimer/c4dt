@@ -30,8 +30,7 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	 * @see AbstractEncodingFieldEditor#setGroupTitle(String)
 	 * @since 3.3
 	 */
-	public ExceptionlessEncodingFieldEditor(final String name, final String labelText,
-			final String groupTitle, final Composite parent) {
+	public ExceptionlessEncodingFieldEditor(final String name, final String labelText, final String groupTitle, final Composite parent) {
 		super();
 		init(name, labelText);
 		setGroupTitle(groupTitle);
@@ -56,10 +55,11 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	protected String getStoredValue() {
 		final String val = getPreferenceStore().getString(getPreferenceName());
 		// return null if equal to default so AbstractEncodingFieldEditor will reflect that
-		if (val.equals(getPreferenceStore().getDefaultString(getPreferenceName())))
+		if (val.equals(getPreferenceStore().getDefaultString(getPreferenceName()))) {
 			return null;
-		else
+		} else {
 			return val;
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -69,21 +69,24 @@ public class ExceptionlessEncodingFieldEditor extends AbstractEncodingFieldEdito
 	protected void doStore() {
 		final String encoding = getSelectedEncoding();
 		
-		if(hasSameEncoding(encoding))
+		if(hasSameEncoding(encoding)) {
 			return;
+		}
 		
 		IDEEncoding.addIDEEncoding(encoding);
 		
-		if (encoding.equals(getDefaultEnc()))
+		if (encoding.equals(getDefaultEnc())) {
 			getPreferenceStore().setToDefault(getPreferenceName());
-		else
+		} else {
 			getPreferenceStore().setValue(getPreferenceName(), encoding);
+		}
 	}
 	
 	@Override
 	public void setPreferenceStore(final IPreferenceStore store) {
-		if (store != null)
+		if (store != null) {
 			super.setPreferenceStore(store);
+		}
 	}
 
 }

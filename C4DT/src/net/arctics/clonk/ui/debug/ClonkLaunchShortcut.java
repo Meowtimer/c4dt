@@ -3,9 +3,6 @@ package net.arctics.clonk.ui.debug;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import net.arctics.clonk.builder.ResourceTester;
-import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -19,6 +16,9 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IEditorPart;
 
+import net.arctics.clonk.builder.ResourceTester;
+import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
+
 public class ClonkLaunchShortcut implements ILaunchShortcut {
 
 	/**
@@ -27,12 +27,15 @@ public class ClonkLaunchShortcut implements ILaunchShortcut {
 	 */
 	@Override
 	public void launch(final ISelection sel, final String mode) {
-		if (sel instanceof IStructuredSelection)
+		if (sel instanceof IStructuredSelection) {
 			// Note: The selection will only have one element because this was
 			//       checked beforehand (see extension point declaration)
-			for (final Object obj : ((IStructuredSelection) sel).toArray())
-				if (obj instanceof IResource)
+			for (final Object obj : ((IStructuredSelection) sel).toArray()) {
+				if (obj instanceof IResource) {
 					launchResource((IResource) obj, mode);
+				}
+			}
+		}
 	}
 
 	/**
@@ -41,18 +44,21 @@ public class ClonkLaunchShortcut implements ILaunchShortcut {
 	@Override
 	public void launch(final IEditorPart editor, final String mode) {
 		// Note: This is also guaranteed to work because of prior checks
-		final IResource res = (IResource) editor.getEditorInput().getAdapter(IResource.class);
-		if(res != null)
+		final IResource res = editor.getEditorInput().getAdapter(IResource.class);
+		if(res != null) {
 			launchResource(res, mode);
+		}
 	}
 	
 	private void launchResource(IResource res, final String mode) {
 		
 		// Search for containing scenario
-		while(res != null && !ResourceTester.isScenario(res))
+		while(res != null && !ResourceTester.isScenario(res)) {
 			res = res.getParent();
-		if(res == null)
+		}
+		if(res == null) {
 			return;
+		}
 		
 		try {
 		
@@ -83,13 +89,15 @@ public class ClonkLaunchShortcut implements ILaunchShortcut {
 		for(final ILaunchConfiguration config : configs) {
 			final String projectName = config.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_PROJECT_NAME, ""); //$NON-NLS-1$
 			final String scenarioName = config.getAttribute(ClonkLaunchConfigurationDelegate.ATTR_SCENARIO_NAME, ""); //$NON-NLS-1$
-			if(projectName.equals(expectProjectName) && scenarioName.equals(expectScenarioName))
+			if(projectName.equals(expectProjectName) && scenarioName.equals(expectScenarioName)) {
 				candidates.add(config);
+			}
 		}
 		
 		// Select one
-		if(candidates.size() > 0)
+		if(candidates.size() > 0) {
 			return candidates.iterator().next();
+		}
 		
 		// Otherwise: Create new
 		final String configName = launchManager.generateUniqueLaunchConfigurationNameFrom(res.getName());

@@ -2,9 +2,6 @@ package net.arctics.clonk.preferences;
 
 import java.io.File;
 
-import net.arctics.clonk.ui.navigator.FullPathConverter;
-import net.arctics.clonk.util.ArrayUtil;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.ListEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -13,6 +10,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.List;
+
+import net.arctics.clonk.ui.navigator.FullPathConverter;
+import net.arctics.clonk.util.ArrayUtil;
 
 public final class C4GroupListEditor extends ListEditor {
 
@@ -26,16 +26,18 @@ public final class C4GroupListEditor extends ListEditor {
 
 	@Override
 	public String[] parseString(final String stringList) {
-		if (stringList.length() == 0)
+		if (stringList.length() == 0) {
 			return new String[] {};
+		}
 		return stringList.split("<>"); //$NON-NLS-1$
 	}
 
 	private void addFiles(final File[] files) {
 		final List list = getList();
 		final int index = Math.max(list.getSelectionIndex(), 0);
-		for (int i = 0; i < files.length; i++)
+		for (int i = 0; i < files.length; i++) {
 			list.add(files[i].getAbsolutePath(), index + i);
+		}
 		selectionChanged();
 	}
 
@@ -43,10 +45,12 @@ public final class C4GroupListEditor extends ListEditor {
 	protected String getNewInputObject() {
 		String gamePath = engineProvider.engine(true).settings().gamePath;
 		// not yet saved -> look in field editor
-		if (gamePath == null || gamePath.length() == 0 && gamePathEditor != null)
+		if (gamePath == null || gamePath.length() == 0 && gamePathEditor != null) {
 			gamePath = gamePathEditor.getStringValue();
-		if (gamePath == null || !new File(gamePath).exists())
+		}
+		if (gamePath == null || !new File(gamePath).exists()) {
 			gamePath = null;
+		}
 		final MessageDialog msgDialog = new MessageDialog(getShell(), Messages.ClonkPreferencePage_GroupFileOrFolder, null, Messages.ClonkPreferencePage_SelectRegularFolder, MessageDialog.INFORMATION, new String[] { Messages.ClonkPreferencePage_Nope, Messages.ClonkPreferencePage_YesIndeed }, 0);
 		switch (msgDialog.open()) {
 		case 0:
@@ -56,8 +60,9 @@ public final class C4GroupListEditor extends ListEditor {
 			dialog.setFilterPath(gamePath);
 			// add multiple files instead of returning one file to be added by
 			// the super class
-			if (dialog.open() != null)
+			if (dialog.open() != null) {
 				addFiles(ArrayUtil.map(dialog.getFileNames(), File.class, new FullPathConverter(dialog)));
+			}
 			return null;
 		case 1:
 			final DirectoryDialog dirDialog = new DirectoryDialog(getShell(), SWT.SHEET + SWT.MULTI + SWT.OPEN);
@@ -74,7 +79,9 @@ public final class C4GroupListEditor extends ListEditor {
 		final StringBuilder result = new StringBuilder();
 		for (int i = 0; i < items.length; i++) {
 			if (i > 0)
+			 {
 				result.append("<>"); //$NON-NLS-1$
+			}
 			result.append(items[i]);
 		}
 		return result.toString();

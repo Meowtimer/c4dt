@@ -1,11 +1,5 @@
 package net.arctics.clonk.ui.editors;
 
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.IDocumentedDeclaration;
-import net.arctics.clonk.parser.BufferedScanner;
-
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -17,6 +11,12 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.IDocumentedDeclaration;
+import net.arctics.clonk.parser.BufferedScanner;
 
 public class DeclarationProposal implements ICompletionProposal, ICompletionProposalExtension6, ICompletionProposalExtension2 {
 
@@ -138,10 +138,12 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	@Override
 	public void apply(final IDocument document) {
 		try {
-			if (replacementString != null)
+			if (replacementString != null) {
 				document.replace(replacementOffset, replacementLength, replacementString);
-			if (site != null)
+			}
+			if (site != null) {
 				site.state.completionProposalApplied(this);
+			}
 		} catch (final BadLocationException x) {
 			// ignore
 		}
@@ -179,16 +181,18 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	public String getDisplayString() {
 		if (displayStringRecomputationNecessary) {
 			displayStringRecomputationNecessary = false;
-			if (declaration instanceof IDocumentedDeclaration)
+			if (declaration instanceof IDocumentedDeclaration) {
 				((IDocumentedDeclaration)declaration).fetchDocumentation();
+			}
 			displayString = declaration.displayString(context);
 		}
 		return displayString();
 	}
 
 	public String displayString() {
-		if (displayString != null)
+		if (displayString != null) {
 			return displayString;
+		}
 		return replacementString;
 	}
 
@@ -197,8 +201,9 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	 */
 	@Override
 	public String getAdditionalProposalInfo() {
-		if (additionalProposalInfo == null && declaration != null)
+		if (additionalProposalInfo == null && declaration != null) {
 			additionalProposalInfo = declaration.infoText(context());
+		}
 		return additionalProposalInfo;
 	}
 
@@ -210,18 +215,22 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	public StyledString getStyledDisplayString() {
 		getDisplayString();
 		if (displayString == null)
+		 {
 			return new StyledString("<Error>", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
+		}
 		final StyledString result = new StyledString(displayString);
-		if (postInfo != null)
+		if (postInfo != null) {
 			result.append(postInfo, StyledString.QUALIFIER_STYLER);
+		}
 		return result;
 	}
 
 	public static boolean validPrefix(final String prefix) {
 		for (int i = 0; i < prefix.length(); i++) {
 			final char c = prefix.charAt(i);
-			if (!(Character.isLetter(c) || BufferedScanner.isWordPart(c)))
+			if (!(Character.isLetter(c) || BufferedScanner.isWordPart(c))) {
 				return false;
+			}
 		}
 		return true;
 	}
@@ -230,19 +239,25 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	public boolean validate(final IDocument document, final int offset, final DocumentEvent event) {
 		final int replaceOffset = replacementOffset();
 		if (offset >= replaceOffset) {
-			if (site == null)
+			if (site == null) {
 				return false;
+			}
 			final String prefix = site.updatePrefix(offset);
-			if (!validPrefix(prefix))
+			if (!validPrefix(prefix)) {
 				return false;
-			for (final String s : identifiers())
-				if (s.toLowerCase().contains(prefix))
+			}
+			for (final String s : identifiers()) {
+				if (s.toLowerCase().contains(prefix)) {
 					return true;
+				}
+			}
 			if (declaration != null) {
-				if (declaration.name().toLowerCase().contains(prefix))
+				if (declaration.name().toLowerCase().contains(prefix)) {
 					return true;
-				if (declaration instanceof Definition && ((Definition)declaration).id().stringValue().toLowerCase().contains(prefix))
+				}
+				if (declaration instanceof Definition && ((Definition)declaration).id().stringValue().toLowerCase().contains(prefix)) {
 					return true;
+				}
 			}
 		}
 		return false;
@@ -262,21 +277,25 @@ public class DeclarationProposal implements ICompletionProposal, ICompletionProp
 	public String[] identifiers() {
 		if (declaration != null) {
 			String decName = declaration.name();
-			if (declaration instanceof Function)
+			if (declaration instanceof Function) {
 				decName += "()";
-			if (declaration instanceof Definition)
+			}
+			if (declaration instanceof Definition) {
 				return new String[] {replacementString(), decName, ((Definition)declaration).localizedName()};
-			else
+			} else {
 				return new String[] {replacementString(), decName};
+			}
 		}
 		return new String[] {replacementString()};
 	}
 
 	public String primaryComparisonIdentifier() {
-		if (declaration instanceof Definition)
+		if (declaration instanceof Definition) {
 			return ((Definition)declaration).id().stringValue();
-		if (displayString != null)
+		}
+		if (displayString != null) {
 			return displayString;
+		}
 		return replacementString;
 	}
 

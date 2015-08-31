@@ -140,8 +140,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
     public static void MemScramble(final byte[] buffer, final int size) {
         int cnt; byte temp;
         // XOR deface
-        for (cnt = 0; cnt < size; cnt++)
-            buffer[cnt] ^= 237;
+        for (cnt = 0; cnt < size; cnt++) {
+			buffer[cnt] ^= 237;
+		}
         // BYTE swap
         for (cnt = 0; cnt + 2 < size; cnt += 3) {
             temp = buffer[cnt];
@@ -182,18 +183,20 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 					: new C4GroupTopLevelCompressed(this, child.getName(), child);
 				final InputStream fstream = isFile ? attempt(() -> new FileInputStream(child), IOException.class, Exception::printStackTrace) : stream;
 				try {
-					if (fstream != null && recursively || !(childItem instanceof C4Group))
+					if (fstream != null && recursively || !(childItem instanceof C4Group)) {
 						childItem.readIntoMemory(true, filter, fstream);
+					}
 				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 				finally {
-					if (isFile && fstream != null)
+					if (isFile && fstream != null) {
 						try {
 							fstream.close();
 						} catch (final Exception e) {
 							e.printStackTrace();
 						}
+					}
 				}
 				return childItem;
 			}) : null;
@@ -205,8 +208,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				// compressed
 				stream != null ? block(() -> {
 					header = attempt(() -> C4GroupHeader.createFromStream(stream), Exception.class, Exception::printStackTrace);
-					if (header == null)
+					if (header == null) {
 						return null;
+					}
 					final List<Object> readObjects = IntStream.range(0,  header.getEntries())
 						.mapToObj(i -> {
 							final C4GroupEntryHeader entryHeader = attempt(() -> C4GroupEntryHeader.createFromStream(stream), C4GroupInvalidDataException.class, Exception::printStackTrace);
@@ -239,8 +243,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 						}),
 						caze(C4GroupItem.class, item -> {
 							try {
-								if (recursively || item instanceof C4GroupFile)
+								if (recursively || item instanceof C4GroupFile) {
 									item.readIntoMemory(true, filter, stream);
+								}
 							} catch (final Exception e) {
 								e.printStackTrace();
 							}
@@ -282,15 +287,18 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	@Override
 	public void extractToFileSystem(final IContainer parent, final IProgressMonitor monitor) throws CoreException {
 		IFolder me = null;
-		if (parent instanceof IFolder)
+		if (parent instanceof IFolder) {
 			me = ((IFolder)parent).getFolder(getName());
-		else if (parent instanceof IProject)
+		} else if (parent instanceof IProject) {
 			me = ((IProject)parent).getFolder(getName());
-		else
+		} else {
 			throw new InvalidParameterException(Messages.NoImportingToWorkspaceRoot);
+		}
 		me.create(IResource.NONE, true, monitor);
 		for(final C4GroupItem item : childEntries) {
-			if (monitor.isCanceled()) break;
+			if (monitor.isCanceled()) {
+				break;
+			}
 			item.extractToFileSystem(me, monitor);
 			monitor.worked(item.computeSize());
 		}
@@ -325,13 +333,14 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	 * @return the childEntries
 	 */
 	public List<C4GroupItem> children() {
-		if (childEntries == null)
+		if (childEntries == null) {
 			try {
-				if (origin != null)
+				if (origin != null) {
 					originModifiedAtLoadTime = origin.lastModified();
-				if (origin != null && origin.isDirectory())
+				}
+				if (origin != null && origin.isDirectory()) {
 					readIntoMemory(false, ACCEPT_EVERYTHING_DONTSTORECONTENTS, null);
-				else
+				} else {
 					readFromStream(this, (parentGroup() != null ? parentGroup().baseOffset() : 0) + offset, stream -> {
 						try {
 							readIntoMemory(false, ACCEPT_EVERYTHING_DONTSTORECONTENTS, stream);
@@ -339,9 +348,11 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 							e.printStackTrace();
 						}
 					});
+				}
 			} catch (final IOException e) {
 				e.printStackTrace();
 			}
+		}
 		return childEntries;
 	}
 
@@ -387,11 +398,13 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	public int computeSize() {
 		if (entryHeader == null) {
 			int size = 0;
-			for(final C4GroupItem item : childEntries)
+			for(final C4GroupItem item : childEntries) {
 				size += item.computeSize();
+			}
 			return size;
+		} else {
+			return entryHeader.size();
 		}
-		else return entryHeader.size();
 	}
 
 	@Override
@@ -403,10 +416,12 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	public void writeTo(final OutputStream stream) throws FileNotFoundException {
 		try {
 			header.writeTo(stream); // group header
-			for(final C4GroupItem item : childEntries)
+			for(final C4GroupItem item : childEntries) {
 				item.entryHeader().writeTo(stream);
-			for(final C4GroupItem item : childEntries)
+			}
+			for(final C4GroupItem item : childEntries) {
 				item.writeTo(stream);
+			}
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
@@ -463,8 +478,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 		}
 		final List<C4GroupItem> childEntries = this.children();
 		final String[] result = new String[childEntries.size()];
-		for (int i = 0; i < result.length; i++)
+		for (int i = 0; i < result.length; i++) {
 			result[i] = childEntries.get(i).getName();
+		}
 		return result;
 	}
 
@@ -503,8 +519,9 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 
 		final boolean needsToReleaseStream = stream() == null;
 		try {
-			if (needsToReleaseStream)
+			if (needsToReleaseStream) {
 				requireStream();
+			}
 		} catch (final IOException e) {
 			e.printStackTrace();
 			return;
@@ -526,19 +543,22 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				// don't copy attributes since that is stupid
 				//transferAttributes(sourceInfo, destination);
 
-				if (children == null)
+				if (children == null) {
 					return;
+				}
 				// copy children
-				for (int i = 0; i < children.length; i++)
-					children[i].copy(destination.getChild(children[i].getName()), options, new SubProgressMonitor(monitor, 1));
+				for (final IFileStore element : children) {
+					element.copy(destination.getChild(element.getName()), options, new SubProgressMonitor(monitor, 1));
+				}
 			} finally {
 				monitor.done();
 			}
 
 		} finally {
 			try {
-				if (needsToReleaseStream)
+				if (needsToReleaseStream) {
 					releaseStream();
+				}
 			} catch (final IOException e) {
 				e.printStackTrace();
 			}

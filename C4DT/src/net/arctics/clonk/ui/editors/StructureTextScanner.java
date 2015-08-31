@@ -6,15 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.ui.editors.ColorManager.SyntaxElementStyle;
-
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
+
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.ui.editors.ColorManager.SyntaxElementStyle;
 
 public abstract class StructureTextScanner extends RuleBasedScanner {
 
@@ -32,7 +32,7 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 		}
 		public T get(final Engine engine) {
 			T scanner = scanners.get(engine.name());
-			if (scanner == null)
+			if (scanner == null) {
 				try {
 					scanner = scannerClass.getConstructor(CTOR_SIGNATURE).newInstance(ColorManager.INSTANCE, engine);
 					scanners.put(engine.name(), scanner);
@@ -40,12 +40,15 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 					e.printStackTrace();
 					return null;
 				}
+			}
 			return scanner;
 		}
 		public static void refreshScanners() {
-			for (final ScannerPerEngine<?> i : INSTANCES)
-				for (final StructureTextScanner s : i.scanners.values())
+			for (final ScannerPerEngine<?> i : INSTANCES) {
+				for (final StructureTextScanner s : i.scanners.values()) {
 					s.recommitRules();
+				}
+			}
 		}
 	}
 
@@ -66,24 +69,28 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 				isNegative = true;
 			}
 			if (character >= 0x30 && character <= 0x39) {
-				if (character == '0')
+				if (character == '0') {
 					if (scanner.read() == 'x') {
-						do
+						do {
 							character = scanner.read();
-						while ((character >= '0' && character <= '9') || (character >= 'A' && character <= 'F') || (character >= 'a' && character <= 'f'));
+						} while ((character >= '0' && character <= '9') || (character >= 'A' && character <= 'F') || (character >= 'a' && character <= 'f'));
 						scanner.unread();
 						return token;
-					} else
+					} else {
 						scanner.unread();
-				do
+					}
+				}
+				do {
 					character = scanner.read();
-				while (character >= 0x30 && character <= 0x39);
+				} while (character >= 0x30 && character <= 0x39);
 				scanner.unread();
 				return token;
 			}
 			else {
 				scanner.unread();
-				if (isNegative) scanner.unread();
+				if (isNegative) {
+					scanner.unread();
+				}
 				return Token.UNDEFINED;
 			}
 		}
@@ -118,9 +125,11 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 		 * @return <code>true</code> if the character is a bracket, <code>false</code> otherwise.
 		 */
 		public boolean isBracket(final char character) {
-			for (int index= 0; index < JAVA_BRACKETS.length; index++)
-				if (JAVA_BRACKETS[index] == character)
+			for (final char element : JAVA_BRACKETS) {
+				if (element == character) {
 					return true;
+				}
+			}
 			return false;
 		}
 
@@ -132,9 +141,9 @@ public abstract class StructureTextScanner extends RuleBasedScanner {
 
 			int character= scanner.read();
 			if (isBracket((char) character)) {
-				do
+				do {
 					character= scanner.read();
-				while (isBracket((char) character));
+				} while (isBracket((char) character));
 				scanner.unread();
 				return fToken;
 			} else {

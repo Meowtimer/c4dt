@@ -1,11 +1,11 @@
 package net.arctics.clonk.ui;
 
-import net.arctics.clonk.Core;
-
 import org.eclipse.debug.ui.IDebugUIConstants;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
+
+import net.arctics.clonk.Core;
 
 public class ClonkPerspective implements IPerspectiveFactory {
 	@Override

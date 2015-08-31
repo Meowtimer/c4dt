@@ -5,6 +5,12 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import java.util.Collection;
 import java.util.ResourceBundle;
 
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.ITextEditor;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
@@ -14,12 +20,6 @@ import net.arctics.clonk.index.Index;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction;
 import net.arctics.clonk.ui.editors.actions.ClonkTextEditorAction.CommandId;
 import net.arctics.clonk.ui.editors.c4script.C4ScriptEditor;
-
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 @CommandId(id="ui.editors.actions.EvaluateC4Script")
 public class EvaluateC4Script extends ClonkTextEditorAction {

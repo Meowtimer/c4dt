@@ -1,10 +1,5 @@
 package net.arctics.clonk.builder;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.c4group.C4Group;
-import net.arctics.clonk.c4group.FileExtension;
-import net.arctics.clonk.index.Engine;
-
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.resources.IContainer;
@@ -12,35 +7,43 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IFileEditorInput;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.c4group.C4Group;
+import net.arctics.clonk.c4group.FileExtension;
+import net.arctics.clonk.index.Engine;
+
 public class ResourceTester extends PropertyTester {
 
 	@Override
 	public boolean test(Object receiver, final String property, final Object[] args, final Object expected) {
 		try {
 			// Editor? Resolve to associated resource
-			if (receiver instanceof IFileEditorInput)
+			if (receiver instanceof IFileEditorInput) {
 				receiver = ((IFileEditorInput) receiver).getFile();
+			}
 
 			final IResource res = receiver instanceof IResource ? (IResource) receiver : null;
-			if (res == null)
+			if (res == null) {
 				return false;
+			}
 
 			boolean result = false;		
 			// Calculate property value
-			if (property.equals("isScenario")) //$NON-NLS-1$
+			if (property.equals("isScenario")) {
 				result = isScenario(res);
-			else if (property.equals("isDefinition")) //$NON-NLS-1$
+			} else if (property.equals("isDefinition")) {
 				result = isDefinition(res);
-			else if (property.equals("isFolder")) //$NON-NLS-1$
+			} else if (property.equals("isFolder")) {
 				result = isFolder(res);
-			else if (property.equals("isResource")) //$NON-NLS-1$
+			} else if (property.equals("isResource")) {
 				result = isResource(res);
-			else if (property.equals("isInScenario")) //$NON-NLS-1$
+			} else if (property.equals("isInScenario")) {
 				result = isInScenario(res);
-			else if (property.equals("isInClonkProject"))
+			} else if (property.equals("isInClonkProject")) {
 				result = isInClonkProject(res);
-			else
+			} else {
 				return false;
+			}
 
 			// Compare to expected value, if given
 			return expected == null ? result : (expected instanceof Boolean && result == (Boolean)expected);
@@ -77,9 +80,11 @@ public class ResourceTester extends PropertyTester {
 
 	/** @return Whether the given resource is contained in a scenario */
 	public static boolean isInScenario(IResource res) {
-		for (; res != null; res = res.getParent())
-			if (isScenario(res))
+		for (; res != null; res = res.getParent()) {
+			if (isScenario(res)) {
 				return true;
+			}
+		}
 		return false;
 	}
 

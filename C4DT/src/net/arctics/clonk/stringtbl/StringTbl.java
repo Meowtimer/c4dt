@@ -70,8 +70,9 @@ public class StringTbl extends Structure implements ITreeNode {
 
 	@Override
 	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
-		if (declarationClass == NameValueAssignment.class)
+		if (declarationClass == NameValueAssignment.class) {
 			return map.get(declarationName);
+		}
 		return null;
 	}
 
@@ -85,20 +86,21 @@ public class StringTbl extends Structure implements ITreeNode {
 		scanner = new BufferedScanner(reader);
 		while (!scanner.reachedEOF()) {
 			scanner.eatWhitespace();
-			if (scanner.read() == '#')
+			if (scanner.read() == '#') {
 				scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
-			else {
+			} else {
 				scanner.unread();
 				final int start = scanner.tell();
 				final String key = scanner.readStringUntil('=');
 				if (scanner.read() == '=') {
 					String value = scanner.readStringUntil(BufferedScanner.NEWLINE_CHARS);
-					if (value == null)
+					if (value == null) {
 						value = "";
+					}
 					tbl.addTblEntry(key, value, start, scanner.tell());
-				}
-				else
+				} else {
 					scanner.unread();
+				}
 			}
 		}
 	}
@@ -153,10 +155,11 @@ public class StringTbl extends Structure implements ITreeNode {
 		if (result != null) {
 			final StringTbl stringTbl = container.localStringTblMatchingLanguagePref();
 			final Declaration e = stringTbl != null ? stringTbl.map().get(result.text()) : null;
-			if (e == null && returnNullIfNotFound)
+			if (e == null && returnNullIfNotFound) {
 				result = null;
-			else
+			} else {
 				result.setEntity(e);
+			}
 		}
 		return result;
 	}
@@ -191,7 +194,7 @@ public class StringTbl extends Structure implements ITreeNode {
 		boolean moreThanOneSubstitution = false;
 		boolean substitutionsApplied = false;
 		Outer: for (int i = 0; i < valueLen;) {
-			if (i+1 < valueLen)
+			if (i+1 < valueLen) {
 				switch (value.charAt(i)) {
 				case '$':
 					moreThanOneSubstitution = reg != null;
@@ -205,13 +208,16 @@ public class StringTbl extends Structure implements ITreeNode {
 					}
 					break;
 				case '\\':
-					if (evaluateEscapes) switch (value.charAt(++i)) {
-					case '"': case '\\':
-						builder.append(value.charAt(i++));
-						continue Outer;
+					if (evaluateEscapes) {
+						switch (value.charAt(++i)) {
+						case '"': case '\\':
+							builder.append(value.charAt(i++));
+							continue Outer;
+						}
 					}
 					break;
 				}
+			}
 			builder.append(value.charAt(i++));
 		}
 		return new EvaluationResult(

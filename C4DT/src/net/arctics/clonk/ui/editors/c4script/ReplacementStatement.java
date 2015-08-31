@@ -1,13 +1,13 @@
 package net.arctics.clonk.ui.editors.c4script;
 
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.ast.Statement;
 import net.arctics.clonk.parser.BufferedScanner;
-
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
 
 /**
  * A statement to insert some arbitrary string into an AST.
@@ -38,20 +38,23 @@ public class ReplacementStatement extends Statement {
 			final IRegion originalLineRegion = document.getLineInformationOfOffset(offsetToAbsolute+relativeExpressionRegion.getOffset());
 			final String originalLine = document.get(originalLineRegion.getOffset(), originalLineRegion.getLength());
 			boolean deleteLine = true;
-			for (int i = relativeExpressionRegion.getOffset()-originalLineRegion.getOffset()-1+offsetToAbsolute; i >= 0; i--)
+			for (int i = relativeExpressionRegion.getOffset()-originalLineRegion.getOffset()-1+offsetToAbsolute; i >= 0; i--) {
 				if (!BufferedScanner.isWhiteSpace(originalLine.charAt(i))) {
 					deleteLine = false;
 					break;
 				}
-			for (int i = relativeExpressionRegion.getOffset()+relativeExpressionRegion.getLength()+1-originalLineRegion.getOffset()+offsetToAbsolute; i < originalLine.length(); i++)
+			}
+			for (int i = relativeExpressionRegion.getOffset()+relativeExpressionRegion.getLength()+1-originalLineRegion.getOffset()+offsetToAbsolute; i < originalLine.length(); i++) {
 				if (!BufferedScanner.isWhiteSpace(originalLine.charAt(i))) {
 					deleteLine = false;
 					break;
 				}
+			}
 			if (deleteLine) {
 				int newExprStart = originalLineRegion.getOffset()-offsetToAbsolute;
-				for (int abs = originalLineRegion.getOffset()-1; abs >= 0 && BufferedScanner.isWhiteSpace(document.getChar(abs)); abs--)
+				for (int abs = originalLineRegion.getOffset()-1; abs >= 0 && BufferedScanner.isWhiteSpace(document.getChar(abs)); abs--) {
 					newExprStart--;
+				}
 				additionalExprLength = exprStart - newExprStart;
 				exprStart = newExprStart;
 			}

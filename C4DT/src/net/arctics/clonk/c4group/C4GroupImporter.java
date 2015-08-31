@@ -14,10 +14,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ui.wizards.Messages;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -26,6 +22,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ui.wizards.Messages;
+import net.arctics.clonk.util.Utilities;
 
 /**
  * Helper for importing c4group files as folders into a specified container
@@ -54,13 +54,15 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 		for (int i = 0; i < groupFiles.length; i++) {
 			final File gf = groupFiles[i];
 			if (new File(destinationFolder, gf.getName()).equals(gf)) {
-				if (importingFolder == null)
+				if (importingFolder == null) {
 					importingFolder = Core.instance().requestFolderInStateLocation(IMPORTING_FOLDER);
+				}
 				final File fileMoveDestination = new File(importingFolder, gf.getName());
-				if (gf.renameTo(fileMoveDestination))
+				if (gf.renameTo(fileMoveDestination)) {
 					groupFiles[i] = fileMoveDestination;
-				else
+				} else {
 					System.out.println("Failed to move " + gf.toString() + "!");
+				}
 			}
 		}
 	}
@@ -70,8 +72,9 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 		monitor.beginTask(Messages.C4GroupImporter_ImportingFiles, groupFiles.length);
 		runWithoutAutoBuild(()-> {
 			final List<C4Group> groups = stream(groupFiles).map(groupFile -> {
-				if (monitor.isCanceled())
+				if (monitor.isCanceled()) {
 					return null;
+				}
 				try {
 					final C4Group group = C4Group.openFile(groupFile);
 					monitor.subTask(String.format(Messages.C4GroupImporter_Importing, group.getName()));
@@ -89,16 +92,19 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 						}
 						@Override
 						public void processGroupItem(final C4GroupItem item) {
-							for (; currentGroup != item.parentGroup(); currentGroup = currentGroup.parentGroup(), currentContainer = currentContainer.getParent());
+							for (; currentGroup != item.parentGroup(); currentGroup = currentGroup.parentGroup(), currentContainer = currentContainer.getParent()) {
+								;
+							}
 							if (item instanceof C4Group) {
 								final C4Group group = (C4Group)item;
 								final IFolder newFolder = currentContainer.getFolder(new Path(group.getName()));
-								if (!newFolder.exists())
+								if (!newFolder.exists()) {
 									try {
 										newFolder.create(IResource.NONE, true, null);
 									} catch (final CoreException e) {
 										e.printStackTrace();
 									}
+								}
 								currentContainer = newFolder;
 								currentGroup = group;
 							}
@@ -106,14 +112,16 @@ public class C4GroupImporter extends WorkspaceModifyOperation {
 								final C4GroupFile entry = (C4GroupFile)item;
 								final IFile newFile = currentContainer.getFile(new Path(entry.getName()));
 								final InputStream newContents = attempt(() -> new ByteArrayInputStream(entry.getContents()), CoreException.class, e -> {});
-								if (newContents == null)
+								if (newContents == null) {
 									return;
+								}
 								try {
 									try {
-										if (newFile.exists())
+										if (newFile.exists()) {
 											newFile.setContents(newContents, 0, null);
-										else
+										} else {
 											newFile.create(newContents, IResource.NONE, null);
+										}
 									} catch (final CoreException e) {
 										e.printStackTrace();
 									}

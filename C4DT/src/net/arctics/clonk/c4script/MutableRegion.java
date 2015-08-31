@@ -56,8 +56,9 @@ public class MutableRegion implements IRegion {
 		if (offset >= minOffsetAffected) {
 			offset += amount;
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 	
 }

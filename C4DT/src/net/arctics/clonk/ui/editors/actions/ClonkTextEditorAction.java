@@ -6,16 +6,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ResourceBundle;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.ui.editors.StructureTextEditor;
-
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.Region;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.TextEditorAction;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
 
 /**
  * Base class for actions performed in a C4ScriptEditor. Provides facilities for locating entities/declarations at a certain text location.
@@ -35,10 +35,11 @@ public abstract class ClonkTextEditorAction extends TextEditorAction {
 	
 	public static String idString(final Class<? extends ClonkTextEditorAction> c) {
 		final CommandId commandId = id(c);
-		if (commandId == null)
+		if (commandId == null) {
 			return null;
-		else
+		} else {
 			return Core.id(commandId.id());
+		}
 	}
 	
 	public static String resourceBundlePrefix(final Class<? extends ClonkTextEditorAction> c) {
@@ -52,8 +53,9 @@ public abstract class ClonkTextEditorAction extends TextEditorAction {
 			final String idString = Core.id(id.id());
 			this.setId(idString);
 			this.setActionDefinitionId(idString);
-		} else
+		} else {
 			System.out.println(String.format("Missing CommandId for %s", getClass().getSimpleName()));
+		}
 	}
 	
 	public ClonkTextEditorAction(final ResourceBundle bundle, final String prefix, final ITextEditor editor) {

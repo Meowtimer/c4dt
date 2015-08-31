@@ -7,15 +7,15 @@ import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 import java.util.Comparator;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.c4script.typing.IType;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypeAnnotation;
-
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 
 final class StaticTypingMigrationJob extends TypingMigrationJob {
 	private final ProjectSettings settings;
@@ -55,8 +55,9 @@ final class StaticTypingMigrationJob extends TypingMigrationJob {
 				})
 				.reduce((c, a) -> c + a)
 				.orElse(0);
-			if (changes > 0)
+			if (changes > 0) {
 				document.set(builder.toString());
+			}
 			return null;
 		}, true);
 	}

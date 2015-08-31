@@ -7,16 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
-import net.arctics.clonk.ast.DeclMask;
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.SourceLocation;
-import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
-import net.arctics.clonk.util.Utilities;
-
 import org.eclipse.jface.internal.text.html.HTMLTextPresenter;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.DefaultInformationControl;
@@ -43,6 +33,16 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
+import net.arctics.clonk.ast.DeclMask;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.SourceLocation;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
+import net.arctics.clonk.util.Utilities;
+
 /**
  * Editing state on a specific {@link Structure}. Shared among all editors editing the file the {@link Structure} was read from.
  * @author madeen
@@ -63,16 +63,18 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 			if (hyperlink instanceof EntityHyperlink) {
 				final EntityHyperlink clonkHyperlink = (EntityHyperlink) hyperlink;
 				final IIndexEntity entity = clonkHyperlink.target();
-				if (entity != null)
+				if (entity != null) {
 					return entity.infoText(structure());
+				}
 			}
 			return null;
 		}
 		@Override
 		public IRegion getHoverRegion(final ITextViewer viewer, final int offset) {
 			hyperlink = hyperlinkAtOffset(offset);
-			if (hyperlink != null)
+			if (hyperlink != null) {
 				return hyperlink.getHyperlinkRegion();
+			}
 			return null;
 		}
 		@Override
@@ -96,8 +98,9 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 
 	protected ContentAssistant installAssistant(final ISourceViewer sourceViewer) {
 		if (assistantSite != sourceViewer) {
-			if (assistantSite != null)
+			if (assistantSite != null) {
 				assistant.uninstall();
+			}
 			assistantSite = sourceViewer;
 			assistant.install(sourceViewer);
 		}
@@ -122,12 +125,15 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		List<T> list;
 		synchronized (lists) {
 			list = (List<T>) lists.get(cls);
-			if (list == null)
+			if (list == null) {
 				return null;
+			}
 		}
-		for (final T s : list)
-			if (s.structure() == structure)
+		for (final T s : list) {
+			if (s.structure() == structure) {
 				return s;
+			}
+		}
 		return null;
 	}
 
@@ -156,8 +162,9 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		List<T> list;
 		synchronized (lists) {
 			list = (List<T>) lists.get(type);
-			if (list == null)
+			if (list == null) {
 				lists.put(type, list = new LinkedList<T>());
+			}
 		}
 		final StructureEditingState<? super E, ? super S> result = stateFromList(list, structure);
 		T r;
@@ -172,8 +179,9 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 			r.set(list, structure, document);
 			r.initialize();
 			list.add(r);
-		} else
+		} else {
 			r = (T)result;
+		}
 		r.addEditor(editor);
 		return r;
 	}
@@ -186,11 +194,12 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 
 	protected static <E extends StructureTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(final List<T> list, final S structure) {
 		T result = null;
-		for (final T s : list)
+		for (final T s : list) {
 			if (Utilities.eq(s.structure(), structure)) {
 				result = s;
 				break;
 			}
+		}
 		return result;
 	}
 
@@ -229,13 +238,15 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 
 	private void maybeRemovePartListener(final EditorType removedEditor) {
 		boolean removePartListener = true;
-		for (final EditorType ed : editors)
+		for (final EditorType ed : editors) {
 			if (ed.getSite().getPage() == removedEditor.getSite().getPage()) {
 				removePartListener = false;
 				break;
 			}
-		if (removePartListener)
+		}
+		if (removePartListener) {
 			removedEditor.getSite().getPage().removePartListener(this);
+		}
 	}
 
 	@Override
@@ -252,10 +263,12 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 */
 	protected void incrementLocationOffsetsExceedingThreshold(final SourceLocation location, final int threshold, final int add) {
 		if (location != null) {
-			if (location.start() > threshold)
+			if (location.start() > threshold) {
 				location.setStart(location.start()+add);
-			if (location.end() >= threshold)
+			}
+			if (location.end() >= threshold) {
 				location.setEnd(location.end()+add);
+			}
 		}
 	}
 
@@ -274,29 +287,33 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 * @param event Document event describing the document change that triggered this call.
 	 */
 	protected void adjustDeclarationLocations(final DocumentEvent event) {
-		if (event.getLength() == 0 && event.getText().length() > 0)
+		if (event.getLength() == 0 && event.getText().length() > 0) {
 			// text was added
-			for (final Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
+			for (final Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL)) {
 				adjustDec(dec, event.getOffset(), event.getText().length());
-		else if (event.getLength() > 0 && event.getText().length() == 0)
+			}
+		} else if (event.getLength() > 0 && event.getText().length() == 0) {
 			// text was removed
-			for (final Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL))
+			for (final Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL)) {
 				adjustDec(dec, event.getOffset(), -event.getLength());
-		else {
+			}
+		} else {
 			final String newText = event.getText();
 			final int replLength = event.getLength();
 			final int offset = event.getOffset();
 			final int diff = newText.length() - replLength;
 			// mixed
-			for (final Declaration dec : structure.subDeclarations(structure.index(), net.arctics.clonk.ast.DeclMask.ALL))
-				if (dec.start() >= offset + replLength)
+			for (final Declaration dec : structure.subDeclarations(structure.index(), net.arctics.clonk.ast.DeclMask.ALL)) {
+				if (dec.start() >= offset + replLength) {
 					adjustDec(dec, offset, diff);
-				else if (dec instanceof Function) {
+				} else if (dec instanceof Function) {
 					// inside function: expand end location
 					final Function func = (Function) dec;
-					if (offset >= func.bodyLocation().start() && offset+replLength < func.bodyLocation().end())
+					if (offset >= func.bodyLocation().start() && offset+replLength < func.bodyLocation().end()) {
 						func.bodyLocation().setEnd(func.bodyLocation().end()+diff);
+					}
 				}
+			}
 		}
 	}
 
@@ -306,16 +323,18 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 * @return null so this method can be called and its return value be used as assignment right side with the TimerTask reference variable being on the left.
 	 */
 	public TimerTask cancelTimerTask(final TimerTask whichTask) {
-		if (whichTask != null)
+		if (whichTask != null) {
 			try {
 				whichTask.cancel();
 			} catch (final IllegalStateException e) {}
+		}
 		return null;
 	}
 
 	public TimerTask runAndCancelTimerTask(final TimerTask whichTask) {
-		if (whichTask != null)
+		if (whichTask != null) {
 			whichTask.run();
+		}
 		return cancelTimerTask(whichTask);
 	}
 
@@ -379,8 +398,9 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	}
 	@Override
 	public ITextHover getTextHover(final ISourceViewer sourceViewer, final String contentType) {
-		if (hover == null)
+		if (hover == null) {
 			hover = new ClonkTextHover();
+		}
 		return hover;
 	}
 	@Override
@@ -399,8 +419,9 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		final IRegion r = new Region(offset, 0);
 		for (final IHyperlinkDetector d : detectors) {
 			final IHyperlink[] hyperlinks = d.detectHyperlinks(sourceViewer, r, false);
-			if (hyperlinks != null && hyperlinks.length > 0)
+			if (hyperlinks != null && hyperlinks.length > 0) {
 				return hyperlinks[0];
+			}
 		}
 		return null;
 	}

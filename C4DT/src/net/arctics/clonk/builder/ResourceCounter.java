@@ -30,12 +30,16 @@ public class ResourceCounter implements IResourceVisitor, IResourceDeltaVisitor 
 
 	@Override
 	public boolean visit(final IResource resource) throws CoreException {
-		if ((flags & COUNT_CONTAINER) > 0)
-			if (resource instanceof IContainer)
+		if ((flags & COUNT_CONTAINER) > 0) {
+			if (resource instanceof IContainer) {
 				count++;
-		if ((flags & COUNT_FILE) > 0)
-			if (resource instanceof IFile)
+			}
+		}
+		if ((flags & COUNT_FILE) > 0) {
+			if (resource instanceof IFile) {
 				count++;
+			}
+		}
 		return true;
 	}
 

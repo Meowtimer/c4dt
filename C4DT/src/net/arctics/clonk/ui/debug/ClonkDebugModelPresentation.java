@@ -1,10 +1,6 @@
 package net.arctics.clonk.ui.debug;
 
 import static net.arctics.clonk.util.Utilities.block;
-import net.arctics.clonk.debug.Breakpoint;
-import net.arctics.clonk.debug.ScriptThread;
-import net.arctics.clonk.debug.StackFrame;
-import net.arctics.clonk.debug.Target;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -16,6 +12,11 @@ import org.eclipse.debug.ui.IValueDetailListener;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
+
+import net.arctics.clonk.debug.Breakpoint;
+import net.arctics.clonk.debug.ScriptThread;
+import net.arctics.clonk.debug.StackFrame;
+import net.arctics.clonk.debug.Target;
 
 public class ClonkDebugModelPresentation extends LabelProvider implements IDebugModelPresentation {
 
@@ -42,9 +43,9 @@ public class ClonkDebugModelPresentation extends LabelProvider implements IDebug
 
 	@Override
 	public IEditorInput getEditorInput(final Object element) {
-		if (element instanceof IFile)
+		if (element instanceof IFile) {
 			return new FileEditorInput((IFile) element);
-		else if (element instanceof Breakpoint) {
+		} else if (element instanceof Breakpoint) {
 			final Breakpoint breakpoint = (Breakpoint) element;
 			return getEditorInput(breakpoint.getMarker().getResource());
 		}

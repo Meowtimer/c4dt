@@ -3,15 +3,6 @@ package net.arctics.clonk.ui;
 import java.util.Comparator;
 import java.util.function.Function;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.Index;
-import net.arctics.clonk.index.Scenario;
-import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
-import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.UI;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -29,6 +20,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.PlatformUI;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
+import net.arctics.clonk.index.Scenario;
+import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
+import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.UI;
+
 public class OpenDefinitionDialog extends EntityChooser {
 
 	public static final String DIALOG_SETTINGS = "OpenDefinitionDialogSettings"; //$NON-NLS-1$
@@ -43,9 +43,12 @@ public class OpenDefinitionDialog extends EntityChooser {
 	private class OpenDefinitionLabelProvider extends LabelProvider implements IStyledLabelProvider {
 		@Override
 		public StyledString getStyledText(final Object element) {
-			if (element == null)
+			if (element == null) {
 				return new StyledString(Messages.OpenDefinitionDialog_Empty);
-			if (!(element instanceof Definition)) return new StyledString(element.toString());
+			}
+			if (!(element instanceof Definition)) {
+				return new StyledString(element.toString());
+			}
 			final Definition obj = (Definition) element;
 			final StyledString buf = new StyledString(obj.localizedName());
 			buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
@@ -86,12 +89,16 @@ public class OpenDefinitionDialog extends EntityChooser {
 		if (selection instanceof IStructuredSelection && ((IStructuredSelection)selection).getFirstElement() instanceof IResource) {
 			final IProject proj = ((IResource)((IStructuredSelection)selection).getFirstElement()).getProject();
 			final ClonkProjectNature nat = ClonkProjectNature.get(proj);
-			if (nat != null && nat.index() != null)
-				for (final Index index : nat.index().relevantIndexes())
+			if (nat != null && nat.index() != null) {
+				for (final Index index : nat.index().relevantIndexes()) {
 					fillWithIndexContents(contentProvider, itemsFilter, progressMonitor, index);
-		} else if (selection instanceof Iterable)
-			for (final Object o : (Iterable<?>)selection)
+				}
+			}
+		} else if (selection instanceof Iterable) {
+			for (final Object o : (Iterable<?>)selection) {
 				contentProvider.add(o, itemsFilter);
+			}
+		}
 	}
 
 	private void fillWithIndexContents(
@@ -104,23 +111,26 @@ public class OpenDefinitionDialog extends EntityChooser {
 			contentProvider.add(item, itemsFilter);
 			progressMonitor.worked(1);
 		});
-		for (final Scenario s : index.scenarios())
+		for (final Scenario s : index.scenarios()) {
 			contentProvider.add(s, itemsFilter);
+		}
 		progressMonitor.done();
 	}
 
 	@Override
 	protected IDialogSettings getDialogSettings() {
 		IDialogSettings settings = Core.instance().getDialogSettings().getSection(DIALOG_SETTINGS);
-		if (settings == null)
+		if (settings == null) {
 			settings = Core.instance().getDialogSettings().addNewSection(DIALOG_SETTINGS);
+		}
 		return settings;
 	}
 
 	@Override
 	public String getElementName(final Object item) {
-		if (!(item instanceof Definition))
+		if (!(item instanceof Definition)) {
 			return item.toString();
+		}
 		return ((Definition)item).id().stringValue();
 	}
 

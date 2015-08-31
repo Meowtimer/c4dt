@@ -47,10 +47,12 @@ public class SystemScript extends Script implements Serializable {
 
 	@Override
 	public void setScriptFile(final IFile f) {
-		if (Utilities.eq(scriptFile, f))
+		if (Utilities.eq(scriptFile, f)) {
 			return;
-		if (scriptFile != null)
+		}
+		if (scriptFile != null) {
 			super.unPinFrom(scriptFile);
+		}
 		scriptFile = f;
 		if (f != null) {
 			super.pinTo(scriptFile);
@@ -85,9 +87,9 @@ public class SystemScript extends Script implements Serializable {
 		if (res instanceof IFile) {
 			setScriptFile((IFile) res);
 			return true;
-		}
-		else
+		} else {
 			return false;
+		}
 	}
 
 	public static SystemScript scriptCorrespondingTo(final IFile file) {
@@ -103,19 +105,21 @@ public class SystemScript extends Script implements Serializable {
 
 	public static void register() {
 		registerStructureFactory((resource, duringBuild) -> {
-			if (!Script.looksLikeScriptFile(resource.getName()))
+			if (!Script.looksLikeScriptFile(resource.getName())) {
 				return null;
+			}
 			final ProjectIndex index = ProjectIndex.fromResource(resource);
 			final Script sysScript = ofType(index.scripts().stream(), SystemScript.class)
 				.filter(s -> s.file() != null && s.file().equals(resource))
 				.findFirst()
 				.orElse(null);
-			if (sysScript != null)
+			if (sysScript != null) {
 				try {
 					index.loadEntity(sysScript);
 				} catch (final Exception e) {
 					e.printStackTrace();
 				}
+			}
 			return sysScript;
 		});
 	}
@@ -127,8 +131,9 @@ public class SystemScript extends Script implements Serializable {
 
 	@Override
 	public String typeName(final boolean special) {
-		if (!special)
+		if (!special) {
 			return PrimitiveType.OBJECT.typeName(false);
+		}
 		final List<Definition> targets = directives().stream()
 			.filter(d -> d.type() == DirectiveType.APPENDTO)
 			.map(this::definitionFromDirective)

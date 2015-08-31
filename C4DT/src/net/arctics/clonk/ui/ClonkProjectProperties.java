@@ -3,12 +3,6 @@ package net.arctics.clonk.ui;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.builder.ProjectSettings;
-import net.arctics.clonk.preferences.ClonkPreferencePage;
-import net.arctics.clonk.preferences.Messages;
-import net.arctics.clonk.util.UI;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -17,6 +11,12 @@ import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.ui.IWorkbenchPropertyPage;
+
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.builder.ProjectSettings;
+import net.arctics.clonk.preferences.ClonkPreferencePage;
+import net.arctics.clonk.preferences.Messages;
+import net.arctics.clonk.util.UI;
 
 public class ClonkProjectProperties extends FieldEditorPreferencePage implements IWorkbenchPropertyPage {
 
@@ -77,7 +77,7 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 	private AdapterStore adapterStore;
 
 	private IProject getProject() {
-		return (IProject) element.getAdapter(IProject.class);
+		return element.getAdapter(IProject.class);
 	}
 
 	@Override
@@ -110,8 +110,9 @@ public class ClonkProjectProperties extends FieldEditorPreferencePage implements
 		if (super.performOk()) {
 			ClonkProjectNature.get(getProject()).saveSettings();
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 
 }

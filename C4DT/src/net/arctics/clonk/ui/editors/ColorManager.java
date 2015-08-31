@@ -3,12 +3,12 @@ package net.arctics.clonk.ui.editors;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.arctics.clonk.Core;
-
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
+
+import net.arctics.clonk.Core;
 
 public enum ColorManager {
 	INSTANCE;
@@ -36,8 +36,9 @@ public enum ColorManager {
 		}
 		public int style() {
 			final String prefName = prefName(STYLE);
-			if (Core.instance().getPreferenceStore().isDefault(prefName))
+			if (Core.instance().getPreferenceStore().isDefault(prefName)) {
 				Core.instance().getPreferenceStore().setValue(prefName, defaultStyle);
+			}
 			return Core.instance().getPreferenceStore().getInt(prefName);
 		}
 		public SyntaxElementStyle(final String name, final RGB rgb, final int style) {
@@ -50,8 +51,9 @@ public enum ColorManager {
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-			if (localizedName == null)
+			if (localizedName == null) {
 				System.out.println("No localizedName for " + name);
+			}
 
 			syntaxElementStyles.put(name, this);
 		}
@@ -93,8 +95,9 @@ public enum ColorManager {
 	protected Map<RGB, Color> colorTable = new HashMap<RGB, Color>(10);
 
 	public void dispose() {
-		for (final Color c : colorTable.values())
+		for (final Color c : colorTable.values()) {
 			c.dispose();
+		}
 	}
 	public Color getColor(final RGB rgb) {
 		Color color = colorTable.get(rgb);

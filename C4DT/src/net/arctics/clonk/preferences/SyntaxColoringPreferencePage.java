@@ -1,12 +1,5 @@
 package net.arctics.clonk.preferences;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.ColorManager.SyntaxElementStyle;
-import net.arctics.clonk.ui.editors.EditorUtil;
-import net.arctics.clonk.ui.editors.StructureTextEditor;
-import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
-
 import org.eclipse.jface.preference.ColorFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -16,6 +9,13 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.ColorManager.SyntaxElementStyle;
+import net.arctics.clonk.ui.editors.EditorUtil;
+import net.arctics.clonk.ui.editors.StructureTextEditor;
+import net.arctics.clonk.ui.editors.StructureTextScanner.ScannerPerEngine;
 
 public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
@@ -70,10 +70,12 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 		protected void doStore() {
 			super.doStore();
 			int v = 0;
-			if (boldButton.getSelection())
+			if (boldButton.getSelection()) {
 				v |= SWT.BOLD;
-			if (italicButton.getSelection())
+			}
+			if (italicButton.getSelection()) {
 				v |= SWT.ITALIC;
+			}
 			getPreferenceStore().setValue(stylePrefName(), v);
 		}
 	}
@@ -105,8 +107,9 @@ public class SyntaxColoringPreferencePage extends FieldEditorPreferencePage impl
 			EditorUtil.clonkTextEditors(StructureTextEditor.class, false)
 				.forEach(StructureTextEditor::reconfigureSourceViewer);
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 
 }

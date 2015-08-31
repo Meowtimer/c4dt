@@ -10,14 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.util.Console;
-import net.arctics.clonk.util.FileOperations;
-import net.arctics.clonk.util.Pair;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -31,6 +23,14 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.util.Console;
+import net.arctics.clonk.util.FileOperations;
+import net.arctics.clonk.util.Pair;
 
 public class C4GroupExporter implements IRunnableWithProgress {
 	
@@ -60,14 +60,16 @@ public class C4GroupExporter implements IRunnableWithProgress {
 			FileDialog fileDialog = null;
 			for (final Pair<IContainer, String> toExport : packs) {
 				String packPath;
-				if (fileDialog == null)
+				if (fileDialog == null) {
 					fileDialog = new FileDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), SWT.SAVE);
+				}
 				fileDialog.setFileName(toExport.first().getName());
 				fileDialog.setText(String.format(Messages.WhereToSave, toExport.first().getName()));
 				fileDialog.setFilterPath(destinationPath);
 				packPath = fileDialog.open();
-				if (packPath == null)
+				if (packPath == null) {
 					return false;
+				}
 				toExport.setSecond(packPath);
 			}
 		}
@@ -75,20 +77,23 @@ public class C4GroupExporter implements IRunnableWithProgress {
 	}
 
 	public void export(final IProgressMonitor monitor) {
-		if (monitor != null)
+		if (monitor != null) {
 			monitor.beginTask(Messages.Exporting, numTotal);
+		}
 		final IPreferencesService service = Platform.getPreferencesService();
 		final boolean showExportLog = service.getBoolean(Core.PLUGIN_ID, ClonkPreferences.SHOW_EXPORT_LOG, false, null);
 		for (final Entry<Engine, List<Pair<IContainer, String>>> byEngine : packsDividedInEngines.entrySet()) {
 			final String c4groupPath = byEngine.getKey().settings().c4GroupPath;
 			for(final Pair<IContainer, String> toExport : byEngine.getValue()) {
-				if (monitor != null)
+				if (monitor != null) {
 					monitor.subTask(toExport.first().getName());
+				}
 				final String packPath = toExport.second();
 				final File oldFile = new File(packPath);
 				// ugh, deleting files is ugly but there seems to be no java method for putting files to trash -.-
-				if (oldFile.exists())
+				if (oldFile.exists()) {
 					oldFile.delete();
+				}
 				new Job(String.format(Messages.ExportC4GroupJobTitle, toExport.first().getName())) {
 					@Override
 					protected IStatus run(final IProgressMonitor monitor) {
@@ -108,8 +113,7 @@ public class C4GroupExporter implements IRunnableWithProgress {
 								// show command line in console
 								final StringBuilder cmdLine = new StringBuilder();
 								cmdLine.append(Messages.ExporterCommandlineTitle);
-								for (int _i = 0; _i < cmdArray.length; _i++) {
-									final String cmdE = cmdArray[_i];
+								for (final String cmdE : cmdArray) {
 									cmdLine.append(" " + cmdE); //$NON-NLS-1$
 								}
 								out.println(cmdLine.toString());
@@ -124,8 +128,9 @@ public class C4GroupExporter implements IRunnableWithProgress {
 								final byte[] buffer = new byte[256];
 								c4group.waitFor();
 
-								while((read = stream.read(buffer, 0, 256)) > 0)
+								while((read = stream.read(buffer, 0, 256)) > 0) {
 									out.write(buffer, 0, read);
+								}
 							}
 							c4group.waitFor();
 							return Status.OK_STATUS;
@@ -138,12 +143,14 @@ public class C4GroupExporter implements IRunnableWithProgress {
 						}
 					}
 				}.schedule();
-				if (monitor != null)
+				if (monitor != null) {
 					monitor.worked(1);
+				}
 			}
 		}
-		if (monitor != null)
+		if (monitor != null) {
 			monitor.done();
+		}
 	}
 
 	@Override

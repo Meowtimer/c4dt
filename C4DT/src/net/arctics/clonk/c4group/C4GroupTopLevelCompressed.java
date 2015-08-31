@@ -10,10 +10,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
-import net.arctics.clonk.Core;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import net.arctics.clonk.Core;
 
 /**
  * Represents a top-level compressed C4Group.
@@ -29,8 +29,12 @@ public class C4GroupTopLevelCompressed extends C4Group {
 					if (timesRead < 2) { // deface magic header
 						timesRead++;
 						final int readByte = in.read();
-						if (readByte == 0x1E) return 0x1F;
-						if (readByte == 0x8C) return 0x8B;
+						if (readByte == 0x1E) {
+							return 0x1F;
+						}
+						if (readByte == 0x8C) {
+							return 0x8B;
+						}
 						return readByte;
 					}
 					return in.read();
@@ -52,8 +56,9 @@ public class C4GroupTopLevelCompressed extends C4Group {
 		@Override
 		public int read() throws IOException {
 			final int result = super.read();
-			if (result != -1)
+			if (result != -1) {
 				streamPos++;
+			}
 			return result;
 		}
 		@Override
@@ -104,32 +109,37 @@ public class C4GroupTopLevelCompressed extends C4Group {
 
 	@Override
 	public InputStream requireStream() throws FileNotFoundException, IOException {
-		if (stream != null)
+		if (stream != null) {
 			releaseStream();
+		}
 		stream = new SeekableStream(origin());
 		if (stream == null) {
 			System.out.println("Failed to create stream for " + origin());
 			return null;
-		} else
+		} else {
 			return stream;
+		}
 	}
 
 	@Override
 	public synchronized void readFromStream(final C4GroupItem whoWantsThat, final long pos, final StreamReadCallback callback) throws IOException {
 		try {
 			final boolean createdStream = stream == null;
-			if (createdStream)
+			if (createdStream) {
 				requireStream();
+			}
 			try {
 				if (stream != null) {
 					stream.seek(pos);
 					callback.readStream(stream);
 				}
-				else
+				else {
 					throw new IOException("C4Group.readFromStream: No stream"); //$NON-NLS-1$
+				}
 			} finally {
-				if (createdStream)
+				if (createdStream) {
 					releaseStream();
+				}
 			}
 		} catch (final Exception e) {
 			System.out.println("Look what you did, " + whoWantsThat.toString() + ")"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -139,8 +149,9 @@ public class C4GroupTopLevelCompressed extends C4Group {
 
 	@Override
 	public void releaseStream() throws IOException {
-		if (stream == null)
+		if (stream == null) {
 			return;
+		}
 		stream.close();
 		stream = null;
 	}

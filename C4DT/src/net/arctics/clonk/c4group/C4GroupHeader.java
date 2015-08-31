@@ -61,9 +61,13 @@ public class C4GroupHeader implements Serializable {
 	}
 
 	private void arrayCopyTo(final byte[] source, final byte[] target, final int dstOffset, final int length) {
-		for(int i = 0;i < length;i++)
-			if (i >= source.length) target[dstOffset + i] = 0x0; // fill with zeros
-			else target[dstOffset + i] = source[i];
+		for(int i = 0;i < length;i++) {
+			if (i >= source.length) {
+				target[dstOffset + i] = 0x0; // fill with zeros
+			} else {
+				target[dstOffset + i] = source[i];
+			}
+		}
 	}
 
 	public static C4GroupHeader createFromStream(final InputStream stream) throws C4GroupInvalidDataException, IOException {
@@ -73,8 +77,9 @@ public class C4GroupHeader implements Serializable {
 		final byte[] buffer = new byte[STORED_SIZE];
 
 		int readCount = stream.read(buffer,0, STORED_SIZE);
-		while (readCount != STORED_SIZE)
+		while (readCount != STORED_SIZE) {
 			readCount += stream.read(buffer,readCount,STORED_SIZE - readCount);
+		}
 
 
 		// unscramble header
@@ -89,14 +94,17 @@ public class C4GroupHeader implements Serializable {
 
 		}
 		result.ver1 = byteToInt32(buffer,28);
-		if (result.ver1 != 1)
+		if (result.ver1 != 1) {
 			throw new C4GroupInvalidDataException(Messages.C4GroupHeaderInvalid_1);
+		}
 		result.ver2 = byteToInt32(buffer,32);
-		if (result.ver2 < 1)
+		if (result.ver2 < 1) {
 			throw new C4GroupInvalidDataException(Messages.C4GroupHeaderInvalid_2);
+		}
 		result.entries = byteToInt32(buffer, 36);
-		if (result.entries > 1000)
+		if (result.entries > 1000) {
 			throw new C4GroupInvalidDataException(Messages.C4GroupHeaderSuspicious);
+		}
 		result.maker = byteToString(buffer, 40, 30).trim();
 		result.password = byteToString(buffer, 72, 30).trim();
 		result.creation = byteToInt32(buffer, 104);
@@ -163,8 +171,9 @@ public class C4GroupHeader implements Serializable {
 
 	public static int byteToInt32(final byte[] buffer, final int offset) {
 		int result = 0;
-		for(int i = 0;i < 4;i++)
+		for(int i = 0;i < 4;i++) {
 			result += (buffer[i + offset] & 0xFF) << (i*8);
+		}
 		return result;
 	}
 

@@ -3,13 +3,6 @@ package net.arctics.clonk.ui.debug;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.FileExtension;
-import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
-import net.arctics.clonk.util.UI;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
@@ -35,6 +28,13 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
+
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.FileExtension;
+import net.arctics.clonk.debug.ClonkLaunchConfigurationDelegate;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.ui.navigator.ClonkLabelProvider;
+import net.arctics.clonk.util.UI;
 
 public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
@@ -62,12 +62,13 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		}
 		@Override
 		public void widgetSelected(final SelectionEvent e) {
-			if(e.getSource() == projectEditor.addButton)
+			if(e.getSource() == projectEditor.addButton) {
 				chooseClonkProject();
-			else if(e.getSource() == fScenButton)
+			} else if(e.getSource() == fScenButton) {
 				chooseScenario();
-			else
+			} else {
 				updateLaunchConfigurationDialog();
+			}
 		}
 
 	}
@@ -271,10 +272,12 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 		// Validate scenario
 		final IProject project = validateProject();
-		if(project == null)
+		if(project == null) {
 			return false;
-		if(validateScenario(project) == null)
+		}
+		if(validateScenario(project) == null) {
 			return false;
+		}
 
 		// Done
 		return super.isValid(launchConfig);
@@ -282,8 +285,9 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 
 	public void chooseClonkProject() {
 		final IProject project = UI.selectClonkProject(validateProject());
-		if (project != null)
+		if (project != null) {
 			projectEditor.text.setText(project.getName());
+		}
 	}
 
 	public Engine getEngine() {
@@ -300,19 +304,22 @@ public class LaunchMainTab extends AbstractLaunchConfigurationTab {
 		final Collection<IResource> scenarios = new LinkedList<IResource>();
 		final IResourceVisitor scenCollector = res -> {
 			// Top-level
-			if(res instanceof IProject)
+			if(res instanceof IProject) {
 				return true;
+			}
 			// Type lookup
 			final FileExtension type = getEngine().canonicalExtension(res.getFileExtension());
-			if(type == FileExtension.ScenarioGroup)
+			if(type == FileExtension.ScenarioGroup) {
 				scenarios.add(res);
+			}
 			// Only recurse into scenario folders
 			return type == FileExtension.FolderGroup;
 		};
-		for(final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+		for(final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
 			try {
 				proj.accept(scenCollector);
 			} catch (final CoreException e) {}
+		}
 
 		// Create dialog with all available scenarios
 		final ElementListSelectionDialog dialog

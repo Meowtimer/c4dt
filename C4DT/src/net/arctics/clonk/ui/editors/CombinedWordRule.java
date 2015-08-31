@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
-
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
@@ -73,8 +72,9 @@ public class CombinedWordRule implements IRule {
 		 */
 		public IToken evaluate(final ICharacterScanner scanner, final CharacterBuffer word) {
 			final IToken token= fWords.get(word);
-			if (token != null)
+			if (token != null) {
 				return token;
+			}
 			return Token.UNDEFINED;
 		}
 
@@ -177,12 +177,14 @@ public class CombinedWordRule implements IRule {
 		 */
 		@Override
 		public int hashCode() {
-			if (fIsHashCached)
+			if (fIsHashCached) {
 				return fHashCode;
+			}
 
 			int hash= 0;
-			for (int i= 0, n= fLength; i < n; i++)
+			for (int i= 0, n= fLength; i < n; i++) {
 				hash= 29*hash + fContent[i];
+			}
 			fHashCode= hash;
 			fIsHashCached= true;
 			return hash;
@@ -194,17 +196,22 @@ public class CombinedWordRule implements IRule {
 		 */
 		@Override
 		public boolean equals(final Object obj) {
-			if (obj == this)
+			if (obj == this) {
 				return true;
-			if (!(obj instanceof CharacterBuffer))
+			}
+			if (!(obj instanceof CharacterBuffer)) {
 				return false;
+			}
 			final CharacterBuffer buffer= (CharacterBuffer) obj;
 			final int length= buffer.length();
-			if (length != fLength)
+			if (length != fLength) {
 				return false;
-			for (int i= 0; i < length; i++)
-				if (buffer.charAt(i) != fContent[i])
+			}
+			for (int i= 0; i < length; i++) {
+				if (buffer.charAt(i) != fContent[i]) {
 					return false;
+				}
+			}
 			return true;
 		}
 
@@ -216,11 +223,14 @@ public class CombinedWordRule implements IRule {
 		 */
 		public boolean equals(final String string) {
 			final int length= string.length();
-			if (length != fLength)
+			if (length != fLength) {
 				return false;
-			for (int i= 0; i < length; i++)
-				if (string.charAt(i) != fContent[i])
+			}
+			for (int i= 0; i < length; i++) {
+				if (string.charAt(i) != fContent[i]) {
 					return false;
+				}
+			}
 			return true;
 		}
 	}
@@ -303,8 +313,9 @@ public class CombinedWordRule implements IRule {
 
 		fDetector= detector;
 		fDefaultToken= defaultToken;
-		if (matcher != null)
+		if (matcher != null) {
 			addWordMatcher(matcher);
+		}
 	}
 
 
@@ -326,8 +337,9 @@ public class CombinedWordRule implements IRule {
 	 * @param column the column in which the pattern starts
 	 */
 	public void setColumnConstraint(int column) {
-		if (column < 0)
+		if (column < 0) {
 			column= UNDEFINED;
+		}
 		fColumn= column;
 	}
 
@@ -337,7 +349,7 @@ public class CombinedWordRule implements IRule {
 	@Override
 	public IToken evaluate(final ICharacterScanner scanner) {
 		int c= scanner.read();
-		if (fDetector.isWordStart((char) c))
+		if (fDetector.isWordStart((char) c)) {
 			if (fColumn == UNDEFINED || (fColumn == scanner.getColumn() - 1)) {
 
 				fBuffer.clear();
@@ -349,15 +361,18 @@ public class CombinedWordRule implements IRule {
 
 				for (int i= 0, n= fMatchers.size(); i < n; i++) {
 					final IToken token= fMatchers.get(i).evaluate(scanner, fBuffer);
-					if (!token.isUndefined())
+					if (!token.isUndefined()) {
 						return token;
+					}
 				}
 
-				if (fDefaultToken.isUndefined())
+				if (fDefaultToken.isUndefined()) {
 					unreadBuffer(scanner);
+				}
 
 				return fDefaultToken;
 			}
+		}
 
 		scanner.unread();
 		return Token.UNDEFINED;
@@ -369,7 +384,8 @@ public class CombinedWordRule implements IRule {
 	 * @param scanner the scanner to be used
 	 */
 	private void unreadBuffer(final ICharacterScanner scanner) {
-		for (int i= fBuffer.length() - 1; i >= 0; i--)
+		for (int i= fBuffer.length() - 1; i >= 0; i--) {
 			scanner.unread();
+		}
 	}
 }

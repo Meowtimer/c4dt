@@ -2,7 +2,6 @@ package net.arctics.clonk.ui.actions;
 
 import java.text.DateFormat;
 import java.util.Calendar;
-import net.arctics.clonk.Core;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -10,6 +9,8 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Version;
+
+import net.arctics.clonk.Core;
 
 public class AboutHandler extends AbstractHandler {
 

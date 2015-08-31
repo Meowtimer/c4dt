@@ -7,6 +7,10 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.SourceLocation;
@@ -24,12 +28,9 @@ import net.arctics.clonk.index.Definition;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.Pair;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.text.IRegion;
-
 @Capabilities(capabilities=Capabilities.ISSUES|Capabilities.TYPING)
 public final class NullProblemReportingStrategy extends ProblemReportingStrategy {
+	
 	private final class NullReporter implements ProblemReporter {
 		private final Function f;
 		public NullReporter(Function f) { this.f = f; }
@@ -66,22 +67,28 @@ public final class NullProblemReportingStrategy extends ProblemReportingStrategy
 		@Override
 		public Function function() { return f; }
 	}
+	
 	private Set<Function> functions;
+	
 	@Override
 	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Collection<Pair<Script, Function>> functions) {
 		super.initialize(markers, progressMonitor, functions);
 		this.functions = functions.stream().map(p -> p.second()).collect(Collectors.toSet());
 		return this;
 	}
+	
 	@Override
 	public ProblemReportingStrategy initialize(Markers markers, IProgressMonitor progressMonitor, Script[] scripts) {
 		super.initialize(markers, progressMonitor, scripts);
 		this.functions = stream(scripts).flatMap(s -> s.functions().stream()).collect(Collectors.toSet());
 		return this;
 	}
+	
 	@Override
 	public void run() {
-		if (observer != null)
+		if (observer != null) {
 			functions.forEach(f -> f.traverse(observer, new NullReporter(f)));
+		}
 	}
+
 }

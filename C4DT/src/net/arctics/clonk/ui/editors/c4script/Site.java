@@ -47,8 +47,9 @@ class Site {
 		this.marker = marker;
 		this.problem = Markers.problem(marker);
 		this.expressionRegion0 = new SourceLocation(marker.getAttribute(IMarker.CHAR_START, 0),  marker.getAttribute(IMarker.CHAR_END, 0));
-		if (expressionRegion0.getOffset() == -1 || script == null || document == null)
+		if (expressionRegion0.getOffset() == -1 || script == null || document == null) {
 			throw new IllegalStateException();
+		}
 		this.func = script.funcAt(position.getOffset());
 		this.tabIndentation = BufferedScanner.indentationOfStringAtPos(document.get(),
 			func.bodyLocation().getOffset()+expressionRegion0.getOffset(), BufferedScanner.TABINDENTATIONMODE);
@@ -58,8 +59,9 @@ class Site {
 		this.offendingExpression = locator.expressionAtRegion();
 		this.topLevel = offendingExpression != null ? offendingExpression.parent(Statement.class) : null;
 		this.expressionRegion = offendingExpression != null && topLevel != null ? offendingExpression.absolute() : expressionRegion0;
-		if (offendingExpression == null || topLevel == null)
+		if (offendingExpression == null || topLevel == null) {
 			throw new IllegalStateException();
+		}
 		this.replacements = new ReplacementsList(offendingExpression, proposals);
 	}
 	void commitReplacements() {

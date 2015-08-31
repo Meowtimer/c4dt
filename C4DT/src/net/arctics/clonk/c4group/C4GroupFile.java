@@ -80,10 +80,11 @@ public class C4GroupFile extends C4GroupItem implements Serializable {
 	@Override
 	public void readIntoMemory(final boolean recursively, final C4GroupHeaderFilterBase filter, final InputStream stream) throws C4GroupInvalidDataException, IOException, CoreException {
 
-		if ((filter.flagsForEntry(this) & C4GroupHeaderFilterBase.READINTOMEMORY) != 0)
+		if ((filter.flagsForEntry(this) & C4GroupHeaderFilterBase.READINTOMEMORY) != 0) {
 			fetchContents(stream);
-		else
+		} else {
 			stream.skip(getSize());
+		}
 
 		// process contents (contents could be null after this call)
 		filter.processGroupItem(this);
@@ -97,14 +98,16 @@ public class C4GroupFile extends C4GroupItem implements Serializable {
 				int readCount = 0;
 				readCount != contents.length;
 				readCount += stream.read(contents, readCount, contents.length - readCount)
-			);
+			) {
+				;
+			}
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public byte[] getContents() {
-		if (contents == null)
+		if (contents == null) {
 			try {
 				parentGroup().readFromStream(this, parentGroup().baseOffset() + header.offset(), this::fetchContents);
 				try {
@@ -116,6 +119,7 @@ public class C4GroupFile extends C4GroupItem implements Serializable {
 				e.printStackTrace();
 				return null;
 			}
+		}
 		return contents;
 	}
 
@@ -170,14 +174,17 @@ public class C4GroupFile extends C4GroupItem implements Serializable {
 	@Override
 	public void extractToFileSystem(final IContainer parent, final IProgressMonitor monitor) throws CoreException {
 		IFile me = null;
-		if (parent instanceof IFolder)
+		if (parent instanceof IFolder) {
 			me = ((IFolder)parent).getFile(getName());
-		else if (parent instanceof IProject)
+		} else if (parent instanceof IProject) {
 			me = ((IProject)parent).getFile(getName());
-		if (me != null) try {
-			me.create(new ByteArrayInputStream(getContents()), IResource.NONE, monitor);
-		} catch (final CoreException e) {
-			e.printStackTrace();
+		}
+		if (me != null) {
+			try {
+				me.create(new ByteArrayInputStream(getContents()), IResource.NONE, monitor);
+			} catch (final CoreException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -187,8 +194,9 @@ public class C4GroupFile extends C4GroupItem implements Serializable {
 			final byte[] buffer = new byte[1024];
 			int read = 0;
 			try {
-				while((read = inStream.read(buffer)) > 0)
+				while((read = inStream.read(buffer)) > 0) {
 					stream.write(buffer, 0, read);
+				}
 			} catch (final IOException e) {
 				e.printStackTrace();
 			}
@@ -198,8 +206,9 @@ public class C4GroupFile extends C4GroupItem implements Serializable {
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getAdapter(final Class cls) {
-		if (cls == C4GroupFile.class)
+		if (cls == C4GroupFile.class) {
 			return this;
+		}
 		return null;
 	}
 

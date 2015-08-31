@@ -61,7 +61,7 @@ public final class ParameterizedProposal extends DeclarationProposal {
 		replacement.performAdditionalActionsBeforeDoingReplacements();
 		final ASTNode replacementExpr = replacement.replacementExpression();
 		if (replacementExpr != ASTNode.NULL_EXPR) {
-			for (final ASTNode spec : replacement.specifiable())
+			for (final ASTNode spec : replacement.specifiable()) {
 				if (spec instanceof AccessDeclaration) {
 					final AccessDeclaration accessDec = (AccessDeclaration) spec;
 					final String s = UI.input(
@@ -69,15 +69,18 @@ public final class ParameterizedProposal extends DeclarationProposal {
 						Messages.ClonkQuickAssistProcessor_SpecifyValue,
 						String.format(Messages.ClonkQuickAssistProcessor_SpecifyFormat, accessDec.name()), accessDec.name(),
 						newText -> {
-							if (!ScriptQuickAssistProcessor.validIdentifierPattern.matcher(newText).matches())
+							if (!ScriptQuickAssistProcessor.validIdentifierPattern.matcher(newText).matches()) {
 								return String.format(Messages.ClonkQuickAssistProcessor_NotAValidFunctionName, newText);
-							else
+							} else {
 								return null;
+							}
 						}
 					);
-					if (s != null)
+					if (s != null) {
 						accessDec.setName(s);
+					}
 				}
+			}
 			try {
 				final Tidy tidy = new Tidy(parser.script(), parser.script().strictLevel());
 				this.replacementString = tidy.tidy(replacement.replacementExpression()).printed(tabIndentation+1);
@@ -105,8 +108,9 @@ public final class ParameterizedProposal extends DeclarationProposal {
 		}
 
 		final ScriptEditingState listener = StructureEditingState.existing(ScriptEditingState.class, parser.script());
-		if (listener != null)
+		if (listener != null) {
 			listener.scheduleReparsing(false);
+		}
 	}
 
 	public void runOnMarker(final IMarker marker) {

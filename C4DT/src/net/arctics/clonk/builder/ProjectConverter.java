@@ -24,6 +24,19 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
@@ -65,19 +78,6 @@ import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.TaskExecution;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
-
 /**
  * Converts projects for one engine into projects for another engine.
  * @author madeen
@@ -109,8 +109,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				return this;
 			}
 			void write() {
-				if (converted instanceof IndexEntity)
+				if (converted instanceof IndexEntity) {
 					((IndexEntity)converted).forceIndex(destinationIndex);
+				}
 				converted.forceParents();
 				final String convString = converted.printed();
 				try {
@@ -126,20 +127,24 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				final IFolder originFolder = as(origin, IFolder.class);
 				final IFolder targetFolder = as(target, IFolder.class);
 				final Map<IFile, FileConversion> sub = new HashMap<>();
-				if (originFolder != null && targetFolder != null)
+				if (originFolder != null && targetFolder != null) {
 					stream(originFolder.members(IResource.FILE)).filter(r -> r instanceof IFile).forEach(res -> {
 						final IFile file = (IFile)res;
 						final Structure struct = Structure.pinned(file, false, false);
 						if (struct != null) {
 							if (struct instanceof LandscapeScript)
+							 {
 								return; // can't handle that
+							}
 							final IFile target = targetFolder.getFile(file.getName());
-							if (target.exists())
+							if (target.exists()) {
 								sub.put(file, new FileConversion(struct, target));
+							}
 						}
 					});
-				else
+				} else {
 					sub.put((IFile) origin, new FileConversion((Structure) declaration, (IFile)target).convert());
+				}
 
 				sub.values().forEach(FileConversion::convert);
 
@@ -156,13 +161,14 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 							final IniUnit defCoreUnit = defCore != null ? as(defCore.converted, IniUnit.class) : null;
 							if (defCoreUnit != null) {
 								final IniEntry entry = defCoreUnit.entryInSection("DefCore", "id");
-								if (entry != null)
+								if (entry != null) {
 									entry.value(new IDLiteral(mapped));
+								}
 							}
 						}
 						final FileConversion actMap = sub.get(findMemberCaseInsensitively(originFolder, ActMapUnit.FILE_NAME));
 						final ActMapUnit actMapUnit = actMap != null ? as(actMap.converted, ActMapUnit.class) : null;
-						if (actMapUnit != null)
+						if (actMapUnit != null) {
 							if (scriptFile != null && scriptFile.converted instanceof Script) {
 								((Script)scriptFile.converted).addDeclaration(
 									new Variable(Scope.LOCAL, "ActMap", new PropListExpression(actMapUnit.toProplist()))
@@ -170,14 +176,16 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 								actMap.target.delete(true, null);
 								sub.remove(actMap.original.file());
 							}
+						}
 					}
 				}
 
 				if (script != null) {
 					final List<Pair<Function, FunctionDescription>> descs = new ArrayList<>(5);
 					script.traverse(node -> {
-						if (node instanceof FunctionDescription)
+						if (node instanceof FunctionDescription) {
 							descs.add(Pair.pair(node.parent(Function.class), (FunctionDescription) node));
+						}
 						return TraversalContinuation.Continue;
 					});
 					if (!descs.isEmpty()) {
@@ -242,17 +250,20 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			public Engine engine() { return ProjectConverter.this.destinationProject.index().engine(); }
 		};
 	}
+	
 	public static IPath convertPath(Engine sourceEngine, Engine targetEngine, final IPath path) {
 		IPath result = new Path("");
 		for (int i = 0; i < path.segmentCount(); i++) {
 			String segment = path.segment(i);
 			final FileExtension groupType = sourceEngine.extensionForFileName(segment);
-			if (groupType != FileExtension.Other)
+			if (groupType != FileExtension.Other) {
 				segment = targetEngine.groupName(StringUtil.rawFileName(segment), groupType);
+			}
 			result = result.append(segment);
 		}
 		return result;
 	}
+	
 	@Override
 	public void run() {
 		try {
@@ -288,8 +299,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 
 	private static void forceCreate(IFile file, InputStream value, NullProgressMonitor npm) {
 		final List<IContainer> containers = new LinkedList<>();
-		for (IContainer c = file.getParent(); c != null; c = c.getParent())
+		for (IContainer c = file.getParent(); c != null; c = c.getParent()) {
 			containers.add(0, c);
+		}
 		ofType(containers.stream(), IFolder.class).forEach(f -> {
 			try {
 				f.create(true, true, npm);
@@ -308,10 +320,11 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			final Path path = new Path(key);
 			try {
 				final IFile file = destinationProject.getProject().getFile(path);
-				if (file.exists())
+				if (file.exists()) {
 					file.setContents(new ByteArrayInputStream(value), IResource.FORCE, npm);
-				else
+				} else {
 					forceCreate(file, new ByteArrayInputStream(value), npm);
+				}
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
@@ -326,8 +339,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		} catch (final CoreException ce) {}
 		final List<Runnable> list = new LinkedList<>();
 		destinationProject.index().allScripts(s -> list.add(() -> {
-			if (new Fixes().run(s))
+			if (new Fixes().run(s)) {
 				needResaving.add(s);
+			}
 		}));
 		TaskExecution.threadPool(list, 20);
 	}
@@ -346,8 +360,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				applyFix(node, IfStatement.class, Fixes::fixIfEffect) ||
 				applyFix(node, Function.class, Fixes::fixParms) ||
 				applyFix(node, AccessDeclaration.class, Fixes::fixUndeclaredIdentifier)
-			)
+			) {
 				doSave = true;
+			}
 			return TraversalContinuation.Continue;
 		}
 		boolean run(Script s) {
@@ -355,13 +370,15 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			if (doSave) {
 				s.traverse(node -> {
 					final Function fn = as(node, Function.class);
-					if (fn != null)
+					if (fn != null) {
 						fn.assignLocalIdentifiers();
+					}
 					return TraversalContinuation.Continue;
 				});
 				return true;
-			} else
+			} else {
 				return false;
+			}
 		}
 		@SuppressWarnings("unchecked")
 		private static <T> boolean applyFix(ASTNode node, Class<? extends ASTNode> cls, Fix<T> fix) {
@@ -382,8 +399,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 						.orElseThrow(() -> new IllegalStateException());
 					v.setName(mut);
 					return true;
-				} else
+				} else {
 					return false;
+				}
 			}, (a, b) -> a || b);
 			if (node.returnType() == PrimitiveType.REFERENCE) {
 				node.forceType(PrimitiveType.ANY);
@@ -398,10 +416,11 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				final ASTNode[] converted = IntStream.range(0, node.params().length).mapToObj(x -> {
 					final Variable par = fn.parameter(x);
 					final ASTNode arg = node.params()[x];
-					if (arg != null && arg.equals(IntegerLiteral.ZERO) && par != null && par.type() != PrimitiveType.INT)
+					if (arg != null && arg.equals(IntegerLiteral.ZERO) && par != null && par.type() != PrimitiveType.INT) {
 						return new Nil();
-					else
+					} else {
 						return arg;
+					}
 				}).toArray(l -> new ASTNode[l]);
 				if (!Arrays.equals(node.params(), converted)) {
 					node.setParams(converted);
@@ -416,10 +435,12 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 				if (v instanceof AccessVar) {
 					v.parent().replaceSubElement(v, new CallDeclaration("EvaluateID", new StringLiteral(v.name())), 0);
 					return true;
-				} else
+				} else {
 					return false;
-			} else
+				}
+			} else {
 				return false;
+			}
 		}
 
 		private static boolean fixIfEffect(IfStatement check) {
@@ -445,12 +466,15 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 						comp.operator(conv);
 						comp.setRightSide(new Nil());
 						return true;
-					} else
+					} else {
 						return false;
-				} else
+					}
+				} else {
 					return false;
-			} else
+				}
+			} else {
 				return false;
+			}
 		}
 	}
 
@@ -459,21 +483,24 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 	 */
 	@Override
 	public boolean visit(final IResource origin) throws CoreException {
-		if (origin instanceof IProject || skipResource(origin))
+		if (origin instanceof IProject || skipResource(origin)) {
 			return true;
+		}
 		final IPath path = convertPath(sourceEngine(), targetEngine(), origin.getProjectRelativePath());
 		if (origin instanceof IFile) {
 			final IFile sourceFile = (IFile) origin;
 			final IFile targetFile = destinationProject.getProject().getFile(path);
 			try (InputStream contents = sourceFile.getContents()) {
-				if (targetFile.exists())
+				if (targetFile.exists()) {
 					targetFile.setContents(contents, true, true, monitor);
-				else
+				} else {
 					targetFile.create(contents, true, monitor);
+				}
 				if (sourceFile.getParent() == null || Definition.at(sourceFile.getParent()) == null) {
 					final Structure struct = Structure.pinned(sourceFile, true, false);
-					if (struct != null)
+					if (struct != null) {
 						conversions.add(new DeclarationConversion(sourceFile, targetFile, struct));
+					}
 				}
 			} catch (final Exception e) {
 				out.println(format("Failed to convert contents of %s: %s", origin.getFullPath(), e.getMessage()));
@@ -482,14 +509,17 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			return true;
 		} else if (origin instanceof IFolder) {
 			final IFolder container = destinationProject.getProject().getFolder(path);
-			if (!container.exists())
+			if (!container.exists()) {
 				container.create(true, true, monitor);
+			}
 			final Definition def = Definition.at((IContainer) origin);
-			if (def != null)
+			if (def != null) {
 				conversions.add(new DeclarationConversion(origin, container, def));
+			}
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 	private boolean skipResource(final IResource sourceResource) {
 		return sourceResource.getName().equals(".project");

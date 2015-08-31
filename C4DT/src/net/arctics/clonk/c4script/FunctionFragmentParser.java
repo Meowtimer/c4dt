@@ -6,14 +6,14 @@ import static net.arctics.clonk.util.Utilities.defaulting;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.c4script.ast.FunctionBody;
 import net.arctics.clonk.parser.Markers;
-
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
 
 public class FunctionFragmentParser extends ScriptParser {
 	private final Function function;
@@ -46,15 +46,16 @@ public class FunctionFragmentParser extends ScriptParser {
 		// if block is non-existent or outdated, parse function code and store block
 		if (cachedBlock == null) {
 			try {
-				if (function != null)
+				if (function != null) {
 					function.clearLocalVars();
+				}
 				setCurrentFunction(function);
 				markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
 				final EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
 				ASTNode body;
-				if (function instanceof InitializationFunction)
+				if (function instanceof InitializationFunction) {
 					body = parseExpression();
-				else {
+				} else {
 					final List<ASTNode> statements = parseStatements(offset, options, false);
 					body = new FunctionBody(function, statements);
 				}
@@ -64,7 +65,8 @@ public class FunctionFragmentParser extends ScriptParser {
 				}
 			} catch (final ProblemException pe) {}
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 }

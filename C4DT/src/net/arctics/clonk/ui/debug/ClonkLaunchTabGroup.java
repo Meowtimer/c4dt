@@ -10,13 +10,11 @@ public class ClonkLaunchTabGroup extends AbstractLaunchConfigurationTabGroup {
 
 	@Override
 	public void createTabs(final ILaunchConfigurationDialog arg0, final String arg1) {
-		
 		final ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[] {
-				new LaunchMainTab(),
-				new CommonTab() // by Eclipse
+			new LaunchMainTab(),
+			new CommonTab() // by Eclipse
 		};
 		setTabs(tabs);
-		
 	}
 
 }

@@ -9,20 +9,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4group.FileExtension;
-import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.ast.CallInherited;
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.index.ProjectIndex;
-import net.arctics.clonk.ui.search.ReferencesSearchQuery;
-import net.arctics.clonk.ui.search.SearchMatch;
-import net.arctics.clonk.ui.search.SearchResult;
-import net.arctics.clonk.util.StreamUtil;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -40,6 +26,20 @@ import org.eclipse.search.ui.text.Match;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4group.FileExtension;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.ast.CallInherited;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.ProjectIndex;
+import net.arctics.clonk.ui.search.ReferencesSearchQuery;
+import net.arctics.clonk.ui.search.SearchMatch;
+import net.arctics.clonk.ui.search.SearchResult;
+import net.arctics.clonk.util.StreamUtil;
 
 public class RenameDeclarationProcessor extends RenameProcessor {
 
@@ -69,9 +69,11 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 		// if decl is a function also look for functions which inherit or are inherited from decl
 		if (decl instanceof Function) {
 			final Function fieldAsFunc = (Function)decl;
-			for (final Function relatedFunc : decl.index().declarationsWithName(decl.name(), Function.class))
-				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.script().source() instanceof IFile)
+			for (final Function relatedFunc : decl.index().declarationsWithName(decl.name(), Function.class)) {
+				if (decl != relatedFunc && fieldAsFunc.isRelatedFunction(relatedFunc) && fieldAsFunc.script().source() instanceof IFile) {
 					elements.add(relatedFunc);
+				}
+			}
 		}
 		final Map<IFile, Object> reverseLookup = new HashMap<>();
 		final Set<IFile> files = new HashSet<IFile>(Arrays.asList(map(elements.toArray(), IFile.class, element -> {
@@ -79,18 +81,19 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 				element instanceof IFile ? (IFile)element :
 				element instanceof Declaration ? ((Declaration)element).file() :
 				null;
-			if (file != null)
+			if (file != null) {
 				reverseLookup.put(file, element);
+			}
 			return file;
 		})));
 		files.add(declaringFile);
 		final CompositeChange composite = new CompositeChange(String.format(Messages.RenamingProgress, decl.toString()));
-		for (final IFile file : files)
+		for (final IFile file : files) {
 			if (file != null) {
 				final TextFileChange fileChange = new TextFileChange(String.format(Messages.RenameChangeDescription, decl.toString(), file.getFullPath().toString()), file);
 				fileChange.setEdit(new MultiTextEdit());
 				// change declaration
-				if (file.equals(declaringFile))
+				if (file.equals(declaringFile)) {
 					if (decl instanceof Definition) {
 						final Definition def = (Definition)decl;
 						if (def.definitionFolder() != null && rawFileName(def.definitionFolder().getName()).equals(oldName)) {
@@ -104,22 +107,26 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 						final int nameStart = decl.nameStart();
 						fileChange.addEdit(new ReplaceEdit(nameStart, decl.name().length(), newName));
 					}
+				}
 				for (final Match m : searchResult.getMatches(reverseLookup.get(file))) {
 					final SearchMatch match = (SearchMatch) m;
 					try {
 						if (!(match.node() instanceof CallInherited)) {
 							final String s = StreamUtil.stringFromFile(file);
-							if (match.getOffset() < 0 || match.getOffset()+match.getLength() >= s.length())
+							if (match.getOffset() < 0 || match.getOffset()+match.getLength() >= s.length()) {
 								throw new IllegalStateException();
+							}
 							fileChange.addEdit(new ReplaceEdit(match.getOffset(), match.getLength(), newName));
 						}
 					} catch (final MalformedTreeException e) {
 						// gonna ignore that; there is one case where it's even normal this is thrown (for (e in a) ... <- e is reference and declaration)
 					}
 				}
-				if (fileChange.getEdit().getChildrenSize() > 0)
+				if (fileChange.getEdit().getChildrenSize() > 0) {
 					composite.add(fileChange);
+				}
 			}
+		}
 		return composite;
 	}
 
@@ -134,15 +141,17 @@ public class RenameDeclarationProcessor extends RenameProcessor {
 			OperationCanceledException {
 		// renaming fields that originate from outside the project is not allowed
 		final Declaration baseDecl = decl instanceof Function ? ((Function)decl).baseFunction() : decl;
-		if (!(baseDecl.index() instanceof ProjectIndex))
+		if (!(baseDecl.index() instanceof ProjectIndex)) {
 			return RefactoringStatus.createFatalErrorStatus(String.format(Messages.OutsideProject, decl.name()));
+		}
 
 		Declaration existingDec;
 		final Structure parentStructure = decl.parent(Structure.class);
 		if (parentStructure != null) {
 			existingDec = parentStructure.findLocalDeclaration(newName, decl.getClass());
-			if (existingDec != null)
+			if (existingDec != null) {
 				return RefactoringStatus.createFatalErrorStatus(String.format(Messages.DuplicateItem, newName, decl.parent(Structure.class).toString()));
+			}
 		}
 
 		return new RefactoringStatus();

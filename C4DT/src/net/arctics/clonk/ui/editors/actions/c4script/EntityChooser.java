@@ -11,20 +11,6 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.DeclMask;
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.c4script.Directive;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.index.Index;
-import net.arctics.clonk.ui.editors.EntityHyperlink;
-import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
-import net.arctics.clonk.util.IHasRelatedResource;
-import net.arctics.clonk.util.Sink;
-import net.arctics.clonk.util.StringUtil;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -41,6 +27,20 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.DeclMask;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.c4script.Directive;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.index.Index;
+import net.arctics.clonk.ui.editors.EntityHyperlink;
+import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
+import net.arctics.clonk.util.IHasRelatedResource;
+import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.StringUtil;
+
 public class EntityChooser extends FilteredItemsSelectionDialog {
 
 	protected final class Filter extends ItemsFilter {
@@ -53,11 +53,14 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		public boolean equalsFilter(final ItemsFilter filter) {
 			if (filter instanceof Filter) {
 				final Filter f = (Filter)filter;
-				if (f.patterns.length != this.patterns.length)
+				if (f.patterns.length != this.patterns.length) {
 					return false;
-				for (int i = 0; i < patterns.length; i++)
-					if (!patterns[i].equals(f.patterns[i]))
+				}
+				for (int i = 0; i < patterns.length; i++) {
+					if (!patterns[i].equals(f.patterns[i])) {
 						return false;
+					}
+				}
 				return true;
 			}
 			return false;
@@ -70,11 +73,13 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 			final IIndexEntity entity = (IIndexEntity)item;
 			for (final Pattern p : getPatterns()) {
 				final Matcher matcher = p.matcher("");
-				if (!entity.matchedBy(matcher))
+				if (!entity.matchedBy(matcher)) {
 					return false;
+				}
 			}
-			for (final Pattern p : getPatterns())
+			for (final Pattern p : getPatterns()) {
 				entity.matchedBy(p.matcher(""));
+			}
 			return true;
 		}
 	}
@@ -96,8 +101,9 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 					}
 				}
 				return result;
-			} else
+			} else {
 				return new StyledString("");
+			}
 		}
 	}
 
@@ -117,8 +123,9 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	@Override
 	public void create() {
 		super.create();
-		if (entities != null && getInitialPattern() == null)
+		if (entities != null && getInitialPattern() == null) {
 			((Text)this.getPatternControl()).setText(".*");
+		}
 	}
 
 	@Override
@@ -136,23 +143,24 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 		// load scripts that have matching declaration names in their dictionaries
 		final Pattern[] patternStrings = ((Filter)itemsFilter).getPatterns();
 		final Runnable refreshListRunnable = this::refresh;
-		if (entities != null)
-			for (final IIndexEntity d : entities)
+		if (entities != null) {
+			for (final IIndexEntity d : entities) {
 				if (d instanceof Index) {
 					final Index index = (Index)d;
 					index.forAllRelevantIndexes(ndx -> ndx.allScripts(new Sink<Script>() {
 						int declarationsBatchSize = 0;
 						@Override
 						public void receive(final Script s) {
-							if (progressMonitor.isCanceled())
+							if (progressMonitor.isCanceled()) {
 								return;
-							if (s.dictionary() != null)
-								for (final String str : s.dictionary())
+							}
+							if (s.dictionary() != null) {
+								for (final String str : s.dictionary()) {
 									for (final Pattern ps : patternStrings) {
 										final Matcher matcher = ps.matcher(str);
 										if (matcher.lookingAt()) {
 											s.requireLoaded();
-											for (final Declaration d : s.subDeclarations(s.index(), DeclMask.ALL))
+											for (final Declaration d : s.subDeclarations(s.index(), DeclMask.ALL)) {
 												if (!(d instanceof Directive) && d.matchedBy(matcher)) {
 													contentProvider.add(d, itemsFilter);
 													if (++declarationsBatchSize == 5) {
@@ -160,24 +168,32 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 														declarationsBatchSize = 0;
 													}
 												}
+											}
 											return;
 										}
 									}
+								}
+							}
 						}
 					}));
 				}
-				else if (d instanceof Engine)
-					for (final Declaration engineDeclaration : ((Engine)d).subDeclarations(null, DeclMask.ALL))
+				else if (d instanceof Engine) {
+					for (final Declaration engineDeclaration : ((Engine)d).subDeclarations(null, DeclMask.ALL)) {
 						contentProvider.add(engineDeclaration, itemsFilter);
-				else
+					}
+				} else {
 					contentProvider.add(d, itemsFilter);
+				}
+			}
+		}
 	}
 
 	@Override
 	protected IDialogSettings getDialogSettings() {
 		IDialogSettings settings = Core.instance().getDialogSettings().getSection(DIALOG_SETTINGS);
-		if (settings == null)
+		if (settings == null) {
 			settings = Core.instance().getDialogSettings().addNewSection(DIALOG_SETTINGS);
+		}
 		return settings;
 	}
 
@@ -211,8 +227,9 @@ public class EntityChooser extends FilteredItemsSelectionDialog {
 	}
 
 	public void run() {
-		if (open() == Window.OK)
+		if (open() == Window.OK) {
 			openSelection();
+		}
 	}
 
 }

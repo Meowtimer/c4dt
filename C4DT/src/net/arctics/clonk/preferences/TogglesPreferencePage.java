@@ -1,9 +1,5 @@
 package net.arctics.clonk.preferences;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.util.UI;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
@@ -11,6 +7,10 @@ import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.navigator.CommonNavigator;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.util.UI;
 
 public class TogglesPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
@@ -29,8 +29,9 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 			ClonkPreferences.INSTANT_C4SCRIPT_COMPLETIONS, Messages.TogglesPreferencePage_InstantCompletions,
 			ClonkPreferences.LONG_PARAMETER_INFO, Messages.TogglesPreferencePage_LongParameterInfo
 		};
-		for (int i = 0; i < toggles.length; i += 2)
+		for (int i = 0; i < toggles.length; i += 2) {
 			addField(new BooleanFieldEditor(toggles[i], toggles[i+1], getFieldEditorParent()));
+		}
 		final IntegerFieldEditor cores = new IntegerFieldEditor(ClonkPreferences.TASKEXECUTION_THREADS, Messages.TogglesPreferencePage_TaskExecutionThreads, getFieldEditorParent());
 		cores.setValidRange(1, Runtime.getRuntime().availableProcessors());
 		addField(cores);
@@ -44,10 +45,13 @@ public class TogglesPreferencePage extends FieldEditorPreferencePage implements 
 	@Override
 	public boolean performOk() {
 		final boolean r = super.performOk();
-		if (r)
-			for (final CommonNavigator nav : UI.projectExplorers())
-				for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+		if (r) {
+			for (final CommonNavigator nav : UI.projectExplorers()) {
+				for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
 					nav.getCommonViewer().refresh(proj);
+				}
+			}
+		}
 		return r;
 	}
 
