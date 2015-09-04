@@ -121,6 +121,7 @@ static const int C4FO_Controller;
 static const int C4FO_Func;
 static const int C4FO_InArray;
 static const int C4FO_Layer;
+static const int C4FO_Property;
 static const int MD_DragSource;
 static const int MD_DropTarget;
 static const int MD_NoClick;
@@ -228,6 +229,7 @@ static const int CNAT_Bottom;
 static const int CNAT_Center;
 static const int CNAT_MultiAttach;
 static const int CNAT_NoCollision;
+static const int CNAT_CollideHalfVehicle;
 static const int VTX_X;
 static const int VTX_Y;
 static const int VTX_CNAT;
@@ -759,3 +761,10 @@ global func void SetLightColor(object obj, int value);
 
 global func void SetAmbientBrightness(int brightness);
 global func int GetAmbientBrightness();
+
+global func int GuiOpen(proplist menu);
+global func bool GuiUpdateTag(string tag, int guiID, int childID, object target);
+global func bool GuiClose(int guiID, int childID, object target);
+global func bool GuiUpdate(proplist update, int guiID, int childID, object target);
+
+global func bool DeepEqual(v1, v2);
