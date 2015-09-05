@@ -767,4 +767,4 @@ global func bool GuiUpdateTag(string tag, int guiID, int childID, object target)
 global func bool GuiClose(int guiID, int childID, object target);
 global func bool GuiUpdate(proplist update, int guiID, int childID, object target);
 
-global func bool DeepEqual(v1, v2);
+global func bool DeepEqual(any v1, any v2);
