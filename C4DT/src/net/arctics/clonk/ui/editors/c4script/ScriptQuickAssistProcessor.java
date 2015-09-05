@@ -108,7 +108,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	private static boolean isAtPosition(final int offset, final Position pos) {
-		return (pos != null) && (offset >= pos.getOffset() && offset <= (pos.getOffset() +  pos.getLength()));
+		return (pos != null) && (offset >= pos.getOffset() && offset <= (pos.getOffset() + pos.getLength()));
 	}
 
 	@Override
@@ -119,17 +119,19 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		if (model == null) {
 			return NO_SUGGESTIONS;
 		}
-		@SuppressWarnings("rawtypes")
-		final Iterator iter = model.getAnnotationIterator();
-		while (iter.hasNext()) {
-			final Annotation annotation = (Annotation)iter.next();
+		@SuppressWarnings("unchecked")
+		final Iterator<Annotation> iter = model.getAnnotationIterator();
+		iter.forEachRemaining(annotation -> {
 			if (canFix(annotation)) {
-				final Position pos = model.getPosition(annotation);
-				if (isAtPosition(offset, pos)) {
-					collectProposals(((MarkerAnnotation) annotation).getMarker(), pos, proposals, null, StructureTextEditor.getEditorForSourceViewer(context.getSourceViewer(), C4ScriptEditor.class));
+				final Position position = model.getPosition(annotation);
+				if (isAtPosition(offset, position)) {
+					collectProposals(((MarkerAnnotation) annotation).getMarker(),
+						position, proposals, null,
+						StructureTextEditor.getEditorForSourceViewer(context.getSourceViewer(), C4ScriptEditor.class)
+					);
 				}
 			}
-		}
+		});
 		return proposals.toArray(new ICompletionProposal[proposals.size()]);
 	}
 
@@ -384,9 +386,9 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		problems(Problem.Unused).fixedBy(site -> {
 			if (site.offendingExpression instanceof VarInitialization) {
 				final MutableRegion regionToDelete = new MutableRegion(0, site.expressionRegion.getLength());
-				final VarInitialization cur = (VarInitialization) site.offendingExpression;
-				final VarInitialization next = cur.succeedingInitialization();
-				final VarInitialization previous = cur.precedingInitialization();
+				final VarInitialization varInitialization = (VarInitialization) site.offendingExpression;
+				final VarInitialization next = varInitialization.succeedingInitialization();
+				final VarInitialization previous = varInitialization.precedingInitialization();
 				final String replacementString = ""; //$NON-NLS-1$
 				if (next == null) {
 					if (previous != null) {
@@ -394,13 +396,13 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						site.parser.seek(previous.end());
 						site.parser.eatWhitespace();
 						if (site.parser.peek() == ',') {
-							regionToDelete.setStartAndEnd(site.parser.tell(), cur.end());
+							regionToDelete.setStartAndEnd(site.parser.tell(), varInitialization.end());
 						}
 					} else {
 						site.addRemoveReplacement().setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
 					}
 				} else {
-					regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
+					regionToDelete.setStartAndEnd(varInitialization.getOffset(), next.getOffset());
 				}
 				site.replacements.add(
 					Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,

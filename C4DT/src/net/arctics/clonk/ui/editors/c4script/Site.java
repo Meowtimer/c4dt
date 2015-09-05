@@ -21,6 +21,7 @@ import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.parser.Markers;
 
 class Site {
+	
 	final IDocument document;
 	final Script script;
 	final IMarker marker;
@@ -33,6 +34,7 @@ class Site {
 	final Statement topLevel;
 	final IRegion expressionRegion;
 	final ReplacementsList replacements;
+	
 	Replacement addRemoveReplacement() {
 		final Replacement result = replacements.add(
 			Messages.ClonkQuickAssistProcessor_Remove,
@@ -41,6 +43,7 @@ class Site {
 		);
 		return result;
 	}
+	
 	Site(final List<ICompletionProposal> proposals, final IDocument document, final Script script, final Position position, final IMarker marker) {
 		this.document = document;
 		this.script = script;
@@ -64,6 +67,7 @@ class Site {
 		}
 		this.replacements = new ReplacementsList(offendingExpression, proposals);
 	}
+	
 	void commitReplacements() {
 		replacements.stream().map(replacement -> {
 			final String replacementAsString = "later"; //$NON-NLS-1$
@@ -85,4 +89,5 @@ class Site {
 			);
 		}).forEach(replacement -> replacements.existingList.add(replacement));
 	}
+
 }

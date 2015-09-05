@@ -2,6 +2,9 @@ package net.arctics.clonk;
 
 import static java.lang.String.format;
 import static java.lang.System.out;
+import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.Utilities.consumingException;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.synchronizing;
 
 import java.io.File;
@@ -54,7 +57,7 @@ import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.UI;
 
 /**
- * The core of the plugin. The singleton instance of this class stores various global things, like engine objects and preferences.
+ * The core of the plug-in. The singleton instance of this class stores various global things, like engine objects and preferences.
  */
 public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
 
@@ -137,7 +140,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		try {
 			versionFromLastRun = new Version(StreamUtil.stringFromFile(new File(getStateLocation().toFile(), VERSION_REMEMBERANCE_FILE)));
 		} catch (final Exception e) {
-			versionFromLastRun = new Version(0, 5, 0); // oold
+			versionFromLastRun = new Version(0, 5, 0); // old
 		}
 
 		instance = this;
@@ -302,11 +305,11 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	}
 
 	public IPath workspaceStorageLocationForEngine(final String engineName) {
-		IPath path = workspaceStorageLocationForEngines();
-		path = path.append(String.format("%s", engineName));
-		final File dir = path.toFile();
-		if (!dir.exists()) {
-			dir.mkdir();
+		final IPath path = workspaceStorageLocationForEngines()
+			.append(String.format("%s", engineName));
+		final File directory = path.toFile();
+		if (!directory.exists()) {
+			directory.mkdirs();
 		}
 		return path;
 	}
@@ -353,13 +356,17 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	/** Whether the plugin runs in headless mode. */
 	public static boolean runsHeadless() { return runsHeadless; }
 
-	public static void headlessInitialize(final String engineConfigurationFolder, final String engine) {
+	public static Core headlessInitialize(final String engineConfigurationFolder, final String engine) {
 		runsHeadless = true;
-		if (instance == null) {
-			instance = new Core();
-			instance.engineConfigurationFolder = engineConfigurationFolder;
-			instance.setActiveEngineByName(engine);
-		}
+		return defaulting(
+			instance,
+			() -> {
+				instance = new Core();
+				instance.engineConfigurationFolder = engineConfigurationFolder;
+				instance.setActiveEngineByName(engine);
+				return instance;
+			}
+		);
 	}
 
 	/**
@@ -380,26 +387,25 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 	 * @param iconName Name of the icon
 	 */
 	public Image iconImageFor(final String iconName) {
-
 		// Already exists?
-		final ImageRegistry reg = getImageRegistry();
-		Image img = reg.get(iconName);
-		if (img != null) {
-			return img;
-		}
-
-		// Create
-		final ImageDescriptor descriptor = iconImageDescriptorFor(iconName);
-		reg.put(iconName, img = descriptor.createImage(true));
-		return img;
+		final ImageRegistry imageRegistry = getImageRegistry();
+		return defaulting(
+			imageRegistry.get(iconName),
+			() -> {
+				// Create
+				final ImageDescriptor descriptor = iconImageDescriptorFor(iconName);
+				final Image image = descriptor.createImage(true);
+				imageRegistry.put(iconName, image);
+				return image;
+			}
+		);
 	}
 
 	public ImageDescriptor iconImageDescriptorFor(final String iconName) {
-		ImageDescriptor descriptor = imageDescriptorFor("icons/" + iconName + ".png"); //$NON-NLS-1$ //$NON-NLS-2$
-		if(descriptor == null) {
-			descriptor = ImageDescriptor.getMissingImageDescriptor();
-		}
-		return descriptor;
+		return defaulting(
+			imageDescriptorFor("icons/" + iconName + ".png"), //$NON-NLS-1$ //$NON-NLS-2$
+			ImageDescriptor::getMissingImageDescriptor
+		);
 	}
 
 	@Override
@@ -416,28 +422,25 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		switch (context.getKind()) {
 		case ISaveContext.PROJECT_SAVE:
 			{
-				final ClonkProjectNature cpn = ClonkProjectNature.get(context.getProject());
-				if (cpn != null) {
-					cpn.saveIndex();
+				final ClonkProjectNature projectNature = ClonkProjectNature.get(context.getProject());
+				if (projectNature != null) {
+					projectNature.saveIndex();
 				}
 			}
 			break;
 		case ISaveContext.SNAPSHOT:
 		case ISaveContext.FULL_SAVE:
 			rememberCurrentVersion();
-			for (final Engine engine : loadedEngines.values()) {
-				engine.saveSettings();
-			}
-			for (final IProject project : ClonkProjectNature.clonkProjectsInWorkspace()) {
-				try {
-					final ClonkProjectNature cpn = ClonkProjectNature.get(project);
-					if (cpn != null) {
-						cpn.saveIndex();
+			loadedEngines.values().forEach(Engine::saveSettings);
+			stream(ClonkProjectNature.clonkProjectsInWorkspace())
+				.map(ClonkProjectNature::get)
+				.filter(x -> x != null)
+				.forEach(consumingException(
+					ClonkProjectNature::saveIndex,
+					(ClonkProjectNature nature, Exception e) -> {
+						UI.informAboutException(Messages.ErrorWhileSavingIndex, e, nature.getProject().getName());
 					}
-				} catch (final Exception e) {
-					UI.informAboutException(Messages.ErrorWhileSavingIndex, e, project.getName());
-				}
-			}
+				));
 			break;
 		}
 	}

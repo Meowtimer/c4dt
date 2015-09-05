@@ -1,9 +1,9 @@
 package net.arctics.clonk.builder;
 
 
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IProject;
 
@@ -58,15 +59,16 @@ public class ProjectSettings extends SettingsBase {
 
 	public ProjectSettings() {}
 
-	public synchronized Engine engine() {
-		if (cachedEngine == null) {
-			// engineName can be "" or null since that is handled by loadEngine
-			cachedEngine = defaulting(
-				Core.instance().loadEngine(engineName),
-				Core.instance().activeEngine()
-			);
-		}
-		return cachedEngine;
+	public Engine engine() {
+		return defaulting(
+			cachedEngine,
+			() ->
+				// engineName can be "" or null since that is handled by loadEngine
+				cachedEngine = defaulting(
+					Core.instance().loadEngine(engineName),
+					Core.instance().activeEngine()
+				)
+		);
 	}
 
 	public static final class ProblemReportingStrategyInfo {
@@ -81,35 +83,38 @@ public class ProjectSettings extends SettingsBase {
 
 	private Collection<ProblemReportingStrategyInfo> _problemReportingStrategies;
 
+	@SuppressWarnings("unchecked")
 	public Collection<ProblemReportingStrategyInfo> problemReportingStrategies() {
-		if (_problemReportingStrategies == null) {
-			final Collection<ProblemReportingStrategyInfo> strats = new ArrayList<ProblemReportingStrategyInfo>();
-			if (problemReportingStrategies != null && problemReportingStrategies.length() > 0) {
-				final Matcher strategyRefMatcher = Pattern.compile("(.*?)(\\[(.*?)\\])?").matcher("");
-				final String[] classNames = problemReportingStrategies.split(",");
-				for (final String strategyRef : classNames) {
-					if (strategyRefMatcher.reset(strategyRef).matches()) {
-						final String className = strategyRefMatcher.group(1);
-						final String args = strategyRefMatcher.group(3);
+		return defaulting(
+			_problemReportingStrategies,
+			() -> {
+				final Pattern strategyRefPattern = Pattern.compile("(.*?)(\\[(.*?)\\])?");
+				final String[] classNames = problemReportingStrategies != null ? problemReportingStrategies.split(",") : new String[0];
+				final List<ProblemReportingStrategyInfo> strategies = stream(classNames)
+					.map(strategyRefPattern::matcher)
+					.filter(Matcher::matches)
+					.map(matcher -> {
+						final String className = matcher.group(1);
+						final String args = matcher.group(3);
 						try {
-							@SuppressWarnings("unchecked")
 							final Class<? extends ProblemReportingStrategy> cls = (Class<? extends ProblemReportingStrategy>) ProblemReportingStrategy.class.getClassLoader().loadClass(Core.id(className));
-							if (ProblemReportingStrategy.class.isAssignableFrom(cls)) {
-								strats.add(new ProblemReportingStrategyInfo(cls, args));
-							}
+							final ProblemReportingStrategyInfo result = ProblemReportingStrategy.class.isAssignableFrom(cls)
+								? new ProblemReportingStrategyInfo(cls, args)
+								: null;
+							return result;
 						} catch (final ClassNotFoundException e) {
 							e.printStackTrace();
-							continue;
+							return null;
 						}
-					}
+					})
+					.filter(x -> x != null)
+					.collect(Collectors.toList());
+				if (strategies.isEmpty()) {
+					strategies.add(new ProblemReportingStrategyInfo(DabbleInference.class, ""));
 				}
+				return _problemReportingStrategies = strategies;
 			}
-			if (strats.isEmpty()) {
-				strats.add(new ProblemReportingStrategyInfo(DabbleInference.class, ""));
-			}
-			return _problemReportingStrategies = strats;
-		}
-		return _problemReportingStrategies;
+		);
 	}
 
 	public String disabledErrorsString() { return disabledErrors; }
