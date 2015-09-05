@@ -323,6 +323,18 @@ public abstract class Utilities {
 	public interface ThrowHappySupplier<T, E extends Exception> {
 		T get() throws E;
 	}
+	
+	/**
+	 * Consumes an exception which occurs in a context described by the first argument.
+	 * @author madeen
+	 *
+	 * @param <T> Type of context
+	 * @param <E> Type of exception
+	 */
+	@FunctionalInterface
+	public interface ContextualExceptionConsumer<T, E extends Exception> {
+		void accept(T context, E exception);
+	}
 
 	public interface ThrowHappyRunnable<E extends Exception> {
 		void run() throws E;
@@ -400,6 +412,24 @@ public abstract class Utilities {
 		return () -> {
 			runnable.run();
 			return null;
+		};
+	}
+	
+	/**
+	 * Given a consumer which potentially throws an exception, return a consumer which forwards to the original one and
+	 * channels exceptions to an exception consumer when they occur.
+	 * @param throwHappyConsumer The consumer which might throw an exception
+	 * @param exceptionConsumer The exception consumer
+	 * @return A consumer which does not throw exceptions, rather channels exceptions from underlying consumer to an exception consumer.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T, E extends Exception> Consumer<T> consumingException(ThrowHappy<T, E> throwHappyConsumer, ContextualExceptionConsumer<T, E> exceptionConsumer) {
+		return item -> {
+			try {
+				throwHappyConsumer.accept(item);
+			} catch (final Exception exception) {
+				exceptionConsumer.accept(item, (E)exception);
+			}
 		};
 	}
 
