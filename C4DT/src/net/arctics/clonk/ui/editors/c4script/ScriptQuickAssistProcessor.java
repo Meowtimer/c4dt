@@ -116,16 +116,18 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		final int offset = context.getOffset();
 		final List<ICompletionProposal> proposals = new LinkedList<ICompletionProposal>();
 		final IAnnotationModel model = context.getSourceViewer().getAnnotationModel();
-		if (model == null)
+		if (model == null) {
 			return NO_SUGGESTIONS;
+		}
 		@SuppressWarnings("rawtypes")
 		final Iterator iter = model.getAnnotationIterator();
 		while (iter.hasNext()) {
 			final Annotation annotation = (Annotation)iter.next();
 			if (canFix(annotation)) {
 				final Position pos = model.getPosition(annotation);
-				if (isAtPosition(offset, pos))
+				if (isAtPosition(offset, pos)) {
 					collectProposals(((MarkerAnnotation) annotation).getMarker(), pos, proposals, null, StructureTextEditor.getEditorForSourceViewer(context.getSourceViewer(), C4ScriptEditor.class));
+				}
 			}
 		}
 		return proposals.toArray(new ICompletionProposal[proposals.size()]);
@@ -146,13 +148,17 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	}
 
 	public void collectProposals(final IMarker marker, final Position position, final List<ICompletionProposal> proposals, IDocument document, final C4ScriptEditor editor) {
-		if (document == null)
+		if (document == null) {
 			document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
+		}
 		final ScriptEditingState state = editor.state();
-		if (state != null)
-			for (final ProblemReportingStrategy s : state.problemReportingStrategies())
-				if ((s.capabilities() & Capabilities.TYPING) != 0)
+		if (state != null) {
+			for (final ProblemReportingStrategy s : state.problemReportingStrategies()) {
+				if ((s.capabilities() & Capabilities.TYPING) != 0) {
 					collectProposals(marker, position, proposals, document, editor.script());
+				}
+			}
+		}
 	}
 
 	public void collectProposals(
@@ -162,13 +168,14 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		final IDocument document,
 		final Script script
 	) {
-		if (document != null)
+		if (document != null) {
 			internalCollectProposals(marker, position, proposals, document, script);
-		else
+		} else {
 			Core.instance().performActionsOnFileDocument(script.source(), connectedDocument -> {
 				internalCollectProposals(marker, position, proposals, connectedDocument, script);
 				return null;
 			}, false);
+		}
 	}
 
 	static Pair<Problem[], ProblemFixer> fix(ProblemFixer fixer, Problem... problems) {
@@ -203,18 +210,20 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 			if (site.offendingExpression instanceof AccessVar && site.offendingExpression.parent() instanceof BinaryOp) {
 				final AccessVar var = (AccessVar) site.offendingExpression;
 				final BinaryOp op = (BinaryOp) site.offendingExpression.parent();
-				if (site.topLevel == op.parent() && op.operator() == Operator.Assign && op.leftSide() == site.offendingExpression)
+				if (site.topLevel == op.parent() && op.operator() == Operator.Assign && op.leftSide() == site.offendingExpression) {
 					site.replacements.add(
 						Messages.ClonkQuickAssistProcessor_ConvertToVarDeclaration,
 						new VarDeclarationStatement(var.name(), op.rightSide(), Keywords.VarNamed.length()+1, Scope.VAR)
 					);
+				}
 			}
-			if (site.offendingExpression instanceof CallDeclaration)
+			if (site.offendingExpression instanceof CallDeclaration) {
 				if (site.offendingExpression.predecessor() instanceof MemberOperator && !((MemberOperator)site.offendingExpression.predecessor()).hasTilde()) {
 					final MemberOperator opWithTilde = new MemberOperator(false, true, ((MemberOperator)site.offendingExpression.predecessor()).id(), 3);
 					opWithTilde.setLocation(site.offendingExpression.predecessor());
 					site.replacements.add(Messages.ClonkQuickAssistProcessor_UseTildeWithNoSpace, opWithTilde, false, true);
 				}
+			}
 			if (site.offendingExpression instanceof AccessDeclaration && site.offendingExpression.predecessor() == null) {
 				final AccessDeclaration accessDec = (AccessDeclaration) site.offendingExpression;
 
@@ -225,9 +234,9 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					false, false
 				);
 				final List<Declaration> decs = createNewDeclarationReplacement.additionalDeclarations();
-				if (accessDec instanceof AccessVar)
+				if (accessDec instanceof AccessVar) {
 					decs.add(new Variable(Scope.LOCAL, accessDec.name()));
-				else {
+				} else {
 					final CallDeclaration callFunc = (CallDeclaration) accessDec;
 					final Function function = new Function(accessDec.name(), FunctionScope.PUBLIC);
 					function.setParent(site.script);
@@ -235,8 +244,9 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					decs.add(function);
 					final List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
 					int p = 0;
-					for (final ASTNode parm : callFunc.params())
+					for (final ASTNode parm : callFunc.params()) {
 						parms.add(new Variable(parameterNameFromExpression(parm, ++p), site.script.typings().get(parm)));
+					}
 					function.setParameters(parms);
 				}
 
@@ -249,12 +259,14 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				
 				ofType(possible.stream(), DeclarationProposal.class).forEach(proposal -> {
 					final Declaration dec = proposal.declaration();
-					if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass()))
+					if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass())) {
 						return;
+					}
 					final int similarity = StringUtil.similarityOf(dec.name(), accessDec.name());
-					if (similarity > 0)
+					if (similarity > 0) {
 						site.replacements.add(String.format(Messages.ClonkQuickAssistProcessor_ReplaceWith, dec.name()),
 							identifierReplacement(accessDec, dec.name()), false, true);
+					}
 				});
 
 				// propose adding projects to the referenced projects which contain a definition with a matching name
@@ -267,7 +279,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 							() -> asList(p.getReferencedProjects()), CoreException.class, exception -> exception.printStackTrace()
 						);
 						final ID defId = ID.get(accessDec.name());
-						if (referencedProjects != null)
+						if (referencedProjects != null) {
 							stream(ClonkProjectNature.clonkProjectsInWorkspace())
 								.filter(proj -> referencedProjects.indexOf(proj) == -1)
 								.map(ClonkProjectNature::get)
@@ -277,16 +289,18 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 										@Override
 										public void performAdditionalActionsBeforeDoingReplacements() {
 											final IProjectDescription desc = attempt(p::getDescription, CoreException.class, Exception::printStackTrace);
-											if (desc != null)
+											if (desc != null) {
 												try {
 													desc.setReferencedProjects(ArrayUtil.concat(desc.getReferencedProjects(), nat.getProject()));
 													p.setDescription(desc, null);
 												} catch (final CoreException e) {
 													e.printStackTrace();
 												}
+											}
 										}
 									});
 								});
+						}
 					}
 				}
 			}
@@ -303,12 +317,13 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				);
 			}
 			final IntegerLiteral ntgr = as(site.offendingExpression, IntegerLiteral.class);
-			if (isAnyOf(t, PrimitiveType.NILLABLES) && ntgr != null && ntgr.longValue() == 0)
+			if (isAnyOf(t, PrimitiveType.NILLABLES) && ntgr != null && ntgr.longValue() == 0) {
 				site.replacements.add(
 					Messages.C4ScriptQuickAssistProcessor_Replace0WithNil,
 					new AccessVar(Keywords.Nil),
 					false, false
 				);
+			}
 		}),
 		problems(Problem.NoSideEffects).fixedBy(site -> {
 			if (site.topLevel instanceof SimpleStatement) {
@@ -327,21 +342,23 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 				final SimpleStatement statement = (SimpleStatement) site.topLevel;
 				if (statement.expression() instanceof BinaryOp) {
 					final BinaryOp binaryOp = (BinaryOp) statement.expression();
-					if (binaryOp.operator() == Operator.Equal)
+					if (binaryOp.operator() == Operator.Equal) {
 						site.replacements.add(
 							Messages.ClonkQuickAssistProcessor_ConvertComparisonToAssignment,
 							new BinaryOp(Operator.Assign, binaryOp.leftSide(), binaryOp.rightSide())
 						);
+					}
 				}
 			}
 		}),
 		problems(Problem.NoInheritedFunction).fixedBy(site -> {
-			if (site.offendingExpression instanceof CallDeclaration && ((CallDeclaration)site.offendingExpression).name().equals(Keywords.Inherited))
+			if (site.offendingExpression instanceof CallDeclaration && ((CallDeclaration)site.offendingExpression).name().equals(Keywords.Inherited)) {
 				site.replacements.add(
 					String.format(Messages.ClonkQuickAssistProcessor_UseInsteadOf, Keywords.SafeInherited, Keywords.Inherited),
 					identifierReplacement((AccessDeclaration) site.offendingExpression, Keywords.SafeInherited),
 					false, true
 				);
+			}
 		}),
 		problems(Problem.ReturnAsFunction).fixedBy(site -> {
 			if (site.offendingExpression instanceof Tuple) {
@@ -376,12 +393,15 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 						// removing last initialization -> change ',' before it to ';'
 						site.parser.seek(previous.end());
 						site.parser.eatWhitespace();
-						if (site.parser.peek() == ',')
+						if (site.parser.peek() == ',') {
 							regionToDelete.setStartAndEnd(site.parser.tell(), cur.end());
-					} else
+						}
+					} else {
 						site.addRemoveReplacement().setTitle(Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration);
-				} else
+					}
+				} else {
 					regionToDelete.setStartAndEnd(cur.getOffset(), next.getOffset());
+				}
 				site.replacements.add(
 					Messages.ClonkQuickAssistProcessor_RemoveVariableDeclaration,
 					new ReplacementStatement(replacementString, regionToDelete, site.document, site.expressionRegion.getOffset(), site.func.bodyLocation().getOffset()),
@@ -399,8 +419,9 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 	private void internalCollectProposals(final IMarker marker, final Position position, final List<ICompletionProposal> proposals, final IDocument document, final Script script) {
 		final Site site = new Site(proposals, document, script, position, marker);
 		final ProblemFixer fixer = fixes.get(site.problem);
-		if (fixer != null)
+		if (fixer != null) {
 			fixer.contribute(site);
+		}
 		try {
 			site.replacements.add(
 				Messages.ClonkQuickAssistProcessor_TidyUp,
