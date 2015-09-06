@@ -15,32 +15,37 @@ public interface ASTNodePrinter extends Appendable {
 	
 	/**
 	 * Interception method to customize printing of a node.
-	 * @param elm The node to print
+	 * @param node The node to print
 	 * @param depth Current indentation depth
 	 * @return Return true if the printer did its custom printing thing, cutting short the node's inherent printing.
 	 */
-	boolean doCustomPrinting(ASTNode elm, int depth);
+	boolean doCustomPrinting(ASTNode node, int depth);
+	
 	/**
 	 * Append text.
 	 * @param text The text string
 	 */
 	void append(String text);
+	
 	/**
 	 * Enable one of the flags defined in this interface.
 	 * @param flag
 	 */
 	void enable(int flag);
+	
 	/**
 	 * Disable one of the flags defined in this interface.
 	 * @param flag
 	 */
 	void disable(int flag);
+	
 	/**
 	 * Return whether some flag is set.
 	 * @param flag The flag to test
 	 * @return True if set, false if not.
 	 */
 	boolean flag(int flag);
+	
 	/** Append a single character. **/
 	@Override
 	Appendable append(char c);
