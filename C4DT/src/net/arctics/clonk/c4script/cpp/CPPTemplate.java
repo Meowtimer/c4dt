@@ -268,7 +268,8 @@ public class CPPTemplate {
 	}
 	public String printNode(Map<String, Integer> strTable, final Function function, final ASTNode node) {
 		final StringWriter output = new StringWriter();
-		final java.util.function.Function<String, Integer> strNum = s -> defaulting(strTable.get(s), -1);
+		final java.util.function.Function<String, Integer> stringNumber =
+			string -> defaulting(strTable.get(string), -1);
 		node.print(new AppendableBackedNodePrinter(output) {
 			IType effectiveType(ASTNode node) {
 				System.out.println(node.getClass().getSimpleName());
@@ -317,7 +318,7 @@ public class CPPTemplate {
 					new LeftRightType(bop.operator().firstArgType(), bop.operator().secondArgType());
 			}
 			private void printString(String str) {
-				append(String.format("D.S._%d", strNum.apply(str)));
+				append(String.format("D.S._%d", stringNumber.apply(str)));
 			}
 			private void printPiece(IType targetType, Sequence.Piece piece, int depth) {
 				switch (piece.kind) {
@@ -561,12 +562,12 @@ public class CPPTemplate {
 		final Stream<String> assignFuncs = uniqueFuncNames.stream().map(fn -> format("%1$s = Strings.RegString(\"%1$s\");", fn));
 		final Stream<String> natives = uniqueFuncNames.stream().map(fn -> format("C4AulFunc* %s;", fn));
 		final Stream<String> nativeWrappers = numberedFunctions.stream()
-			.map(nf -> (
+			.map(numberedFunction -> (
 				"static " +
-				cppTypeString(nf.function.returnType()) + " " + nf.name() +
-				"(C4PropList* self"+parmsString(nf.function, true)+")" +
-				" { return static_cast<" + script.name() + "*>(self)->s_" + nf.name() + "(" +
-					nf.function.parameters().stream()
+				cppTypeString(numberedFunction.function.returnType()) + " " + numberedFunction.name() +
+				"(C4PropList* self"+parmsString(numberedFunction.function, true)+")" +
+				" { return static_cast<" + script.name() + "*>(self)->s_" + numberedFunction.name() + "(" +
+					numberedFunction.function.parameters().stream()
 						.map(Variable::name)
 						.map(CPPTemplate::unclashKeyword)
 						.collect(Collectors.joining(", ")) + "); }"
@@ -749,7 +750,7 @@ public class CPPTemplate {
 		}
 	}
 
-	private static int countNumOccurencesOfCharacterInString(String string, char character) {
+	private static int numberOfOccurencesOfCharacterInString(String string, char character) {
 		int result = 0;
 		for (int i = 0; i < string.length(); i++) {
 			if (string.charAt(i) == character) {
@@ -770,7 +771,7 @@ public class CPPTemplate {
 				final String str = as(item, String.class);
 				final int currentIndentation = indent;
 				if (str != null) {
-					indent = Math.max(0, indent + countNumOccurencesOfCharacterInString(str, '{') - countNumOccurencesOfCharacterInString(str, '}'));
+					indent = Math.max(0, indent + numberOfOccurencesOfCharacterInString(str, '{') - numberOfOccurencesOfCharacterInString(str, '}'));
 				}
 				return new Indented(currentIndentation, item);
 			}

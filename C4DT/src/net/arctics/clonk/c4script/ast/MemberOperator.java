@@ -1,6 +1,9 @@
 package net.arctics.clonk.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.eq;
+
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -11,8 +14,6 @@ import net.arctics.clonk.ast.IEvaluationContext;
 import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.index.ID;
-
-import org.eclipse.jface.text.Region;
 
 /**
  * Either '->' or '.' operator.
@@ -34,8 +35,9 @@ public class MemberOperator extends ASTNode implements ITidyable {
 	@Override
 	protected void offsetExprRegion(final int amount, final boolean start, final boolean end) {
 		super.offsetExprRegion(amount, start, end);
-		if (start)
+		if (start) {
 			idOffset += amount;
+		}
 	}
 
 	/**
@@ -69,14 +71,16 @@ public class MemberOperator extends ASTNode implements ITidyable {
 
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
-		if (dotNotation)
+		if (dotNotation) {
 			// so simple
 			output.append('.');
-		else {
-			if (hasTilde)
+		} else {
+			if (hasTilde) {
 				output.append("->~"); //$NON-NLS-1$
-			else
+			}
+			else {
 				output.append("->"); //$NON-NLS-1$
+			}
 			if (id != null) {
 				output.append(id.stringValue());
 				output.append("::"); //$NON-NLS-1$
@@ -101,34 +105,39 @@ public class MemberOperator extends ASTNode implements ITidyable {
 
 	@Override
 	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) {
-		if (id != null && offset >= idOffset && offset < idOffset+4)
+		if (id != null && offset >= idOffset && offset < idOffset+4) {
 			return new EntityRegion(parent(Script.class).nearestDefinitionWithId(id), new Region(start()+idOffset, 4));
+		}
 		return null;
 	}
 
 	@Override
 	public boolean equalAttributes(final ASTNode other) {
-		if (!super.equalAttributes(other))
+		if (!super.equalAttributes(other)) {
 			return false;
+		}
 		final MemberOperator otherOp = (MemberOperator) other;
-		if (dotNotation != otherOp.dotNotation || hasTilde != otherOp.hasTilde || !eq(id, otherOp.id))
+		if (dotNotation != otherOp.dotNotation || hasTilde != otherOp.hasTilde || !eq(id, otherOp.id)) {
 			return false;
+		}
 		return true;
 	}
 
 	public ASTNode successorInSequence() {
-		if (parent() instanceof Sequence)
+		if (parent() instanceof Sequence) {
 			return ((Sequence)parent()).successorOfSubElement(this);
-		else
+		} else {
 			return null;
+		}
 	}
 
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		if (!dotNotation && !tidy.structure().engine().settings().supportsProplists) {
 			final ASTNode succ = successorInSequence();
-			if (succ instanceof AccessVar)
+			if (succ instanceof AccessVar) {
 				return makeDotOperator();
+			}
 		}
 		return this;
 	}

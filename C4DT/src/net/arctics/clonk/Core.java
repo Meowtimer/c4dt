@@ -1,11 +1,8 @@
 package net.arctics.clonk;
 
-import static java.lang.String.format;
-import static java.lang.System.out;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.Utilities.consumingException;
 import static net.arctics.clonk.util.Utilities.defaulting;
-import static net.arctics.clonk.util.Utilities.synchronizing;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +19,6 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ISaveContext;
 import org.eclipse.core.resources.ISaveParticipant;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -33,9 +29,7 @@ import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
@@ -57,36 +51,27 @@ import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.UI;
 
 /**
- * The core of the plug-in. The singleton instance of this class stores various global things, like engine objects and preferences.
+ * The core plug-in class.
+ * The singleton instance of this class stores various global things, like engine objects and preferences.
  */
 public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourceChangeListener {
 
 	public static final String HUMAN_READABLE_NAME = Messages.HumanReadableName;
 	private static final String VERSION_REMEMBERANCE_FILE = "version.txt"; //$NON-NLS-1$
 
-	/**
-	 * The Plugin-ID
-	 */
+	/** plugin-id, same as Core's package */
 	public static final String PLUGIN_ID = Core.class.getPackage().getName();
 
-	/**
-	 * id for Clonk project natures
-	 */
+	/** id for Clonk project natures */
 	public static final String NATURE_ID = id("clonknature"); //$NON-NLS-1$
 
-	/**
-	 * Binding context for Clonk related editing activities
-	 */
+	/** Binding context for Clonk related editing activities */
 	public static final String CONTEXT_ID = id("context");
 
-	/**
-	 * id for error markers that denote errors in a script
-	 */
+	/** id for error markers that denote errors in a script */
 	public static final String MARKER_C4SCRIPT_ERROR = id("c4scripterror"); //$NON-NLS-1$
 
-	/**
-	 * id for error markers that denote errors in a ini file
-	 */
+	/** id for error markers that denote errors in a ini file */
 	public static final String MARKER_INI_ERROR = id("inierror"); //$NON-NLS-1$
 
 	public static final String MARKER_ADDEDASTNODE = id("addedastnode");
@@ -99,31 +84,18 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	public static final long SERIAL_VERSION_UID = 1L;
 
-	/**
-	 * The engine object contains global functions and variables defined by Clonk itself
-	 */
+	/** The engine object contains global functions and variables defined by Clonk itself */
 	private Engine activeEngine;
 
-	/**
-	 * List of engines currently loaded
-	 */
+	/** List of engines currently loaded */
 	private final Map<String, Engine> loadedEngines = new HashMap<String, Engine>();
 
-	/**
-	 * Shared instance
-	 */
+	/** Shared instance */
 	private static Core instance;
-
-	private static final class TextFileDocumentProviderThing {
-		/**
-		 * Provider used by the plugin to provide text of documents
-		 */
-		static final TextFileDocumentProvider provider = new TextFileDocumentProvider();
-	}
 
 	private String engineConfigurationFolder;
 	private Version versionFromLastRun;
-	private static boolean runsHeadless;
+	private boolean runsHeadless;
 
 	public Version versionFromLastRun() {
 		return versionFromLastRun;
@@ -347,24 +319,21 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	public static boolean stopped() { return instance == null; }
 
-	/**
-	 * Returns the shared instance
-	 *
-	 * @return the shared instance
-	 */
+	/** Return the shared instance */
 	public static Core instance() { return instance; }
-	/** Whether the plugin runs in headless mode. */
-	public static boolean runsHeadless() { return runsHeadless; }
+	
+	/** Whether the plug-in runs in headless mode. */
+	public boolean runsHeadless() { return runsHeadless; }
 
 	public static Core headlessInitialize(final String engineConfigurationFolder, final String engine) {
-		runsHeadless = true;
 		return defaulting(
 			instance,
 			() -> {
-				instance = new Core();
+				final Core instance = new Core();
+				instance.runsHeadless = true;
 				instance.engineConfigurationFolder = engineConfigurationFolder;
 				instance.setActiveEngineByName(engine);
-				return instance;
+				return Core.instance = instance;
 			}
 		);
 	}
@@ -463,9 +432,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		return PLUGIN_ID + "." + id; //$NON-NLS-1$
 	}
 
-	/**
-	 * @param activeEngine the engineObject to set
-	 */
+	/** @param activeEngine the engineObject to set */
 	private void setActiveEngine(final Engine activeEngine) {
 		this.activeEngine = activeEngine;
 	}
@@ -479,52 +446,12 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 		}
 	}
 
-	/**
-	 * @return the engineObject
-	 */
+	/** @return the engineObject */
 	public Engine activeEngine() {
 		return activeEngine;
 	}
 
-	public interface IDocumentAction<T> {
-		T run(IDocument document);
-	}
-
-	private static IProgressMonitor NPM = new NullProgressMonitor();
-
-	public <T> T performActionsOnFileDocument(final IStorage file, final IDocumentAction<T> action, final boolean save) {
-		final TextFileDocumentProvider provider = TextFileDocumentProviderThing.provider;
-		final IDocument document = synchronizing(provider, () -> {
-			try {
-				provider.connect(file);
-				return provider.getDocument(file);
-			} catch (final CoreException e) {
-				e.printStackTrace();
-				return null;
-			}
-		});
-		if (document == null) {
-			return null;
-		}
-		try {
-			final T result = action.run(document);
-			if (save) {
-				synchronized (provider) {
-					try {
-						//textFileDocumentProvider.setEncoding(document, textFileDocumentProvider.getDefaultEncoding());
-						provider.saveDocument(NPM, file, document, true);
-					} catch (final CoreException e) {
-						out.println(format("Failed to save %s: %s", file.getFullPath(), e.getMessage()));
-					}
-				}
-			}
-			return result;
-		} finally {
-			synchronized (provider) {
-				provider.disconnect(file);
-			}
-		}
-	}
+	static IProgressMonitor NPM = new NullProgressMonitor();
 
 	@Override
 	public void resourceChanged(final IResourceChangeEvent event) {

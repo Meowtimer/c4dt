@@ -83,7 +83,7 @@ public abstract class Conf {
 	}
 
 	static {
-		if (Core.instance() != null && !Core.runsHeadless()) {
+		if (Core.instance() != null && !Core.instance().runsHeadless()) {
 			final IPropertyChangeListener listener = event -> {
 				final String[] relevantPrefValues = {
 					AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,

@@ -907,7 +907,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	public String getErrorMessage() { return null; }
 
 	private KeySequence iterationBinding() {
-		if (Core.runsHeadless())
+		if (Core.instance().runsHeadless())
 			return null;
 		final IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(IBindingService.class);
 		final TriggerSequence binding = bindingSvc.getBestActiveBindingFor(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);

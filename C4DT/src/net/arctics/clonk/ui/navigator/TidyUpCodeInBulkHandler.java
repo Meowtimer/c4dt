@@ -26,8 +26,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.FileDocumentActions;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.ScriptParser;
 import net.arctics.clonk.ui.editors.actions.c4script.TidyUpCodeAction;
@@ -44,12 +44,14 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final ISelection selection = HandlerUtil.getCurrentSelection(event);
 		final IStructuredSelection ssel = as(selection, IStructuredSelection.class);
-		if (ssel == null)
+		if (ssel == null) {
 			return null;
-		if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null))
+		}
+		if (!UI.confirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), Messages.TidyUpCodeInBulkHandler_ReallyConvert, null)) {
 			return null;
+		}
 		final List<IContainer> selectedContainers = ((List<Object>)ssel.toList()).stream().flatMap(obj -> {
-			if (obj instanceof IProject)
+			if (obj instanceof IProject) {
 				try {
 					final IResource[] selectedResources = ((IProject)obj).members(IContainer.EXCLUDE_DERIVED);
 					return ofType(stream(selectedResources), IContainer.class).filter(s -> !s.getName().startsWith(".")); //$NON-NLS-1$
@@ -58,10 +60,11 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 					ex.printStackTrace();
 					return Stream.empty();
 				}
-			else if (obj instanceof IContainer)
+			} else if (obj instanceof IContainer) {
 				return stream(new IContainer[] { (IContainer)obj });
-			else
+			} else {
 				return Stream.empty();
+			}
 		}).collect(Collectors.toList());
 		if (!selectedContainers.isEmpty()) {
 			final ProgressMonitorDialog progressDialog = new ProgressMonitorDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
@@ -72,8 +75,9 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 						public int value = 0;
 						@Override
 						public boolean visit(IResource resource) {
-							if (resource instanceof IFile && Script.get(resource, true) != null)
+							if (resource instanceof IFile && Script.get(resource, true) != null) {
 								value++;
+							}
 							return true;
 						};
 					}
@@ -81,8 +85,9 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 					selectedContainers.forEach(printingException(c -> c.accept(counter), CoreException.class));
 					monitor.beginTask(Messages.TidyUpCodeInBulkAction_ConvertingCode, counter.value);
 					runWithoutAutoBuild(() -> selectedContainers.forEach(printingException(c -> c.accept(resource -> {
-						if (monitor.isCanceled())
+						if (monitor.isCanceled()) {
 							return false;
+						}
 						if (resource instanceof IFile) {
 							final IFile file = (IFile) resource;
 							final Script script = Script.get(file, true);
@@ -93,9 +98,10 @@ public class TidyUpCodeInBulkHandler extends AbstractHandler {
 								} catch (final ProblemException e1) {
 									e1.printStackTrace();
 								}
-								Core.instance().performActionsOnFileDocument(file, document -> {
-									if (document != null)
+								FileDocumentActions.performActionOnFileDocument(file, document -> {
+									if (document != null) {
 										TidyUpCodeAction.converter().runOnDocument(script, document);
+									}
 									return null;
 								}, true);
 								monitor.worked(1);

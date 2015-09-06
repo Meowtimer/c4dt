@@ -5,15 +5,13 @@ import static net.arctics.clonk.util.Utilities.runWithoutAutoBuild;
 import java.util.Collections;
 import java.util.List;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.c4script.ScriptParser;
-import net.arctics.clonk.c4script.typing.TypeAnnotation;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.text.IDocument;
+
+import net.arctics.clonk.FileDocumentActions;
+import net.arctics.clonk.c4script.ScriptParser;
+import net.arctics.clonk.c4script.typing.TypeAnnotation;
 
 final class DynamicTypingMigrationJob extends TypingMigrationJob {
 	private final ScriptParser[] parsers;
@@ -30,8 +28,9 @@ final class DynamicTypingMigrationJob extends TypingMigrationJob {
 		monitor.beginTask("Dynamic Typing Migration", parsers.length);
 		runWithoutAutoBuild(() -> {
 			for (final ScriptParser parser : parsers) {
-				if (parser != null && parser.script() != null && parser.script().file() != null)
+				if (parser != null && parser.script() != null && parser.script().file() != null) {
 					removeTypeAnnotations(parser);
+				}
 				monitor.worked(1);
 			}
 		});
@@ -41,24 +40,23 @@ final class DynamicTypingMigrationJob extends TypingMigrationJob {
 	}
 
 	private void removeTypeAnnotations(final ScriptParser parser) {
-		if (parser.typeAnnotations() == null)
+		if (parser.typeAnnotations() == null) {
 			return;
-		Core.instance().performActionsOnFileDocument(parser.script().file(), new IDocumentAction<Object>() {
-			@Override
-			public Object run(final IDocument document) {
-				final StringBuilder builder = new StringBuilder(document.get());
-				final List<TypeAnnotation> annotations = parser.typeAnnotations();
-				Collections.sort(annotations);
-				for (int i = annotations.size()-1; i >= 0; i--) {
-					final TypeAnnotation annot = annotations.get(i);
-					int end = annot.end();
-					if (end < builder.length() && Character.isWhitespace(builder.charAt(end)))
-						end++;
-					builder.delete(annot.start(), end);
+		}
+		FileDocumentActions.performActionOnFileDocument(parser.script().file(), document -> {
+			final StringBuilder builder = new StringBuilder(document.get());
+			final List<TypeAnnotation> annotations = parser.typeAnnotations();
+			Collections.sort(annotations);
+			for (int i = annotations.size()-1; i >= 0; i--) {
+				final TypeAnnotation annot = annotations.get(i);
+				int end = annot.end();
+				if (end < builder.length() && Character.isWhitespace(builder.charAt(end))) {
+					end++;
 				}
-				document.set(builder.toString());
-				return null;
+				builder.delete(annot.start(), end);
 			}
+			document.set(builder.toString());
+			return null;
 		}, true);
 	}
 }

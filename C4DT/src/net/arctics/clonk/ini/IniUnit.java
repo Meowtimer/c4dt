@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.content.IContentType;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.FileDocumentActions;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedNodePrinter;
@@ -90,7 +91,7 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 
 	public void save(final boolean discardEmptySections) {
 		if (file() != null) {
-			Core.instance().performActionsOnFileDocument(file(), document -> {
+			FileDocumentActions.performActionOnFileDocument(file(), document -> {
 				final StringWriter writer = new StringWriter();
 				save(new AppendableBackedNodePrinter(writer), discardEmptySections);
 				document.set(writer.toString());

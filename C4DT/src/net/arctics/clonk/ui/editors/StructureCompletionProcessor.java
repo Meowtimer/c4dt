@@ -306,7 +306,7 @@ public abstract class StructureCompletionProcessor<StateClass
 	}
 	static AutoActivationCharacters autoActivationCharacters;
 	static {
-		if (!Core.runsHeadless()) {
+		if (!Core.instance().runsHeadless()) {
 			final IPreferenceStore prefStore = Core.instance().getPreferenceStore();
 			if (prefStore != null)
 				prefStore.addPropertyChangeListener(autoActivationCharacters = new AutoActivationCharacters());

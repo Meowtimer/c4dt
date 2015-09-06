@@ -9,7 +9,7 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.PlatformUI;
 
-import net.arctics.clonk.Core;
+import net.arctics.clonk.FileDocumentActions;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.AppendableBackedNodePrinter;
 import net.arctics.clonk.ast.Declaration;
@@ -114,7 +114,7 @@ public final class ParameterizedProposal extends DeclarationProposal {
 	}
 
 	public void runOnMarker(final IMarker marker) {
-		Core.instance().performActionsOnFileDocument((IFile)marker.getResource(), document -> {
+		FileDocumentActions.performActionOnFileDocument((IFile)marker.getResource(), document -> {
 			replacementOffset = marker.getAttribute(IMarker.CHAR_START, replacementOffset);
 			replacementLength = marker.getAttribute(IMarker.CHAR_END, replacementOffset+replacementLength)-replacementOffset;
 			apply(document);

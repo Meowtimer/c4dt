@@ -179,21 +179,21 @@ public enum UI {
 	}
 
 	public static ImageDescriptor imageDescriptorForPath(final String path) {
-		return Core.runsHeadless() ? null : (ImageDescriptor) imageThingieForPath(path, true);
+		return Core.instance().runsHeadless() ? null : (ImageDescriptor) imageThingieForPath(path, true);
 	}
 
 	public static Image imageForPath(final String iconPath) {
-		final Image img = Core.runsHeadless() ? null : (Image) imageThingieForPath(iconPath, false);
+		final Image img = Core.instance().runsHeadless() ? null : (Image) imageThingieForPath(iconPath, false);
 		images.put(iconPath, img);
 		return img;
 	}
 
 	public static ImageDescriptor imageDescriptorForURL(final URL url) {
-		return Core.runsHeadless() ? null : (ImageDescriptor) imageThingieForURL(url, true);
+		return Core.instance().runsHeadless() ? null : (ImageDescriptor) imageThingieForURL(url, true);
 	}
 
 	public static Image imageForURL(final URL url) {
-		return Core.runsHeadless() ? null : (Image) imageThingieForURL(url, false);
+		return Core.instance().runsHeadless() ? null : (Image) imageThingieForURL(url, false);
 	}
 
 	public static class ProjectSelectionBlock {

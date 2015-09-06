@@ -14,9 +14,16 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.FileDocumentActions;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -68,12 +75,6 @@ import net.arctics.clonk.util.KeyValuePair;
 import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.UI;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
-
 public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 
 	private static final char ID_SIGNIFIER = '@';
@@ -100,17 +101,19 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			if (fun != null && fun.effect() != null) {
 				fun.effect();
 				final IType[] types = Effect.parameterTypesForCallback(fun.callbackName(), script, fun.effect());
-				for (int i = 0; i < Math.min(parameterTypeVariables.length, types.length); i++)
+				for (int i = 0; i < Math.min(parameterTypeVariables.length, types.length); i++) {
 					parameterTypeVariables[i].set(types[i]);
+				}
 				return true;
 			}
 			return false;
 		}
 		@Override
 		public Function newFunction(final String name) {
-			if (name.startsWith(EffectFunction.FUNCTION_NAME_PREFIX))
+			if (name.startsWith(EffectFunction.FUNCTION_NAME_PREFIX)) {
 				// determine effect and callback name later
 				return new EffectFunction();
+			}
 			return null;
 		};
 		@Override
@@ -125,8 +128,9 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		private Effect findEffect(final Script script, final String effectName) {
 			for (final Script s : script.conglomerate()) {
 				final Effect effect = s.script().effects().get(effectName);
-				if (effect != null)
+				if (effect != null) {
 					return effect;
+				}
 			}
 			return null;
 		}
@@ -138,8 +142,9 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			if (parmExpression instanceof StringLiteral && node.params().length >= 1 && node.params()[0] == parmExpression) {
 				final String effectName = ((StringLiteral)parmExpression).literal();
 				final Effect effect = findEffect(script, effectName);
-				if (effect != null)
+				if (effect != null) {
 					return new EntityRegion(new HashSet<IIndexEntity>(effect.functions().values()), new Region(parmExpression.start()+1, parmExpression.getLength()-2));
+				}
 			}
 			return super.locateEntityInParameter(node, script, index, offsetInExpression, parmExpression);
 		}
@@ -151,8 +156,9 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			if (function.name().equals("Definition") && parameterTypeVariables.length > 0 && script instanceof Definition) {
 				parameterTypeVariables[0].set(((Definition)script).metaDefinition());
 				return true;
-			} else
+			} else {
 				return false;
+			}
 		}
 	};
 
@@ -164,10 +170,11 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	public final SpecialFuncRule definitionFunctionSpecialHandling = new SpecialFuncRule() {
 		@Override
 		public Function newFunction(final String name) {
-			if (name.equals(DEFINITION_FUNCTION))
+			if (name.equals(DEFINITION_FUNCTION)) {
 				return new DefinitionFunction();
-			else
+			} else {
 				return null;
+			}
 		};
 		@Override
 		public boolean validateArguments(final CallDeclaration node, final ASTNode[] arguments, final ProblemReporter processor) {
@@ -206,15 +213,18 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			if (index == 0 && (property = as(parmExpression.evaluateStatic(callFunc.parent(Function.class)), String.class)) != null) {
 				final IType ty = callFunc.predecessor() != null ? script.typings().get(callFunc.predecessor()) : script.script();
 				final Set<Variable> vars = new HashSet<Variable>();
-				for (final IType t : ty)
+				for (final IType t : ty) {
 					if (t instanceof IProplistDeclaration) {
 						final Variable v = ((IProplistDeclaration)t).findComponent(property);
-						if (v != null)
+						if (v != null) {
 							vars.add(v);
+						}
 					}
+				}
 				return vars.size() > 0 ? new EntityRegion(vars, parmExpression) : null;
-			} else
+			} else {
 				return null;
+			}
 		}
 	};
 
@@ -268,19 +278,22 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	public final SpecialFuncRule formatArgumentsValidationRule = new SpecialFuncRule() {
 		private boolean checkParm(final CallDeclaration node, final ASTNode[] arguments, final ProblemReporter processor, final int parmIndex, final String formatString, final int rangeStart, final int rangeEnd, final EvaluationTracer evTracer, final IType expectedType) throws ProblemException {
 			if (parmIndex+1 >= arguments.length) {
-				if (evTracer.tracedFile == null)
+				if (evTracer.tracedFile == null) {
 					return true;
+				}
 				if (evTracer.tracedFile.equals(processor.script().file())) {
 					processor.markers().error(processor, Problem.MissingFormatArg, node, evTracer.tracedLocation.getOffset()+rangeStart, evTracer.tracedLocation.getOffset()+rangeEnd, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION,
 							formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 					return !arguments[0].containsOffset(evTracer.tracedLocation.getOffset());
-				} else
+				} else {
 					processor.markers().error(processor, Problem.MissingFormatArg, node, arguments[0], Markers.NO_THROW,
 							formatString, evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
+				}
 			}
 			else if (!processor.script().typing().compatible(expectedType, processor.typeOf(arguments[parmIndex+1]))) {
-				if (evTracer.tracedFile == null)
+				if (evTracer.tracedFile == null) {
 					return true;
+				}
 				processor.markers().warning(processor, Problem.IncompatibleFormatArgType, node, arguments[parmIndex+1],
 					Markers.NO_THROW, expectedType.typeName(false), processor.typeOf(arguments[parmIndex+1]).typeName(false), evTracer.evaluation, evTracer.tracedFile.getProjectRelativePath().toOSString());
 			}
@@ -293,12 +306,15 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			if (arguments.length >= 1 && (evTracer = EvaluationTracer.evaluate(arguments[0], node.parent(Function.class))).evaluation instanceof String) {
 				final String formatString = (String)evTracer.evaluation;
 				boolean separateIssuesMarker = false;
-				for (int i = 0; i < formatString.length(); i++)
+				for (int i = 0; i < formatString.length(); i++) {
 					if (formatString.charAt(i) == '%') {
 						int j;
-						for (j = i+1; j < formatString.length() && (formatString.charAt(j) == '.' || (formatString.charAt(j) >= '0' && formatString.charAt(j) <= '9')); j++);
-						if (j >= formatString.length())
+						for (j = i+1; j < formatString.length() && (formatString.charAt(j) == '.' || (formatString.charAt(j) >= '0' && formatString.charAt(j) <= '9')); j++) {
+							;
+						}
+						if (j >= formatString.length()) {
 							break;
+						}
 						final String format = formatString.substring(i, j+1);
 						IType requiredType;
 						switch (formatString.charAt(j)) {
@@ -319,13 +335,16 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 							parmIndex--;
 							break;
 						}
-						if (requiredType != null)
+						if (requiredType != null) {
 							separateIssuesMarker |= checkParm(node, arguments, processor, parmIndex, format, i+1, j+2, evTracer, requiredType);
+						}
 						i = j;
 						parmIndex++;
 					}
-				if (separateIssuesMarker)
+				}
+				if (separateIssuesMarker) {
 					processor.markers().error(processor, Problem.DragonsHere, node, arguments[0], Markers.NO_THROW);
+				}
 			}
 			return false; // let others validate as well
 		};
@@ -338,58 +357,72 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		setActionLinkRule = new SetActionLinkRule() {
 			@Override
 			protected EntityRegion actionLinkForDefinition(final Function currentFunction, final Definition definition, final ASTNode parmExpression) {
-				if (definition == null)
+				if (definition == null) {
 					return null;
+				}
 				Object parmEv;
 				final EntityRegion result = super.actionLinkForDefinition(currentFunction, definition, parmExpression);
-				if (result != null)
+				if (result != null) {
 					return result;
-				else if ((parmEv = parmExpression.evaluateStatic(currentFunction)) instanceof String) {
+				} else if ((parmEv = parmExpression.evaluateStatic(currentFunction)) instanceof String) {
 					final Variable actMapLocal = definition.findLocalVariable("ActMap", true); //$NON-NLS-1$
 					if (actMapLocal != null && actMapLocal.initializationExpression() instanceof PropListExpression) {
 						final IProplistDeclaration proplDecl = ((PropListExpression)actMapLocal.initializationExpression()).definedDeclaration();
 						final Variable action = proplDecl.findComponent((String)parmEv);
-						if (action != null)
+						if (action != null) {
 							return new EntityRegion(action, parmExpression);
+						}
 					}
 				}
 				return null;
 			};
 			@Override
 			public EntityRegion locateEntityInParameter(final CallDeclaration node, final Script script, final int index, final int offsetInExpression, final ASTNode parmExpression) {
-				if (index != 0)
+				if (index != 0) {
 					return null;
+				}
 				final IType t = node.predecessor() != null ? script.typings().get(node.predecessor()) : null;
-				if (t != null) for (final IType ty : t)
-					if (ty instanceof Definition) {
-						final EntityRegion result = actionLinkForDefinition(node.parent(Function.class), (Definition)ty, parmExpression);
-						if (result != null)
-							return result;
+				if (t != null) {
+					for (final IType ty : t) {
+						if (ty instanceof Definition) {
+							final EntityRegion result = actionLinkForDefinition(node.parent(Function.class), (Definition)ty, parmExpression);
+							if (result != null) {
+								return result;
+							}
+						}
 					}
+				}
 				return super.locateEntityInParameter(node, script, index, offsetInExpression, parmExpression);
 			};
 			@Override
 			public void contributeAdditionalProposals(final CallDeclaration node, final int index, final ASTNode parmExpression, final ScriptCompletionProcessor processor, final ProposalsSite pl) {
-				if (index != 0)
+				if (index != 0) {
 					return;
+				}
 				final Script script = node.parent(Script.class);
 				final IType t = node.predecessor() != null ? script.typings().get(node.predecessor()) : script;
-				if (t != null) for (final IType ty : t)
-					if (ty instanceof Definition) {
-						final Definition def = (Definition) ty;
-						final Variable actMapLocal = def.findLocalVariable("ActMap", true); //$NON-NLS-1$
-						if (actMapLocal != null && actMapLocal.type() != null)
-							for (final IType a : actMapLocal.type())
-								if (a instanceof IProplistDeclaration) {
-									final IProplistDeclaration proplDecl = (IProplistDeclaration) a;
-									for (final Variable comp : proplDecl.components(true)) {
-										if (pl.prefix != null && !comp.name().toLowerCase().contains(pl.prefix))
-											continue;
-										pl.addProposal(new DeclarationProposal(comp, as(t, Declaration.class), "\""+comp.name()+"\"", pl.offset, pl.prefix != null ? pl.prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
-											comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText((IIndexEntity)script), "", pl));
+				if (t != null) {
+					for (final IType ty : t) {
+						if (ty instanceof Definition) {
+							final Definition def = (Definition) ty;
+							final Variable actMapLocal = def.findLocalVariable("ActMap", true); //$NON-NLS-1$
+							if (actMapLocal != null && actMapLocal.type() != null) {
+								for (final IType a : actMapLocal.type()) {
+									if (a instanceof IProplistDeclaration) {
+										final IProplistDeclaration proplDecl = (IProplistDeclaration) a;
+										for (final Variable comp : proplDecl.components(true)) {
+											if (pl.prefix != null && !comp.name().toLowerCase().contains(pl.prefix)) {
+												continue;
+											}
+											pl.addProposal(new DeclarationProposal(comp, as(t, Declaration.class), "\""+comp.name()+"\"", pl.offset, pl.prefix != null ? pl.prefix.length() : 0, //$NON-NLS-1$ //$NON-NLS-2$
+												comp.name().length()+2, UI.variableIcon(comp), comp.name(), null, comp.infoText((IIndexEntity)script), "", pl));
+										}
 									}
 								}
+							}
+						}
 					}
+				}
 			};
 		};
 	}
@@ -405,11 +438,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		final int pos = scanner.tell();
 		// HACK: Script parsers won't get IDs from this method because IDs are actually parsed as AccessVars and parsing them with
 		// a <match all identifiers> pattern would cause zillions of err0rs
-		if (scanner instanceof ScriptParser)
+		if (scanner instanceof ScriptParser) {
 			if (scanner.read() != ID_SIGNIFIER) {
 				scanner.unread();
 				return null;
 			}
+		}
 		final Matcher idMatcher = ID_PATTERN.matcher(scanner.bufferSequence(scanner.tell()));
 		if (idMatcher.lookingAt()) {
 			final String idString = idMatcher.group();
@@ -427,8 +461,9 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	@Override
 	public void printID(ASTNodePrinter output, IDLiteral literal) {
 		final Script script = literal.parent(Script.class);
-		if (script != null && script.findLocalFunction(literal.idValue().stringValue(), true) != null)
+		if (script != null && script.findLocalFunction(literal.idValue().stringValue(), true) != null) {
 			output.append(ID_SIGNIFIER);
+		}
 		super.printID(output, literal);
 	}
 
@@ -459,8 +494,9 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				if (num == null || num.literal().intValue() != value()) {
 					placeCall.replaceSubElement(num, new IntegerLiteral(value()), 0);
 					return true;
-				} else
+				} else {
 					return false;
+				}
 			}
 			private NumberLiteral num() {
 				return placeCall.params().length > 0 ? as(placeCall.params()[0], NumberLiteral.class) : null;
@@ -473,11 +509,12 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		}
 		public boolean updatePlaceCalls(final Function function, final List<ASTNode> modified) {
 			boolean wholeFunc = false;
-			for (final KeyValuePair<IDLiteral, Integer> kv : value().components())
+			for (final KeyValuePair<IDLiteral, Integer> kv : value().components()) {
 				if (kv instanceof Item) {
 					final Item item = (Item)kv;
-					if (item.updatePlaceCall())
+					if (item.updatePlaceCall()) {
 						modified.add(item.num());
+					}
 				} else {
 					final Statement newStatement = SimpleStatement.wrapExpression(PLACE_CALL.transform(ArrayUtil.<String, Object>map(false,
 						"id", new Object[] {new AccessVar(kv.key().idValue().stringValue())},
@@ -486,6 +523,7 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 					wholeFunc = true;
 					function.body().addStatements(newStatement);
 				}
+			}
 			return wholeFunc;
 		}
 		@Override
@@ -516,7 +554,9 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		final ComputedScenarioConfigurationEntry vegetation = entry(unit, "Landscape", "Vegetation");
 		final Definition plantLib = scenario.index().anyDefinitionWithID(ID.get("Library_Plant"));
 		if (plantLib == null)
+		 {
 			return; // no plant library - give up
+		}
 		class PlaceMatch {
 			public boolean matched;
 			public AccessVar id;
@@ -529,19 +569,21 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 			}
 			boolean determineConfigurationInsertionPoint() {
 				final Definition d = definition();
-				if (d != null)
+				if (d != null) {
 					if (d.doesInclude(scenario.index(), plantLib)) {
 						entry = vegetation;
 						return true;
 					}
+				}
 				return false;
 			}
 			public boolean addComputedEntry() {
 				if (matched) {
 					entry.value().add(entry.new Item(definition().id(), num.literal().intValue(), placeCall));
 					return true;
-				} else
+				} else {
 					return false;
+				}
 			}
 			private boolean match(final ASTNode s) {
 				return PLACE_CALL.match(s, this) && id != null && placeCall != null && determineConfigurationInsertionPoint();
@@ -552,37 +594,45 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 		}
 		switch (processing) {
 		case Load:
-			if (createEnvironment != null)
-				for (final ASTNode s : createEnvironment.body().statements())
+			if (createEnvironment != null) {
+				for (final ASTNode s : createEnvironment.body().statements()) {
 					(new PlaceMatch(SimpleStatement.unwrap(s))).addComputedEntry();
+				}
+			}
 			break;
 		case Save:
-			if (createEnvironment == null)
+			if (createEnvironment == null) {
 				createEnvironment = appendFunction(scenario, CREATE_ENVIRONMENT);
+			}
 			final List<ASTNode> list = new LinkedList<ASTNode>();
 			boolean wholeFunc = vegetation.updatePlaceCalls(createEnvironment, list);
 			final List<ASTNode> statementsCopy = new ArrayList<ASTNode>(Arrays.asList(createEnvironment.body().statements()));
 			final List<Pair<ASTNode, PlaceMatch>> matches = new ArrayList<Pair<ASTNode, PlaceMatch>>(statementsCopy.size());
-			for (int i = 0; i < statementsCopy.size(); i++)
+			for (int i = 0; i < statementsCopy.size(); i++) {
 				matches.add(new Pair<ASTNode, PlaceMatch>(statementsCopy.get(i), new PlaceMatch(statementsCopy.get(i))));
-			for (int i = statementsCopy.size()-1; i >= 0; i--)
+			}
+			for (int i = statementsCopy.size()-1; i >= 0; i--) {
 				if (matches.get(i).second().matchedButNoCorrespondingItem()) {
 					statementsCopy.remove(i);
 					matches.remove(i);
 					wholeFunc = true;
 				}
+			}
 			class C implements Comparator<ASTNode> {
 				public boolean reordering;
 				private int indexOf(final ASTNode s) {
-					for (int i = 0; i < matches.size(); i++)
+					for (int i = 0; i < matches.size(); i++) {
 						if (matches.get(i).first() == s && matches.get(i).second().definition() != null) {
 							int ndx = 0;
-							for (final KeyValuePair<IDLiteral, Integer> kv : vegetation.value().components())
-								if (kv.key().idValue().equals(matches.get(i).second().definition().id()))
+							for (final KeyValuePair<IDLiteral, Integer> kv : vegetation.value().components()) {
+								if (kv.key().idValue().equals(matches.get(i).second().definition().id())) {
 									return ndx;
-								else
+								} else {
 									ndx++;
+								}
+							}
 						}
+					}
 					return -1;
 				}
 				@Override
@@ -599,25 +649,28 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				createEnvironment.body().setStatements(statementsCopy.toArray(new Statement[statementsCopy.size()]));
 				scenario.saveNodes(Arrays.asList(createEnvironment.body()));
 			}
-			else if (list.size() > 0)
+			else if (list.size() > 0) {
 				scenario.saveNodes(list);
+			}
 			break;
 		}
 	}
 
 	private Function appendFunction(final Script script, final String name) {
 		Function f;
-		Core.instance().performActionsOnFileDocument(script.file(), document -> {
+		FileDocumentActions.performActionOnFileDocument(script.file(), document -> {
 			final String oldContents = document.get();
 			final StringBuilder builder = new StringBuilder(oldContents.length()+100);
 			builder.append(oldContents);
 			final boolean endsWithEmptyLine = oldContents.endsWith("\n");
-			if (!endsWithEmptyLine)
+			if (!endsWithEmptyLine) {
 				builder.append('\n');
+			}
 			builder.append('\n');
 			builder.append(Function.scaffoldTextRepresentation(name, FunctionScope.PUBLIC, script));
-			if (endsWithEmptyLine)
+			if (endsWithEmptyLine) {
 				builder.append('\n');
+			}
 			document.set(builder.toString());
 			return null;
 		}, true);
@@ -649,30 +702,32 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 				} :
 			super.configurationEntryDefinitionFilter(entry);
 		return basePredicate != null ? item -> {
-			if (item.id() != null && item.id().stringValue().startsWith("Library_"))
+			if (item.id() != null && item.id().stringValue().startsWith("Library_")) {
 				return false;
-			else
+			} else {
 				return basePredicate.test(item);
+			}
 		} : null;
 	}
 
 	private void contributeAdditionalGlobalVariables(final Index index) {
 		try {
 			index.nature().getProject().accept(resource -> {
-				if (resource instanceof IContainer)
+				if (resource instanceof IContainer) {
 					return true;
-				else if (resource instanceof IFile) {
+				} else if (resource instanceof IFile) {
 					final boolean force =
 						// le hardcode
 						resource.getName().equals(PlayerControlsUnit.CONFIG_NAME) ||
 						resource.getName().equals(ParameterDefsUnit.CONFIG_NAME);
 					final IGlobalVariablesContributor globalVars = as(Structure.pinned(resource, force, true), IGlobalVariablesContributor.class);
-					if (globalVars != null)
+					if (globalVars != null) {
 						index.addStaticVariables(globalVars.globalVariables());
+					}
 					return true;
-				}
-				else
+				} else {
 					return false;
+				}
 			});
 		} catch (final CoreException e) {
 			e.printStackTrace();

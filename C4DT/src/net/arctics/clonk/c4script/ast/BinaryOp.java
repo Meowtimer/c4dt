@@ -23,19 +23,22 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 		// #strict 2: ne -> !=, S= -> ==
 		if (tidy.strictLevel() >= 2) {
 			Operator op = operator();
-			if (op == Operator.StringEqual || op == Operator.eq)
+			if (op == Operator.StringEqual || op == Operator.eq) {
 				op = Operator.Equal;
-			else if (op == Operator.ne)
+			} else if (op == Operator.ne) {
 				op = Operator.NotEqual;
-			if (op != operator())
+			}
+			if (op != operator()) {
 				return new BinaryOp(op, tidy.tidy(leftSide()), tidy.tidy(rightSide()));
+			}
 		}
 
 		// blub() && blab() && return(1); -> {blub(); blab(); return(1);}
 		if ((operator() == Operator.And || operator() == Operator.Or) && (parent() instanceof SimpleStatement)) {// && getRightSide().isReturn()) {
 			final ASTNode block = convertOperatorHackToBlock(tidy);
-			if (block != null)
+			if (block != null) {
 				return block;
+			}
 		}
 
 		return this;
@@ -64,13 +67,15 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 			leftSideArguments.addFirst(r);
 			final List<ASTNode> statements = new LinkedList<ASTNode>();
 			// wrap expressions in statements
-			for (final ASTNode ex : leftSideArguments)
+			for (final ASTNode ex : leftSideArguments) {
 				statements.add(new SimpleStatement(tidy.tidy(ex)));
+			}
 			// convert func call to proper return statement
-			if (rightSide().controlFlow() == ControlFlow.Return)
+			if (rightSide().controlFlow() == ControlFlow.Return) {
 				statements.add(new ReturnStatement(tidy.tidy(((CallDeclaration)rightSide()).soleParm())));
-			else
+			} else {
 				statements.add(new SimpleStatement(tidy.tidy(rightSide())));
+			}
 			return new Block(statements);
 		}
 		return null;
@@ -85,8 +90,9 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 
 	@Override
 	public void setSubElements(final ASTNode[] elements) {
-		if (elements.length < 2 || elements[0] == null || elements[1] == null)
+		if (elements.length < 2 || elements[0] == null || elements[1] == null) {
 			throw new IllegalArgumentException("BinaryOp.setSubElements requires two non-null sub elements");
+		}
 		leftSide  = elements[0];
 		rightSide = elements[1];
 	}
@@ -124,25 +130,32 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 		// put brackets around operands in case some transformation messed up prioritization
 		boolean needsBrackets = leftSide instanceof BinaryOp && operator().priority() > ((BinaryOp)leftSide).operator().priority();
 		if (needsBrackets)
+		 {
 			output.append("("); //$NON-NLS-1$
+		}
 		leftSide.print(output, depth);
 		if (needsBrackets)
+		 {
 			output.append(")"); //$NON-NLS-1$
+		}
 
 		output.append(" "); //$NON-NLS-1$
 		output.append(operator().operatorName());
 
 		needsBrackets = rightSide instanceof BinaryOp && operator().priority() > ((BinaryOp)rightSide).operator().priority();
-		if (needsBrackets)
+		if (needsBrackets) {
 			output.append(" ("); //$NON-NLS-1$
-		else {
+		} else {
 			final String printed = rightSide.printed(depth);
-			if (!printed.startsWith("\n"))
+			if (!printed.startsWith("\n")) {
 				output.append(" ");
+			}
 			rightSide.print(output, depth);
 		}
 		if (needsBrackets)
+		 {
 			output.append(")"); //$NON-NLS-1$
+		}
 	}
 
 
@@ -155,19 +168,22 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 				switch (operator()) {
 				case And:
 					// false && <anything> => false
-					if (leftSide.equals(false))
+					if (leftSide.equals(false)) {
 						return false;
+					}
 					break;
 				case Or:
 					// true || <anything> => true
-					if (leftSide.equals(true))
+					if (leftSide.equals(true)) {
 						return true;
+					}
 					break;
 				default:
 					break;
 				}
-				if (rightSide != null && rightSide != ASTNode.EVALUATION_COMPLEX)
+				if (rightSide != null && rightSide != ASTNode.EVALUATION_COMPLEX) {
 					return evaluateOn(leftSide, rightSide);
+				}
 			}
 		}
 		catch (final ClassCastException e) {}
@@ -229,10 +245,11 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 		leftSide = evaluateVariable(leftSide);
         switch (operator()) {
         case Add:
-        	if (leftSide instanceof String || rightSide instanceof String)
-        		return leftSide.toString() + rightSide.toString();
-        	else
-        		return ((Number)leftSide).doubleValue() + ((Number)rightSide).doubleValue();
+        	if (leftSide instanceof String || rightSide instanceof String) {
+				return leftSide.toString() + rightSide.toString();
+			} else {
+				return ((Number)leftSide).doubleValue() + ((Number)rightSide).doubleValue();
+			}
         case Subtract:
         	return ((Number)leftSide).doubleValue() - ((Number)rightSide).doubleValue();
         case Multiply:
@@ -268,16 +285,20 @@ public class BinaryOp extends OperatorExpression implements ITidyable {
 		final Object leftEv = evaluateVariable(leftSide().evaluate(context));
 		switch (operator()) {
 		case Or:
-			if (eq(Boolean.TRUE, leftEv))
+			if (eq(Boolean.TRUE, leftEv)) {
 				return true;
-			if (eq(Boolean.TRUE, evaluateVariable(rightSide().evaluate(context))))
+			}
+			if (eq(Boolean.TRUE, evaluateVariable(rightSide().evaluate(context)))) {
 				return true;
+			}
 			return false;
 		case And:
-			if (!eq(Boolean.TRUE, leftEv))
+			if (!eq(Boolean.TRUE, leftEv)) {
 				return false;
-			if (!eq(Boolean.TRUE, evaluateVariable(rightSide().evaluate(context))))
+			}
+			if (!eq(Boolean.TRUE, evaluateVariable(rightSide().evaluate(context)))) {
 				return false;
+			}
 			return true;
 		default:
 			return evaluateOn(leftSide().evaluate(context), rightSide().evaluate(context));

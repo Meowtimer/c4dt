@@ -3,19 +3,17 @@ package net.arctics.clonk.ui.search;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.Core.IDocumentAction;
-import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.parser.BufferedScanner;
-
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.search.ui.ISearchQuery;
 import org.eclipse.search.ui.text.AbstractTextSearchResult;
 import org.eclipse.search.ui.text.IEditorMatchAdapter;
 import org.eclipse.search.ui.text.IFileMatchAdapter;
+
+import net.arctics.clonk.FileDocumentActions;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.parser.BufferedScanner;
 
 /**
  * Represents a search result for the various searches.
@@ -23,13 +21,16 @@ import org.eclipse.search.ui.text.IFileMatchAdapter;
  *
  */
 public class SearchResult extends AbstractTextSearchResult {
+	
 	private final SearchQuery query;
 	private final Map<Structure, BufferedScanner> scanners = new HashMap<>();
+	
 	/**
 	 * Create as the result of the specified query.
 	 * @param query The query the created object is to be the result of
 	 */
 	public SearchResult(final SearchQuery query) { this.query = query; }
+	
 	@Override
 	public IEditorMatchAdapter getEditorMatchAdapter() { return query; }
 	@Override
@@ -42,6 +43,7 @@ public class SearchResult extends AbstractTextSearchResult {
 	public ISearchQuery getQuery() { return query; }
 	@Override
 	public String getTooltip() { return null; }
+	
 	/**
 	 * Add a match described by an {@link ASTNode}.
 	 * @param structure The {@link Structure} in which the match was found
@@ -54,10 +56,10 @@ public class SearchResult extends AbstractTextSearchResult {
 		synchronized (scanners) {
 			scanner = scanners.get(structure);
 			if (scanner == null) {
-				scanner = Core.instance().performActionsOnFileDocument(structure.file(), new IDocumentAction<BufferedScanner>() {
-					@Override
-					public BufferedScanner run(final IDocument document) { return new BufferedScanner(document.get()); }
-				}, false);
+				scanner = FileDocumentActions.performActionOnFileDocument(structure.file(),
+					document -> new BufferedScanner(document.get()),
+					false
+				);
 				scanners.put(structure, scanner);
 			}
 		}
@@ -65,6 +67,7 @@ public class SearchResult extends AbstractTextSearchResult {
 		final String line = scanner.bufferSubstringAtRegion(lineRegion);
 		addMatch(new SearchMatch(line, lineRegion.getOffset(), structure, node, potential, indirect, false));
 	}
+	
 	/**
 	 * Clear internally maintained list of {@link BufferedScanner}s that were created for each file in which a match was found.
 	 */

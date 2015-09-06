@@ -19,10 +19,7 @@ public class FloatLiteral extends NumberLiteral {
 	
 	@Override
 	public boolean literalsEqual(final Literal<?> other) {
-		if (other instanceof FloatLiteral)
-			return ((FloatLiteral)other).literal == this.literal;
-		else
-			return super.literalsEqual(other);
+		return other instanceof FloatLiteral ? ((FloatLiteral)other).literal == this.literal : super.literalsEqual(other);
 	}
 
 }

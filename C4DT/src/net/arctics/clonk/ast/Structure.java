@@ -6,15 +6,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.builder.ClonkBuilder;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.c4script.ast.FunctionBody;
-import net.arctics.clonk.index.Definition;
-import net.arctics.clonk.parser.Markers;
-import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
@@ -25,6 +16,16 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.FileDocumentActions;
+import net.arctics.clonk.builder.ClonkBuilder;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.c4script.ast.FunctionBody;
+import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.parser.Markers;
+import net.arctics.clonk.ui.editors.c4script.ScriptWithStorageEditorInput;
 
 /**
  * Declaration that contains sub declarations and describes more complex structures (like DefCores and scripts).
@@ -61,10 +62,12 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 */
 	public IEditorInput makeEditorInput() {
 		final Object storage = script() != null ? script().source() : resource();
-		if (storage instanceof IFile)
+		if (storage instanceof IFile) {
 			return new FileEditorInput((IFile) storage);
-		if (storage instanceof IStorage && this instanceof Script)
+		}
+		if (storage instanceof IStorage && this instanceof Script) {
 			return new ScriptWithStorageEditorInput((Script) this);
+		}
 		return null;
 	}
 
@@ -98,17 +101,19 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends Structure> T pinned(final IResource file, final boolean force, final boolean duringBuild) {
-		if (file == null)
+		if (file == null) {
 			return null;
+		}
 		T result;
 		try {
 			result = (T) file.getSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID);
-			if (result != null)
+			if (result != null) {
 				result.setFile((IFile)file);
-			else if (force) {
+			} else if (force) {
 				result = (T) createStructureForFile(file, duringBuild);
-				if (result != null)
+				if (result != null) {
 					result.pinTo(file);
+				}
 			}
 			return result;
 		} catch (final CoreException e) {
@@ -128,12 +133,13 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 */
 	public static Structure unPinFrom(final IFile file) {
 		final Structure pinned = pinned(file, false, false);
-		if (pinned != null)
+		if (pinned != null) {
 			try {
 				file.setSessionProperty(Core.FILE_STRUCTURE_REFERENCE_ID, null);
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
+		}
 		return pinned;
 	}
 
@@ -169,16 +175,18 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @return the newly created structure or null if no suitable factory could be found
 	 */
 	public static Structure createStructureForFile(final IResource file, final boolean duringBuild) {
-		for (final IStructureFactory factory : structureFactories)
+		for (final IStructureFactory factory : structureFactories) {
 			try {
 				final Structure result = factory.create(file, duringBuild);
-				if (result != null)
+				if (result != null) {
 					return result;
+				}
 			} catch (final Exception e) {
 				Core.instance().getLog().log(new Status(IStatus.ERROR, Core.PLUGIN_ID,
 					String.format("Some Structure factory caused an exception while operating on '%s'", file.getProjectRelativePath().toOSString()), e)
 				);
 			}
+		}
 		return null;
 	}
 
@@ -221,11 +229,13 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 		final String[] parts = path.split("\\.");
 		Declaration d = this;
 		for (final String p : parts) {
-			if (!(d instanceof Structure))
+			if (!(d instanceof Structure)) {
 				return null;
+			}
 			final Declaration n = ((Structure)d).findLocalDeclaration(p, cls);
-			if (n == null)
+			if (n == null) {
 				return null;
+			}
 			d = n;
 		}
 		return d;
@@ -249,9 +259,10 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 	 * @param nodes The nodes to save.
 	 */
 	public void saveNodes(final Collection<? extends ASTNode> nodes) {
-		if (nodes.isEmpty())
+		if (nodes.isEmpty()) {
 			return;
-		Core.instance().performActionsOnFileDocument(file(), document -> {
+		}
+		FileDocumentActions.performActionOnFileDocument(file(), document -> {
 			try {
 				final List<ASTNode> l = new ArrayList<ASTNode>(nodes);
 				Collections.sort(l, (o1, o2) -> {
@@ -263,7 +274,9 @@ public abstract class Structure extends Declaration implements ILatestDeclaratio
 					final IRegion region = e1.absolute();
 					int depth;
 					ASTNode n;
-					for (depth = 0, n = e1; n != null && !(n instanceof Declaration || n instanceof FunctionBody); depth++, n = n.parent());
+					for (depth = 0, n = e1; n != null && !(n instanceof Declaration || n instanceof FunctionBody); depth++, n = n.parent()) {
+						;
+					}
 					document.replace(region.getOffset(), region.getLength(), e1.printed(depth));
 				}
 				return true;

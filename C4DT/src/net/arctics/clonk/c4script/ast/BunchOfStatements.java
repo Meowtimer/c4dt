@@ -16,9 +16,9 @@ public class BunchOfStatements extends Block {
 		boolean first = true;
 		for (final ASTNode statement : statements()) {
 			statement.printPrefix(builder, depth);
-			if (first)
+			if (first) {
 				first = false;
-			else {
+			} else {
 				builder.append("\n"); //$NON-NLS-1$
 				Conf.printIndent(builder, depth-1);
 			}

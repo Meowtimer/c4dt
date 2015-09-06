@@ -468,7 +468,7 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 	public String qualifiedName() { return id().stringValue(); }
 
 	static {
-		if (!Core.runsHeadless())
+		if (!Core.instance().runsHeadless())
 			Core.instance().getPreferenceStore().addPropertyChangeListener(event -> {
 				if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
 					final Sink<Definition> sink = item -> item.chooseLocalizedName();

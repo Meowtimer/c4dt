@@ -198,7 +198,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			markers.deploy();
 
 			final SaveScriptsJob saveScripts = new SaveScriptsJob(proj, scripts);
-			if (Core.runsHeadless()) {
+			if (Core.instance().runsHeadless()) {
 				saveScripts.run(new NullProgressMonitor());
 				nature.saveIndex();
 			} else {
@@ -331,7 +331,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void refreshUI(final Map<Script, ScriptParser> newEnqueued) {
-		if (Core.runsHeadless()) {
+		if (Core.instance().runsHeadless()) {
 			return;
 		}
 		try {
@@ -356,7 +356,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 			});
 		}
 		try {
-			if (!Core.runsHeadless()) {
+			if (!Core.instance().runsHeadless()) {
 				Display.getDefault().asyncExec(new UIRefresher(scripts));
 				Display.getDefault().syncExec(() -> {
 					try {

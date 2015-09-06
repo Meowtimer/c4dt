@@ -21,11 +21,11 @@ import java.net.URL;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import net.arctics.clonk.Core;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.CoreException;
+
+import net.arctics.clonk.FileDocumentActions;
 
 public class StreamUtil {
 
@@ -34,8 +34,9 @@ public class StreamUtil {
 		int read;
 		final StringBuilder builder = new StringBuilder(1024);
 		try {
-			while ((read = reader.read(buffer)) > 0)
+			while ((read = reader.read(buffer)) > 0) {
 				builder.append(buffer, 0, read);
+			}
 		} catch (final IOException e) {
 			return "";
 		}
@@ -114,19 +115,20 @@ public class StreamUtil {
 	}
 
 	public static String stringFromStorage(final IStorage storage) {
-		if (storage instanceof IFile)
-			return Core.instance().performActionsOnFileDocument(storage, document -> document.get(), false);
-		else
+		if (storage instanceof IFile) {
+			return FileDocumentActions.performActionOnFileDocument(storage, document -> document.get(), false);
+		} else {
 			try (InputStream s = storage.getContents()) {
 				return stringFromInputStream(s);
 			} catch (IOException | CoreException e) {
 				e.printStackTrace();
 				return "";
 			}
+		}
 	}
 
 	public static String stringFromFileDocument(final IFile file) {
-		return Core.instance().performActionsOnFileDocument(file, document -> document.get(), false);
+		return FileDocumentActions.performActionOnFileDocument(file, document -> document.get(), false);
 	}
 
 	@FunctionalInterface
@@ -151,8 +153,9 @@ public class StreamUtil {
 	public static void transfer(final InputStream source, final OutputStream dest) throws IOException {
 		final byte[] buffer = new byte[1024];
 		int read;
-		while ((read = source.read(buffer)) != -1)
+		while ((read = source.read(buffer)) != -1) {
 			dest.write(buffer, 0, read);
+		}
 	}
 
 	public static FilenameFilter patternFilter(final String pattern) {
@@ -181,8 +184,9 @@ public class StreamUtil {
 		try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 			int r;
 			final byte[] buf = new byte[1024];
-			while ((r = s.read(buf)) > 0)
+			while ((r = s.read(buf)) > 0) {
 				out.write(buf, 0, r);
+			}
 			return out.toByteArray();
 		}
 	}

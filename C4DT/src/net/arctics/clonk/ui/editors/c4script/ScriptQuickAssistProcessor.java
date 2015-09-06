@@ -34,6 +34,7 @@ import org.eclipse.ui.texteditor.MarkerAnnotation;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.Problem;
+import net.arctics.clonk.FileDocumentActions;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.Declaration;
@@ -173,7 +174,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		if (document != null) {
 			internalCollectProposals(marker, position, proposals, document, script);
 		} else {
-			Core.instance().performActionsOnFileDocument(script.source(), connectedDocument -> {
+			FileDocumentActions.performActionOnFileDocument(script.source(), connectedDocument -> {
 				internalCollectProposals(marker, position, proposals, connectedDocument, script);
 				return null;
 			}, false);

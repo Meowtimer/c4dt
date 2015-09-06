@@ -29,16 +29,20 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 	@Override
 	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(keyword() + " ("); //$NON-NLS-1$
-		if (initializer != null)
+		if (initializer != null) {
 			initializer.print(builder, depth+1);
-		else
+		}
+		else {
 			builder.append(";"); //$NON-NLS-1$
+		}
 		builder.append(" "); // no ';' since initializer is already a statement //$NON-NLS-1$
-		if (condition != null)
+		if (condition != null) {
 			condition.print(builder, depth+1);
+		}
 		builder.append("; "); //$NON-NLS-1$
-		if (increment != null)
+		if (increment != null) {
 			increment.print(builder, depth);
+		}
 		builder.append(")"); //$NON-NLS-1$
 		printBody(builder, depth);
 	}
@@ -58,15 +62,18 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
-		if (initializer != null)
+		if (initializer != null) {
 			initializer.evaluate(context);
+		}
 		Object ev = null;
 		while (true) {
-			if (condition != null && !TypeUtil.convertToBool(condition.evaluate(context)))
+			if (condition != null && !TypeUtil.convertToBool(condition.evaluate(context))) {
 				break;
+			}
 			ev = body.evaluate(context);
-			if (increment != null)
+			if (increment != null) {
 				increment.evaluate(context);
+			}
 		}
 		return ev;
 	}

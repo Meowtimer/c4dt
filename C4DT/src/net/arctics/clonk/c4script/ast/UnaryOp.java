@@ -37,17 +37,21 @@ public class UnaryOp extends OperatorExpression implements ITidyable {
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
 		UnaryOp unop = (argument instanceof UnaryOp) ? (UnaryOp)argument : null;
-		if (unop != null && unop.placement != this.placement)
+		if (unop != null && unop.placement != this.placement) {
 			unop = null;
+		}
 		if (placement == Placement.Postfix) {
 			argument.print(output, depth+1);
 			if (unop != null && this.operator().spaceNeededBetweenMeAnd(unop.operator()))
+			 {
 				output.append(" "); // - -5 -.- //$NON-NLS-1$
+			}
 			output.append(operator().operatorName());
 		} else {
 			output.append(operator().operatorName());
-			if (unop != null && this.operator().spaceNeededBetweenMeAnd(unop.operator()))
+			if (unop != null && this.operator().spaceNeededBetweenMeAnd(unop.operator())) {
 				output.append(" "); // - -5 -.- //$NON-NLS-1$
+			}
 			argument.print(output, depth+1);
 		}
 	}
@@ -60,8 +64,9 @@ public class UnaryOp extends OperatorExpression implements ITidyable {
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		// could happen when argument is transformed to binary operator
 		final ASTNode arg = tidy.tidy(argument());
-		if (arg instanceof BinaryOp)
+		if (arg instanceof BinaryOp) {
 			return new UnaryOp(operator(), placement, new Parenthesized(arg));
+		}
 		if (operator() == Operator.Not && arg instanceof Parenthesized) {
 			final Parenthesized brackets = (Parenthesized)arg;
 			if (brackets.innerExpression() instanceof BinaryOp) {
@@ -83,8 +88,9 @@ public class UnaryOp extends OperatorExpression implements ITidyable {
 				default:
 					break;
 				}
-				if (oppo != null)
+				if (oppo != null) {
 					return new BinaryOp(oppo, tidy.tidy(op.leftSide()), tidy.tidy(op.rightSide()));
+				}
 			}
 		}
 		return this;
