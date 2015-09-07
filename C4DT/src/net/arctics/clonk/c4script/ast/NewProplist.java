@@ -28,6 +28,7 @@ public class NewProplist extends PropListExpression {
 	public NewProplist(final ProplistDeclaration declaration, final ASTNode prototype) {
 		super(declaration);
 		this.prototype = prototype;
+		assignParentToSubElements();
 	}
 
 	@Override
@@ -44,8 +45,9 @@ public class NewProplist extends PropListExpression {
 		final ASTNode[] result = new ASTNode[1+components().size()];
 		result[0] = prototype;
 		int i = 1;
-		for (final Variable c : components())
+		for (final Variable c : components()) {
 			result[i++] = c.initializationExpression();
+		}
 		return result;
 	}
 
