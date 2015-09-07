@@ -299,13 +299,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	@Override
-	protected void adjustDec(final Declaration declaration, final int offset, final int add) {
-		super.adjustDec(declaration, offset, add);
+	protected void adjustDeclaration(final Declaration declaration, final int offset, final int add) {
+		super.adjustDeclaration(declaration, offset, add);
 		if (declaration instanceof Function) {
 			incrementLocationOffsetsExceedingThreshold(((Function)declaration).bodyLocation(), offset, add);
 		}
 		for (final Declaration v : declaration.subDeclarations(declaration.index(), DeclMask.ALL)) {
-			adjustDec(v, offset, add);
+			adjustDeclaration(v, offset, add);
 		}
 	}
 

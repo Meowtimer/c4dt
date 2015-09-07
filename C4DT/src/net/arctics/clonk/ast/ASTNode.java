@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Script.Typings;
@@ -25,9 +28,6 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Herbert;
 import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ScriptAccessible;
-
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 
 /**
  * Base class for making expression trees
@@ -74,8 +74,9 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 				e.setParent(this);
 			}
 		}
-		if (modified)
+		if (modified) {
 			setSubElements(subElms);
+		}
 	}
 
 	@Override
@@ -103,7 +104,9 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	@ScriptAccessible
 	public <T> T parent(final Class<T> cls) {
 		ASTNode e;
-		for (e = parent(); e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
+		for (e = parent(); e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent()) {
+			;
+		}
 		return (T) e;
 	}
 
@@ -121,16 +124,20 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	@ScriptAccessible
 	public final <T> T topLevelParent(final Class<T> type) {
 		T result = null;
-		for (ASTNode f = this; f != null; f = f.parent())
-			if (type.isAssignableFrom(f.getClass()))
+		for (ASTNode f = this; f != null; f = f.parent()) {
+			if (type.isAssignableFrom(f.getClass())) {
 				result = (T) f;
+			}
+		}
 		return result;
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T thisOrParent(final Class<T> cls) {
 		ASTNode e;
-		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent());
+		for (e = this; e != null && !cls.isAssignableFrom(e.getClass()); e = e.parent()) {
+			;
+		}
 		return (T) e;
 	}
 
@@ -204,8 +211,9 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 		final ASTNode[] elms = subElements();
 		for (int i = elms.length - 1; i >= 0; i--) {
 			final ASTNode e = elms[i];
-			if (e != null && e.hasSideEffects())
+			if (e != null && e.hasSideEffects()) {
 				return true;
+			}
 		}
 		return false;
 	}
@@ -251,7 +259,9 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 */
 	public void setSubElements(final ASTNode[] elms) {
 		if (subElements().length > 0)
+		 {
 			System.out.println("setSubElements should be implemented when subElements() is implemented ("+getClass().getName()+")"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
 	}
 
 	/**
@@ -269,14 +279,16 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 		for (int i = 0, j = 0; i < subElms.length; i++, j++) {
 			final ASTNode s = subElms[i];
 			Object t = transformer.transform(prev, prevT, s);
-			if (t instanceof ASTNode[] && ((ASTNode[])t).length == 1)
+			if (t instanceof ASTNode[] && ((ASTNode[])t).length == 1) {
 				t = ((ASTNode[])t)[0];
+			}
 			if (t instanceof ASTNode) {
 				newSubElms[j] = (ASTNode)t;
 				if (t != s) {
 					differentSubElms = true;
-					if (t == ITransformer.REMOVE)
+					if (t == ITransformer.REMOVE) {
 						removal = true;
+					}
 				}
 			}
 			else if (t instanceof ASTNode[]) {
@@ -289,13 +301,15 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 				j += multi.length-1;
 			}
 			prev = s;
-			if (t != ITransformer.REMOVE)
+			if (t != ITransformer.REMOVE) {
 				prevT = t;
+			}
 		}
 		if (differentSubElms) {
 			final ASTNode replacement = this.clone();
-			if (removal)
+			if (removal) {
 				newSubElms = stream(newSubElms).filter(x -> x != ITransformer.REMOVE).collect(ArrayUtil.toArray(ASTNode.class));
+			}
 			replacement.setSubElements(newSubElms);
 			replacement.assignParentToSubElements();
 			return replacement;
@@ -317,8 +331,9 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 				return transformer.transform(prev, prevT, expression);
 			}
 		}.transform(null, null, this);
-		if (result instanceof ASTNode[])
+		if (result instanceof ASTNode[]) {
 			result = new Sequence((ASTNode[])result);
+		}
 		return as(result, ASTNode.class);
 	}
 
@@ -350,8 +365,9 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 			return TraversalContinuation.Continue;
 		}
 		for (final ASTNode sub : traversalSubElements()) {
-			if (sub == null)
+			if (sub == null) {
 				continue;
+			}
 			switch (sub.traverse(visitor, context)) {
 			case Continue:
 				break;
@@ -416,11 +432,14 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	}
 
 	public final boolean containedIn(final ASTNode expression) {
-		if (expression == null)
+		if (expression == null) {
 			return false;
-		for (ASTNode n = this; n != null; n = n.parent)
-			if (n == expression)
+		}
+		for (ASTNode n = this; n != null; n = n.parent) {
+			if (n == expression) {
 				return true;
+			}
+		}
 		return false;
 	}
 
@@ -464,10 +483,12 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	}
 
 	public static Object evaluateVariable(Object obj) {
-		if (obj instanceof IVariable)
+		if (obj instanceof IVariable) {
 			obj = ((IVariable)obj).get();
-		if (obj instanceof Integer)
+		}
+		if (obj instanceof Integer) {
 			obj = Long.valueOf((Integer)obj);
+		}
 		return obj;
 	}
 
@@ -487,31 +508,38 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @param end Whether the end offset is to be incremented
 	 */
 	protected void offsetExprRegion(final int amount, final boolean start, final boolean end) {
-		if (start)
+		if (start) {
 			this.start += amount;
-		if (end)
+		}
+		if (end) {
 			this.end += amount;
+		}
 	}
 
 	private static void offsetExprRegionRecursively(final ASTNode elm, final int diff) {
-		if (elm == null)
+		if (elm == null) {
 			return;
+		}
 		elm.offsetExprRegion(diff, true, true);
-		for (final ASTNode e : elm.subElements())
+		for (final ASTNode e : elm.subElements()) {
 			offsetExprRegionRecursively(e, diff);
+		}
 	}
 
 	private void offsetExprRegionRecursivelyStartingAt(final ASTNode elm, final int diff) {
 		boolean started = false;
 		final ASTNode[] elms = traversalSubElements();
-		for (final ASTNode e : elms)
-			if (e == elm)
+		for (final ASTNode e : elms) {
+			if (e == elm) {
 				started = true;
-			else if (started)
+			} else if (started) {
 				offsetExprRegionRecursively(e, diff);
+			}
+		}
 		offsetExprRegion(diff, false, true);
-		if (parent() != null)
+		if (parent() != null) {
 			parent().offsetExprRegionRecursivelyStartingAt(this, diff);
+		}
 	}
 
 	/**
@@ -530,32 +558,37 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 		final ASTNode[] subElms = subElements();
 		final ASTNode[] newSubElms = new ASTNode[subElms.length];
 		boolean differentSubElms = false;
-		for (int i = 0; i < subElms.length; i++)
+		for (int i = 0; i < subElms.length; i++) {
 			if (subElms[i] == element) {
 				newSubElms[i] = with;
 				with.setLocation(element);
 				differentSubElms = true;
 			} else {
 				newSubElms[i] = subElms[i];
-				if (differentSubElms)
+				if (differentSubElms) {
 					offsetExprRegionRecursively(subElms[i], diff);
+				}
 			}
+		}
 		if (differentSubElms) {
 			setSubElements(newSubElms);
 			with.setParent(this);
 			offsetExprRegion(diff, false, true);
-			if (parent() != null)
+			if (parent() != null) {
 				parent().offsetExprRegionRecursivelyStartingAt(this, diff);
-		} else
+			}
+		} else {
 			throw new InvalidParameterException("element must actually be a subelement of this");
+		}
 		return this;
 	}
 
 	public void removeSubElement(ASTNode node) {
 		final ASTNode[] elms = subElements();
 		final int ndx = indexOf(elms, node);
-		if (ndx == -1)
+		if (ndx == -1) {
 			throw new IllegalArgumentException();
+		}
 		elms[ndx] = null;
 		setSubElements(removeElement(elms, ndx));
 	}
@@ -567,18 +600,21 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @return Whether elements are equal or not.
 	 */
 	public final boolean compare(final ASTNode other, final ASTComparisonDelegate delegate) {
-		if (other == null)
+		if (other == null) {
 			return false;
+		}
 		final ASTNode oldLeft = delegate.left;
 		final ASTNode oldRight = delegate.right;
 		delegate.left = this;
 		delegate.right = other;
 		try {
 
-			if ((other == null || other.getClass() != this.getClass()) && !delegate.acceptClassDifference())
+			if ((other == null || other.getClass() != this.getClass()) && !delegate.acceptClassDifference()) {
 				return false;
-			if (!(equalAttributes(other) || delegate.acceptAttributeDifference()))
+			}
+			if (!(equalAttributes(other) || delegate.acceptAttributeDifference())) {
 				return false;
+			}
 
 			final ASTNode[] mine = this.subElements();
 			final ASTNode[] others = other.subElements();
@@ -606,12 +642,14 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 			final List<ASTNode> elms = new LinkedList<ASTNode>();
 			for (final ASTNode e : fullSequence.subElements()) {
 				elms.add(e);
-				if (e == this)
+				if (e == this) {
 					break;
+				}
 			}
 			return elms.size() == 1 ? this : new Sequence(elms);
-		} else
+		} else {
 			return this;
+		}
 	}
 
 	@ScriptAccessible
@@ -619,9 +657,11 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 
 	public void postLoad(final ASTNode parent) {
 		this.parent = parent;
-		for (final ASTNode e : traversalSubElements())
-			if (e != null)
+		for (final ASTNode e : traversalSubElements()) {
+			if (e != null) {
 				e.postLoad(this);
+			}
+		}
 	}
 
 	/**
@@ -630,9 +670,11 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 */
 	public void offsetLocation(final int by) {
 		setLocation(start+by, end+by);
-		for (final ASTNode e : traversalSubElements())
-			if (e != null)
+		for (final ASTNode e : traversalSubElements()) {
+			if (e != null) {
 				e.offsetLocation(by);
+			}
+		}
 	}
 
 	public static Object evaluateStatic(final ASTNode element, final IEvaluationContext context) {
@@ -666,23 +708,28 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 */
 	public boolean match(final ASTNode other, final Object match) {
 		final Map<String, Object> matches = match(other);
-		if (matches != null) try {
-			for (final Map.Entry<String, Object> kv : matches.entrySet())
-				try {
-					final Field f = match.getClass().getField(kv.getKey());
-					Object val = kv.getValue();
-					if (!f.getType().isArray() && val instanceof Object[])
-						val = ((Object[])val).length > 0 ? ((Object[])val)[0] : null;
-					f.setAccessible(true); // my eyes
-					f.set(match, as(val, f.getType()));
-				} catch (final NoSuchFieldException e) {
-					continue; // ignore non-existing fields
+		if (matches != null) {
+			try {
+				for (final Map.Entry<String, Object> kv : matches.entrySet()) {
+					try {
+						final Field f = match.getClass().getField(kv.getKey());
+						Object val = kv.getValue();
+						if (!f.getType().isArray() && val instanceof Object[]) {
+							val = ((Object[])val).length > 0 ? ((Object[])val)[0] : null;
+						}
+						f.setAccessible(true); // my eyes
+						f.set(match, as(val, f.getType()));
+					} catch (final NoSuchFieldException e) {
+						continue; // ignore non-existing fields
+					}
 				}
-			return true;
-		} catch (final Exception e) {
+				return true;
+			} catch (final Exception e) {
+				return false;
+			}
+		} else {
 			return false;
-		} else
-			return false;
+		}
 	}
 
 	/**
@@ -695,10 +742,11 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 			if (expression instanceof Placeholder) {
 				final MatchingPlaceholder mp = as(expression, MatchingPlaceholder.class);
 				final Object substitution = substitutions.get(((Placeholder)expression).entryName());
-				if (substitution != null)
+				if (substitution != null) {
 					return mp != null ? mp.transformSubstitution(substitution, cookie) : substitution;
-				else
+				} else {
 					return ITransformer.REMOVE;
+				}
 			}
 			return expression;
 		});
@@ -721,23 +769,28 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	public IRegion absolute() { return this.region(sectionOffset()); }
 
 	public void shift(final int localInsertionOffset, final int amount) {
-		for (final ASTNode node : subElements())
+		for (final ASTNode node : subElements()) {
 			if (node != null) {
-				if (node.start() >= localInsertionOffset)
+				if (node.start() >= localInsertionOffset) {
 					node.setStart(node.start()+amount);
-				if (node.end() >= localInsertionOffset)
+				}
+				if (node.end() >= localInsertionOffset) {
 					node.setEnd(node.end()+amount);
+				}
 			}
+		}
 		final IASTSection section = section();
-		if (section != null)
+		if (section != null) {
 			((ASTNode)section).shift(localInsertionOffset, amount);
+		}
 	}
 
 	public void forceParents() {
-		for (final ASTNode n : subElements())
+		for (final ASTNode n : subElements()) {
 			if (n != null) {
 				n.setParent(this);
 				n.forceParents();
 			}
+		}
 	}
 }

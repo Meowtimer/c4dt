@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
+import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.util.HashSet;
@@ -9,6 +10,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -27,11 +33,6 @@ import net.arctics.clonk.c4script.typing.TypeUtil;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.MetaDefinition;
 import net.arctics.clonk.index.ProjectResource;
-
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 
 /**
  * Locates {@link IIndexEntity}s referenced at some location in a script. Usually {@link Declaration}, but might also be {@link ProjectResource} or some such.
@@ -57,8 +58,9 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	 * @throws ProblemException
 	 */
 	public EntityLocator(final Script script, final IDocument doc, final IRegion region) throws BadLocationException, ProblemException {
-		if (script == null)
+		if (script == null) {
 			return;
+		}
 		exprRegion = region;
 		script.traverse(this, null);
 		if (exprAtRegion != null) {
@@ -108,33 +110,42 @@ public class EntityLocator extends ExpressionLocator<Void> {
 				.filter(x -> x != null)
 				.forEach(projectDeclarations::addAll);
 
-			if (projectDeclarations != null)
+			if (projectDeclarations != null) {
 				projectDeclarations = projectDeclarations.stream().filter(
 					item -> access.declarationClass().isInstance(item)
 				).collect(Collectors.toList());
+			}
 
-			final Function engineFunc = exprAtRegion.parent(Script.class).engine().findFunction(declarationName);
+			final Function engineFunc = attempt(
+				() -> exprAtRegion.parent(Script.class).engine().findFunction(declarationName),
+				NullPointerException.class,
+				npe -> npe.printStackTrace()
+			);
 			if (projectDeclarations != null || engineFunc != null) {
 				potentialEntities = new HashSet<IIndexEntity>();
-				if (projectDeclarations != null)
+				if (projectDeclarations != null) {
 					potentialEntities.addAll(projectDeclarations);
+				}
 				// only add engine func if not overloaded by any global function
-				if (engineFunc != null && !potentialEntities.stream().anyMatch(IS_GLOBAL))
+				if (engineFunc != null && !potentialEntities.stream().anyMatch(IS_GLOBAL)) {
 					potentialEntities.add(engineFunc);
-				if (potentialEntities.isEmpty())
+				}
+				if (potentialEntities.isEmpty()) {
 					potentialEntities = null;
-				else if (potentialEntities.size() == 1)
+				} else if (potentialEntities.size() == 1) {
 					this.entity = potentialEntities.iterator().next();
+				}
 				setRegion = potentialEntities != null;
-			}
-			else
+			} else {
 				setRegion = false;
-		}
-		else
+			}
+		} else {
 			setRegion = false;
-		if (setRegion && declRegion != null)
+		}
+		if (setRegion && declRegion != null) {
 			this.exprRegion = new Region(exprAtRegion.sectionOffset()+declRegion.region().getOffset(),
 				declRegion.region().getLength());
+		}
 	}
 
 	/**
@@ -148,11 +159,13 @@ public class EntityLocator extends ExpressionLocator<Void> {
 
 	@Override
 	public TraversalContinuation visitNode(final ASTNode expression, final Void v) {
-		if (expression instanceof ProplistDeclaration)
+		if (expression instanceof ProplistDeclaration) {
 			return TraversalContinuation.SkipSubElements;
+		}
 		expression.traverse((xpr, _v) -> {
-			if (xpr instanceof ProplistDeclaration)
+			if (xpr instanceof ProplistDeclaration) {
 				return TraversalContinuation.SkipSubElements;
+			}
 			final IRegion a = xpr.absolute();
 			if (exprRegion.getOffset() >= a.getOffset() && exprRegion.getOffset() < a.getOffset()+a.getLength()) {
 				exprAtRegion = xpr;
@@ -166,8 +179,9 @@ public class EntityLocator extends ExpressionLocator<Void> {
 	public String infoText() {
 		final IIndexEntity entity = entity();
 		final ASTNode expr = expressionAtRegion();
-		if (entity == null || expr == null)
+		if (entity == null || expr == null) {
 			return null;
+		}
 		if (entity instanceof Variable && expr instanceof AccessDeclaration) {
 			final Function f = expr.parent(Function.class);
 			final Script s = f.script();

@@ -103,7 +103,7 @@ public class ProjectSettings extends SettingsBase {
 								: null;
 							return result;
 						} catch (final ClassNotFoundException e) {
-							e.printStackTrace();
+							System.out.println(e.getMessage());
 							return null;
 						}
 					})

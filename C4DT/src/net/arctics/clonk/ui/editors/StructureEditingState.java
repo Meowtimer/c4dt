@@ -1,5 +1,7 @@
 package net.arctics.clonk.ui.editors;
 
+import static net.arctics.clonk.util.Utilities.eq;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -41,7 +43,6 @@ import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.ui.editors.actions.OpenDeclarationAction;
-import net.arctics.clonk.util.Utilities;
 
 /**
  * Editing state on a specific {@link Structure}. Shared among all editors editing the file the {@link Structure} was read from.
@@ -193,14 +194,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	}
 
 	protected static <E extends StructureTextEditor, S extends Structure, T extends StructureEditingState<E, S>> T stateFromList(final List<T> list, final S structure) {
-		T result = null;
-		for (final T s : list) {
-			if (Utilities.eq(s.structure(), structure)) {
-				result = s;
-				break;
-			}
-		}
-		return result;
+		return list.stream().filter(s -> eq(s.structure(), structure)).findFirst().orElse(null); 
 	}
 
 	/*+
@@ -278,24 +272,24 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 * @param threshold The threshold to pass to {@link #incrementLocationOffsetsExceedingThreshold(SourceLocation, int, int)}
 	 * @param add The increment value to pass to {@link #incrementLocationOffsetsExceedingThreshold(SourceLocation, int, int)}
 	 */
-	protected void adjustDec(final Declaration declaration, final int threshold, final int add) {
+	protected void adjustDeclaration(final Declaration declaration, final int threshold, final int add) {
 		incrementLocationOffsetsExceedingThreshold(declaration, threshold, add);
 	}
 
 	/**
-	 * Call {@link #adjustDec(Declaration, int, int)} for all applicable {@link Declaration}s stored in {@link #structure()}
+	 * Call {@link #adjustDeclaration(Declaration, int, int)} for all applicable {@link Declaration}s stored in {@link #structure()}
 	 * @param event Document event describing the document change that triggered this call.
 	 */
 	protected void adjustDeclarationLocations(final DocumentEvent event) {
 		if (event.getLength() == 0 && event.getText().length() > 0) {
 			// text was added
 			for (final Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL)) {
-				adjustDec(dec, event.getOffset(), event.getText().length());
+				adjustDeclaration(dec, event.getOffset(), event.getText().length());
 			}
 		} else if (event.getLength() > 0 && event.getText().length() == 0) {
 			// text was removed
 			for (final Declaration dec : structure.subDeclarations(structure.index(), DeclMask.ALL)) {
-				adjustDec(dec, event.getOffset(), -event.getLength());
+				adjustDeclaration(dec, event.getOffset(), -event.getLength());
 			}
 		} else {
 			final String newText = event.getText();
@@ -305,7 +299,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 			// mixed
 			for (final Declaration dec : structure.subDeclarations(structure.index(), net.arctics.clonk.ast.DeclMask.ALL)) {
 				if (dec.start() >= offset + replLength) {
-					adjustDec(dec, offset, diff);
+					adjustDeclaration(dec, offset, diff);
 				} else if (dec instanceof Function) {
 					// inside function: expand end location
 					final Function func = (Function) dec;
@@ -364,18 +358,23 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 
 	@Override
 	public void partActivated(final IWorkbenchPart part) {}
+	
 	@Override
 	public void partBroughtToTop(final IWorkbenchPart part) {}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void partClosed(final IWorkbenchPart part) {
 		try { removeEditor((EditorType) part); }
 		catch (final ClassCastException cce) {}
 	}
+	
 	@Override
 	public void partDeactivated(final IWorkbenchPart part) {}
+	
 	@Override
 	public void partOpened(final IWorkbenchPart part) {}
+
 	public void completionProposalApplied(final DeclarationProposal proposal) {}
 
 	@SuppressWarnings("unchecked")
@@ -385,17 +384,23 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	}
 
 	protected ITextHover hover;
+	
 	public StructureEditingState(final IPreferenceStore store) { super(store); }
+	
 	public ColorManager getColorManager() { return ColorManager.INSTANCE; }
+	
 	@Override
 	public String[] getConfiguredContentTypes(final ISourceViewer sourceViewer) {
 		return CStylePartitionScanner.PARTITIONS;
 	}
+	
 	protected static final URLHyperlinkDetector urlDetector = new URLHyperlinkDetector();
+	
 	@Override
 	public IHyperlinkDetector[] getHyperlinkDetectors(final ISourceViewer sourceViewer) {
 		return new IHyperlinkDetector[] {urlDetector};
 	}
+	
 	@Override
 	public ITextHover getTextHover(final ISourceViewer sourceViewer, final String contentType) {
 		if (hover == null) {
@@ -403,8 +408,10 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		}
 		return hover;
 	}
+	
 	@Override
 	public IReconciler getReconciler(final ISourceViewer sourceViewer) { return null; }
+	
 	/**
 	 * Create a {@link IHyperlink} at the given offset in the text document using the same mechanism that is being used to create hyperlinks when ctrl-hovering.
 	 * This hyperlink will be used for functionality like {@link OpenDeclarationAction} that will not directly operate on specific kinds of {@link Declaration}s and is thus dependent on the {@link StructureTextEditor} class returning adequate hyperlinks.
@@ -425,6 +432,7 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		}
 		return null;
 	}
+	
 	@Override
 	public ContentAssistant getContentAssistant(final ISourceViewer sourceViewer) { return installAssistant(sourceViewer); }
 
