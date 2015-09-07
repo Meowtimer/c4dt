@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.Core;
@@ -55,10 +54,6 @@ public class StringTbl extends Structure implements ITreeNode {
 	public String nodeName() { return "StringTbl"; } //$NON-NLS-1$
 	@Override
 	public ITreeNode parentNode() { return null; }
-	@Override
-	public IPath path() { return ITreeNode.Default.path(this); }
-	@Override
-	public boolean subNodeOf(final ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
 	@Override
 	public boolean requiresScriptReparse() { return true; }
 

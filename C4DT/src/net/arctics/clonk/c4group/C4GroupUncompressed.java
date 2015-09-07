@@ -6,11 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.util.ITreeNode;
-
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+
+import net.arctics.clonk.Core;
 
 public class C4GroupUncompressed extends C4Group {
 
@@ -37,7 +36,7 @@ public class C4GroupUncompressed extends C4Group {
 	@Override
 	public synchronized void readFromStream(final C4GroupItem whoWantsThat, final long pos, final StreamReadCallback callback) throws IOException {
 		// create stream from uncompressed file
-		final IPath path = new Path(origin().toString()).append(ITreeNode.Default.relativePath(whoWantsThat, this));
+		final IPath path = new Path(origin().toString()).append(whoWantsThat.relativePath(this));
 		final File fileToReadFrom = path.toFile();
 		if (fileToReadFrom.isFile()) {
 			final FileInputStream stream = new FileInputStream(fileToReadFrom);

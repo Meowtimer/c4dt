@@ -34,8 +34,6 @@ import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.ReadOnlyIterator;
 import net.arctics.clonk.util.StringUtil;
 
-import org.eclipse.core.runtime.IPath;
-
 public class IniSection
 	extends Structure
 	implements IHasKeyAndValue<String, String>, IHasChildren, Iterable<IniItem>, IniItem, IASTSection
@@ -68,10 +66,6 @@ public class IniSection
 	public String nodeName() { return name(); }
 	@Override
 	public ITreeNode parentNode() { return null; }
-	@Override
-	public IPath path() { return ITreeNode.Default.path(this); }
-	@Override
-	public boolean subNodeOf(final ITreeNode node) { return ITreeNode.Default.subNodeOf(this, node); }
 	public int indentation() { return indentation; }
 	public void setIndentation(final int indentation) { this.indentation = indentation; }
 	@Override
@@ -105,10 +99,11 @@ public class IniSection
 
 	@Override
 	public void addChild(final ITreeNode node) {
-		if (node instanceof IniItem)
+		if (node instanceof IniItem) {
 			addDeclaration((Declaration)node);
-		else
+		} else {
 			throw new IllegalArgumentException("node");
+		}
 	}
 
 	@Override
@@ -139,32 +134,37 @@ public class IniSection
 
 	@Override
 	public void doPrint(final ASTNodePrinter writer, final int indentation) {
-		if (indentation >= 0)
+		if (indentation >= 0) {
 			writer.append(StringUtil.multiply("\t", indentation+1));
+		}
 		writer.append('[');
 		writer.append(name());
 		writer.append(']');
 		writer.append('\n');
 
 		for (final IniItem item : items()) {
-			if (item.isTransient())
+			if (item.isTransient()) {
 				continue;
+			}
 			item.print(writer, indentation + 1);
 			writer.append('\n');
 		}
 	}
 
 	public boolean hasPersistentItems() {
-		for (final IniItem item : items())
-			if (!item.isTransient())
+		for (final IniItem item : items()) {
+			if (!item.isTransient()) {
 				return true;
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public void validate(final Markers markers) throws ProblemException {
-		for (final IniItem e : this)
+		for (final IniItem e : this) {
 			e.validate(markers);
+		}
 	}
 
 	public IniSection parentSection() {
@@ -179,8 +179,9 @@ public class IniSection
 		IniSection section = null;
 		for (final IniSection sec : sections().toArray(l -> new IniSection[l])) {
 			final int start = sec.start();
-			if (start > offset)
+			if (start > offset) {
 				break;
+			}
 			section = sec;
 		}
 		return section != null ? section.sectionAtOffset(offset) : this;
@@ -193,19 +194,20 @@ public class IniSection
 	}
 
 	private static void setFromString(final Field f, final Object object, final String val) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {
-		if (f.getType() == Integer.TYPE)
+		if (f.getType() == Integer.TYPE) {
 			f.set(object, Integer.valueOf(val));
-		else if (f.getType() == Long.TYPE)
+		} else if (f.getType() == Long.TYPE) {
 			f.set(object, Long.valueOf(val));
-		else if (f.getType() == java.lang.Boolean.TYPE)
+		} else if (f.getType() == java.lang.Boolean.TYPE) {
 			f.set(object, java.lang.Boolean.valueOf(val));
+		}
 	}
 
 	public void commit(final Object object, final boolean takeIntoAccountCategory) {
-		for (final IniItem item : map().values())
-			if (item instanceof IniSection)
+		for (final IniItem item : map().values()) {
+			if (item instanceof IniSection) {
 				((IniSection)item).commit(object, takeIntoAccountCategory);
-			else if (item instanceof IniEntry) {
+			} else if (item instanceof IniEntry) {
 				final IniEntry entry = (IniEntry) item;
 				Field f;
 				try {
@@ -218,31 +220,34 @@ public class IniSection
 				IniField annot;
 				if (f != null && (annot = f.getAnnotation(IniField.class)) != null && (!takeIntoAccountCategory || IniData.category(annot, object.getClass()).equals(name()))) {
 					Object val = entry.value();
-					if (val instanceof IConvertibleToPrimitive)
+					if (val instanceof IConvertibleToPrimitive) {
 						val = ((IConvertibleToPrimitive)val).convertToPrimitive();
+					}
 					try {
-						if (f.getType() != String.class && val instanceof String)
+						if (f.getType() != String.class && val instanceof String) {
 							setFromString(f, object, (String)val);
-						else try {
-							f.set(object, val);
-						} catch (final IllegalArgumentException e) {
-							if (val instanceof Long && f.getType() == Integer.TYPE) {
-								f.set(object, (int)(long)(Long)val);
-								continue;
-							} else if (val instanceof Long && f.getType() == java.lang.Boolean.TYPE) {
-								f.set(object, (Long)val != 0);
-								continue;
-							} else if (val instanceof java.lang.Boolean && f.getType() == Integer.TYPE) {
-								f.set(object, ((java.lang.Boolean)val) ? 1 : 0);
-								continue;
-							}
-							// unboxing failed
+						} else {
 							try {
-								final Constructor<?> ctor = f.getType().getConstructor(val.getClass());
-								f.set(object, ctor.newInstance(val));
-							} catch (final NoSuchMethodException nsm) {
-								System.out.println(f.getName());
-								nsm.printStackTrace();
+								f.set(object, val);
+							} catch (final IllegalArgumentException e) {
+								if (val instanceof Long && f.getType() == Integer.TYPE) {
+									f.set(object, (int)(long)(Long)val);
+									continue;
+								} else if (val instanceof Long && f.getType() == java.lang.Boolean.TYPE) {
+									f.set(object, (Long)val != 0);
+									continue;
+								} else if (val instanceof java.lang.Boolean && f.getType() == Integer.TYPE) {
+									f.set(object, ((java.lang.Boolean)val) ? 1 : 0);
+									continue;
+								}
+								// unboxing failed
+								try {
+									final Constructor<?> ctor = f.getType().getConstructor(val.getClass());
+									f.set(object, ctor.newInstance(val));
+								} catch (final NoSuchMethodException nsm) {
+									System.out.println(f.getName());
+									nsm.printStackTrace();
+								}
 							}
 						}
 					} catch (final Exception e) {
@@ -251,6 +256,7 @@ public class IniSection
 					}
 				}
 			}
+		}
 	}
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
@@ -268,8 +274,9 @@ public class IniSection
 		if (unit != null) {
 			final String n = unit.nameEntryName(this);
 			final IniItem nameEntry = n != null ? this.item(n) : null;
-			if (nameEntry != null)
+			if (nameEntry != null) {
 				ls = ls.filter(i -> i != nameEntry);
+			}
 		}
 		return new ProplistDeclaration(
 			ls.map(i -> new Variable(Variable.Scope.VAR, proplistKey(unit, i), i.toExpression())

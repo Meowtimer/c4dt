@@ -5,8 +5,6 @@ import java.util.Collection;
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ini.EntrySubItem;
 
-import org.eclipse.core.runtime.IPath;
-
 public class KeyValuePair<First, Second> extends Pair<First, Second> implements IHasKeyAndValue<First, Second>, IHasChildrenWithContext, ITreeNode {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public KeyValuePair(final First first, final Second second) { super(first, second); }
@@ -23,8 +21,9 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	@Override
 	public IHasContext[] children(final Object context) {
 		final IHasContext[] result = new IHasContext[2];
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; i++) {
 			result[i] = new EntrySubItem<KeyValuePair<First, Second>>(this, context, i);
+		}
 		return result;
 	}
 	@Override
@@ -38,10 +37,4 @@ public class KeyValuePair<First, Second> extends Pair<First, Second> implements 
 	public String nodeName() { return (String) key(); }
 	@Override
 	public ITreeNode parentNode() { return null; }
-	@Override
-	public IPath path() { return ITreeNode.Default.path(this); }
-	@Override
-	public boolean subNodeOf(final ITreeNode node) {
-		return ITreeNode.Default.subNodeOf(this, node);
-	}
 }

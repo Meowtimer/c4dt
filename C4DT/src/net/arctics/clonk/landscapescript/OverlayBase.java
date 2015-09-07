@@ -17,8 +17,6 @@ import net.arctics.clonk.util.IPrintable;
 import net.arctics.clonk.util.ITreeNode;
 import net.arctics.clonk.util.StringUtil;
 
-import org.eclipse.core.runtime.IPath;
-
 public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPrintable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -40,25 +38,16 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 
 	@Override
 	public ITreeNode parentNode() {
-		if (parentDeclaration() instanceof ITreeNode)
+		if (parentDeclaration() instanceof ITreeNode) {
 			return (ITreeNode) parentDeclaration();
-		else
+		} else {
 			return null;
-	}
-
-	@Override
-	public IPath path() {
-		return ITreeNode.Default.path(this);
+		}
 	}
 
 	@Override
 	public Collection<? extends OverlayBase> childCollection() {
 		return null;
-	}
-
-	@Override
-	public boolean subNodeOf(final ITreeNode node) {
-		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
 	@Override
@@ -68,26 +57,28 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	public boolean setAttribute(final String attr, final String valueLo, final String valueHi) throws SecurityException, NoSuchFieldException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		final Field f = getClass().getField(attr);
 		if (f != null) {
-			if (f.getType().getSuperclass() == Enum.class)
+			if (f.getType().getSuperclass() == Enum.class) {
 				f.set(this, f.getType().getMethod("valueOf", String.class).invoke(f.getClass(), valueLo)); //$NON-NLS-1$
-			else if (f.getType() == NumVal.class)
+			} else if (f.getType() == NumVal.class) {
 				f.set(this, NumVal.parse(valueLo));
-			else if (f.getType() == Range.class)
+			} else if (f.getType() == Range.class) {
 				f.set(this, new Range(NumVal.parse(valueLo), NumVal.parse(valueHi)));
-			else if (f.getType() == String.class)
+			} else if (f.getType() == String.class) {
 				f.set(this, valueLo);
-			else if (f.getType() == Boolean.TYPE)
+			} else if (f.getType() == Boolean.TYPE) {
 				f.set(this, Integer.parseInt(valueLo) == 1);
-			else
+			} else {
 				return false;
+			}
 			return true;
 		}
 		return false;
 	}
 
 	public void copyFromTemplate(final OverlayBase template) throws IllegalArgumentException, IllegalAccessException {
-		for (final Field field : getClass().getFields())
+		for (final Field field : getClass().getFields()) {
 			field.set(this, field.get(template));
+		}
 	}
 
 	public void setBody(final SourceLocation body) {
@@ -103,9 +94,11 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 	}
 
 	public String typeName() {
-		for (final String key : DEFAULT_CLASS.keySet())
-			if (DEFAULT_CLASS.get(key).equals(this.getClass()))
+		for (final String key : DEFAULT_CLASS.keySet()) {
+			if (DEFAULT_CLASS.get(key).equals(this.getClass())) {
 				return key;
+			}
+		}
 		return null;
 	}
 
@@ -121,7 +114,7 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 				}
 				builder.append(" {\n"); //$NON-NLS-1$
 			}
-			for (final Field f : this.getClass().getFields())
+			for (final Field f : this.getClass().getFields()) {
 				if (Modifier.isPublic(f.getModifiers()) && !Modifier.isStatic(f.getModifiers())) {
 					final Object val = f.get(this);
 					// flatly cloned attributes of template -> don't print
@@ -135,20 +128,24 @@ public class OverlayBase extends Structure implements Cloneable, ITreeNode, IPri
 						builder.append("\n"); //$NON-NLS-1$
 					}
 				}
+			}
 			final Collection<? extends OverlayBase> children = this.childCollection();
 			if (children != null) {
 				Operator lastOp = null;
 				for (final OverlayBase child : children) {
-					if (lastOp == null)
+					if (lastOp == null) {
 						builder.append(StringUtil.multiply(Conf.indentString, depth));
+					}
 					child.print(builder, depth+1);
 					final Operator op = child.operator();
 					if (op != null) {
 						builder.append(" "); //$NON-NLS-1$
 						builder.append(op.toString());
 						builder.append(" "); //$NON-NLS-1$
-					} else
+					}
+					else {
 						builder.append(";\n"); //$NON-NLS-1$
+					}
 					lastOp = op;
 				}
 			}

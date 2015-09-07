@@ -25,12 +25,11 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.content.IContentType;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.FileDocumentActions;
+import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.ast.AppendableBackedNodePrinter;
@@ -264,16 +263,6 @@ public class IniUnit extends IniSection implements IHasChildren, ITreeNode, IniI
 	@Override
 	public ITreeNode parentNode() {
 		return null;
-	}
-
-	@Override
-	public IPath path() {
-		return ITreeNode.Default.path(this);
-	}
-
-	@Override
-	public boolean subNodeOf(final ITreeNode node) {
-		return ITreeNode.Default.subNodeOf(this, node);
 	}
 
 	@Override

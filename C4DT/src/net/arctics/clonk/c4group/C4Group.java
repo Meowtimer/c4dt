@@ -447,16 +447,6 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 	}
 
 	@Override
-	public IPath path() {
-		return ITreeNode.Default.path(this);
-	}
-
-	@Override
-	public boolean subNodeOf(final ITreeNode node) {
-		return ITreeNode.Default.subNodeOf(this, node);
-	}
-
-	@Override
 	public String nodeName() {
 		return getName();
 	}

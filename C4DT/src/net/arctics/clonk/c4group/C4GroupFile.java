@@ -19,11 +19,9 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import net.arctics.clonk.Core;
-import net.arctics.clonk.util.ITreeNode;
 
 /**
  * Represents one file in a {@link C4Group} file.
@@ -164,8 +162,6 @@ public class C4GroupFile extends C4GroupItem implements Serializable {
 	public IFileStore getChild(final String name) { return null; }
 	@Override
 	public IFileStore getParent() { return parentGroup(); }
-	@Override
-	public IPath path() { return ITreeNode.Default.path(this); }
 	@Override
 	public String nodeName() { return getName(); }
 	@Override
