@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.DeclMask;
@@ -30,7 +31,7 @@ import net.arctics.clonk.util.StringUtil;
 public class ProplistDeclaration extends Structure implements IRefinedPrimitiveType, IHasIncludes<ProplistDeclaration>, Cloneable, IProplistDeclaration {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	protected List<Variable> components;
+	protected final List<Variable> components;
 	protected List<Variable> added;
 	protected ProplistDeclaration prototype;
 
@@ -39,6 +40,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	 * @param components The component variables
 	 */
 	public ProplistDeclaration(final List<Variable> components) { this.components = components; }
+	
 	public ProplistDeclaration(final String name) { this(new LinkedList<Variable>()); setName(name); }
 
 	/* (non-Javadoc)
@@ -47,18 +49,20 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	@Override
 	public Variable addComponent(final Variable variable, final boolean adhoc) {
 		final Variable found = findComponent(variable.name());
-		if (found != null)
+		if (found != null) {
 			return found;
-		else {
+		} else {
 			List<Variable> list;
-			if (adhoc)
+			if (adhoc) {
 				synchronized (components) {
-					if (added == null)
+					if (added == null) {
 						added = new ArrayList<Variable>(5);
+					}
 					list = added;
 				}
-			else
+			} else {
 				list = components;
+			}
 			variable.setParent(this);
 			synchronized (components) { list.add(variable); }
 			return variable;
@@ -69,24 +73,31 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#findComponent(java.lang.String, java.util.Set)
 	 */
 	public Variable findComponent(final String declarationName, final Set<ProplistDeclaration> recursionPrevention) {
-		if (!recursionPrevention.add(this))
+		if (!recursionPrevention.add(this)) {
 			return null;
+		}
 		synchronized (components) {
-			for (final Variable v : components)
-				if (v.name().equals(declarationName))
+			for (final Variable v : components) {
+				if (v.name().equals(declarationName)) {
 					return v;
-			if (added != null)
-				for (final Variable v : added)
-					if (v.name().equals(declarationName))
+				}
+			}
+			if (added != null) {
+				for (final Variable v : added) {
+					if (v.name().equals(declarationName)) {
 						return v;
+					}
+				}
+			}
 		}
 		final IProplistDeclaration proto = prototype();
-		if (proto instanceof ProplistDeclaration)
+		if (proto instanceof ProplistDeclaration) {
 			return ((ProplistDeclaration)proto).findComponent(declarationName, recursionPrevention);
-		else if (proto != null)
+		} else if (proto != null) {
 			return proto.findComponent(declarationName);
-		else
+		} else {
 			return null;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -100,13 +111,18 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	@Override
 	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
 		synchronized (components) {
-			for (final Variable v : components)
-				if (v.name().equals(declarationName))
+			for (final Variable v : components) {
+				if (v.name().equals(declarationName)) {
 					return v;
-			if (added != null)
-				for (final Variable v : added)
-					if (v.name().equals(declarationName))
+				}
+			}
+			if (added != null) {
+				for (final Variable v : added) {
+					if (v.name().equals(declarationName)) {
 						return v;
+					}
+				}
+			}
 		}
 		return null;
 	}
@@ -116,21 +132,23 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		if ((mask & DeclMask.VARIABLES) != 0) {
 			final ArrayList<Variable> items = new ArrayList<>(components.size()+(added != null ? added.size() : 0));
 			items.addAll(components);
-			if (added != null)
+			if (added != null) {
 				items.addAll(added);
+			}
 			return items;
-		}
-		else
+		} else {
 			return Collections.emptyList();
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(final T from) {
-		if (Variable.class.isAssignableFrom(from.getClass()))
+		if (Variable.class.isAssignableFrom(from.getClass())) {
 			return (T) findComponent(from.name());
-		else
+		} else {
 			return super.latestVersionOf(from);
+		}
 	};
 
 	@Override
@@ -142,8 +160,9 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	public String typeName(final boolean special) {
 		if (special) {
 			final String s = StringUtil.blockString("{", "}", ", ", components(true));
-			if (s.length() < 50)
+			if (s.length() < 50) {
 				return s;
+			}
 		}
 		return PrimitiveType.PROPLIST.typeName(special);
 	}
@@ -159,17 +178,22 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	@Override
 	public ProplistDeclaration prototype() {
 		IType prototypeType = null;
-		for (final Variable v : components)
+		for (final Variable v : components) {
 			if (v.name().equals(PROTOTYPE_KEY)) {
 				prototypeType = v.type();
 				break;
 			}
-		if (prototypeType == null)
+		}
+		if (prototypeType == null) {
 			prototypeType = prototype;
-		if (prototypeType != null)
-			for (final IType ty : prototypeType)
-				if (ty instanceof ProplistDeclaration)
+		}
+		if (prototypeType != null) {
+			for (final IType ty : prototypeType) {
+				if (ty instanceof ProplistDeclaration) {
 					return (ProplistDeclaration)ty;
+				}
+			}
+		}
 		return null;
 	}
 
@@ -187,31 +211,34 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	@Override
 	public boolean gatherIncludes(final Index contextIndex, final ProplistDeclaration origin, final Collection<ProplistDeclaration> set, final int options) {
-		if (!set.add(this))
+		if (!set.add(this)) {
 			return false;
+		}
 		final ProplistDeclaration proto = prototype();
-		if (proto != null)
-			if ((options & GatherIncludesOptions.Recursive) == 0)
+		if (proto != null) {
+			if ((options & GatherIncludesOptions.Recursive) == 0) {
 				set.add(proto);
-			else
+			} else {
 				proto.gatherIncludes(contextIndex, origin, set, options);
+			}
+		}
 		return true;
 	}
 
 	@Override
 	public boolean equals(final Object other) {
-		if (other == this)
+		if (other == this) {
 			return true;
+		}
 		final ProplistDeclaration o = as(other, ProplistDeclaration.class);
 		return o != null && o.sameLocation(this);
 	}
 
 	@Override
 	public ProplistDeclaration clone() {
-		final List<Variable> clonedComponents = new ArrayList<Variable>(this.components.size());
-		for (final Variable v : components)
-			clonedComponents.add(v.clone());
-		final ProplistDeclaration clone = new ProplistDeclaration(clonedComponents);
+		final ProplistDeclaration clone = new ProplistDeclaration(
+			components.stream().map(Variable::clone).collect(Collectors.toList())
+		);
 		clone.setLocation(this);
 		return clone;
 	}
@@ -224,27 +251,29 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	/**
 	 * Set {@link #implicitPrototype()} and return this declaration.
 	 * @param prototypeExpression The implicit prototype to set
+	 * @return 
 	 * @return This one.
 	 */
-	public void setPrototype(final ProplistDeclaration prototype) { this.prototype = prototype; }
+	public ProplistDeclaration setPrototype(final ProplistDeclaration prototype) {
+		this.prototype = prototype;
+		return this;
+	}
 
 	@Override
 	public Collection<Variable> components(final boolean includeAdhocComponents) {
 		synchronized(components) {
 			final ArrayList<Variable> list = new ArrayList<Variable>(components.size()+(includeAdhocComponents&&added!=null?added.size():0));
 			list.addAll(components);
-			if (includeAdhocComponents && added != null)
+			if (includeAdhocComponents && added != null) {
 				list.addAll(added);
+			}
 			return list;
 		}
 	}
 
 	public int numComponents(final boolean includeAdhocComponents) {
 		synchronized(components) {
-			int result = components.size();
-			if (includeAdhocComponents && added != null)
-				result += added.size();
-			return result;
+			return components.size() + (includeAdhocComponents && added != null ? added.size() : 0);
 		}
 	}
 

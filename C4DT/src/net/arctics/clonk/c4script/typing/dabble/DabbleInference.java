@@ -2819,12 +2819,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<PropListExpression>(PropListExpression.class) {
+				
 				@Override
 				public IType type(final PropListExpression node, final Visitor visitor) {
 					return node.definedDeclaration();
 				}
+				
 				@Override
 				public boolean skipReportingProblemsForSubElements() { return true; }
+				
 				@Override
 				public void visit(final PropListExpression node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
@@ -2841,8 +2844,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					}
 				}
+				
 				@Override
 				public boolean isModifiable(final PropListExpression node, final Visitor visitor) { return false; }
+			
 			},
 
 			new Expert<Parenthesized>(Parenthesized.class) {
@@ -3073,10 +3078,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new ConditionalStatementExpert<WhileStatement>(WhileStatement.class),
 
 			new Expert<NewProplist>(NewProplist.class) {
+				
 				@Override
 				public void visit(final NewProplist node, final Visitor visitor) throws ProblemException {
 					node.definedDeclaration().setPrototype(as(visitor.ty(node.prototype()), ProplistDeclaration.class));
 				}
+				
+				@Override
+				public IType type(NewProplist node, Visitor visitor) {
+					return node.definedDeclaration();
+				}
+
 			},
 
 			new Expert<Placeholder>(Placeholder.class) {

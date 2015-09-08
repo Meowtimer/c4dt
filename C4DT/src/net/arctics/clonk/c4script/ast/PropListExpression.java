@@ -27,6 +27,7 @@ public class PropListExpression extends ASTNode {
 	private ProplistDeclaration definedDeclaration;
 
 	public ProplistDeclaration definedDeclaration() { return definedDeclaration; }
+	
 	public Collection<Variable> components() { return definedDeclaration.components(false); }
 	
 	@Override

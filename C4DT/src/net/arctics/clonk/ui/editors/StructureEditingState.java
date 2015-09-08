@@ -1,6 +1,9 @@
 package net.arctics.clonk.ui.editors;
 
+import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
+import static net.arctics.clonk.util.Utilities.synchronizing;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -89,8 +92,8 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		}
 	}
 
-	protected List<EditorType> editors = new LinkedList<EditorType>();
-	protected List<ISourceViewer> viewers = new LinkedList<ISourceViewer>();
+	protected final List<EditorType> editors = new LinkedList<EditorType>();
+	protected final List<ISourceViewer> viewers = new LinkedList<ISourceViewer>();
 	protected StructureType structure;
 	protected IDocument document;
 	protected List<? extends StructureEditingState<EditorType, StructureType>> list;
@@ -119,23 +122,12 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		document.addDocumentListener(this);
 	}
 
-	static Map<Class<? extends StructureEditingState<?, ?>>, List<? extends StructureEditingState<?, ?>>> lists = new HashMap<>();
+	static final Map<Class<? extends StructureEditingState<?, ?>>, List<? extends StructureEditingState<?, ?>>> lists = new HashMap<>();
 
 	@SuppressWarnings("unchecked")
 	public static <S extends Structure, T extends StructureEditingState<?, S>> T existing(final Class<T> cls, final S structure) {
-		List<T> list;
-		synchronized (lists) {
-			list = (List<T>) lists.get(cls);
-			if (list == null) {
-				return null;
-			}
-		}
-		for (final T s : list) {
-			if (s.structure() == structure) {
-				return s;
-			}
-		}
-		return null;
+		final List<T> list = synchronizing(lists, () -> (List<T>)lists.get(cls));
+		return list != null ? list.stream().filter(s -> s.structure() == structure).findFirst().orElse(null) : null;
 	}
 
 	/**
@@ -160,13 +152,14 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 		final S structure,
 		final E editor
 	) {
-		List<T> list;
-		synchronized (lists) {
-			list = (List<T>) lists.get(type);
-			if (list == null) {
-				lists.put(type, list = new LinkedList<T>());
+		final List<T> list = synchronizing(lists, () -> defaulting(
+			(List<T>) lists.get(type),
+			() -> {
+				final List<T> newList = new LinkedList<T>();
+				lists.put(type, newList);
+				return newList;
 			}
-		}
+		));
 		final StructureEditingState<? super E, ? super S> result = stateFromList(list, structure);
 		T r;
 		if (result == null) {
@@ -231,13 +224,8 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	}
 
 	private void maybeRemovePartListener(final EditorType removedEditor) {
-		boolean removePartListener = true;
-		for (final EditorType ed : editors) {
-			if (ed.getSite().getPage() == removedEditor.getSite().getPage()) {
-				removePartListener = false;
-				break;
-			}
-		}
+		final boolean removePartListener = editors.stream()
+			.noneMatch(editor -> editor.getSite().getPage() == removedEditor.getSite().getPage());
 		if (removePartListener) {
 			removedEditor.getSite().getPage().removePartListener(this);
 		}
@@ -398,15 +386,12 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	
 	@Override
 	public IHyperlinkDetector[] getHyperlinkDetectors(final ISourceViewer sourceViewer) {
-		return new IHyperlinkDetector[] {urlDetector};
+		return new IHyperlinkDetector[] { urlDetector };
 	}
 	
 	@Override
 	public ITextHover getTextHover(final ISourceViewer sourceViewer, final String contentType) {
-		if (hover == null) {
-			hover = new ClonkTextHover();
-		}
-		return hover;
+		return defaulting(hover, () -> hover = new ClonkTextHover());
 	}
 	
 	@Override
@@ -420,17 +405,15 @@ public abstract class StructureEditingState<EditorType extends StructureTextEdit
 	 */
 	public IHyperlink hyperlinkAtOffset(final int offset) {
 		final ISourceViewer sourceViewer = editors.get(0).getProtectedSourceViewer();
-		final IHyperlinkDetector[] detectors = getHyperlinkDetectors(sourceViewer);
+		final IRegion r = new Region(offset, 0);
 		// emulate
 		getHyperlinkPresenter(sourceViewer).hideHyperlinks();
-		final IRegion r = new Region(offset, 0);
-		for (final IHyperlinkDetector d : detectors) {
-			final IHyperlink[] hyperlinks = d.detectHyperlinks(sourceViewer, r, false);
-			if (hyperlinks != null && hyperlinks.length > 0) {
-				return hyperlinks[0];
-			}
-		}
-		return null;
+		return stream(getHyperlinkDetectors(sourceViewer))
+			.map(detector -> detector.detectHyperlinks(sourceViewer, r, false))
+			.filter(hyperlinks -> hyperlinks != null && hyperlinks.length > 0)
+			.map(hyperlinks -> hyperlinks[0])
+			.findFirst()
+			.orElse(null);
 	}
 	
 	@Override
