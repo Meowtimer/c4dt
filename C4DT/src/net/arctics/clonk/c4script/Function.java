@@ -234,13 +234,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @param parameters the parameter to set
 	 */
-	public void setParameters(final List<Variable> parameters) {
+	public Function setParameters(final List<Variable> parameters) {
 		this.parameters = parameters;
 		if (parameters != null) {
 			for (final Variable p : parameters) {
 				p.setParent(this);
 			}
 		}
+		return this;
 	}
 
 	/**
