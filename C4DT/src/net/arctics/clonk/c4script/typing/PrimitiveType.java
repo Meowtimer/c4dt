@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.ArrayUtil.map;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
 import java.lang.reflect.Array;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -31,6 +32,7 @@ public enum PrimitiveType implements IType {
 		@Override
 		public Object convert(final Object value) { return value; }
 	},
+
 	BOOL {
 		@Override
 		public Object convert(final Object value) {
@@ -44,6 +46,7 @@ public enum PrimitiveType implements IType {
 			}
 		}
 	},
+
 	INT,
 	ID,
 	STRING,
@@ -67,6 +70,7 @@ public enum PrimitiveType implements IType {
 		FUNCTION,
 		EFFECT
 	};
+
 	private final ReferenceType referenceType = new ReferenceType(this);
 
 	public IType referenceType() { return referenceType; }
@@ -77,13 +81,15 @@ public enum PrimitiveType implements IType {
 	@Override
 	public String toString() { return typeName(true); }
 
-	private static final Map<String, PrimitiveType> REGULAR_MAP = new HashMap<String, PrimitiveType>();
+	public static final Map<String, PrimitiveType> REGULAR_MAP;
+
 	private static final Map<String, PrimitiveType> SPECIAL_MAPPING = map(false,
 		"dword", INT,
 		"any", ANY,
 		"reference", REFERENCE,
 		"void", UNKNOWN
 	);
+
 	/**
 	 * Map to map type names from Clonk engine source to primitive types.
 	 */
@@ -108,6 +114,7 @@ public enum PrimitiveType implements IType {
 	public static final Map<PrimitiveType, String> C4SCRIPT_TO_CPP_MAP = ArrayUtil.reverseMap(CPP_TO_C4SCRIPT_MAP, new HashMap<PrimitiveType, String>());
 
 	static {
+		final Map<String, PrimitiveType> map = new HashMap<>();
 		for (final PrimitiveType t : values()) {
 			switch (t) {
 			case REFERENCE:
@@ -119,8 +126,10 @@ public enum PrimitiveType implements IType {
 			default:
 				t.scriptName = t.name().toLowerCase();
 			}
-			REGULAR_MAP.put(t.scriptName, t);
+			map.put(t.scriptName, t);
 		}
+		map.put("def", ID);
+		REGULAR_MAP = Collections.unmodifiableMap(map);
 	}
 
 	@Override
@@ -180,14 +189,7 @@ public enum PrimitiveType implements IType {
 	 * @return The {@link PrimitiveType} parsed from the argument or null if not successful.
 	 */
 	public static PrimitiveType fromString(final String typeString, final boolean allowSpecial) {
-		final PrimitiveType t = REGULAR_MAP.get(typeString);
-		if (t != null) {
-			return t;
-		}
-		if (allowSpecial) {
-			return SPECIAL_MAPPING.get(typeString);
-		}
-		return null;
+		return defaulting(REGULAR_MAP.get(typeString), () -> allowSpecial ? SPECIAL_MAPPING.get(typeString) : null);
 	}
 
 	/**
@@ -196,14 +198,15 @@ public enum PrimitiveType implements IType {
 	 * @return the type
 	 */
 	public static PrimitiveType correspondingToInstance(final Object value) {
-		return
+		return (
 			value instanceof String ? STRING :
 			value instanceof Number ? INT :
 			value instanceof Boolean ? BOOL :
 			value instanceof ID ? ID :
 			value instanceof Array ? ARRAY :
 			value instanceof Map<?, ?> ? PROPLIST :
-			ANY;
+			ANY
+		);
 	}
 
 	/**

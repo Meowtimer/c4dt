@@ -4,19 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import net.arctics.clonk.c4script.BuiltInDefinitions;
-import net.arctics.clonk.c4script.Directive;
-import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.c4script.Keywords;
-import net.arctics.clonk.c4script.typing.PrimitiveType;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.ui.editors.StructureTextScanner;
-import net.arctics.clonk.ui.editors.WhitespaceDetector;
-import net.arctics.clonk.ui.editors.ColorManager;
-import net.arctics.clonk.ui.editors.CombinedWordRule;
-import net.arctics.clonk.ui.editors.PragmaRule;
-import net.arctics.clonk.ui.editors.WordScanner;
+import java.util.Map.Entry;
 
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
@@ -24,6 +12,19 @@ import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
+
+import net.arctics.clonk.c4script.BuiltInDefinitions;
+import net.arctics.clonk.c4script.Directive;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.c4script.Keywords;
+import net.arctics.clonk.c4script.typing.PrimitiveType;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.ui.editors.ColorManager;
+import net.arctics.clonk.ui.editors.CombinedWordRule;
+import net.arctics.clonk.ui.editors.PragmaRule;
+import net.arctics.clonk.ui.editors.StructureTextScanner;
+import net.arctics.clonk.ui.editors.WhitespaceDetector;
+import net.arctics.clonk.ui.editors.WordScanner;
 
 public class ScriptCodeScanner extends StructureTextScanner {
 
@@ -50,9 +51,11 @@ public class ScriptCodeScanner extends StructureTextScanner {
 		 * @return <code>true</code> if the character is an operator, <code>false</code> otherwise.
 		 */
 		public boolean isOperator(final char character) {
-			for (int index= 0; index < CLONK_OPERATORS.length; index++)
-				if (CLONK_OPERATORS[index] == character)
+			for (final char element : CLONK_OPERATORS) {
+				if (element == character) {
 					return true;
+				}
+			}
 			return false;
 		}
 
@@ -69,14 +72,14 @@ public class ScriptCodeScanner extends StructureTextScanner {
 					scanner.unread();
 					scanner.unread();
 					return Token.UNDEFINED;
-				}
-				else
+				} else {
 					scanner.unread();
+				}
 			}
 			if (isOperator(character)) {
-				do
+				do {
 					character = (char) scanner.read();
-				while (isOperator(character));
+				} while (isOperator(character));
 				scanner.unread();
 				return fToken;
 			} else {
@@ -85,18 +88,18 @@ public class ScriptCodeScanner extends StructureTextScanner {
 			}
 		}
 	}
-	
+
 	public static Map<String,IToken> fTokenMap= new HashMap<String, IToken>();
-	
+
 	public ScriptCodeScanner(final ColorManager manager, final Engine engine) {
 		super(manager, engine, "DEFAULT");
 	}
-	
+
 	@Override
 	protected void commitRules(final ColorManager manager, final Engine engine) {
-		
+
 		final IToken defaultToken = createToken(manager, "DEFAULT"); //$NON-NLS-1$
-		
+
 		final IToken operator = createToken(manager, "OPERATOR"); //$NON-NLS-1$
 		final IToken keyword = createToken(manager, "KEYWORD"); //$NON-NLS-1$
 		final IToken type = createToken(manager, "TYPE"); //$NON-NLS-1$
@@ -107,12 +110,12 @@ public class ScriptCodeScanner extends StructureTextScanner {
 		final IToken bracket = createToken(manager, "BRACKET"); //$NON-NLS-1$
 		final IToken returnToken = createToken(manager, "RETURN"); //$NON-NLS-1$
 		final IToken directive = createToken(manager, "DIRECTIVE"); //$NON-NLS-1$
-		
+
 		final List<IRule> rules = new ArrayList<IRule>();
-		
+
 		// string
 		rules.add(new SingleLineRule("\"", "\"", string, '\\')); //$NON-NLS-1$ //$NON-NLS-2$
-		
+
 		// Add generic whitespace rule.
 		rules.add(new WhitespaceRule(new WhitespaceDetector()));
 
@@ -124,32 +127,38 @@ public class ScriptCodeScanner extends StructureTextScanner {
 
 		final WordScanner wordDetector = new WordScanner();
 		final CombinedWordRule combinedWordRule = new CombinedWordRule(wordDetector, defaultToken);
-		
+
 		// Add word rule for keyword 'return'.
 		final CombinedWordRule.WordMatcher returnWordRule = new CombinedWordRule.WordMatcher();
-		returnWordRule.addWord(Keywords.Return, returnToken);  
+		returnWordRule.addWord(Keywords.Return, returnToken);
 		combinedWordRule.addWordMatcher(returnWordRule);
 
 		// Add word rule for keywords, types, and constants.
 		final CombinedWordRule.WordMatcher wordRule= new CombinedWordRule.WordMatcher();
-		for (final String k : BuiltInDefinitions.KEYWORDS)
+		for (final String k : BuiltInDefinitions.KEYWORDS) {
 			wordRule.addWord(k.trim(), keyword);
-		for (final String k : BuiltInDefinitions.DECLARATORS)
+		}
+		for (final String k : BuiltInDefinitions.DECLARATORS) {
 			wordRule.addWord(k.trim(), keyword);
-		for (final PrimitiveType t : PrimitiveType.values()) 
-			if (t != PrimitiveType.UNKNOWN && engine.supportsPrimitiveType(t))
-				wordRule.addWord(t.typeName(false).trim().toLowerCase(), type);
-		for (final Function func : engine.functions())
+		}
+		for (final Entry<String, PrimitiveType> entry : PrimitiveType.REGULAR_MAP.entrySet()) {
+			if (entry.getValue() != PrimitiveType.UNKNOWN && engine.supportsPrimitiveType(entry.getValue())) {
+				wordRule.addWord(entry.getKey(), type);
+			}
+		}
+		for (final Function func : engine.functions()) {
 			wordRule.addWord(func.name(), engineFunction);
-		for (final String c : engine.settings().callbackFunctions())
+		}
+		for (final String c : engine.settings().callbackFunctions()) {
 			wordRule.addWord(c, objCallbackFunction);
-		
-		
+		}
+
+
 		combinedWordRule.addWordMatcher(wordRule);
 		rules.add(combinedWordRule);
 		rules.add(new PragmaRule(Directive.arrayOfDirectiveStrings(), directive));
 		rules.add(new NumberRule(number));
-		
+
 		setRules(rules.toArray(new IRule[rules.size()]));
 	}
 

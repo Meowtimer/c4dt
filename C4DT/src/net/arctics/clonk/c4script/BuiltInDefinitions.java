@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BuiltInDefinitions {
+
 	public static final List<String> KEYWORDS = Arrays.asList(
 		Keywords.Break,
 		Keywords.Continue,
