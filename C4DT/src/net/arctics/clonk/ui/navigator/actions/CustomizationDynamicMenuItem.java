@@ -50,16 +50,16 @@ public class CustomizationDynamicMenuItem extends ContributionItem {
 							// ignore any '.'-files
 							if (stream(path.segments()).anyMatch(s -> s.startsWith(".")))
 								return;
-							final MenuItem mi = new MenuItem(menu, SWT.RADIO);
-							mi.setText(path.toOSString());
-							mi.addSelectionListener(this);
-							mi.setData(URL_PROP, url);
-							mi.setData(PATH_PROP, path);
+							final MenuItem menuItem = new MenuItem(menu, SWT.RADIO);
+							menuItem.setText(path.toOSString());
+							menuItem.addSelectionListener(this);
+							menuItem.setData(URL_PROP, url);
+							menuItem.setData(PATH_PROP, path);
 						});
 					else {
-						final MenuItem mi = new MenuItem(menu, SWT.RADIO);
-						mi.setEnabled(false);
-						mi.setText(Messages.CustomizationDynamicMenuItem_SelectTopLevelEngineFolder);
+						final MenuItem menuItem = new MenuItem(menu, SWT.RADIO);
+						menuItem.setEnabled(false);
+						menuItem.setText(Messages.CustomizationDynamicMenuItem_SelectTopLevelEngineFolder);
 					}
 				}
 			}
