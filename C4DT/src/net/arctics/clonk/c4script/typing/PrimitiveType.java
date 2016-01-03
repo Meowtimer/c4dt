@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.omg.CORBA.UNKNOWN;
-
 import net.arctics.clonk.Core;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IDeserializationResolvable;
