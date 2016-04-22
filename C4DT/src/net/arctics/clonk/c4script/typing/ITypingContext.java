@@ -39,7 +39,7 @@ public interface ITypingContext {
 	 * @param mode Judgement mode.
 	 * @return Whether judgement was in some way some successful.
 	 */
-	boolean judgment(ASTNode node, IType type, TypingJudgementMode mode);
+	boolean judgement(ASTNode node, IType type, TypingJudgementMode mode);
 	/**
 	 * Create a marker pointing out some type incompatibility at a node.
 	 * @param node The node at which the incompatibility is to be marked

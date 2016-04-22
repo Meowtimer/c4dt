@@ -47,7 +47,7 @@ public final class NullProblemReportingStrategy extends ProblemReportingStrategy
 		@Override
 		public <T extends AccessDeclaration> Declaration obtainDeclaration(T access) { return null; }
 		@Override
-		public boolean judgment(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
+		public boolean judgement(ASTNode node, IType type, TypingJudgementMode mode) { return false; }
 		@Override
 		public void incompatibleTypesMarker(ASTNode node, IRegion region, IType left, IType right) {}
 		@Override

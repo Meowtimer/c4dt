@@ -642,7 +642,7 @@ public abstract class SpecialEngineRules {
 						if (processor.script().typing().unifyNoChoice(parmType, givenType) == null)
 							processor.incompatibleTypesMarker(node, given, parmType, processor.typeOf(given));
 						else
-							processor.judgment(given, parmType, TypingJudgementMode.UNIFY);
+							processor.judgement(given, parmType, TypingJudgementMode.UNIFY);
 					}
 					return true;
 				}

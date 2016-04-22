@@ -49,7 +49,7 @@ public class TypeUtil {
 			@Override
 			public Markers markers() { return null; }
 			@Override
-			public boolean judgment(final ASTNode node, final IType type, final TypingJudgementMode mode) { return false; }
+			public boolean judgement(final ASTNode node, final IType type, final TypingJudgementMode mode) { return false; }
 			@Override
 			public void incompatibleTypesMarker(final ASTNode node, final IRegion region, final IType left, final IType right) {}
 			@Override
