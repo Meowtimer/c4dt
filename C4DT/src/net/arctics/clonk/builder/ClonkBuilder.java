@@ -56,6 +56,7 @@ public class ClonkBuilder extends IncrementalProjectBuilder {
 	private IProgressMonitor monitor;
 	private ClonkProjectNature nature;
 	private final Map<Script, ScriptParser> parserMap = new HashMap<Script, ScriptParser>();
+
 	/**
 	 * Set of structures that have been validated during one build round - keeping track of them so when parsing dependent scripts, scripts that might lose some warnings
 	 * due to structure files having been revalidated can also be reparsed (string tables and such)
