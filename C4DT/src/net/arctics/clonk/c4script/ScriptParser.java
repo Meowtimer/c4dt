@@ -1512,41 +1512,45 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						} else {
 							seek(backtrack);
 						}
-					} else if (word.equals(Keywords.Func)) {
-						seek(beforeElement);
-						final FunctionHeader functionHeader = FunctionHeader.parse(this, false, true);
-						if (functionHeader != null) {
-							final Function function = parseFunctionDeclaration(functionHeader, null);
+					} else {
+
+						// anonymous function in this block so if no function header recognized will treat 'func' as regular identifier?
+						if (word.equals(Keywords.Func)) {
+							final int backtrack = this.offset;
+							seek(beforeElement); // function header wants to look at the 'func'
+							final FunctionHeader functionHeader = FunctionHeader.parse(this, false, true);
+							final Function function = functionHeader != null ? parseFunctionDeclaration(functionHeader, null) : null;
 							if (function != null) {
 								elm = function;
-							}
-						} else {
-							readIdent();
-							elm = new GarbageStatement(this.readStringAt(beforeElement, this.offset), beforeElement);
-						}
-					} else {
-						final int bt = this.offset;
-						this.eatWhitespace();
-						if (read() == '(') {
-							final int s = this.offset;
-							// function call
-							final List<ASTNode> args = new LinkedList<ASTNode>();
-							parseRestOfTuple(args);
-							CallDeclaration callFunc;
-							final ASTNode[] a = args.toArray(new ASTNode[args.size()]);
-							if (word.equals(Keywords.Inherited)) {
-								callFunc = new CallInherited(false, a);
-							} else if (word.equals(Keywords.SafeInherited)) {
-								callFunc = new CallInherited(true, a);
 							} else {
-								callFunc = new CallDeclaration(word, a);
+								seek(backtrack);
 							}
-							callFunc.setParmsRegion(s-sectionOffset(), this.offset-1-sectionOffset());
-							elm = callFunc;
-						} else {
-							this.seek(bt);
-							// variable
-							elm = new AccessVar(word);
+						}
+
+						if (elm == null) {
+							final int backtrack = this.offset;
+							this.eatWhitespace();
+							if (read() == '(') {
+								final int s = this.offset;
+								// function call
+								final List<ASTNode> args = new LinkedList<ASTNode>();
+								parseRestOfTuple(args);
+								CallDeclaration callFunc;
+								final ASTNode[] a = args.toArray(new ASTNode[args.size()]);
+								if (word.equals(Keywords.Inherited)) {
+									callFunc = new CallInherited(false, a);
+								} else if (word.equals(Keywords.SafeInherited)) {
+									callFunc = new CallInherited(true, a);
+								} else {
+									callFunc = new CallDeclaration(word, a);
+								}
+								callFunc.setParmsRegion(s-sectionOffset(), this.offset-1-sectionOffset());
+								elm = callFunc;
+							} else {
+								this.seek(backtrack);
+								// variable
+								elm = new AccessVar(word);
+							}
 						}
 					}
 				}
