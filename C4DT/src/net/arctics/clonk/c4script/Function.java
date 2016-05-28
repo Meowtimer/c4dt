@@ -746,7 +746,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			}
 			output.append(" "); //$NON-NLS-1$
 		}
-		output.append(name());
+		if (!isAnonymous()) {
+			output.append(name());
+		}
 		if (!oldStyle) {
 			output.append("("); //$NON-NLS-1$
 			typing();
