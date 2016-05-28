@@ -195,11 +195,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			if (script.index() instanceof ProjectIndex) {
 				final ProjectIndex projIndex = (ProjectIndex) script.index();
 				final ClonkProjectNature nature = projIndex.nature();
-				if (nature != null)
+				if (nature != null) {
 					migrationTyping = nature.settings().migrationTyping;
+				}
 			}
-			if (typing.allowsNonParameterAnnotations() || migrationTyping != null)
+			if (typing.allowsNonParameterAnnotations() || migrationTyping != null) {
 				typeAnnotations = new ArrayList<TypeAnnotation>();
+			}
 		}
 	}
 
@@ -231,12 +233,14 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	private void filterLocalTypeAnnotations() {
-		if (typeAnnotations == null)
+		if (typeAnnotations == null) {
 			return;
+		}
 		for (final Iterator<TypeAnnotation> it = typeAnnotations.iterator(); it.hasNext();) {
 			final TypeAnnotation annot = it.next();
-			if (annot.parent() != script() && annot.parent(Script.class) == script())
+			if (annot.parent() != script() && annot.parent(Script.class) == script()) {
 				it.remove();
+			}
 		}
 	}
 
@@ -253,16 +257,20 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		String s;
 		Number number;
 		ID id;
-		if ((id = parseID()) != null)
+		if ((id = parseID()) != null) {
 			return id.stringValue();
-		if ((s = parseString()) != null)
+		}
+		if ((s = parseString()) != null) {
 			return '"'+s+'"';
-		if ((s = parseIdentifier()) != null)
+		}
+		if ((s = parseIdentifier()) != null) {
 			return s;
-		if ((number = parseNumber()) != null)
+		}
+		if ((number = parseNumber()) != null) {
 			return String.valueOf(number);
-		else
+		} else {
 			return String.valueOf((char)read());
+		}
 	}
 
 	/**
@@ -275,8 +283,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			parseInitialSourceComment();
 			eatWhitespace();
 			while (!reachedEOF()) {
-				if (parseDeclaration() == null)
+				if (parseDeclaration() == null) {
 					readUnexpectedBlock();
+				}
 				eatWhitespace();
 			}
 		}
@@ -313,10 +322,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private void parseInitialSourceComment() {
 		eat(WHITESPACE_CHARS);
 		Comment sourceComment = null;
-		for (Comment c; (c = parseComment()) != null;)
+		for (Comment c; (c = parseComment()) != null;) {
 			sourceComment = c;
+		}
 		if (sourceComment != null)
+		 {
 			script.setSourceComment(sourceComment.text().replaceAll("\\r?\\n", "<br/>")); //$NON-NLS-1$ //$NON-NLS-2$
+		}
 	}
 
 	/**
@@ -327,8 +339,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	public void validate() throws ProblemException {
 		this.currentDeclaration = null;
-		for (final Directive directive : script.directives())
+		for (final Directive directive : script.directives()) {
 			directive.validate(this);
+		}
 		distillAdditionalInformation();
 	}
 
@@ -343,8 +356,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			final Variable nameLocal = script.findLocalVariable("Name", false); //$NON-NLS-1$
 			if (nameLocal != null) {
 				final ASTNode expr = nameLocal.initializationExpression();
-				if (expr != null)
+				if (expr != null) {
 					obj.setName(expr.evaluateStatic(nameLocal.initializationExpression().parent(Function.class)).toString());
+				}
 			}
 		}
 	}
@@ -357,8 +371,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private void parseFunctionBody(final Function function) throws ProblemException {
 		try {
 			final int bodyStart = this.offset;
-			if (!function.staticallyTyped())
+			if (!function.staticallyTyped()) {
 				function.assignType(PrimitiveType.UNKNOWN, false);
+			}
 
 			// reset local vars
 			function.resetLocalVarTypes();
@@ -375,8 +390,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			);
 			function.storeBody(body, functionSource(function));
 			final TypeAnnotation annot = function.typeAnnotation();
-			if (annot != null)
+			if (annot != null) {
 				annot.offsetLocation(-loc.start());
+			}
 		} catch (final Exception e) {
 			function.storeBody(new FunctionBody(function), functionSource(function));
 		}
@@ -395,8 +411,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		final int offset = this.offset;
 		final Comment c = super.parseComment();
 		if (c != null) {
-			if (lastComment != null && lastComment.precedesOffset(offset, buffer))
+			if (lastComment != null && lastComment.precedesOffset(offset, buffer)) {
 				c.previousComment = lastComment;
+			}
 			setRelativeLocation(c, offset, this.offset);
 			c.setAbsoluteOffset(offset);
 			lastComment = c;
@@ -419,17 +436,20 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		final int rewind = this.offset;
 
 		final Declaration directive = parseDirective();
-		if (directive != null)
+		if (directive != null) {
 			return directive;
+		}
 
 		final FunctionHeader funHeader = FunctionHeader.parse(this, true);
 		if (funHeader != null) {
-			if (funHeader.scope == FunctionScope.GLOBAL && script().hasAppendTo())
+			if (funHeader.scope == FunctionScope.GLOBAL && script().hasAppendTo()) {
 				error(Problem.GlobalFunctionInAppendTo, funHeader.nameStart, funHeader.nameStart + funHeader.name.length(),
 					Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, funHeader.name);
+			}
 			final Function f = parseFunctionDeclaration(funHeader);
-			if (f != null)
+			if (f != null) {
 				return f;
+			}
 		}
 
 		final String word = readIdent();
@@ -437,9 +457,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		if (scope != null) {
 			final List<VarInitialization> vars = parseVariableDeclaration(true, scope, collectPrecedingComment(rewind));
 			if (vars != null) {
-				for (final VarInitialization vi : vars)
-					if (vi.expression != null)
+				for (final VarInitialization vi : vars) {
+					if (vi.expression != null) {
 						synthesizeInitializationFunction(vi);
+					}
+				}
 				return new Variables(vars);
 			}
 		}
@@ -465,8 +487,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			result.setLocation(s, this.offset);
 		}
 		else {
-			if (type == DirectiveType.STRICT && !engine.settings().supportsStrictDirective)
+			if (type == DirectiveType.STRICT && !engine.settings().supportsStrictDirective) {
 				error(Problem.NotSupported, s, this.offset, Markers.NO_THROW, "#"+DirectiveType.STRICT, engine.name());
+			}
 			eat(WHITESPACE_WITHOUT_NEWLINE_CHARS);
 			final int cs = offset;
 			final String content = parseDirectiveParms();
@@ -485,8 +508,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		vi.expression.traverse((node, parser) -> {
 			node.setLocation(node.start()-es, node.end()-es);
 			final CallDeclaration cd = as(node, CallDeclaration.class);
-			if (cd != null)
+			if (cd != null) {
 				cd.setParmsRegion(cd.parmsStart()-es, cd.parmsEnd()-es);
+			}
 			return TraversalContinuation.Continue;
 		}, null);
 		synth.setBodyLocation(expressionLocation);
@@ -516,6 +540,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		public final IType returnType;
 		public final TypeAnnotation typeAnnotation;
 		public final Comment desc;
+
 		public FunctionHeader(final int start, final String name, final FunctionScope scope, final boolean isOldStyle, final int nameStart, final IType returnType, final TypeAnnotation typeAnnotation, final Comment desc) {
 			super();
 			this.start = start;
@@ -527,6 +552,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			this.typeAnnotation = typeAnnotation;
 			this.desc = desc;
 		}
+
 		public static FunctionHeader parse(final ScriptParser parser, final boolean allowOldStyle) throws ProblemException {
 			final Comment desc = parser.collectPrecedingComment(parser.offset);
 			final int initialOffset = parser.offset;
@@ -542,9 +568,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					parser.eatWhitespace();
 					nameStart = parser.offset;
 					s = parser.parseIdentifier();
-				} else
+				} else {
 					scope = FunctionScope.PUBLIC;
-				if (s != null)
+				}
+				if (s != null) {
 					if (s.equals(Keywords.Func)) {
 						parser.eatWhitespace();
 						final int bt = parser.offset;
@@ -585,20 +612,25 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						name = s;
 						isOldStyle = true;
 					}
-				if (name != null && (allowOldStyle || !isOldStyle))
+				}
+				if (name != null && (allowOldStyle || !isOldStyle)) {
 					if (isOldStyle) {
 						final int backtrack = parser.offset;
 						parser.eatWhitespace();
 						final boolean isProperLabel = parser.read() == ':' && parser.read() != ':';
 						parser.seek(backtrack);
-						if (isProperLabel)
+						if (isProperLabel) {
 							return new FunctionHeader(initialOffset, s, scope, true, nameStart, returnType, typeAnnotation, desc);
-					} else if (parser.peekAfterWhitespace() == '(')
+						}
+					} else if (parser.peekAfterWhitespace() == '(') {
 						return new FunctionHeader(initialOffset, name, scope, false, nameStart, returnType, typeAnnotation, desc);
+					}
+				}
 			}
 			parser.seek(initialOffset);
 			return null;
 		}
+
 		public void apply(final Function func) {
 			func.setOldStyle(isOldStyle);
 			func.setName(name);
@@ -607,9 +639,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			if (typeAnnotation != null) {
 				typeAnnotation.setTarget(func);
 				func.setTypeAnnotation(typeAnnotation);
-			} else
+			} else {
 				func.assignType(returnType, returnType != null);
+			}
 		}
+
 	}
 
 	private List<VarInitialization> parseVariableDeclaration(final boolean checkForFinalSemicolon, final Scope initialScope, final Comment comment) throws ProblemException {
@@ -619,8 +653,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			int rewind = this.offset;
 			do {
 				final VarInitialization vi = parseVarInitialization(scope, comment);
-				if (vi == null)
+				if (vi == null) {
 					break;
+				}
 				createdVariables.add(vi);
 				rewind = this.offset;
 				eatWhitespace();
@@ -647,8 +682,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		String inlineComment = textOfInlineComment();
 		if (inlineComment != null) {
 			inlineComment = inlineComment.trim();
-			for (final VarInitialization v : createdVariables)
+			for (final VarInitialization v : createdVariables) {
 				v.variable.setUserDescription(inlineComment);
+			}
 		}
 	}
 
@@ -657,10 +693,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		case STATIC:
 			final int pos = this.offset;
 			eatWhitespace();
-			if (readIdent().equals(Keywords.Const))
+			if (readIdent().equals(Keywords.Const)) {
 				return Scope.CONST;
-			else
+			} else {
 				this.seek(pos);
+			}
 			break;
 		case VAR:
 			if (currentFunction == null) {
@@ -686,25 +723,28 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		int typeExpectedAt = -1;
 		if (typing.allowsNonParameterAnnotations()) {
 			annot = parseTypeAnnotation(true, false);
-			if (annot != null)
+			if (annot != null) {
 				eatWhitespace();
-			else if (typing == Typing.STATIC) {
+			} else if (typing == Typing.STATIC) {
 				typeExpectedAt = this.offset;
 				annot = typeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
-			} else
+			} else {
 				annot = null;
-		} else
+			}
+		} else {
 			annot = placeholderTypeAnnotationIfMigrating(this.offset);
+		}
 
 		final int s = this.offset;
 		String varName = readIdent();
-		if (s > bt)
+		if (s > bt) {
 			if (varName.length() == 0) {
 				if (typing == Typing.STATIC) {
 					annot = typeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
 					error(Problem.TypeExpected, bt, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
-				} else
+				} else {
 					annot = null;
+				}
 				seek(bt);
 				varName = readIdent();
 			} else if (migrationTyping == Typing.STATIC && varName.equals(Keywords.In)) {
@@ -713,12 +753,14 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				seek(bt);
 				varName = readIdent();
 			}
+		}
 		if (varName.length() == 0) {
 			this.seek(backtrack);
 			return null;
 		}
-		else if (typeExpectedAt != -1)
+		else if (typeExpectedAt != -1) {
 			typeRequiredAt(typeExpectedAt);
+		}
 
 		final Declaration outerDec = currentDeclaration();
 		try {
@@ -726,10 +768,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				fragmentOffset()+bt, fragmentOffset()+this.offset, comment);
 			if (annot != null) {
 				annot.setTarget(var);
-				if (var.scope() == Scope.PARAMETER)
+				if (var.scope() == Scope.PARAMETER) {
 					error(Problem.LocalOverridesParameter, s, s+var.name().length(), Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, var.name());
-				else
+				} else {
 					var.assignType(annot.type(), true);
+				}
 			}
 			this.currentDeclaration = var;
 			eatWhitespace();
@@ -747,17 +790,20 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private ASTNode parseInitializationExpression(final Variable var) throws ProblemException {
 		final Variable.Scope scope = var.scope();
 		if (peek() == '=') {
-			if (scope != Variable.Scope.CONST && currentFunction == null && !engine.settings().supportsNonConstGlobalVarAssignment)
+			if (scope != Variable.Scope.CONST && currentFunction == null && !engine.settings().supportsNonConstGlobalVarAssignment) {
 				error(Problem.NonConstGlobalVarAssignment, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
+			}
 			read();
 			eatWhitespace();
 			final ASTNode e = parseExpression();
 			var.setInitializationExpression(e);
 			return e;
-		} else if (scope == Scope.CONST && script != engine)
+		} else if (scope == Scope.CONST && script != engine) {
 			error(Problem.ConstantValueExpected, this.offset-1, this.offset, Markers.NO_THROW);
-		else if (scope == Scope.STATIC && script == engine)
+		} else if (scope == Scope.STATIC && script == engine)
+		 {
 			var.forceType(PrimitiveType.INT); // most likely
+		}
 		return null;
 	}
 
@@ -788,9 +834,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		TypeAnnotation t = null;
 		ID id;
 		if (peek() == '&') {
-			if (!script.engine().settings().supportsRefs)
+			if (!script.engine().settings().supportsRefs) {
 				error(Problem.PrimitiveTypeNotSupported, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW,
 					'&', script.engine().name());
+			}
 			read();
 			t = typeAnnotation(offset-1, offset, PrimitiveType.REFERENCE);
 		}
@@ -801,19 +848,21 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		}
 		else if ((str = parseIdentifier()) != null || ((id = parseID()) != null && (str = id.stringValue()) != null)) {
 			final PrimitiveType pt = PrimitiveType.fromString(str, typing==Typing.STATIC);
-			if (pt != null && script.engine().supportsPrimitiveType(pt))
+			if (pt != null && script.engine().supportsPrimitiveType(pt)) {
 				/* give explicit parameter types authority boost -
 				 * they won't unify with Definitions so that parameters
 				 * explicitly accepting any object won't be restricted to specific
 				 * definitions
 				 */
 				t = typeAnnotation(start, offset, pt.unified());
-			else if (typing.allowsNonParameterAnnotations())
+			} else if (typing.allowsNonParameterAnnotations()) {
 				if (script.index() != null && engine.acceptsID(str)) {
 					final Definition def = script.index().definitionNearestTo(script.file(), ID.get(str));
-					if (def != null)
+					if (def != null) {
 						t = typeAnnotation(start, offset, def);
+					}
 				}
+			}
 			if (t != null) {
 				final List<TypeAnnotation> subAnnotations = new LinkedList<>();
 				final int p = offset;
@@ -823,20 +872,23 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					t = typeAnnotation(start, offset, ReferenceType.make(t.type()));
 					break;
 				case '[':
-					if (typing == Typing.STATIC || migrationTyping == Typing.STATIC)
+					if (typing == Typing.STATIC || migrationTyping == Typing.STATIC) {
 						eatWhitespace();
+					}
 					final TypeAnnotation elementType = parseTypeAnnotation(false, true);
 					expect(']');
 					if (elementType != null) {
 						subAnnotations.add(elementType);
-						if (eq(t.type(), PrimitiveType.ARRAY))
+						if (eq(t.type(), PrimitiveType.ARRAY)) {
 							t.setType(new ArrayType(elementType.type()));
-						else if (eq(t.type(), PrimitiveType.ID))
-							if (elementType.type() instanceof Definition)
+						} else if (eq(t.type(), PrimitiveType.ID)) {
+							if (elementType.type() instanceof Definition) {
 								t.setType(((Definition)elementType.type()).metaDefinition());
-							else
+							} else {
 								error(Problem.IncompatibleTypes, elementType.start(), elementType.end(), Markers.NO_THROW,
 									elementType.type().typeName(true), "definition");
+							}
+						}
 					}
 					break RefinementIndicator;
 				default:
@@ -848,34 +900,39 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					if (read() != '|') {
 						seek(s);
 						break;
-					} else
+					} else {
 						eatWhitespace();
+					}
 					final TypeAnnotation option = parseTypeAnnotation(false, true);
 					if (option != null) {
 						subAnnotations.add(option);
 						t.setType(typing.unify(t.type(), option.type()));
-					}
-					else
+					} else {
 						break;
+					}
 					eatWhitespace();
 				}
 				t.setSubAnnotations(subAnnotations.toArray(new TypeAnnotation[subAnnotations.size()]));
-				if (typeAnnotations != null && topLevel)
+				if (typeAnnotations != null && topLevel) {
 					typeAnnotations.add(t);
+				}
 			}
 		}
 		if (t == null) {
-			if (typing == Typing.STATIC || migrationTyping == Typing.STATIC)
+			if (typing == Typing.STATIC || migrationTyping == Typing.STATIC) {
 				if (required) {
 					error(Problem.InvalidType, start, offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, readStringAt(start, offset));
 					return typeAnnotation(start, offset, new ErroneousType(readStringAt(start, offset)));
 				}
-				else if (topLevel && typeAnnotations != null && (sectionOffset() == 0 || migrationTyping != null))
+				else if (topLevel && typeAnnotations != null && (sectionOffset() == 0 || migrationTyping != null)) {
 					// placeholder annotation
 					placeholderTypeAnnotation(start);
+				}
+			}
 			this.seek(start);
-		} else
+		} else {
 			t.setEnd(-sectionOffset()+offset);
+		}
 		return t;
 	}
 
@@ -889,8 +946,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		int endOfHeader;
 		eatWhitespace();
 		setCurrentFunction(null);
-		if (header.isOldStyle)
+		if (header.isOldStyle) {
 			warning(Problem.OldStyleFunc, header.nameStart, header.nameStart+header.name.length(), 0);
+		}
 		Function func;
 		setCurrentFunction(func = newFunction(header.name));
 		header.apply(func);
@@ -903,7 +961,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			break;
 		case ':':
 			if (header.isOldStyle)
+			 {
 				break; // old-style funcs have no named parameters
+			}
 			//$FALL-THROUGH$
 		default:
 			tokenExpectedError("("); //$NON-NLS-1$
@@ -912,30 +972,34 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		endOfHeader = this.offset;
 		lastComment = null;
 		eatWhitespace();
-		if (lastComment != null)
+		if (lastComment != null) {
 			func.setUserDescription(lastComment.text());
+		}
 
 		// check initial opening bracket which is mandatory for NET2 funcs
 		final int token = read();
 		boolean parseBody = true;
-		if (token != '{')
-			if (typing == Typing.STATIC && token == ';')
+		if (token != '{') {
+			if (typing == Typing.STATIC && token == ';') {
 				parseBody = false;
-			else if (!header.isOldStyle)
+			} else if (!header.isOldStyle) {
 				tokenExpectedError("{"); //$NON-NLS-1$
-			else
+			} else {
 				unread();
+			}
+		}
 
 		// body
-		if (parseBody)
+		if (parseBody) {
 			parseFunctionBody(func);
-		else
+		} else {
 			func.setBodyLocation(null);
+		}
 		int funEnd = this.offset;
 		eatWhitespace();
-		if (header.desc != null)
+		if (header.desc != null) {
 			header.desc.applyDocumentation(func);
-		else {
+		} else {
 			// look for comment in the same line as the closing '}' which is common for functions packed into one line
 			// hopefully there won't be multi-line functions with such a comment attached at the end
 			final Comment c = commentImmediatelyFollowing();
@@ -949,8 +1013,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		func.setLocation(absoluteSourceLocation(header.start, funEnd));
 		func.setHeader(absoluteSourceLocation(header.start, endOfHeader));
 		final Function existing = script.findLocalFunction(func.name(), false);
-		if (existing != null && existing.isGlobal() == func.isGlobal())
+		if (existing != null && existing.isGlobal() == func.isGlobal()) {
 			warning(Problem.DuplicateDeclaration, func, Markers.ABSOLUTE_MARKER_LOCATION, func.name());
+		}
 		script.addDeclaration(func);
 		setCurrentFunction(null); // to not suppress errors in-between functions
 		return func;
@@ -970,25 +1035,30 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			if (parm != null) {
 				if (parameterCommentPre != null || parameterCommentPost != null) {
 					final StringBuilder commentBuilder = new StringBuilder(30);
-					if (parameterCommentPre != null)
+					if (parameterCommentPre != null) {
 						commentBuilder.append(parameterCommentPre.text());
+					}
 					if (parameterCommentPost != null) {
 						if (parameterCommentPre != null)
+						 {
 							commentBuilder.append("\n"); //$NON-NLS-1$
+						}
 						commentBuilder.append(parameterCommentPost.text());
 					}
 					parm.setUserDescription(commentBuilder.toString());
 				}
-			} else if (parmExpected)
+			} else if (parmExpected) {
 				error(Problem.NameExpected, this.offset, offset+1, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION);
+			}
 			parmExpected = false;
 			final int readByte = read();
-			if (readByte == ')')
+			if (readByte == ')') {
 				break; // all parameters parsed
-			else if (readByte == ',')
+			} else if (readByte == ',') {
 				parmExpected = true;
-			else
+			} else {
 				error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, (char)readByte);
+			}
 		} while(!reachedEOF());
 	}
 
@@ -998,12 +1068,14 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return The newly created function. Might be of some special class.
 	 */
 	protected Function newFunction(final String nameWillBe) {
-		if (specialEngineRules != null)
+		if (specialEngineRules != null) {
 			for (final SpecialFuncRule funcRule : specialEngineRules.defaultParmTypeAssignerRules()) {
 				final Function f = funcRule.newFunction(nameWillBe);
-				if (f != null)
+				if (f != null) {
 					return f;
+				}
 			}
+		}
 		return new Function();
 	}
 
@@ -1018,8 +1090,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		this.eat(BufferedScanner.WHITESPACE_WITHOUT_NEWLINE_CHARS);
 		if (this.eat(BufferedScanner.NEWLINE_CHARS) == 0) {
 			final Comment c = parseComment();
-			if (c != null)
+			if (c != null) {
 				return c.text();
+			}
 		}
 		this.seek(pos);
 		return null;
@@ -1036,7 +1109,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			Number number;
 			offset += 2;
 			int count = 0;
-			if (isHex)
+			if (isHex) {
 				do {
 					final int readByte = read();
 					if (
@@ -1054,10 +1127,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							number = Long.parseLong(this.readString(count), 16);
 							this.seek(offset+count);
 							return number;
-						} else
+						} else {
 							return null;
+						}
 					}
 				} while(!reachedEOF());
+			}
 			return null;
 		}
 	}
@@ -1080,28 +1155,31 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			}
 			else {
 				unread();
-				if (count > 0)
+				if (count > 0) {
 					break;
-				else
+				}
+				else {
 					return null; // well, this seems not to be a number at all
+				}
 			}
 		} while(!reachedEOF());
 		this.seek(offset);
 		final String numberString = this.readString(count);
-		if (floatingPoint)
+		if (floatingPoint) {
 			try {
 				number = Double.parseDouble(numberString);
 			} catch (final NumberFormatException e) {
 				number = Double.MAX_VALUE;
 				error(Problem.NotANumber, offset, offset+count, Markers.NO_THROW, numberString);
 			}
-		else
+		} else {
 			try {
 				number = Long.parseLong(numberString);
 			} catch (final NumberFormatException e) {
 				number = Integer.MAX_VALUE;
 				error(Problem.NotANumber, offset, offset+count, Markers.NO_THROW, numberString);
 			}
+		}
 		this.seek(offset+count);
 		return number;
 	}
@@ -1109,8 +1187,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private boolean parseEllipsis() {
 		final int offset = this.offset;
 		final String e = this.readString(3);
-		if (e != null && e.equals("...")) //$NON-NLS-1$
+		if (e != null && e.equals("...")) {
 			return true;
+		}
 		this.seek(offset);
 		return false;
 	}
@@ -1118,19 +1197,20 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private String parseMemberOperator() throws ProblemException {
 		int savedOffset = this.offset;
 		final int firstChar = read();
-		if (firstChar == '.')
+		if (firstChar == '.') {
 			return "."; //$NON-NLS-1$
-		else if (firstChar == '-')
+		} else if (firstChar == '-') {
 			if (read() == '>') {
 				savedOffset = this.offset;
 				eatWhitespace();
-				if (read() == '~')
+				if (read() == '~') {
 					return "->~"; //$NON-NLS-1$
-				else {
+				} else {
 					this.seek(savedOffset);
 					return "->"; //$NON-NLS-1$
 				}
 			}
+		}
 		this.seek(savedOffset);
 		return null;
 	}
@@ -1159,16 +1239,20 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	private Operator parseOperator() {
 		Operator best = null;
-		if (offset + 2 < size && buffer[offset] == '-' && buffer[offset+1] == '>')
+		if (offset + 2 < size && buffer[offset] == '-' && buffer[offset+1] == '>') {
 			return null;
+		}
 		OpLoop: for (final Operator op : Operator.values()) {
 			final String n = op.operatorName();
 			if (offset+n.length() <= size) {
-				for (int i = 0; i < n.length(); i++)
-					if (n.charAt(i) != buffer[offset+i])
+				for (int i = 0; i < n.length(); i++) {
+					if (n.charAt(i) != buffer[offset+i]) {
 						continue OpLoop;
-				if (best == null || best.operatorName().length() < n.length())
+					}
+				}
+				if (best == null || best.operatorName().length() < n.length()) {
 					best = op;
+				}
 			}
 		}
 		if (best != null) {
@@ -1178,8 +1262,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				return null;
 			}
 			return best;
-		} else
+		} else {
 			return null;
+		}
 	}
 
 	private void warning(final Problem code, final int errorStart, final int errorEnd, final int flags, final Object... args) {
@@ -1203,9 +1288,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	protected Markers markers() {
-		if (markers != null)
+		if (markers != null) {
 			return markers;
-		else {
+		} else {
 			markers = new Markers();
 			markers.applyProjectSettings(script.index());
 			return markers;
@@ -1232,17 +1317,18 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 	private void tokenExpectedError(final String token) throws ProblemException {
 		int off = this.offset;
-		while (off >= 0 && off < size && buffer[off] == '\t')
+		while (off >= 0 && off < size && buffer[off] == '\t') {
 			off--;
+		}
 		error(Problem.TokenExpected, off, off+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, token);
 	}
 
 	private boolean parseStaticFieldOperator() {
 		final int offset = this.offset;
 		final int a = read(), b = read();
-		if (a == ':' && b == ':')
+		if (a == ':' && b == ':') {
 			return true;
-		else {
+		} else {
 			this.seek(offset);
 			return false;
 		}
@@ -1257,8 +1343,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		if (useReusable) {
 			_elements = _elementsReusable;
 			_elementsInUse = true;
-		} else
+		} else {
 			_elements = new ASTNode[4];
+		}
 
 		final int sequenceParseStart = this.offset;
 		eatWhitespace();
@@ -1274,8 +1361,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			result = new UnaryOp(preop, UnaryOp.Placement.Prefix, followingExpr);
 			setRelativeLocation(result, sequenceStart, this.offset);
 			return result;
-		} else
+		}
+		else {
 			this.seek(sequenceStart); // don't skip operators that aren't prefixy
+		}
 		int num = 0;
 		ASTNode elm;
 		ASTNode prevElm = null;
@@ -1304,35 +1393,39 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			this.seek(elmStart); // nothing special to end the sequence; make sure we start from the beginning
 
 			// hex number
-			if (elm == null && (number = parseHexNumber()) != null)
+			if (elm == null && (number = parseHexNumber()) != null) {
 				elm = new IntegerLiteral(number.longValue(), true);
+			}
 
 			// id
-			if (elm == null && (id = parseID()) != null)
+			if (elm == null && (id = parseID()) != null) {
 				elm = new IDLiteral(id);
+			}
 
 			// number
-			if (elm == null && (number = parseNumber()) != null)
+			if (elm == null && (number = parseNumber()) != null) {
 				elm = NumberLiteral.from(number);
+			}
 
 			// variable or function
 			if (elm == null) {
 				final String word = readIdent();
-				if (word != null && word.length() > 0)
+				if (word != null && word.length() > 0) {
 					// tricky new keyword parsing that also respects use of new as regular identifier
 					if (!noNewProplist && word.equals(Keywords.New)) {
 						// don't report errors here since there is the possibility that 'new' will be interpreted as variable name in which case this expression will be parsed again
 						final ASTNode prototype = parseExpression('{');
 						boolean treatNewAsVarName = false;
-						if (prototype == null)
+						if (prototype == null) {
 							treatNewAsVarName = true;
-						else {
+						} else {
 							eatWhitespace();
 							final ProplistDeclaration proplDec = parsePropListDeclaration();
-							if (proplDec != null)
+							if (proplDec != null) {
 								elm = new NewProplist(proplDec, prototype);
-							else
+							} else {
 								treatNewAsVarName = true;
+							}
 						}
 						if (treatNewAsVarName) {
 							// oh wait, just a variable named new with some expression following it
@@ -1353,13 +1446,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						final ASTNode expr = parseExpression();
 						elm = new CastExpression(targetType, expr);
 					}
-					else if (word.equals(Keywords.True))
+					else if (word.equals(Keywords.True)) {
 						elm = new True();
-					else if (word.equals(Keywords.False))
+					} else if (word.equals(Keywords.False)) {
 						elm = new False();
-					else if (word.equals(Keywords.Nil))
+					} else if (word.equals(Keywords.Nil)) {
 						elm = new Nil();
-					else if (word.equals(Keywords.This)) {
+					} else if (word.equals(Keywords.This)) {
 						elm = new This();
 						final int bt = this.offset;
 						eatWhitespace();
@@ -1367,8 +1460,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						if (read() == '(') {
 							eatWhitespace();
 							expect(')');
-						} else
+						} else {
 							seek(bt);
+						}
 					}
 					else {
 						final int bt = this.offset;
@@ -1380,12 +1474,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							parseRestOfTuple(args);
 							CallDeclaration callFunc;
 							final ASTNode[] a = args.toArray(new ASTNode[args.size()]);
-							if (word.equals(Keywords.Inherited))
+							if (word.equals(Keywords.Inherited)) {
 								callFunc = new CallInherited(false, a);
-							else if (word.equals(Keywords.SafeInherited))
+							} else if (word.equals(Keywords.SafeInherited)) {
 								callFunc = new CallInherited(true, a);
-							else
+							} else {
 								callFunc = new CallDeclaration(word, a);
+							}
 							callFunc.setParmsRegion(s-sectionOffset(), this.offset-1-sectionOffset());
 							elm = callFunc;
 						} else {
@@ -1394,19 +1489,23 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							elm = new AccessVar(word);
 						}
 					}
+				}
 			}
 
 			// string
 			String s;
-			if (elm == null && (s = parseString()) != null)
+			if (elm == null && (s = parseString()) != null) {
 				elm = new StringLiteral(s);
+			}
 
 			// array
-			if (elm == null)
+			if (elm == null) {
 				elm = parseArrayExpression(prevElm);
+			}
 
-			if (elm == null)
+			if (elm == null) {
 				elm = parsePropListExpression(prevElm);
+			}
 
 			// ->
 			if (elm == null) {
@@ -1417,9 +1516,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					int idOffset;
 					eatWhitespace();
 					idOffset = offset;
-					if ((id = parseID()) != null && eatWhitespace() >= 0 && parseStaticFieldOperator())
+					if ((id = parseID()) != null && eatWhitespace() >= 0 && parseStaticFieldOperator()) {
 						idOffset -= fieldOperatorStart;
-					else {
+					} else {
 						id = null;
 						seek(idStart);
 						idOffset = 0;
@@ -1439,32 +1538,37 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						elm = new CallExpr(tupleElms.toArray(new ASTNode[tupleElms.size()]));
 					} else {
 						ASTNode firstExpr = parseExpression();
-						if (firstExpr == null)
+						if (firstExpr == null) {
 							firstExpr = whitespace(this.offset, 0);
+						}
 							// might be disabled
 						eatWhitespace();
 						c = read();
-						if (c == ')')
+						if (c == ')') {
 							elm = new Parenthesized(firstExpr);
-						else if (c == ',') {
+						} else if (c == ',') {
 							// tuple (just for multiple parameters for return)
 							final List<ASTNode> tupleElms = new LinkedList<ASTNode>();
 							tupleElms.add(firstExpr);
 							parseRestOfTuple(tupleElms);
 							elm = new Tuple(tupleElms.toArray(new ASTNode[0]));
-						} else
+						}
+						else {
 							tokenExpectedError(")"); //$NON-NLS-1$
+						}
 					}
-				} else
+				} else {
 					unread();
+				}
 			}
 
 			String placeholder;
-			if (elm == null && (placeholder = parsePlaceholderString()) != null)
+			if (elm == null && (placeholder = parsePlaceholderString()) != null) {
 				elm = makePlaceholder(placeholder);
+			}
 
 			// check if sequence is valid (CreateObject(BLUB)->localvar is not)
-			if (elm != null)
+			if (elm != null) {
 				if (!(prevElm instanceof Placeholder || elm.isValidInSequence(prevElm))) {
 					elm = null; // blub blub <- first blub is var; second blub is not part of the sequence -.-
 					proper = false;
@@ -1479,6 +1583,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					_elements[num++] = elm;
 					prevElm = elm;
 				}
+			}
 
 			noNewProplist = false;
 
@@ -1507,15 +1612,18 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					final UnaryOp op = new UnaryOp(postop, UnaryOp.Placement.Postfix, result);
 					setRelativeLocation(op, result.start()+sectionOffset(), this.offset);
 					return op;
-				} else
+				} else {
 					// a binary operator following this sequence
 					this.seek(saved);
+				}
 			}
-		} else
+		} else {
 			this.seek(sequenceParseStart);
+		}
 
-		if (useReusable)
+		if (useReusable) {
 			_elementsInUse = false;
+		}
 		return result;
 	}
 
@@ -1551,7 +1659,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					c = read();
 					if (c == ',') {
 						if (!expectingComma)
+						 {
 							error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, ","); //$NON-NLS-1$
+						}
 						expectingComma = false;
 					} else if (c == '}') {
 						properlyClosed = true;
@@ -1597,14 +1707,16 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					}
 				}
 				if (!properlyClosed)
+				 {
 					error(Problem.MissingClosingBracket, this.offset-1, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, "}"); //$NON-NLS-1$
+				}
 				pl.setLocation(absoluteSourceLocation(propListStart, offset));
 				script.addDeclaration(pl);
 				return pl;
 			} finally { this.currentDeclaration = oldDec; }
-		}
-		else
+		} else {
 			unread();
+		}
 		return null;
 	}
 
@@ -1649,10 +1761,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					c = read();
 					switch (c) {
 					case ',':
-						if (!expectingComma)
+						if (!expectingComma) {
 							arrayElms.add(null);
-						else
+						} else {
 							expectingComma = false;
+						}
 						break;
 					case ']':
 						properlyClosed = true;
@@ -1666,8 +1779,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						if (arrayElement != null) {
 							if (expectingComma) {
 								final ASTNode last = arrayElms.get(arrayElms.size()-1);
-								if (last != null)
+								if (last != null) {
 									arrayElms.set(arrayElms.size()-1, new Unfinished(last));
+								}
 								expectingComma = false;
 							}
 							arrayElms.add(arrayElement);
@@ -1680,11 +1794,14 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					}
 				}
 				if (!properlyClosed)
+				 {
 					error(Problem.MissingClosingBracket, this.offset, this.offset+1, Markers.NO_THROW, "]"); //$NON-NLS-1$
+				}
 				elm = new ArrayExpression(arrayElms.toArray(new ASTNode[0]));
 			}
-		} else
+		} else {
 			unread();
+		}
 		return elm;
 	}
 
@@ -1698,20 +1815,24 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				error(Problem.UnexpectedToken, this.offset-1, this.offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, ';');
 				//$FALL-THROUGH$
 			case ')':
-				if (!expectingComma && listToAddElementsTo.size() > 0)
+				if (!expectingComma && listToAddElementsTo.size() > 0) {
 					listToAddElementsTo.add(whitespace(lastStart, this.offset-lastStart-1));
+				}
 				break Loop;
 			case ',':
-				if (!expectingComma)
+				if (!expectingComma) {
 					listToAddElementsTo.add(whitespace(lastStart, this.offset-lastStart-1));
+				}
 				expectingComma = false;
 				break;
 			default:
 				unread();
-				if (expectingComma)
+				if (expectingComma) {
 					tokenExpectedError(",");
-				if (listToAddElementsTo.size() > 100)
+				}
+				if (listToAddElementsTo.size() > 100) {
 					error(Problem.InternalError, this.offset, this.offset, Markers.ABSOLUTE_MARKER_LOCATION, Messages.InternalError_WayTooMuch);
+				}
 				//	break;
 				ASTNode arg = parseTupleElement();
 				if (arg == null) {
@@ -1749,21 +1870,22 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		BinaryOp lastOp = null;
 
 		int exprStart = offset;
-		if (parseEllipsis())
+		if (parseEllipsis()) {
 			root = new Ellipsis();
-		else {
+		} else {
 			this.seek(offset);
 			eatWhitespace();
 			exprStart = this.offset;
-			for (int state = START; state != DONE;)
+			for (int state = START; state != DONE;) {
 				switch (state) {
 				case START:
 					root = parseSequence();
 					if (root != null) {
 						current = root;
 						state = OPERATOR;
-					} else
+					} else {
 						state = DONE;
+					}
 					break;
 				case OPERATOR:
 					final int operatorStartPos = this.offset;
@@ -1819,9 +1941,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					state = OPERATOR;
 					break;
 				}
+			}
 		}
-		if (root != null)
+		if (root != null) {
 			setRelativeLocation(root, exprStart, this.offset);
+		}
 
 		return root;
 
@@ -1893,10 +2017,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	private String parseIdentifier() throws ProblemException {
 		final String word = readIdent();
-		if (word != null && word.length() > 0)
+		if (word != null && word.length() > 0) {
 			return word;
-		else
+		} else {
 			return null;
+		}
 	}
 
 	/**
@@ -1911,7 +2036,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		}
 		final StringBuilder builder = new StringBuilder();
 		do {
-			if (builder.length() > 0) builder.append(this.readString(1));
+			if (builder.length() > 0) {
+				builder.append(this.readString(1));
+			}
 			builder.append(this.readStringUntil('$'));
 		} while (builder.length() != 0 && (builder.charAt(builder.length() - 1) == '\\'));
 		expect('$');
@@ -1952,8 +2079,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		// parse comments and attach them to the statement so the comments won't be removed by code reformatting
 		final List<Comment> prependedComments = collectComments();
 		final Statement s = parseStatement();
-		if (s != null && prependedComments != null)
+		if (s != null && prependedComments != null) {
 			s.addAttachments(prependedComments);
+		}
 		return s;
 	}
 
@@ -1968,8 +2096,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		int delim;
 		for (; (delim = peek()) != -1 && BufferedScanner.isWhiteSpace((char) delim); read()) {
 			final char c = (char) delim;
-			if (c == '\n')
+			if (c == '\n') {
 				emptyLines++;
+			}
 		}
 
 		//eatWhitespace();
@@ -1990,11 +2119,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			}
 			else if ((readWord = readIdent()) == null || readWord.length() == 0) {
 				final int read = read();
-				if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement))
+				if (read == '{' && !options.contains(ParseStatementOption.InitializationStatement)) {
 					result = new Block(parseStatements(start, ParseStatementOption.NoOptions, false));
-				else if (read == ';')
+				} else if (read == ';') {
 					result = new EmptyStatement();
-				else if (read == '[' && options.contains(ParseStatementOption.ExpectFuncDesc)) {
+				} else if (read == '[' && options.contains(ParseStatementOption.ExpectFuncDesc)) {
 					final String funcDesc = this.readStringUntil(']');
 					read();
 					result = new FunctionDescription(funcDesc);
@@ -2004,11 +2133,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					final ASTNode expression = parseExpression();
 					if (expression != null) {
 						result = new SimpleStatement(expression);
-						if (!options.contains(ParseStatementOption.InitializationStatement))
+						if (!options.contains(ParseStatementOption.InitializationStatement)) {
 							result = needsSemicolon(result);
-					}
-					else
+						}
+					} else {
 						result = null;
+					}
 				}
 			}
 			else if ((scope = Scope.makeScope(readWord)) != null) {
@@ -2025,10 +2155,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					}
 				}
 			}
-			else if (!options.contains(ParseStatementOption.InitializationStatement))
+			else if (!options.contains(ParseStatementOption.InitializationStatement)) {
 				result = parseKeywordStatement(readWord);
-			else
+			} else {
 				result = null;
+			}
 		}
 
 		// just an expression that needs to be wrapped as a statement
@@ -2045,20 +2176,23 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						result = new Unfinished(result);
 						this.seek(beforeWhitespace);
 					}
-				} else
+				} else {
 					this.seek(afterExpression);
-			}
-			else
+				}
+			} else {
 				result = null;
+			}
 		}
 
 		if (result != null) {
 			// inline comment attached to expression so code reformatting does not mess up the user's code too much
 			final Comment c = commentImmediatelyFollowing();
-			if (c != null)
+			if (c != null) {
 				result.setInlineComment(c);
-			if (emptyLines > 0)
+			}
+			if (emptyLines > 0) {
 				result.addAttachment(new Statement.EmptyLinesAttachment(emptyLines));
+			}
 
 			setRelativeLocation(result, start, this.offset);
 		}
@@ -2084,29 +2218,35 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			final Statement statement = parseStatement(options);
 			if (statement == null) {
 				done = oldStyle || peek() == '}';
-				if (done)
+				if (done) {
 					break;
-				if (garbageStart == -1)
+				}
+				if (garbageStart == -1) {
 					garbageStart = offset;
+				}
 				offset++;
 				continue;
 			} else // garbage recognized before statement: Create a special garbage statement that will report itself
-				if (garbageStart != -1)
+				if (garbageStart != -1) {
 					garbageStart = maybeAddGarbageStatement(statements, garbageStart, potentialGarbageEnd);
+				}
 			statements.add(statement);
 			final boolean statementIsComment = statement instanceof Comment;
 			// after first 'real' statement don't expect function description anymore
-			if (!statementIsComment)
+			if (!statementIsComment) {
 				options.remove(ParseStatementOption.ExpectFuncDesc);
+			}
 		}
-		if (garbageStart != -1)
+		if (garbageStart != -1) {
 			// contains only garbage ... still add
 			maybeAddGarbageStatement(statements, garbageStart, offset);
+		}
 		if (!done) {
 			//if (this.offset < endOfFunc)
 			//error(ParserErrorCode.BlockNotClosed, start, start+1, NO_THROW);
-		} else if (!oldStyle)
+		} else if (!oldStyle) {
 			expect('}');
+		}
 		return statements;
 	}
 
@@ -2127,15 +2267,16 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private Comment commentImmediatelyFollowing() {
 		final int daring = this.offset;
 		Comment c = null;
-		for (int r = read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = read())
+		for (int r = read(); r != -1 && (r == '/' || BufferedScanner.isWhiteSpaceButNotLineDelimiterChar((char) r)); r = read()) {
 			if (r == '/') {
 				unread();
 				c = parseComment();
 				break;
 			}
-		if (c != null)
+		}
+		if (c != null) {
 			return c;
-		else {
+		} else {
 			this.seek(daring);
 			return null;
 		}
@@ -2160,8 +2301,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	private void expect(final String expected) throws ProblemException {
 		final String r = readIdent();
-		if (r == null || !r.equals(expected))
+		if (r == null || !r.equals(expected)) {
 			tokenExpectedError(expected);
+		}
 	}
 
 	private boolean parseSemicolonOrReturnFalse() {
@@ -2217,16 +2359,18 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		Statement result;
 		eatWhitespace();
 		ASTNode returnExpr;
-		if (peek() == ';')
+		if (peek() == ';') {
 			returnExpr = null;
-		else {
+		} else {
 			returnExpr = parseExpression();
-			if (returnExpr == null)
+			if (returnExpr == null) {
 				error(Problem.ValueExpected, this.offset, this.offset+1, Markers.NO_THROW);
+			}
 		}
 		result = new ReturnStatement(returnExpr);
-		if (!parseSemicolonOrReturnFalse())
+		if (!parseSemicolonOrReturnFalse()) {
 			result = new Unfinished(result);
+		}
 		return result;
 	}
 
@@ -2282,15 +2426,17 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					final AccessVar accessVar = new AccessVar(varName);
 					setRelativeLocation(accessVar, pos, pos+varName.length());
 					initialization = new SimpleStatement(accessVar);
-				} else
+				} else {
 					w = null;
+				}
 			}
 			if (w == null) {
 				// regularly parse initialization statement
 				seek(pos);
 				initialization = parseStatement(EnumSet.of(ParseStatementOption.InitializationStatement));
-				if (initialization == null)
+				if (initialization == null) {
 					error(Problem.ExpectedCode, this.offset, this.offset+1, Markers.NO_THROW);
+				}
 			}
 		}
 
@@ -2298,14 +2444,15 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			// determine loop type
 			eatWhitespace();
 			savedOffset = this.offset;
-			if (initialization != null)
-				if (read() == ';')
+			if (initialization != null) {
+				if (read() == ';') {
 					// initialization finished regularly with ';', so no for (... in ...) loop
 					savedOffset = this.offset;
-				else {
+				} else {
 					unread();
 					w = readIdent();
 				}
+			}
 		}
 		LoopType loopType;
 		if (w != null && w.equals(Keywords.In)) {
@@ -2313,8 +2460,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			loopType = LoopType.IterateArray;
 			eatWhitespace();
 			arrayExpr = parseExpression();
-			if (arrayExpr == null)
+			if (arrayExpr == null) {
 				error(Problem.ExpressionExpected, savedOffset, this.offset, Markers.ABSOLUTE_MARKER_LOCATION);
+			}
 			condition = null;
 			increment = null;
 		} else {
@@ -2328,8 +2476,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			} else {
 				unread();
 				condition = parseExpression();
-				if (condition == null)
+				if (condition == null) {
 					error(Problem.ConditionExpected, savedOffset, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
+				}
 			}
 			eatWhitespace();
 			savedOffset = this.offset;
@@ -2343,8 +2492,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			} else {
 				unread();
 				increment = parseExpression();
-				if (increment == null)
+				if (increment == null) {
 					error(Problem.ExpressionExpected, savedOffset, this.offset+1, Markers.NO_THROW);
+				}
 			}
 			arrayExpr = null;
 		}
@@ -2353,8 +2503,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		eatWhitespace();
 		savedOffset = this.offset;
 		body = parseStatement();
-		if (body == null)
+		if (body == null) {
 			error(Problem.StatementExpected, savedOffset, savedOffset+4, Markers.NO_THROW);
+		}
 		switch (loopType) {
 		case For:
 			result = new ForStatement(initialization, condition, increment, body);
@@ -2381,14 +2532,17 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		eatWhitespace();
 		ASTNode condition = parseExpression();
 		if (condition == null)
+		 {
 			condition = whitespace(this.offset, 0); // while () is valid
+		}
 		eatWhitespace();
 		expect(')');
 		eatWhitespace();
 		offset = this.offset;
 		final Statement body = parseStatement();
-		if (body == null)
+		if (body == null) {
 			error(Problem.StatementExpected, offset, offset+4, Markers.NO_THROW);
+		}
 		result = new WhileStatement(condition, body);
 		return result;
 	}
@@ -2405,7 +2559,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		eatWhitespace();
 		ASTNode condition = parseExpression();
 		if (condition == null)
+		 {
 			condition = whitespace(this.offset, 0); // if () is valid
+		}
 		eatWhitespace();
 		expect(')');
 		final int offsetBeforeWhitespace = this.offset;
@@ -2417,8 +2573,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		Statement elseStatement;
 		if (nextWord != null && nextWord.equals(Keywords.Else)) {
 			elseStatement = parseStatementWithPrependedComments();
-			if (elseStatement == null)
+			if (elseStatement == null) {
 				error(Problem.StatementExpected, o, o+Keywords.Else.length(), Markers.NO_THROW);
+			}
 		}
 		else {
 			this.seek(beforeElse); // don't eat comments and stuff after if (...) ...;
@@ -2439,10 +2596,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	private ID parseID() throws ProblemException {
 		ID id;
-		if (offset < size && (id = specialEngineRules != null ? specialEngineRules.parseID(this) : null) != null)
+		if (offset < size && (id = specialEngineRules != null ? specialEngineRules.parseID(this) : null) != null) {
 			return id;
-		else
+		} else {
 			return null;
+		}
 	}
 
 	/**
@@ -2455,8 +2613,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 		final int backtrack = this.offset;
 		eatWhitespace();
-		if ((script == engine || engine == null || engine.settings().supportsVarArgsDeclaration) && parseEllipsis())
+		if ((script == engine || engine == null || engine.settings().supportsVarArgsDeclaration) && parseEllipsis()) {
 			return addVarParmsParm(function);
+		}
 		if (peek() == ')') {
 			seek(backtrack);
 			return null;
@@ -2474,35 +2633,41 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			eatWhitespace();
 			final int ta = this.offset;
 			parmName = readIdent();
-			if (parmName.length() == 0)
+			if (parmName.length() == 0) {
 				return null;
+			}
 			type = placeholderTypeAnnotationIfMigrating(ta);
 		}
 		switch (typing) {
 		case STATIC:
-			if (type == null)
+			if (type == null) {
 				typeRequiredAt(typeStart);
+			}
 			break;
 		case DYNAMIC:
-			if (type != null)
+			if (type != null) {
 				error(Problem.NotSupported, typeStart, typeEnd, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, readStringAt(typeStart, typeEnd), engine.name() + " with no type annotations");
+			}
 			break;
 		default:
 			break;
 		}
 		final Variable var = new Variable(Scope.PARAMETER, null);
-		if (type != null)
-			type.setTarget(var);
 		if (type != null) {
-			if ((type.type() == PrimitiveType.REFERENCE || type.type() instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE))
+			type.setTarget(var);
+		}
+		if (type != null) {
+			if ((type.type() == PrimitiveType.REFERENCE || type.type() instanceof ReferenceType) && !engine.supportsPrimitiveType(PrimitiveType.REFERENCE)) {
 				error(Problem.PrimitiveTypeNotSupported, offset-1, offset, Markers.NO_THROW, PrimitiveType.REFERENCE.typeName(true), script.engine().name());
+			}
 			var.forceType(type.type(), true);
 		}
 		var.setName(parmName);
 		var.setLocation(new SourceLocation(nameStart-function.start(), this.offset-function.start()));
 		var.setParent(function);
-		if (type != null)
+		if (type != null) {
 			type.setTarget(var);
+		}
 		function.addParameter(var);
 		eatWhitespace();
 		return var;
@@ -2537,9 +2702,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return source code
 	 */
 	protected String functionSource(final Function function) {
-		if (function == null)
+		if (function == null) {
 			return null;
-		else {
+		} else {
 			final SourceLocation loc = function.bodyLocation();
 			return new String(buffer, loc.start(), loc.getLength());
 		}
@@ -2572,8 +2737,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 		final List<ASTNode> statements = new LinkedList<ASTNode>();
 		Statement statement;
-		while ((statement = parseStatement()) != null)
+		while ((statement = parseStatement()) != null) {
 			statements.add(statement);
+		}
 		final ASTNode result = statements.size() == 1 ? statements.get(0) : new BunchOfStatements(statements);
 		result.setParent(function);
 		return result;
