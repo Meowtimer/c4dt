@@ -3150,6 +3150,13 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public IType type(final CastExpression node, final Visitor visitor) {
 					return node.targetType();
 				}
+			},
+
+			new Expert<Function>(Function.class) {
+				@Override
+				public IType type(Function node, Visitor visitor) {
+					return PrimitiveType.FUNCTION;
+				}
 			}
 
 		};
