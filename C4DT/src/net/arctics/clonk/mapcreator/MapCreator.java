@@ -24,13 +24,15 @@ public abstract class MapCreator {
 		landscapeIniSection.commit(section, false);
 		final int[] size = section.GetMapSize(numPlayers);
 		IContainer materialsContainer = null;
-		for (final Index i : scenarioConfiguration.index().relevantIndexes())
-			if (i instanceof ProjectIndex) {
-				materialsContainer = as(i.nature().getProject().findMember
-					(i.engine().groupName("Material", FileExtension.ResourceGroup)), IContainer.class);
-				if (materialsContainer != null)
+		for (final Index index : scenarioConfiguration.index().relevantIndexes()) {
+			if (index instanceof ProjectIndex) {
+				materialsContainer = as(index.nature().getProject().findMember
+					(index.engine().groupName("Material", FileExtension.ResourceGroup)), IContainer.class);
+				if (materialsContainer != null) {
 					break;
+				}
 			}
+		}
 		if (materialsContainer != null) {
 			final MaterialMap materials = new MaterialMap();
 			materials.load(materialsContainer);
@@ -41,10 +43,13 @@ public abstract class MapCreator {
 			final ImageData data = new ImageData(size[0], size[1], 8, textureMap.palette());
 			create(data, section, textureMap, layers, numPlayers);
 			return data;
-		} else
+		} else {
 			return new ImageData(size[0], size[1], 32, new PaletteData(0xFF, 0xFF00, 0xFF0000));
+		}
 	}
-	public abstract void create(ImageData sfcMap,
+	public abstract void create(
+		ImageData sfcMap,
         LandscapeSection rLScape, TextureMap rTexMap,
-        boolean fLayers, int iPlayerNum);
+        boolean fLayers, int iPlayerNum
+    );
 }
