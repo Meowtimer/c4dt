@@ -11,7 +11,7 @@ import net.arctics.clonk.c4script.typing.TypeUtil;
 public class ForStatement extends ConditionalStatement implements ILoop {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	private ASTNode initializer, increment;
 
 	public ForStatement(final ASTNode initializer, final ASTNode condition, final ASTNode increment, final ASTNode body) {
@@ -77,4 +77,5 @@ public class ForStatement extends ConditionalStatement implements ILoop {
 		}
 		return ev;
 	}
+
 }
