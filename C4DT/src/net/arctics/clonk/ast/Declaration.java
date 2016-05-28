@@ -128,18 +128,20 @@ public abstract class Declaration extends ASTNode implements
 	 */
 	public Declaration latestVersion() {
 		Declaration parent = parentDeclaration();
-		if (parent != null)
+		if (parent != null) {
 			parent = parent.latestVersion();
+		}
 		if (parent instanceof ILatestDeclarationVersionProvider) {
 			final Declaration latest = ((ILatestDeclarationVersionProvider)parent).latestVersionOf(this);
-			if (latest != null)
+			if (latest != null) {
 				return latest;
-			else
+			} else {
 				// fallback on returning this declaration if latest version providing not properly implemented
 				return this;
-		}
-		else
+			}
+		} else {
 			return this;
+		}
 	}
 
 	/**
@@ -158,8 +160,9 @@ public abstract class Declaration extends ASTNode implements
 		final Set<Object> result = new LinkedHashSet<Object>();
 		// first, add the script this declaration is declared in. Matches will most likely be found in there
 		// so it helps to make it the first item to be searched
-		if (parent instanceof Script)
+		if (parent instanceof Script) {
 			result.add(parent);
+		}
 		// next, in case of a definition, add items including the definition, so matches in derived definitions
 		// will be found next
 		if (parent instanceof Definition) {
@@ -225,8 +228,9 @@ public abstract class Declaration extends ASTNode implements
 	 * @param parent the parent
 	 */
 	public void postLoad(final Declaration parent, final Index index) {
-		if (name != null)
+		if (name != null) {
 			name = name.intern();
+		}
 		postLoad(parent);
 	}
 
@@ -249,11 +253,13 @@ public abstract class Declaration extends ASTNode implements
 	 */
 	@Override
 	public boolean matchedBy(final Matcher matcher) {
-		if (name() != null && matcher.reset(name()).lookingAt())
+		if (name() != null && matcher.reset(name()).lookingAt()) {
 			return true;
+		}
 		final Structure tls = topLevelStructure();
-		if (tls != null && tls != this && tls.matchedBy(matcher))
+		if (tls != null && tls != this && tls.matchedBy(matcher)) {
 			return true;
+		}
 		return false;
 	}
 
@@ -271,14 +277,18 @@ public abstract class Declaration extends ASTNode implements
 		boolean underscore = false;
 		for (int i = 0; i < name.length(); i++) {
 			final char c = name.charAt(i);
-			if (i > 0 && c == '_')
-				if (!underscore)
+			if (i > 0 && c == '_') {
+				if (!underscore) {
 					underscore = true;
-				else
+				} else {
 					return false;
-			if (!underscore)
-				if (Character.toUpperCase(c) != c)
+				}
+			}
+			if (!underscore) {
+				if (Character.toUpperCase(c) != c) {
 					return false;
+				}
+			}
 		}
 		return underscore || name.equals(name.toUpperCase());
 	}
@@ -292,28 +302,30 @@ public abstract class Declaration extends ASTNode implements
 
 	@Override
 	public Index index() {
-		if (parentDeclaration() != null)
+		if (parentDeclaration() != null) {
 			return parentDeclaration().index();
-		else {
+		} else {
 			final IResource res = resource();
 			if (res != null) {
 				final ClonkProjectNature nat = ClonkProjectNature.get(res);
 				return nat != null ? nat.index() : null;
-			}
-			else
+			} else {
 				return null;
+			}
 		}
 	}
 
 	public StringTbl localStringTblMatchingLanguagePref() {
 		final IResource res = resource();
-		if (res == null)
+		if (res == null) {
 			return null;
+		}
 		final IContainer container = res instanceof IContainer ? (IContainer) res : res.getParent();
 		final String pref = ClonkPreferences.languagePref();
 		final IResource tblFile = Utilities.findMemberCaseInsensitively(container, "StringTbl"+pref+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
-		if (tblFile instanceof IFile)
+		if (tblFile instanceof IFile) {
 			return (StringTbl) Structure.pinned(tblFile, true, false);
+		}
 		return null;
 	}
 
@@ -336,14 +348,16 @@ public abstract class Declaration extends ASTNode implements
 	 */
 	public String pathRelativeToIndexEntity() {
 		final StringBuilder builder = new StringBuilder();
-		for (Declaration d = this; d != null; d = d.parentDeclaration())
-			if (d instanceof IndexEntity)
+		for (Declaration d = this; d != null; d = d.parentDeclaration()) {
+			if (d instanceof IndexEntity) {
 				break;
-			else {
-				if (builder.length() > 0)
+			} else {
+				if (builder.length() > 0) {
 					builder.insert(0, '.');
+				}
 				builder.insert(0, d.name());
 			}
+		}
 		return builder.toString();
 	}
 
@@ -359,10 +373,11 @@ public abstract class Declaration extends ASTNode implements
 	 * @return A string specifying both the parent and this declaration
 	 */
 	public String qualifiedName(final Declaration parent) {
-		if (parent != null)
+		if (parent != null) {
 			return String.format("%s::%s", parent.qualifiedName(), this.name());
-		else
+		} else {
 			return name();
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -381,11 +396,13 @@ public abstract class Declaration extends ASTNode implements
 
 	@Override
 	public boolean equalAttributes(final ASTNode other) {
-		if (!super.equalAttributes(other))
+		if (!super.equalAttributes(other)) {
 			return false;
+		}
 		final Declaration d = (Declaration)other;
-		if (!d.name().equals(name()))
+		if (!d.name().equals(name())) {
 			return false;
+		}
 		return true;
 	}
 
