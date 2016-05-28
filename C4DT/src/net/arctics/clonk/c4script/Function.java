@@ -426,7 +426,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public String parameterString(final PrintParametersOptions options) {
 		final StringBuilder string = new StringBuilder();
 		if (options.functionName) {
-			string.append(name());
+			if (!isAnonymous()) {
+				string.append(name());
+			}
 			string.append("("); //$NON-NLS-1$
 		}
 		printParametersString(new AppendableBackedNodePrinter(string), options);
@@ -440,7 +442,9 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	@Override
 	public String displayString(final IIndexEntity context) {
 		return parameterString(new PrintParametersOptions(
-			defaulting(as(context, Script.class), script()).typings().get(this), true, true, false));
+			defaulting(as(context, Script.class), script()).typings().get(this),
+			true, true, false
+		));
 	}
 
 	private void printParametersString(final ASTNodePrinter output, final PrintParametersOptions options) {
@@ -1032,8 +1036,23 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 	}
 
+	/**
+	 * Constant assigned to {@link FunctionHeader#name} to denote a function header for an anonymous function.
+	 */
+	public static final String ANONYMOUS_NAME = "THIS IS ANONYMOUS FUNCTION";
+
+	/**
+	 * Tell whether the function header has no name.
+	 * @return
+	 */
+	public boolean isAnonymous() {
+		return name == ANONYMOUS_NAME;
+	}
+
 	@Override
 	public int identifierLength() { return name().length(); }
+
 	@Override
 	public int identifierStart() { return nameStart(); }
+
 }

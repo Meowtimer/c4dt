@@ -199,7 +199,7 @@ public abstract class Declaration extends ASTNode implements
 	 * @return
 	 */
 	public Declaration parentDeclaration() {
-		return (Declaration)parent;
+		return parent(Declaration.class);
 	}
 
 	/**

@@ -55,19 +55,23 @@ public class FunctionFragmentParser extends ScriptParser {
 				if (function != null) {
 					function.clearLocalVars();
 				}
-				setCurrentFunction(function);
-				markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
-				final EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-				ASTNode body;
-				if (function instanceof InitializationFunction) {
-					body = parseExpression();
-				} else {
-					final List<ASTNode> statements = parseStatements(offset, options, false);
-					body = new FunctionBody(function, statements);
-				}
-				if (function != null) {
-					function.storeBody(body, functionSource);
-					script().deriveInformation();
+				pushDeclaration(function);
+				try {
+					markers().enableErrors(DISABLED_INSTANT_ERRORS, false);
+					final EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
+					ASTNode body;
+					if (function instanceof InitializationFunction) {
+						body = parseExpression();
+					} else {
+						final List<ASTNode> statements = parseStatements(offset, options, false);
+						body = new FunctionBody(function, statements);
+					}
+					if (function != null) {
+						function.storeBody(body, functionSource);
+						script().deriveInformation();
+					}
+				} finally {
+					popDeclaration(function);
 				}
 			} catch (final ProblemException pe) {}
 			return true;
