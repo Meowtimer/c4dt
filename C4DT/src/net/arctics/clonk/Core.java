@@ -82,7 +82,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	public static final String MENU_GROUP_CLONK = id("ui.editors.actions.clonkGroup");
 
-	public static final long SERIAL_VERSION_UID = 1L;
+	public static final long SERIAL_VERSION_UID = 2L;
 
 	/** The engine object contains global functions and variables defined by Clonk itself */
 	private Engine activeEngine;
@@ -321,7 +321,7 @@ public class Core extends AbstractUIPlugin implements ISaveParticipant, IResourc
 
 	/** Return the shared instance */
 	public static Core instance() { return instance; }
-	
+
 	/** Whether the plug-in runs in headless mode. */
 	public boolean runsHeadless() { return runsHeadless; }
 

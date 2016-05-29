@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import net.arctics.clonk.c4script.Function;
@@ -188,7 +187,7 @@ public enum Typing {
 		if (type1 instanceof CallTargetType) {
 			return unify(PrimitiveType.OBJECT, type2);
 		}
-		
+
 		if (type1 instanceof FunctionType && type2 instanceof FunctionType) {
 			final FunctionType functionTypeA = (FunctionType) type1;
 			final FunctionType functionTypeB = (FunctionType) type2;
@@ -202,7 +201,7 @@ public enum Typing {
 							final Variable parameterA = functionTypeA.prototype().parameter(parameterIndex);
 							final Variable parameterB = functionTypeB.prototype().parameter(parameterIndex);
 							return unifyVariables(parameterA, parameterB);
-						}).collect(Collectors.<Variable>toList())
+						}).toArray(length -> new Variable[length])
 					)
 			);
 		}
@@ -306,5 +305,5 @@ public enum Typing {
 	}
 
 	public boolean compatible(final IType a, final IType b) { return unifyNoChoice(a, b) != null; }
-	
+
 }

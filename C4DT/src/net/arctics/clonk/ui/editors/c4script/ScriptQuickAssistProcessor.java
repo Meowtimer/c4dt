@@ -9,7 +9,6 @@ import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.eq;
 import static net.arctics.clonk.util.Utilities.isAnyOf;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -18,6 +17,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -244,13 +244,16 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					final Function function = new Function(accessDec.name(), FunctionScope.PUBLIC);
 					function.setParent(site.script);
 					function.storeBody(new FunctionBody(function), "");
+					final ASTNode[] params = callFunc.params();
+					function.setParameters(
+						IntStream.range(0, params.length)
+							.mapToObj(index -> {
+								final ASTNode parm = params[index];
+								return new Variable(parameterNameFromExpression(parm, index + 1), site.script.typings().get(parm));
+							})
+							.toArray(length -> new Variable[length])
+					);
 					decs.add(function);
-					final List<Variable> parms = new ArrayList<Variable>(callFunc.params().length);
-					int p = 0;
-					for (final ASTNode parm : callFunc.params()) {
-						parms.add(new Variable(parameterNameFromExpression(parm, ++p), site.script.typings().get(parm)));
-					}
-					function.setParameters(parms);
 				}
 
 				// gather proposals through ScriptCompletionProcessor and propose those with a similar name
@@ -259,7 +262,7 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 					: site.offendingExpression;
 				final List<ICompletionProposal> possible = ScriptCompletionProcessor.computeProposalsForExpression
 					(site.document, site.func, expr);
-				
+
 				ofType(possible.stream(), DeclarationProposal.class).forEach(proposal -> {
 					final Declaration dec = proposal.declaration();
 					if (dec == null || !accessDec.declarationClass().isAssignableFrom(dec.getClass())) {

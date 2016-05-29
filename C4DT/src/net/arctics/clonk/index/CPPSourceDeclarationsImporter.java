@@ -5,22 +5,22 @@ import static net.arctics.clonk.util.Utilities.attemptWithResource;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
+import net.arctics.clonk.c4script.ast.Ellipsis;
 import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.parser.BufferedScanner;
 import net.arctics.clonk.util.IStorageLocation;
 import net.arctics.clonk.util.StreamUtil;
-
-import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * Helper to import declarations from source files. Geared towards OpenClonk source.
@@ -50,8 +50,9 @@ public class CPPSourceDeclarationsImporter {
 		stream(sourceFiles).forEach(
 			sourceFile -> readDeclarationsFromSource(importsContainer, location, sourceFile.trim())
 		);
-		if (monitor != null)
+		if (monitor != null) {
 			monitor.done();
+		}
 	}
 
 	private void readDeclarationsFromSource(final Script importsContainer, final IStorageLocation location, final String sourceFilePath) {
@@ -98,9 +99,9 @@ public class CPPSourceDeclarationsImporter {
 							if (fun == null) {
 								fun = new DocumentedFunction(name, PrimitiveType.ANY, origin);
 								fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
-								final List<Variable> parms = new ArrayList<Variable>(1);
-								parms.add(new Variable("...", PrimitiveType.ANY)); //$NON-NLS-1$
-								fun.setParameters(parms);
+								fun.setParameters(
+									new Variable(Ellipsis.ELLIPSIS, PrimitiveType.ANY)
+								);
 								importsContainer.addDeclaration(fun);
 							}
 							continue Outer;
@@ -138,13 +139,17 @@ public class CPPSourceDeclarationsImporter {
 							//String oldPointer = fnMapMatcher.group(i++);
 							Function fun = importsContainer.findLocalFunction(name, false);
 							if (fun == null) {
+								final String[] parameterNames = parms.split(","); //$NON-NLS-1$
 								fun = new DocumentedFunction(name, PrimitiveType.fromString(retType.substring(4).toLowerCase(), true), origin);
 								fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
-								final String[] p = parms.split(","); //$NON-NLS-1$
-								final List<Variable> parList = new ArrayList<Variable>(p.length);
-								for (final String pa : p)
-									parList.add(new Variable("par"+(parList.size()+1), PrimitiveType.fromString(pa.trim().substring(4).toLowerCase(), true))); //$NON-NLS-1$
-								fun.setParameters(parList);
+								fun.setParameters(
+									IntStream.range(0, parameterNames.length)
+										.mapToObj(index -> new Variable(
+											"par"+(index + 1),
+											PrimitiveType.fromString(parameterNames[index].trim().substring(4).toLowerCase(), true)
+										))
+										.toArray(length -> new Variable[length])
+								);
 								importsContainer.addDeclaration(fun);
 							}
 							continue Outer;
@@ -157,8 +162,9 @@ public class CPPSourceDeclarationsImporter {
 						final String returnType = fnDeclarationMatcher.group(i++);
 						final String name = fnDeclarationMatcher.group(i++);
 						// some functions to be ignored
-						if (name.equals("_goto") || name.equals("_this"))
+						if (name.equals("_goto") || name.equals("_this")) {
 							continue;
+						}
 						i++; // optional Object in C4AulContext
 						i++; // optional actual parameters with preceding comma
 						final String parms = fnDeclarationMatcher.group(i++);
@@ -167,16 +173,17 @@ public class CPPSourceDeclarationsImporter {
 							fun = new DocumentedFunction(name, PrimitiveType.fromCPPString(returnType), origin);
 							fun.setLocation(new SourceLocation(lineOffset, lineOffset+line.length()));
 							final String[] parmStrings = parms != null ? parms.split("\\,") : null;
-							final List<Variable> parList = new ArrayList<Variable>(parmStrings != null ? parmStrings.length : 0);
-							if (parmStrings != null)
-								for (final String parm : parmStrings) {
-									int x;
-									for (x = parm.length()-1; x >= 0 && BufferedScanner.isWordPart(parm.charAt(x)); x--);
-									final String pname = parm.substring(x+1);
-									final String type = parm.substring(0, x+1).trim();
-									parList.add(new Variable(pname, PrimitiveType.fromCPPString(type)));
-								}
-							fun.setParameters(parList);
+							fun.setParameters(
+								parmStrings != null ? stream(parmStrings).map(
+									parm -> {
+										int x;
+										for (x = parm.length()-1; x >= 0 && BufferedScanner.isWordPart(parm.charAt(x)); x--) { }
+										final String pname = parm.substring(x+1);
+										final String type = parm.substring(0, x+1).trim();
+										return new Variable(pname, PrimitiveType.fromCPPString(type));
+									}
+								).toArray(length -> new Variable[length]) : new Variable[0]
+							);
 							importsContainer.addDeclaration(fun);
 						}
 					}
@@ -184,7 +191,8 @@ public class CPPSourceDeclarationsImporter {
 			} catch (final Exception e) {
 				e.printStackTrace();
 			}
-		} else
+		} else {
 			System.out.println("Missing source file " + sourceFilePath);
+		}
 	}
 }

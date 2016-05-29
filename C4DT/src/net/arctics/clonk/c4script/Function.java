@@ -1,6 +1,8 @@
 package net.arctics.clonk.c4script;
 
 import static java.lang.String.format;
+import static net.arctics.clonk.util.ArrayUtil.concat;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -9,7 +11,9 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +39,6 @@ import net.arctics.clonk.ast.Sequence;
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.ast.Structure;
 import net.arctics.clonk.ast.TraversalContinuation;
-import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessDeclaration;
 import net.arctics.clonk.c4script.ast.Block;
 import net.arctics.clonk.c4script.ast.Comment;
@@ -68,20 +71,26 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @author madeen
 	 */
 	public static class Typing implements Serializable {
+
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+
 		public Typing(final IType[] parameterTypes, final IType returnType, final IType[] nodeTypes) {
 			super();
 			this.parameterTypes = parameterTypes;
 			this.returnType = returnType;
 			this.nodeTypes = nodeTypes;
 		}
+
 		public final IType[] parameterTypes;
+
 		public final IType parameterType(final Variable parameter) {
 			final int ndx = parameter.parameterIndex();
 			return parameterTypes != null && ndx < parameterTypes.length ? parameterTypes[ndx] : parameter.type();
 		}
+
 		public final IType returnType;
 		public final IType[] nodeTypes;
+
 		public void printNodeTypes(final Function containing) {
 			System.out.println("===================== This is " + containing.qualifiedName() + "=====================");
 			containing.traverse((node, context) -> {
@@ -93,12 +102,13 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				return TraversalContinuation.Continue;
 			}, this);
 		}
+
 	}
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private FunctionScope visibility;
-	private List<Variable> locals;
-	protected List<Variable> parameters;
+	private Variable[] locals = NO_VARIABLES;
+	protected Variable[] parameters = NO_VARIABLES;
 	private IType returnType;
 	private String description;
 	private String returnDescription;
@@ -111,9 +121,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	/** Code block kept in memory for speed optimization */
 	private FunctionBody body;
+
 	/** Hash code of the string the block was parsed from. */
 	private int blockSourceHash;
+
 	private int totalNumASTNodes;
+
 	/** Number of {@link ASTNode}s in this function's {@link #body()}. */
 	public int totalNumASTNodes() { return totalNumASTNodes; }
 
@@ -121,15 +134,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * Create a new function.
 	 * @param name Name of the function
 	 * @param returnType Return type of the function
-	 * @param pars Parameter variables to add to the parameter list of the function
+	 * @param parameters Parameter variables to add to the parameter list of the function
 	 */
-	public Function(final String name, final IType returnType, final Variable... pars) {
+	public Function(final String name, final IType returnType, final Variable... parameters) {
 		this.name = name;
 		this.returnType = returnType;
-		parameters = new ArrayList<Variable>(pars.length);
-		for (final Variable var : pars) {
-			parameters.add(var);
-			var.setParent(this);
+		this.parameters = parameters;
+		for (final Variable parameter : parameters) {
+			parameter.setParent(this);
 		}
 		visibility = FunctionScope.GLOBAL;
 	}
@@ -138,13 +150,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		this.visibility = FunctionScope.GLOBAL;
 		this.name = ""; //$NON-NLS-1$
 		this.clearParameters();
-		this.locals = null;
 	}
 
 	public Function(final Script parent, final FunctionScope scope, final String name) {
 		this.name = name;
 		this.visibility = scope;
-		this.locals = null;
 		this.clearParameters();
 		this.setParent(parent);
 	}
@@ -158,19 +168,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public Variable addLocal(final Variable local) {
-		synchronized (parameters) {
-			if (locals == null) {
-				locals = new ArrayList<>();
-			}
-			locals.add(local);
-		}
+		locals = concat(locals, local);
 		return local;
 	}
 
 	/**
 	 * @return the parameter
 	 */
-	public List<Variable> parameters() { return parameters; }
+	public List<Variable> parameters() { return Arrays.asList(parameters); }
 
 	public boolean typeFromCallsHint() { return typeFromCallsHint; 	}
 	public void setTypeFromCallsHint(final boolean value) {
@@ -178,54 +183,36 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	public Variable addParameter(final Variable parameter) {
-		synchronized (parameters) {
-			parameters.add(parameter);
-			return parameter;
-		}
+		parameters = concat(parameters, parameter);
+		return parameter;
 	}
 
-	public void clearParameters() { parameters = new ArrayList<Variable>(); }
+	public void clearParameters() { parameters = NO_VARIABLES; }
 
 	public Variable parameter(final int index) {
-		synchronized (parameters) {
-			return index >= 0 && index < parameters.size() ? parameters.get(index) : null;
-		}
+		final Variable[] parameters = this.parameters;
+		return index >= 0 && index < parameters.length ? parameters[index] : null;
 	}
 
 	public int numParameters() {
-		synchronized (parameters) {
-			return parameters.size();
-		}
+		return parameters.length;
 	}
 
 	private static final Variable[] NO_VARIABLES = new Variable[0];
 
 	public Variable[] locals() {
-		final List<Variable> locs = locals;
-		if (locs == null) {
-			return NO_VARIABLES;
-		} else {
-			synchronized (parameters) {
-				return locs.toArray(new Variable[locs.size()]);
-			}
-		}
+		return locals;
 	}
 
 	public int numLocals() {
-		final List<Variable> locs = locals;
-		return locs != null ? locs.size() : 0;
+		return locals.length;
 	}
 
 	public Variable local(String name) {
-		final List<Variable> locs = locals;
-		if (locs == null) {
-			return null;
-		}
-		synchronized (parameters) {
-			for (final Variable v : locs) {
-				if (v.name().equals(name)) {
-					return v;
-				}
+		final Variable[] locals = this.locals;
+		for (final Variable v : locals) {
+			if (v.name().equals(name)) {
+				return v;
 			}
 		}
 		return null;
@@ -234,7 +221,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @param parameters the parameter to set
 	 */
-	public Function setParameters(final List<Variable> parameters) {
+	public Function setParameters(Variable... parameters) {
 		this.parameters = parameters;
 		if (parameters != null) {
 			for (final Variable p : parameters) {
@@ -278,17 +265,23 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	/** @return the visibility */
 	public FunctionScope visibility() { return visibility; }
+
 	/** @param visibility the visibility to set */
 	public void setVisibility(final FunctionScope visibility) { this.visibility = visibility; }
+
 	/** @return the description */
 	@Override
 	public String obtainUserDescription() { return description; }
+
 	@Override
 	public String userDescription() { return description; }
+
 	/** @param description the description to set */
 	@Override
 	public void setUserDescription(final String description) { this.description = description; }
+
 	public String returnDescription() { return returnDescription; }
+
 	public void setReturnDescription(final String returnDescription) { this.returnDescription = returnDescription; }
 
 	public final class Invocation implements IEvaluationContext {
@@ -296,6 +289,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		private final IEvaluationContext up;
 		private final Object context;
 		private final ConcreteVariable[] locals;
+
 		public Invocation(final Object[] args, final IEvaluationContext up, final Object context) {
 			this.args = args;
 			this.up = up;
@@ -305,16 +299,17 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 				.mapToObj(x -> new ConcreteVariable())
 				.toArray(ConcreteVariable[]::new);
 		}
+
 		@Override
 		public IVariable variable(final AccessDeclaration access, final Object obj) throws ControlFlowException {
 			final String aname = access.name();
 			if (access.predecessor() == null) {
-				final int i = ArrayUtil.indexOfItemSatisfying(parameters, p -> p.name().equals(aname));
+				final int i = ArrayUtil.indexOfItemSatisfying(iterable(parameters), p -> p.name().equals(aname));
 				if (i != -1) {
 					return new Constant(args[i]);
 				}
 				final int l = Function.this.locals != null
-					? ArrayUtil.indexOfItemSatisfying(Function.this.locals, loc -> loc.name().equals(aname))
+					? ArrayUtil.indexOfItemSatisfying(iterable(Function.this.locals), loc -> loc.name().equals(aname))
 					: -1;
 				if (l != -1) {
 					return locals[l];
@@ -346,20 +341,27 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			}
 			return up != null ? up.variable(access, obj) : null;
 		}
+
 		@Override
 		public Script script() { return Function.this.script(); }
+
 		@Override
 		public void reportOriginForExpression(final ASTNode expression, final IRegion location, final IFile file) {
 			Function.this.reportOriginForExpression(expression, location, file);
 		}
+
 		@Override
 		public Function function() { return Function.this; }
+
 		@Override
 		public int codeFragmentOffset() { return Function.this.codeFragmentOffset(); }
+
 		@Override
 		public Object[] arguments() { return args; }
+
 		@Override
 		public Object self() { return context; }
+
 	}
 
 	/**
@@ -373,6 +375,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		PRIVATE;
 
 		private static final Map<String, FunctionScope> scopeMap = new HashMap<String, FunctionScope>();
+
 		static {
 			for (final FunctionScope s : values()) {
 				scopeMap.put(s.name().toLowerCase(), s);
@@ -681,19 +684,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public Object[] subDeclarationsForOutline() {
-		final List<Variable> l = locals;
-		return l != null ? l.toArray() : new Object[0];
-	}
-
-	/**
-	 * Create num generically named parameters (par1, par2, ...)
-	 * @param num Number of parameters to create
-	 */
-	public void createParameters(final int num) {
-		for (int i = parameters.size(); i < num; i++)
-		 {
-			parameters.add(new Variable(Scope.VAR, "par"+i)); //$NON-NLS-1$
-		}
+		return this.locals;
 	}
 
 	/**
@@ -842,14 +833,12 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public List<Declaration> subDeclarations(final Index contextIndex, final int mask) {
-		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
+		final ArrayList<Declaration> result = new ArrayList<Declaration>();
 		if ((mask & DeclMask.VARIABLES) != 0) {
-			if (locals != null) {
-				decs.addAll(locals);
-			}
-			decs.addAll(parameters);
+			Collections.addAll(result, defaulting(locals, NO_VARIABLES));
+			Collections.addAll(result, defaulting(parameters, NO_VARIABLES));
 		}
-		return decs;
+		return result;
 	}
 
 	@Override
@@ -861,11 +850,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	 * @return See above
 	 */
 	public boolean tooManyParameters(final int num) {
-		synchronized (parameters) {
-			return
-				(parameters.size() == 0 || !parameters.get(parameters.size()-1).isEllipsis()) &&
-				num > parameters.size();
-		}
+		final Variable[] parameters = this.parameters;
+		return (
+			(parameters.length == 0 || !parameters[parameters.length-1].isEllipsis()) &&
+			num > parameters.length
+		);
 	}
 
 	/**
@@ -887,7 +876,8 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * Remove local variables.
 	 */
-	public void clearLocalVars() { locals = null; }
+	public void clearLocalVars() { locals = NO_VARIABLES; }
+
 	@Override
 	public boolean staticallyTyped() { return staticallyTyped; }
 
@@ -950,6 +940,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			return null;
 		}
 	}
+
 	@Override
 	public IVariable variable(final AccessDeclaration access, final Object obj) {
 		if (access.predecessor() == null) {
@@ -962,12 +953,14 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	}
 
 	@Override
-	public Object[] arguments() { synchronized (parameters) { return parameters.toArray(); } }
+	public Object[] arguments() { synchronized (parameters) { return parameters; } }
+
 	/**
 	 * Return the cached block without performing checks.
 	 * @return The cached code block
 	 */
 	public FunctionBody body() { return bodyMatchingSource(null); }
+
 	@Override
 	public Object self() { return null; }
 	@Override
@@ -980,6 +973,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	public boolean isLocal() { return true; }
 	@Override
 	public ASTNode code() { return body(); }
+
 	@Override
 	public ASTNode[] subElements() {
 		final TypeAnnotation typeAnnotation = typeAnnotation();
@@ -990,6 +984,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		nodes[nodes.length-1] = body();
 		return nodes;
 	}
+
 	@Override
 	public void setSubElements(final ASTNode[] nodes) {
 		if (nodes[0] instanceof TypeAnnotation) {
@@ -997,6 +992,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 		}
 		storeBody(nodes[nodes.length-1], "");
 	}
+
 	@Override
 	public int absoluteOffset() { return bodyLocation().start(); }
 	@Override

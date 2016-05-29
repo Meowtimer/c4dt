@@ -114,8 +114,9 @@ public class XMLDocImporter {
 
 	protected void readTranslationFragmentsFromPoFiles() {
 		final IStorageLocation loc = storageLocation;
-		if (loc == null)
+		if (loc == null) {
 			return;
+		}
 		final Map<String, Map<String, List<PoTranslationFragment>>> frags =
 			new HashMap<String, Map<String, List<PoTranslationFragment>>>();
 		loc
@@ -129,7 +130,7 @@ public class XMLDocImporter {
 					final Matcher msgStrMatcher = msgStrPattern.matcher("");
 					final List<PoTranslationFragment> l = new LinkedList<PoTranslationFragment>();
 					String english = null;
-					for (final String line : StringUtil.lines(reader))
+					for (final String line : StringUtil.lines(reader)) {
 						if (fileLocationMatcher.reset(line).matches()) {
 							final String file = fileLocationMatcher.group(1);
 							final int fileLine = Integer.valueOf(fileLocationMatcher.group(2));
@@ -137,9 +138,9 @@ public class XMLDocImporter {
 							l.add(fragment);
 							getOrAdd(getOrAdd(frags, langId, () -> new HashMap<>()), file, () -> new LinkedList<>())
 								.add(fragment);
-						} else if (msgIdMatcher.reset(line).matches())
+						} else if (msgIdMatcher.reset(line).matches()) {
 							english = msgIdMatcher.group(1).replaceAll("\\\\\\\"", "\"");
-						else if (msgStrMatcher.reset(line).matches()) {
+						} else if (msgStrMatcher.reset(line).matches()) {
 							final String localized = msgStrMatcher.group(1).replaceAll("\\\\\\\"", "\"");
 							for (final PoTranslationFragment f : l) {
 								f.english = english;
@@ -148,6 +149,7 @@ public class XMLDocImporter {
 							l.clear();
 							english = null;
 						}
+					}
 					return true;
 				}, IOException.class, Exception::printStackTrace);
 			});
@@ -156,7 +158,7 @@ public class XMLDocImporter {
 
 	public class ExtractedDeclarationDocumentation {
 		public String name;
-		public List<Variable> parameters = new LinkedList<Variable>();
+		public Variable[] parameters;
 		public String description;
 		public IType returnType;
 		public boolean isVariable;
@@ -166,16 +168,19 @@ public class XMLDocImporter {
 	public static final int SIGNATURE = 2;
 
 	public ExtractedDeclarationDocumentation extractDeclarationInformationFromFunctionXml(final String functionName, final String langId, final int flags) {
-		if (!initialized || storageLocation == null)
+		if (!initialized || storageLocation == null) {
 			return null;
+		}
 		final Path docsRelativePath = new Path("sdk/script/fn/"+functionName+".xml");
 		final URL url = storageLocation.locatorForEntry(new Path(DOCS).append(docsRelativePath).toString(), false);
-		if (url == null)
+		if (url == null) {
 			return null;
+		}
 		return attemptWithResource(url::openStream, stream -> {
 			final DocumentBuilder builder = makeDocumentBuilder();
-			if (builder == null)
+			if (builder == null) {
 				return null;
+			}
 			final String source = StreamUtil.stringFromInputStream(stream);
 			final boolean importDocumentation = (flags & DOCUMENTATION) != 0;
 			final String translated = importDocumentation ? translate(langId, docsRelativePath, source) : source;
@@ -190,15 +195,21 @@ public class XMLDocImporter {
 			return (titleNode != null && rTypeNode != null) ? block(() -> {
 				final ExtractedDeclarationDocumentation result = new ExtractedDeclarationDocumentation();
 				result.name = getTextIncludingTags(titleNode);
-				if (parmNodes != null && (parmNodes.getLength() > 0 || !Declaration.looksLikeConstName(result.name)))
-					IntStream.range(0, parmNodes.getLength())
-						.mapToObj(parmNodes::item)
-						.map(this.mapNode(flags))
-						.filter(x -> x != null)
-						.forEach(result.parameters::add);
+				result.parameters = (
+					parmNodes != null && (parmNodes.getLength() > 0 || !Declaration.looksLikeConstName(result.name)) ? (
+						IntStream.range(0, parmNodes.getLength())
+							.mapToObj(parmNodes::item)
+							.map(this.mapNode(flags))
+							.filter(x -> x != null)
+							.toArray(length -> new Variable[length])
+					) : (
+						new Variable[0]
+					)
+				);
 				result.returnType = PrimitiveType.fromString(getTextIncludingTags(rTypeNode));
-				if (descNode != null)
+				if (descNode != null) {
 					result.description = getTextIncludingTags(descNode);
+				}
 				return result;
 			}) : null;
 		}, IOException.class, Exception::printStackTrace);
@@ -212,8 +223,9 @@ public class XMLDocImporter {
 			final String typeStr = typeNode != null ? getTextIncludingTags(typeNode) : PrimitiveType.ANY.toString();
 			return nameNode != null ? block(() -> {
 				final Variable parm = new Variable(getTextIncludingTags(nameNode), PrimitiveType.fromString(typeStr));
-				if (descNode_ != null)
+				if (descNode_ != null) {
 					parm.setUserDescription(getTextIncludingTags(descNode_));
+				}
 				return parm;
 			}) : null;
 		};
@@ -225,8 +237,9 @@ public class XMLDocImporter {
 			Exception.class,
 			e -> {
 				final Matcher m = TITLE_PATTERN.matcher(text_);
-				if (m.find())
+				if (m.find()) {
 					System.out.println(m.group(1));
+				}
 				e.printStackTrace();
 			}
 		);
@@ -235,12 +248,13 @@ public class XMLDocImporter {
 	private String translate(final String langId, final Path docsRelativePath, final String source) {
 		return defaulting(block(() -> {
 			final List<PoTranslationFragment> translationFragments = this.translationFragments.get(langId).get(docsRelativePath.toString());
-			if (translationFragments == null)
+			if (translationFragments == null) {
 				return null;
+			}
 			int lineNo = 1;
 			final StringBuilder builder = new StringBuilder(source.length());
 			for (String textLine : StringUtil.lines(new StringReader(source))) {
-				for (final PoTranslationFragment f : translationFragments)
+				for (final PoTranslationFragment f : translationFragments) {
 					if (f.line == lineNo) {
 						final String englishWithPlaceholdersReplacedWithTagCaptureGroups = Pattern.quote(f.english).replaceAll("<placeholder\\-([0-9]+)/>", "\\\\E(<.*?>.*?</.*?>)\\\\Q");
 						//System.out.println(englishWithPlaceholdersReplacedWithTagCaptureGroups);
@@ -249,18 +263,20 @@ public class XMLDocImporter {
 						final StringBuilder localizedWithTagsPutIn = new StringBuilder(f.localized);
 						int builderOffsetCausedByReplacing = 0;
 						if (englishMatcher.find()) {
-							for (int g = 1; g <= englishMatcher.groupCount(); g++)
+							for (int g = 1; g <= englishMatcher.groupCount(); g++) {
 								if (placeHolderInLocalizedMatcher.find()) {
 									final String actualTag = englishMatcher.group(g);
 									placeHolderInLocalizedMatcher.start();
 									localizedWithTagsPutIn.replace(placeHolderInLocalizedMatcher.start()+builderOffsetCausedByReplacing, placeHolderInLocalizedMatcher.end()+builderOffsetCausedByReplacing, actualTag);
 									builderOffsetCausedByReplacing += actualTag.length() - placeHolderInLocalizedMatcher.group().length();
 								}
+							}
 							final StringBuilder lineBuilder = new StringBuilder(textLine);
 							lineBuilder.replace(englishMatcher.start(), englishMatcher.end(), localizedWithTagsPutIn.toString());
 							textLine = lineBuilder.toString();
 						}
 					}
+				}
 				builder.append(textLine);
 				builder.append("\n");
 				lineNo++;
@@ -291,9 +307,9 @@ public class XMLDocImporter {
 	private static void appendContentsOfNode(final Node n, final StringBuilder builder) {
 		for (int i = 0; i < n.getChildNodes().getLength(); i++) {
 			final Node c = n.getChildNodes().item(i);
-			if (c.getNodeValue() != null)
+			if (c.getNodeValue() != null) {
 				builder.append(c.getNodeValue());
-			else {
+			} else {
 				builder.append("<"+c.getNodeName()+">");
 				appendContentsOfNode(c, builder);
 				builder.append("<"+c.getNodeName()+"/>");
@@ -319,11 +335,13 @@ public class XMLDocImporter {
 			if (d != null) {
 				if (placeholder instanceof Function) {
 					final Function f = (Function)placeholder;
-					if (d.parameters != null)
+					if (d.parameters != null) {
 						f.setParameters(d.parameters);
+					}
 				}
-				if (d.returnType != null)
+				if (d.returnType != null) {
 					placeholder.forceType(d.returnType);
+				}
 			}
 		}
 		return true;

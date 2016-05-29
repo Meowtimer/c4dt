@@ -956,6 +956,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			@Override
 			public Definition definition() { return as(input().script, Definition.class); }
+
 			@Override
 			public SourceLocation absoluteSourceLocationFromExpr(final ASTNode expression) {
 				int fragmentOffset = input().fragmentOffset;
@@ -2297,21 +2298,21 @@ public class DabbleInference extends ProblemReportingStrategy {
 					return findUsingType(visitor, node, p != null ? visitor.ty(p) : visitor.script());
 				}
 				private IType declarationType(final CallDeclaration node, final Visitor visitor) {
-					final Declaration d = internalObtainDeclaration(node, visitor);
+					final Declaration declaration = internalObtainDeclaration(node, visitor);
 
 					// look for gathered type information
-					final TypeVariable tyvar = findTypeVariable(node, visitor);
-					if (tyvar != null) {
-						return tyvar.get();
+					final TypeVariable typeVariable = findTypeVariable(node, visitor);
+					if (typeVariable != null) {
+						return typeVariable.get();
 					}
 
 					// calling this() as function -> return object type belonging to script
-					if (node.params().length == 0 && d != null && (d == visitor.cachedEngineDeclarations().This)) {
+					if (node.params().length == 0 && declaration != null && (declaration == visitor.cachedEngineDeclarations().This)) {
 						return node.parent(Function.class).isGlobal() ? CallTargetType.INSTANCE : visitor.input().thisType;
 					}
 
-					if (d instanceof Function) {
-						final Function fn = (Function) d;
+					if (declaration instanceof Function) {
+						final Function function = (Function) declaration;
 						// Some special rule applies and the return type is set accordingly
 						final SpecialFuncRule rule = visitor.script().engine().specialRules().funcRuleFor(node.name(), SpecialEngineRules.RETURNTYPE_MODIFIER);
 						if (rule != null) {
@@ -2320,10 +2321,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 								return type;
 							}
 						}
-						return returnTypeFromPredecessorType(node, visitor, fn);
+						return returnTypeFromPredecessorType(node, visitor, function);
 					}
-					if (d instanceof Variable) {
-						final Variable v = (Variable)d;
+					if (declaration instanceof Variable) {
+						final Variable v = (Variable)declaration;
 						switch (v.scope()) {
 						case LOCAL:
 							final IType t = node.predecessor() == null
@@ -3153,10 +3154,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<Function>(Function.class) {
+
 				@Override
 				public IType type(Function node, Visitor visitor) {
 					return PrimitiveType.FUNCTION;
 				}
+
+				@Override
+				public boolean skipReportingProblemsForSubElements() {
+					return true;
+				}
+
 			}
 
 		};

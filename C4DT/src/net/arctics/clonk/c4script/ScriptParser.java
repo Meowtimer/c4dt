@@ -403,45 +403,45 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			function.resetLocalVarTypes();
 			// parse code block
 			final EnumSet<ParseStatementOption> options = EnumSet.of(ParseStatementOption.ExpectFuncDesc);
-			final SourceLocation loc = new SourceLocation(bodyStart, Integer.MAX_VALUE);
-			function.setBodyLocation(loc);
+			final SourceLocation location = new SourceLocation(bodyStart, Integer.MAX_VALUE);
+			function.setBodyLocation(location);
 			final List<ASTNode> statements = parseStatements(offset, options, function.isOldStyle());
 			final FunctionBody body = new FunctionBody(function, statements);
-			loc.setEnd(
+			location.setEnd(
 				function.isOldStyle() && statements.size() > 0
-					? (loc.start() + statements.get(statements.size() - 1).end())
+					? (location.start() + statements.get(statements.size() - 1).end())
 					: this.offset - 1
 			);
 			function.storeBody(body, functionSource(function));
-			final TypeAnnotation annot = function.typeAnnotation();
-			if (annot != null) {
-				annot.offsetLocation(-loc.start());
+			final TypeAnnotation annotation = function.typeAnnotation();
+			if (annotation != null) {
+				annotation.offsetLocation(-location.start());
 			}
 		} catch (final Exception e) {
 			function.storeBody(new FunctionBody(function), functionSource(function));
 		}
 	}
 
-	private Variable addVarParmsParm(final Function func) {
-		final Variable v = new Variable("...", PrimitiveType.ANY); //$NON-NLS-1$
-		v.setParent(func);
-		v.setScope(Variable.Scope.PARAMETER);
-		func.addParameter(v);
-		return v;
+	private Variable addVariadicParametersParameter(final Function func) {
+		final Variable variadicParameter = new Variable(Ellipsis.ELLIPSIS, PrimitiveType.ANY);
+		variadicParameter.setParent(func);
+		variadicParameter.setScope(Variable.Scope.PARAMETER);
+		func.addParameter(variadicParameter);
+		return variadicParameter;
 	}
 
 	@Override
 	protected Comment parseComment() {
 		final int offset = this.offset;
-		final Comment c = super.parseComment();
-		if (c != null) {
+		final Comment comment = super.parseComment();
+		if (comment != null) {
 			if (lastComment != null && lastComment.precedesOffset(offset, buffer)) {
-				c.previousComment = lastComment;
+				comment.previousComment = lastComment;
 			}
-			setRelativeLocation(c, offset, this.offset);
-			c.setAbsoluteOffset(offset);
-			lastComment = c;
-			return c;
+			setRelativeLocation(comment, offset, this.offset);
+			comment.setAbsoluteOffset(offset);
+			lastComment = comment;
+			return comment;
 		}
 		return null;
 	}
@@ -495,7 +495,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	}
 
 	private Declaration parseDirective() throws ProblemException {
-		final int s = this.offset;
+		final int startOffset = this.offset;
 		if (read() != '#') {
 			unread();
 			return null;
@@ -505,45 +505,45 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		final String directiveName = parseIdentifier();
 		final DirectiveType type = DirectiveType.makeType(directiveName);
 		if (type == null) {
-			warning(Problem.UnknownDirective, s, s + 1 + (directiveName != null ? directiveName.length() : 0), 0, directiveName);
+			warning(Problem.UnknownDirective, startOffset, startOffset + 1 + (directiveName != null ? directiveName.length() : 0), 0, directiveName);
 			this.moveUntil(BufferedScanner.NEWLINE_CHARS);
-			result = new MalformedDeclaration(readStringAt(s, this.offset));
-			result.setLocation(s, this.offset);
+			result = new MalformedDeclaration(readStringAt(startOffset, this.offset));
+			result.setLocation(startOffset, this.offset);
 		}
 		else {
 			if (type == DirectiveType.STRICT && !engine.settings().supportsStrictDirective) {
-				error(Problem.NotSupported, s, this.offset, Markers.NO_THROW, "#"+DirectiveType.STRICT, engine.name());
+				error(Problem.NotSupported, startOffset, this.offset, Markers.NO_THROW, "#"+DirectiveType.STRICT, engine.name());
 			}
 			eat(WHITESPACE_WITHOUT_NEWLINE_CHARS);
 			final int cs = offset;
 			final String content = parseDirectiveParms();
-			final Directive directive = new Directive(type, content, cs-s);
-			directive.setLocation(absoluteSourceLocation(s, this.offset));
+			final Directive directive = new Directive(type, content, cs-startOffset);
+			directive.setLocation(absoluteSourceLocation(startOffset, this.offset));
 			script.addDeclaration(directive);
 			result = directive;
 		}
 		return result;
 	}
 
-	protected InitializationFunction synthesizeInitializationFunction(final VarInitialization vi) {
-		final InitializationFunction synth = new InitializationFunction(vi.variable);
-		final SourceLocation expressionLocation = absoluteSourceLocationFromExpr(vi.expression);
-		final int es = expressionLocation.start();
-		vi.expression.traverse((node, parser) -> {
-			node.setLocation(node.start()-es, node.end()-es);
-			final CallDeclaration cd = as(node, CallDeclaration.class);
-			if (cd != null) {
-				cd.setParmsRegion(cd.parmsStart()-es, cd.parmsEnd()-es);
+	protected InitializationFunction synthesizeInitializationFunction(final VarInitialization variableInitialization) {
+		final InitializationFunction result = new InitializationFunction(variableInitialization.variable);
+		final SourceLocation expressionLocation = absoluteSourceLocationFromExpr(variableInitialization.expression);
+		final int expressionStart = expressionLocation.start();
+		variableInitialization.expression.traverse((node, parser) -> {
+			node.setLocation(node.start()-expressionStart, node.end()-expressionStart);
+			final CallDeclaration callDeclaration = as(node, CallDeclaration.class);
+			if (callDeclaration != null) {
+				callDeclaration.setParmsRegion(callDeclaration.parmsStart()-expressionStart, callDeclaration.parmsEnd()-expressionStart);
 			}
 			return TraversalContinuation.Continue;
 		}, null);
-		synth.setBodyLocation(expressionLocation);
-		synth.storeBody(vi.expression, readStringAt(expressionLocation));
-		synth.setName(vi.variable.name()+"=");
-		synth.setLocation(vi.start(), expressionLocation.end());
-		synth.setVisibility(vi.variable.scope() == Scope.STATIC ? FunctionScope.GLOBAL : FunctionScope.PRIVATE);
-		script.addDeclaration(synth);
-		return synth;
+		result.setBodyLocation(expressionLocation);
+		result.storeBody(variableInitialization.expression, readStringAt(expressionLocation));
+		result.setName(variableInitialization.variable.name()+"=");
+		result.setLocation(variableInitialization.start(), expressionLocation.end());
+		result.setVisibility(variableInitialization.variable.scope() == Scope.STATIC ? FunctionScope.GLOBAL : FunctionScope.PRIVATE);
+		script.addDeclaration(result);
+		return result;
 	}
 
 	private String parseDirectiveParms() throws ProblemException {
@@ -576,7 +576,15 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		 * @param typeAnnotation Type annotation. Mostly null for regular dynamically typed C4Script functions.
 		 * @param description Description extracted from preceding comment.
 		 */
-		public FunctionHeader(final int start, final String name, final FunctionScope scope, final boolean isOldStyle, final int nameStart, final IType returnType, final TypeAnnotation typeAnnotation, final Comment description) {
+		public FunctionHeader(final int start,
+			final String name,
+			final FunctionScope scope,
+			final boolean isOldStyle,
+			final int nameStart,
+			final IType returnType,
+			final TypeAnnotation typeAnnotation,
+			final Comment description
+		) {
 			super();
 			this.start = start;
 			this.name = name;
@@ -875,7 +883,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		required |= typing == Typing.STATIC && migrationTyping == null;
 		final int start = this.offset;
 		String str;
-		TypeAnnotation t = null;
+		TypeAnnotation result = null;
 		ID id;
 		if (peek() == '&') {
 			if (!script.engine().settings().supportsRefs) {
@@ -883,7 +891,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					'&', script.engine().name());
 			}
 			read();
-			t = typeAnnotation(offset-1, offset, PrimitiveType.REFERENCE);
+			result = typeAnnotation(offset-1, offset, PrimitiveType.REFERENCE);
 		}
 		else if (peek() == '$') {
 			final String placeholderString = parsePlaceholderString();
@@ -898,22 +906,22 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				 * explicitly accepting any object won't be restricted to specific
 				 * definitions
 				 */
-				t = typeAnnotation(start, offset, pt.unified());
+				result = typeAnnotation(start, offset, pt.unified());
 			} else if (typing.allowsNonParameterAnnotations()) {
 				if (script.index() != null && engine.acceptsID(str)) {
 					final Definition def = script.index().definitionNearestTo(script.file(), ID.get(str));
 					if (def != null) {
-						t = typeAnnotation(start, offset, def);
+						result = typeAnnotation(start, offset, def);
 					}
 				}
 			}
-			if (t != null) {
+			if (result != null) {
 				final List<TypeAnnotation> subAnnotations = new LinkedList<>();
 				final int p = offset;
 				eatWhitespace();
 				RefinementIndicator: switch (read()) {
 				case '&':
-					t = typeAnnotation(start, offset, ReferenceType.make(t.type()));
+					result = typeAnnotation(start, offset, ReferenceType.make(result.type()));
 					break;
 				case '[':
 					if (typing == Typing.STATIC || migrationTyping == Typing.STATIC) {
@@ -923,11 +931,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					expect(']');
 					if (elementType != null) {
 						subAnnotations.add(elementType);
-						if (eq(t.type(), PrimitiveType.ARRAY)) {
-							t.setType(new ArrayType(elementType.type()));
-						} else if (eq(t.type(), PrimitiveType.ID)) {
+						if (eq(result.type(), PrimitiveType.ARRAY)) {
+							result.setType(new ArrayType(elementType.type()));
+						} else if (eq(result.type(), PrimitiveType.ID)) {
 							if (elementType.type() instanceof Definition) {
-								t.setType(((Definition)elementType.type()).metaDefinition());
+								result.setType(((Definition)elementType.type()).metaDefinition());
 							} else {
 								error(Problem.IncompatibleTypes, elementType.start(), elementType.end(), Markers.NO_THROW,
 									elementType.type().typeName(true), "definition");
@@ -939,10 +947,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					seek(p);
 				}
 				while (true) {
-					final int s = this.offset;
+					final int backtrack = this.offset;
 					eatWhitespace();
 					if (read() != '|') {
-						seek(s);
+						seek(backtrack);
 						break;
 					} else {
 						eatWhitespace();
@@ -950,19 +958,19 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					final TypeAnnotation option = parseTypeAnnotation(false, true);
 					if (option != null) {
 						subAnnotations.add(option);
-						t.setType(typing.unify(t.type(), option.type()));
+						result.setType(typing.unify(result.type(), option.type()));
 					} else {
 						break;
 					}
 					eatWhitespace();
 				}
-				t.setSubAnnotations(subAnnotations.toArray(new TypeAnnotation[subAnnotations.size()]));
+				result.setSubAnnotations(subAnnotations.toArray(new TypeAnnotation[subAnnotations.size()]));
 				if (typeAnnotations != null && topLevel) {
-					typeAnnotations.add(t);
+					typeAnnotations.add(result);
 				}
 			}
 		}
-		if (t == null) {
+		if (result == null) {
 			if (typing == Typing.STATIC || migrationTyping == Typing.STATIC) {
 				if (required) {
 					error(Problem.InvalidType, start, offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, readStringAt(start, offset));
@@ -975,9 +983,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			}
 			this.seek(start);
 		} else {
-			t.setEnd(-sectionOffset()+offset);
+			result.setEnd(-sectionOffset()+offset);
 		}
-		return t;
+		return result;
 	}
 
 	/**
@@ -2680,7 +2688,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		final int backtrack = this.offset;
 		eatWhitespace();
 		if ((script == engine || engine == null || engine.settings().supportsVarArgsDeclaration) && parseEllipsis()) {
-			return addVarParmsParm(function);
+			return addVariadicParametersParameter(function);
 		}
 		if (peek() == ')') {
 			seek(backtrack);

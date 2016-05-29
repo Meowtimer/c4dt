@@ -6,6 +6,7 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 
 public class Ellipsis extends ASTNode {
 
+	public static final String ELLIPSIS = "..."; //$NON-NLS-1$
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
@@ -15,7 +16,7 @@ public class Ellipsis extends ASTNode {
 
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
-		output.append("..."); //$NON-NLS-1$
+		output.append(ELLIPSIS);
 	}
 
 	@Override
