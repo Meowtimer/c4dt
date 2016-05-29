@@ -929,7 +929,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			}
 			if (result != null) {
 				final List<TypeAnnotation> subAnnotations = new LinkedList<>();
-				final int beforeRefinement = offset;
+				final int p = offset;
 				eatWhitespace();
 				RefinementIndicator: switch (read()) {
 				case '&':
@@ -956,7 +956,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					}
 					break RefinementIndicator;
 				default:
-					seek(beforeRefinement);
+					seek(p);
 				}
 				while (true) {
 					final int backtrack = this.offset;
@@ -2841,4 +2841,5 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	public Declaration container() { return script(); }
 	@Override
 	public int fragmentOffset() { return offsetOfScriptFragment; }
+
 }
