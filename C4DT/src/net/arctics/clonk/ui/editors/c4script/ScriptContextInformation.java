@@ -2,8 +2,6 @@ package net.arctics.clonk.ui.editors.c4script;
 
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 
-import java.util.List;
-
 import net.arctics.clonk.ast.SourceLocation;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Script;
