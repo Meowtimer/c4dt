@@ -746,6 +746,7 @@ global func array CreateMatTexMask(any mask_spec);
 global func bool FileWrite(int handle, string data);
 
 static const object Global;
+static const object ScenarioObjects;
 
 static const int ATTACH_Front;
 static const int ATTACH_Back;
