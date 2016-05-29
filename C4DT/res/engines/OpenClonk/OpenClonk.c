@@ -598,6 +598,7 @@ global func any SetShape(int x, int y, int width, int height);
 global func bool SetSkyAdjust(int colorMod, int backgroundColor);
 global func bool SetSkyParallax(int mode, int xpar, int ypar, int xdir, int ydir, int x, int y);
 global func any SetSolidMask(int x, int y, int width, int height, int target_x, int target_y);
+global func any SetHalfVehicleSolidMask(bool set);
 global func any SetTemperature(int temperature);
 global func bool SetTransferZone(int x, int y, int width, int height);
 global func int SetVertex(int index, int select, int value, int set_custom_permanent);
