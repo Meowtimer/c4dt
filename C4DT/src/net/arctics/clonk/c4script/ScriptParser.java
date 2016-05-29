@@ -4,7 +4,9 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -113,12 +115,16 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		Problem.NotAllowedHere
 	);
 
-	private final Stack<Declaration> currentDeclaration = new Stack<Declaration>();
+	private final Deque<Declaration> currentDeclaration = new ArrayDeque<>();
 
 	private Function currentFunction() {
-		for (final Declaration declaration : currentDeclaration) {
-			if (declaration instanceof Function) {
-				return (Function)declaration;
+		for (
+			final Iterator<Declaration> descendingIterator = currentDeclaration.descendingIterator();
+			descendingIterator.hasNext();
+		) {
+			final Function function = as(descendingIterator.next(), Function.class);
+			if (function != null) {
+				return function;
 			}
 		}
 		return null;
