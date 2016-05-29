@@ -1838,14 +1838,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public boolean judgement(final VarInitializationAccess node, final IType type, final ASTNode origin, final Visitor visitor, final TypingJudgementMode mode) {
 					super.judgement(node, type, origin, visitor, mode);
-					if (origin != null) {
-						final Declaration d = declaration(node, visitor);
-						if (d instanceof Variable && ((Variable)d).scope() == Scope.CONST && !origin.isConstant()) {
-							try {
-								visitor.markers().error(visitor, Problem.NonConstGlobalVarAssignment, origin, origin, Markers.NO_THROW);
-							} catch (final ProblemException e) { }
-						}
-					}
 					return true;
 				}
 				@Override
