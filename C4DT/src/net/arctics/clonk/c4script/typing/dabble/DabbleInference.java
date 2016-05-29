@@ -1974,7 +1974,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				
 				@Override
-				public boolean isModifiable(final ArraySliceExpression node, final Visitor visitor) { return false; }
+				public boolean isModifiable(final ArraySliceExpression node, final Visitor visitor) {
+					return true;
+				}
 				
 				@Override
 				public IType type(final ArraySliceExpression node, final Visitor visitor) {
