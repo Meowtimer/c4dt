@@ -38,6 +38,7 @@ import net.arctics.clonk.util.StringUtil;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class Markers implements Iterable<Marker> {
+
 	public static final String MARKER_PROBLEM = "c4dtProblem"; //$NON-NLS-1$
 	public static final String MARKER_EXPECTEDTYPE = "c4dtExpectedType";
 
@@ -58,7 +59,7 @@ public class Markers implements Iterable<Marker> {
 		return r;
 	}
 
-	public void setListener(final IMarkerListener markerListener) { this.listener = markerListener; }
+	public void setListener(final IMarkerListener listener) { this.listener = listener; }
 	public IMarkerListener listener() { return listener; }
 
 	public Marker last() { return last; }
@@ -111,12 +112,12 @@ public class Markers implements Iterable<Marker> {
 			String[] attributes = new String[] {IMarker.SEVERITY, IMarker.TRANSIENT, IMarker.MESSAGE, IMarker.LOCATION, MARKER_PROBLEM};
 			Object[] attributeValues = new Object[] {marker.severity, false, marker.code.makeErrorString(marker.arguments),
 				declarationAssociatedWithFile != null ? declarationAssociatedWithFile.toString() : null, marker.code.ordinal()};
-			IMarker m = findCaptured(marker.start, marker.end);
-			if (m == null) {
+			IMarker deployedMarker = findCaptured(marker.start, marker.end);
+			if (deployedMarker == null) {
 				if (SAYERRORS && marker.severity == IMarker.SEVERITY_ERROR) {
 					sayError(marker);
 				}
-				m = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
+				deployedMarker = file.createMarker(Core.MARKER_C4SCRIPT_ERROR);
 				attributes = concat(attributes, IMarker.CHAR_START, IMarker.CHAR_END);
 				attributeValues = concat(attributeValues, marker.start, marker.end);
 			}
@@ -124,15 +125,15 @@ public class Markers implements Iterable<Marker> {
 				attributes = concat(MARKER_EXPECTEDTYPE, attributes);
 				attributeValues = concat(marker.arguments[0], attributeValues);
 			}
-			m.setAttributes(
+			deployedMarker.setAttributes(
 				attributes,
 				attributeValues
 			);
-			return m;
+			return deployedMarker;
 		} catch (final CoreException e) {
 			e.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 
 	private Handling handleProblemMapping(final Marker marker) {
@@ -255,14 +256,21 @@ public class Markers implements Iterable<Marker> {
 			// won't happen
 		}
 	}
+
 	public void warning(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, final IRegion region, final int flags, final Object... args) {
 		warning(positionProvider, code, node, region.getOffset(), region.getOffset()+region.getLength(), flags, args);
 	}
+
 	public void error(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, final IRegion errorRegion, final int flags, final Object... args) throws ProblemException {
 		error(positionProvider, code, node, errorRegion.getOffset(), errorRegion.getOffset()+errorRegion.getLength(), flags, args);
 	}
+
 	public void error(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, final int errorStart, final int errorEnd, final int flags, final Object... args) throws ProblemException {
 		marker(positionProvider, code, node, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
+	}
+	
+	public void nonThrowingErrorAtNode(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, Object... args) throws ProblemException {
+		error(positionProvider, code, node, node, NO_THROW, args);
 	}
 
 	/**
@@ -419,4 +427,5 @@ public class Markers implements Iterable<Marker> {
 	public String toString() {
 		return StringUtil.blockString("[", "]", ",", this);
 	}
+
 }

@@ -328,8 +328,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 			final DabbleInference inference = visitor.inference();
 			if (called.index() == script.index() && params.length > called.numParameters() && !(called.script() instanceof Engine)) {
 				try {
-					inference.markers().error(script, Problem.ParameterCountMismatch, node, node, Markers.NO_THROW,
-						called.numParameters(), params.length, called.name());
+					inference.markers().nonThrowingErrorAtNode(script, Problem.ParameterCountMismatch, node,
+						called.numParameters(), params.length, called.name()
+					);
 				} catch (final ProblemException e) {}
 			}
 		}
@@ -1603,6 +1604,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				return PrimitiveType.UNKNOWN;
 			}
+			
 			private IType unifyVariableTypesForAllPredecessorTypes(final T node, final Visitor visitor, final Declaration d) {
 				IType t = PrimitiveType.UNKNOWN;
 				if (node.predecessor() != null) {
@@ -1625,19 +1627,20 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final ASTNode pred = node.predecessor();
 				final Declaration declaration = internalObtainDeclaration(node, visitor);
 				if (declaration == null && pred == null) {
-					visitor.markers().error(visitor, Problem.UndeclaredIdentifier, node, node, Markers.NO_THROW, node.name());
+					visitor.markers().nonThrowingErrorAtNode(visitor, Problem.UndeclaredIdentifier, node, node.name());
 				} else if (declaration instanceof Variable) {
 					final Variable var = (Variable) declaration;
 					handleVariable(node, visitor, pred, var);
 				} else if (declaration instanceof Function) {
 					if (!visitor.script().engine().settings().supportsFunctionRefs) {
-						visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.FunctionRefNotAllowed, node, visitor.script().engine().name());
 					}
 					if (pred instanceof MemberOperator && !((MemberOperator)pred).dotNotation()) {
-						visitor.markers().error(visitor, Problem.FunctionRefAfterArrow, node, node, Markers.NO_THROW, node.name());
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.FunctionRefAfterArrow, node, node.name());
 					}
 				}
 			}
+			
 			private void handleVariable(final T node, final Visitor visitor, final ASTNode pred, final Variable var) throws ProblemException {
 				var.setUsed(true);
 				switch (var.scope()) {
@@ -1675,7 +1678,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						(f != null && f.visibility() == FunctionScope.GLOBAL) ||
 						(f == null && v != null && v.scope() != Scope.LOCAL)
 					) {
-						visitor.markers().error(visitor, Problem.LocalUsedInGlobal, node, node, Markers.NO_THROW);
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.LocalUsedInGlobal, node);
 					}
 				}
 			}
@@ -2122,7 +2125,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void visit(final ContinueStatement node, final Visitor visitor) throws ProblemException {
 					if (node.parent(ILoop.class) == null) {
-						visitor.markers().error(visitor, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.KeywordInWrongPlace, node, node.keyword());
 					}
 					supr.visit(node, visitor);
 				}
@@ -2132,7 +2135,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void visit(final BreakStatement node, final Visitor visitor) throws ProblemException {
 					if (node.parent(ILoop.class) == null) {
-						visitor.markers().error(visitor, Problem.KeywordInWrongPlace, node, node, Markers.NO_THROW, node.keyword());
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.KeywordInWrongPlace, node, node.keyword());
 					}
 					supr.visit(node, visitor);
 				}
@@ -2145,9 +2148,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					if (node instanceof Tuple) {
 						if (tupleIsError) {
-							visitor.markers().error(visitor, Problem.TuplesNotAllowed, node, node, Markers.NO_THROW);
+							visitor.markers().nonThrowingErrorAtNode(visitor, Problem.TuplesNotAllowed, node);
 						} else if (visitor.input().strictLevel >= 2) {
-							visitor.markers().error(visitor, Problem.ReturnAsFunction, node, node, Markers.NO_THROW);
+							visitor.markers().nonThrowingErrorAtNode(visitor, Problem.ReturnAsFunction, node);
 						}
 					}
 					final ASTNode[] subElms = node.subElements();
@@ -2162,7 +2165,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					warnAboutTupleInReturnExpr(visitor, returnExpr, false);
 					final Function currentFunction = node.parent(Function.class);
 					if (currentFunction == null) {
-						visitor.markers().error(visitor, Problem.NotAllowedHere, node, node, Markers.NO_THROW, Keywords.Return);
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.NotAllowedHere, node, Keywords.Return);
 					} else if (returnExpr != null) {
 						if (typing == Typing.STATIC && currentFunction.staticallyTyped()) {
 							if (visitor.expert(returnExpr).unifyDeclaredAndGiven(returnExpr, currentFunction.returnType(), visitor) == null) {
@@ -2501,7 +2504,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				private void returnsAsFunctionWarning(final CallDeclaration node, final Visitor visitor) throws ProblemException {
 					// return as function
 					if (visitor.input().strictLevel >= 2) {
-						visitor.markers().error(visitor, Problem.ReturnAsFunction, node, node, Markers.NO_THROW);
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.ReturnAsFunction, node);
 					} else {
 						visitor.markers().warning(visitor, Problem.ReturnAsFunction, node, node, 0);
 					}
@@ -2560,7 +2563,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (node.parent(Script.class) == visitor.script()) {
 						// inherited/_inherited not allowed in non-strict mode
 						if (visitor.input().strictLevel <= 0) {
-							visitor.markers().error(visitor, Problem.InheritedDisabledInStrict0, node, node, Markers.NO_THROW);
+							visitor.markers().nonThrowingErrorAtNode(visitor, Problem.InheritedDisabledInStrict0, node);
 						}
 
 						final Function function = node.parent(Function.class);
@@ -2570,7 +2573,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							node.setDeclaration(inh);
 						}
 						if (inh == null && !node.failsafe()) {
-							visitor.markers().error(visitor, Problem.NoInheritedFunction, node, node, Markers.NO_THROW, function.name());
+							visitor.markers().nonThrowingErrorAtNode(visitor, Problem.NoInheritedFunction, node, function.name());
 						}
 					}
 				}
@@ -2607,7 +2610,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						p = e;
 					}
 					if (p != null && !p.isValidAtEndOfSequence()) {
-						visitor.markers().error(visitor, Problem.NotFinished, node, node, Markers.NO_THROW, node.printed());
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.NotFinished, node, node.printed());
 					}
 				}
 				@Override
@@ -2639,7 +2642,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public void visit(final Nil node, final Visitor visitor) throws ProblemException {
 					final Engine engine = visitor.script().engine();
 					if (!engine.settings().supportsNil) {
-						visitor.markers().error(visitor, Problem.NotSupported, node, node, Markers.NO_THROW, Keywords.Nil, engine.name());
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.NotSupported, node, Keywords.Nil, engine.name());
 					}
 				}
 			},
@@ -2708,7 +2711,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void visit(final FloatLiteral node, final Visitor visitor) throws ProblemException {
 					if (!visitor.script().engine().settings().supportsFloats) {
-						visitor.markers().error(visitor, Problem.FloatNumbersNotSupported, node, node, Markers.NO_THROW);
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.FloatNumbersNotSupported, node);
 					}
 					supr.visit(node, visitor);
 				}
@@ -2741,11 +2744,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void visit(final CallExpr node, final Visitor visitor) throws ProblemException {
 					if (!visitor.script().engine().settings().supportsFunctionRefs) {
-						visitor.markers().error(visitor, Problem.FunctionRefNotAllowed, node, node, Markers.NO_THROW, visitor.script().engine().name());
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.FunctionRefNotAllowed, node, visitor.script().engine().name());
 					} else {
 						final IType type = visitor.expert(node.predecessor()).type(node.predecessor(), visitor);
 						if (!typing.compatible(PrimitiveType.FUNCTION, type)) {
-							visitor.markers().error(visitor, Problem.CallingExpression, node, node, Markers.NO_THROW);
+							visitor.markers().nonThrowingErrorAtNode(visitor, Problem.CallingExpression, node);
 						}
 					}
 				}
@@ -2826,7 +2829,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				public void visit(final PropListExpression node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					if (!visitor.script().engine().settings().supportsProplists) {
-						visitor.markers().error(visitor, Problem.NotSupported, node, node, Markers.NO_THROW,
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.NotSupported, node,
 							"",
 							visitor.script().engine().name());
 					}
@@ -2890,10 +2893,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					}
 					if (node.getLength() > 3 && !settings.spaceAllowedBetweenArrowAndTilde) {
-						visitor.markers().error(visitor, Problem.MemberOperatorWithTildeNoSpace, node, node, Markers.NO_THROW);
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.MemberOperatorWithTildeNoSpace, node);
 					}
 					if (node.dotNotation() && !settings.supportsProplists) {
-						visitor.markers().error(visitor, Problem.DotNotationNotSupported, node, node, Markers.NO_THROW, node);
+						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.DotNotationNotSupported, node, node);
 					}
 				}
 			},
@@ -3095,14 +3098,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<MissingStatement>(MissingStatement.class) {
 				@Override
 				public void visit(final MissingStatement node, final Visitor visitor) throws ProblemException {
-					visitor.markers().error(visitor, Problem.MissingStatement, node, node, Markers.NO_THROW);
+					visitor.markers().nonThrowingErrorAtNode(visitor, Problem.MissingStatement, node);
 				}
 			},
 
 			new Expert<GarbageStatement>(GarbageStatement.class) {
 				@Override
 				public void visit(final GarbageStatement node, final Visitor visitor) throws ProblemException {
-					visitor.markers().error(visitor, Problem.Garbage, node, node, Markers.NO_THROW, node.garbage());
+					visitor.markers().nonThrowingErrorAtNode(visitor, Problem.Garbage, node, node.garbage());
 				}
 			},
 
@@ -3134,7 +3137,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				@Override
 				public void visit(final Unfinished node, final Visitor visitor) throws ProblemException {
-					visitor.markers().error(visitor, Problem.NotFinished, node, node, Markers.NO_THROW, node);
+					visitor.markers().nonThrowingErrorAtNode(visitor, Problem.NotFinished, node, node);
 				}
 			},
 
