@@ -269,6 +269,10 @@ public class Markers implements Iterable<Marker> {
 		marker(positionProvider, code, node, errorStart, errorEnd, flags, IMarker.SEVERITY_ERROR, args);
 	}
 	
+	public void warningAtNode(final IASTPositionProvider positionProvider, final Problem code, ASTNode node, Object... args) throws ProblemException {
+		warning(positionProvider, code, node, node, 0, args);
+	}
+	
 	public void nonThrowingErrorAtNode(final IASTPositionProvider positionProvider, final Problem code, final ASTNode node, Object... args) throws ProblemException {
 		error(positionProvider, code, node, node, NO_THROW, args);
 	}

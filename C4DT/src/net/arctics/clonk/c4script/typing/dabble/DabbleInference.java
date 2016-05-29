@@ -1,8 +1,10 @@
 package net.arctics.clonk.c4script.typing.dabble;
 
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.ArrayUtil.filteredIterable;
+import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.defaulting;
 import static net.arctics.clonk.util.Utilities.eq;
@@ -24,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -431,9 +434,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			@Override
 			public int hashCode() { return hash; }
+			
 			public Input input() { return Input.this; }
+			
 			@Override
 			public String toString() { return function.qualifiedName(script); }
+			
 			@Override
 			public void run() {
 				visitor.visit();
@@ -466,12 +472,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (owns && node instanceof AccessDeclaration) {
 						((AccessDeclaration)node).setDeclaration(null);
 					}
-					final Expert<? super ASTNode> e = findExpert(node);
-					final int nid = node.localIdentifier();
-					if (nid >= 0) {
-						experts[nid] = e;
-						if (e.providesInherentType) {
-							inferredTypes[nid] = e.type(node, visitor);
+					final Expert<? super ASTNode> expert = findExpert(node);
+					final int nodeID = node.localIdentifier();
+					if (nodeID >= 0) {
+						experts[nodeID] = expert;
+						if (expert.providesInherentType) {
+							inferredTypes[nodeID] = expert.type(node, visitor);
 						}
 					}
 					return TraversalContinuation.Continue;
@@ -1485,7 +1491,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		return MASTER_OF_NONE;
 	}
 
-	private final Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> committee = new HashMap<Class<? extends ASTNode>, Expert<?>>();
+	private Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> committee = new HashMap<Class<? extends ASTNode>, Expert<?>>();
 
 	class AccessDeclarationExpert<T extends AccessDeclaration> extends Expert<T> {
 		public AccessDeclarationExpert(final Class<T> cls) { super(cls); }
@@ -2115,7 +2121,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					if (node.parent() instanceof BinaryOp) {
 						final Operator op = ((BinaryOp) node.parent()).operator();
 						if (op == Operator.And || op == Operator.Or) {
-							visitor.markers().warning(visitor, Problem.BoolLiteralAsOpArg, node, node, 0, this.toString());
+							visitor.markers().warningAtNode(visitor, Problem.BoolLiteralAsOpArg, node, this.toString());
 						}
 					}
 				}
@@ -3172,10 +3178,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 		};
-		committee.clear();
-		for (final Expert<?> expert : classes) {
-			committee.put(expert.cls(), expert);
-		}
+		committee = stream(classes).collect(Collectors.toMap(Expert::cls, x -> x));
 		for (final Expert<?> expert : classes) {
 			expert.findSuper();
 		}
@@ -3210,34 +3213,32 @@ public class DabbleInference extends ProblemReportingStrategy {
 	 * @param node Node in which the reference to the string table entry is contained
 	 */
 	private static void reportMissingStringTblEntries(final ProblemReporter context, final EntityRegion region, final ASTNode node) {
-		StringBuilder miss = null;
 		try {
-			for (final IResource r : (context.script().resource() instanceof IContainer ? (IContainer)context.script().resource() : context.script().resource().getParent()).members()) {
-				if (!(r instanceof IFile)) {
-					continue;
-				}
-				final IFile f = (IFile) r;
-				final Matcher m = StringTbl.PATTERN.matcher(r.getName());
-				if (m.matches()) {
-					final String lang = m.group(1);
-					final StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
-					if (tbl != null) {
-						if (tbl.map().get(region.text()) == null) {
-							if (miss == null) {
-								miss = new StringBuilder(10);
+			final IResource[] resources = (
+				context.script().resource() instanceof IContainer
+					? (IContainer)context.script().resource()
+					: context.script().resource().getParent()
+			).members();
+			final String missingLanguages = ofType(stream(resources), IFile.class)
+				.map(file -> {
+					final Matcher matcher = StringTbl.PATTERN.matcher(file.getName());
+					if (matcher.matches()) {
+						final String lang = matcher.group(1);
+						final StringTbl tbl = (StringTbl)Structure.pinned(file, true, false);
+						if (tbl != null) {
+							if (tbl.map().get(region.text()) == null) {
+								return lang;
 							}
-							if (miss.length() > 0) {
-								miss.append(", "); //$NON-NLS-1$
-							}
-							miss.append(lang);
 						}
 					}
-				}
+					return null;
+				})
+				.filter(x -> x != null)
+				.collect(Collectors.joining(", "));
+			if (missingLanguages.length() > 0) {
+				context.markers().warning(context, Problem.MissingLocalizations, node, region.region(), 0, region.text(), missingLanguages);
 			}
 		} catch (final CoreException e) {}
-		if (miss != null) {
-			context.markers().warning(context, Problem.MissingLocalizations, node, region.region(), 0, region.text(), miss);
-		}
 	}
 
 }
