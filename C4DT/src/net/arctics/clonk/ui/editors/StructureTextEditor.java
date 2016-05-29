@@ -132,16 +132,16 @@ public class StructureTextEditor extends TextEditor {
 	 * Handle adaptering for {@link IContentOutlinePage} and {@link IShowInSource}
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public Object getAdapter(final Class adapter) {
+	@SuppressWarnings({ "unchecked" })
+	public <T> T getAdapter(final Class<T> adapter) {
 		if (adapter.equals(IContentOutlinePage.class)) {
-			return outlinePage();
+			return (T) outlinePage();
 		}
 		if (adapter.equals(IShowInSource.class) || adapter.equals(IShowInTargetList.class)) {
 			if (showInAdapter == null) {
 				showInAdapter = new ShowInAdapter(this);
 			}
-			return showInAdapter;
+			return (T) showInAdapter;
 		}
 		return super.getAdapter(adapter);
 	}

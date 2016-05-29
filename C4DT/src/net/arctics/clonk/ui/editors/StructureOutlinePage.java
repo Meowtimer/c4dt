@@ -145,7 +145,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 		final WeakReferencingContentProvider<ClonkOutlineProvider> provider = new WeakReferencingContentProvider<ClonkOutlineProvider>(new ClonkOutlineProvider());
 		treeViewer.setLabelProvider(provider);
 		treeViewer.setContentProvider(provider);
-		treeViewer.setSorter(provider.sorter(DECLARATION_SORTER));
+		treeViewer.setComparator(provider.comparator(DECLARATION_SORTER));
 		treeViewer.setInput(obj);
 		treeViewer.refresh();
 	}

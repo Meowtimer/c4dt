@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.graphics.Image;
 
@@ -142,8 +143,8 @@ public class WeakReferencingContentProvider<T extends ILabelProvider & ITreeCont
 	@Override
 	public String getText(final Object element) { return wrapped.getText(unwrap(element)); }
 	
-	public ViewerSorter sorter(final ViewerSorter wrappedSorter) {
-		return new ViewerSorter() {
+	public ViewerComparator comparator(final ViewerComparator wrappedSorter) {
+		return new ViewerComparator() {
 			@Override
 			public int compare(final Viewer viewer, final Object e1, final Object e2) {
 				return wrappedSorter.compare(viewer, unwrap(e1), unwrap(e2));

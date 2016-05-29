@@ -120,7 +120,6 @@ public class ScriptQuickAssistProcessor implements IQuickAssistProcessor {
 		if (model == null) {
 			return NO_SUGGESTIONS;
 		}
-		@SuppressWarnings("unchecked")
 		final Iterator<Annotation> iter = model.getAnnotationIterator();
 		iter.forEachRemaining(annotation -> {
 			if (canFix(annotation)) {

@@ -93,4 +93,3 @@ public class ClonkSorter extends ViewerSorter {
 	}
 
 }
-
