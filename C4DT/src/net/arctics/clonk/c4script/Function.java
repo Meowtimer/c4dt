@@ -1,6 +1,8 @@
 package net.arctics.clonk.c4script;
 
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
+
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
@@ -11,7 +13,6 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -175,7 +176,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 	/**
 	 * @return the parameter
 	 */
-	public List<Variable> parameters() { return Arrays.asList(parameters); }
+	public Variable[] parameters() { return parameters; }
 
 	public boolean typeFromCallsHint() { return typeFromCallsHint; 	}
 	public void setTypeFromCallsHint(final boolean value) {
@@ -452,7 +453,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	private void printParametersString(final ASTNodePrinter output, final PrintParametersOptions options) {
 		if (numParameters() > 0) {
-			StringUtil.writeBlock(output, "", "", ", ", parameters().stream().map(new java.util.function.Function<Variable, String>() {
+			StringUtil.writeBlock(output, "", "", ", ", stream(parameters()).map(new java.util.function.Function<Variable, String>() {
 				final Function.Typing typing = options.typing;
 				int i = -1;
 				@Override

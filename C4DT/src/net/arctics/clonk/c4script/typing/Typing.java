@@ -195,8 +195,8 @@ public enum Typing {
 				new Function("<unified>", FunctionScope.GLOBAL)
 					.setParameters(
 						IntStream.range(0, Math.max(
-							functionTypeA.prototype().parameters().size(),
-							functionTypeB.prototype().parameters().size()
+							functionTypeA.prototype().parameters().length,
+							functionTypeB.prototype().parameters().length
 						)).mapToObj(parameterIndex -> {
 							final Variable parameterA = functionTypeA.prototype().parameter(parameterIndex);
 							final Variable parameterB = functionTypeB.prototype().parameter(parameterIndex);

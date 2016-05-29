@@ -26,6 +26,7 @@ import net.arctics.clonk.index.Engine;
 import net.arctics.clonk.index.IIndexEntity;
 import net.arctics.clonk.index.IVariableFactory;
 import net.arctics.clonk.index.Index;
+import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.IHasUserDescription;
 import net.arctics.clonk.util.StringUtil;
 
@@ -396,8 +397,8 @@ public class Variable extends Declaration implements Serializable, ITypeable, IH
 	 * @return Return the parameter index or -1 if the variable is not a function parameter.
 	 */
 	public int parameterIndex() {
-		final Function f = as(parent, Function.class);
-		return f != null ? f.parameters().indexOf(this) : -1;
+		final Function function = as(parent, Function.class);
+		return function != null ? ArrayUtil.indexOf(this, function.parameters()) : -1;
 	}
 
 	@Override

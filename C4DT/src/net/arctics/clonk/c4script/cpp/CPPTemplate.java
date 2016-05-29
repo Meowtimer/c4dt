@@ -260,8 +260,8 @@ public class CPPTemplate {
 	private final List<Object> skeleton;
 
 	String parmsString(Function f, boolean comma) {
-		return f.parameters().isEmpty() ? "" : (
-			(comma ? ", " : "") + f.parameters().stream().map(
+		return f.parameters().length == 0 ? "" : (
+			(comma ? ", " : "") + stream(f.parameters()).map(
 				p -> format("%s %s", cppTypeString(p.type()), unclashKeyword(p.name()))
 			).collect(Collectors.joining(", "))
 		);
@@ -378,7 +378,7 @@ public class CPPTemplate {
 							stream(call.params()).forEach(parameter -> {
 								if (parameter instanceof Ellipsis) {
 									final Function f = call.parent(Function.class);
-									final String ellipsisExpansion = f.parameters().stream()
+									final String ellipsisExpansion = stream(f.parameters())
 										.map(Variable::name)
 										.map(CPPTemplate::unclashKeyword)
 										.collect(Collectors.joining(", "));
@@ -567,7 +567,7 @@ public class CPPTemplate {
 				cppTypeString(numberedFunction.function.returnType()) + " " + numberedFunction.name() +
 				"(C4PropList* self"+parmsString(numberedFunction.function, true)+")" +
 				" { return static_cast<" + script.name() + "*>(self)->s_" + numberedFunction.name() + "(" +
-					numberedFunction.function.parameters().stream()
+					stream(numberedFunction.function.parameters())
 						.map(Variable::name)
 						.map(CPPTemplate::unclashKeyword)
 						.collect(Collectors.joining(", ")) + "); }"

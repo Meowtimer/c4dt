@@ -97,9 +97,9 @@ public class ScriptContextInformation implements IContextInformation, IContextIn
 		} else {
 			parameterDisplayStringRanges = new SourceLocation[function.numParameters()];
 			int estimate = 0;
-			final List<Variable> parameters = function.parameters();
-			for (int i = 0; i < parameters.size(); i++) {
-				final Variable p = parameters.get(i);
+			final Variable[] parameters = function.parameters();
+			for (int i = 0; i < parameters.length; i++) {
+				final Variable p = parameters[i];
 				final IType ty = typing != null && typing.parameterTypes.length > i ? typing.parameterTypes[i] : p.type();
 				estimate += ty.typeName(true).length() + p.name().length();
 				if (longParameterInfo && p.userDescription() != null)

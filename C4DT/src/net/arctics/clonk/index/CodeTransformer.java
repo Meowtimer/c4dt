@@ -240,8 +240,8 @@ public class CodeTransformer extends CodeConverter {
 	}
 	private Map<String, ObjParConversion> prepareObjParConversions() {
 		return sourceEngine.functions().stream().map(sf -> {
-			final int objNdx = indexOfItemSatisfying(sf.parameters(), p -> p.name().equals("pObj"));
-			final int idNdx = indexOfItemSatisfying(sf.parameters(), p -> p.name().equals("idDef"));
+			final int objNdx = indexOfItemSatisfying(iterable(sf.parameters()), p -> p.name().equals("pObj"));
+			final int idNdx = indexOfItemSatisfying(iterable(sf.parameters()), p -> p.name().equals("idDef"));
 			final int diff = (objNdx != -1 ? - 1 : 0) - (idNdx != -1 ? 1 : 0);
 			if (diff == 0) {
 				return null;

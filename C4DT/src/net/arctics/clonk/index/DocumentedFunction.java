@@ -33,7 +33,7 @@ public final class DocumentedFunction extends EngineFunction implements IDocumen
 	}
 
 	@Override
-	public synchronized List<Variable> parameters() {
+	public synchronized Variable[] parameters() {
 		fetchDocumentation();
 		return super.parameters();
 	}

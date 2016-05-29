@@ -387,7 +387,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 
 		private static boolean fixParms(Function node) {
 			final Set<String> got = new HashSet<>();
-			final boolean fixedParms = node.parameters().stream().reduce(false, (num, v) -> {
+			final boolean fixedParms = stream(node.parameters()).reduce(false, (num, v) -> {
 				if (v.type() == PrimitiveType.REFERENCE) {
 					v.forceType(PrimitiveType.ANY);
 					return true;

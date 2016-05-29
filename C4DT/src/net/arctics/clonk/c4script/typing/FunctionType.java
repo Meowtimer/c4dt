@@ -31,7 +31,7 @@ public class FunctionType implements IRefinedPrimitiveType {
 			return PrimitiveType.FUNCTION.typeName(false);
 		final StringBuilder builder = new StringBuilder();
 		builder.append(PrimitiveType.FUNCTION.typeName(false));
-		StringUtil.writeBlock(builder, "(", ")", ", ", map(this.prototype.parameters(), from -> from.type().typeName(false)));
+		StringUtil.writeBlock(builder, "(", ")", ", ", map(iterable(this.prototype.parameters()), from -> from.type().typeName(false)));
 		return builder.toString();
 	}
 

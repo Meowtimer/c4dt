@@ -781,7 +781,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 					if (!script.seesSubDeclaration(dec))
 						continue;
 					final Function func = as(dec, Function.class);
-					callbackProposal(site, func.name(), "%s", null, funcSupplied, func.parameters().toArray(new Variable[func.numParameters()])).setCategory(cats.Callbacks);
+					callbackProposal(site, func.name(), "%s", null, funcSupplied, func.parameters()).setCategory(cats.Callbacks);
 				}
 	}
 

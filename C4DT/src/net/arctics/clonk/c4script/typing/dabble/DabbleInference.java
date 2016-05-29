@@ -661,7 +661,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				final boolean ownedFunction = funScript == script();
 				final ASTNode[] statements = function.body().statements();
-				final List<Variable> parameters = function.parameters();
+				final Variable[] parameters = function.parameters();
 				final Function baseFunction = function.baseFunction();
 
 				if (!ownedFunction) {
@@ -779,9 +779,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			}
 
-			private TypeVariable[] createParameterTypeVariables(final Function function, final List<Variable> parameters) {
+			private TypeVariable[] createParameterTypeVariables(final Function function, Variable[] parameters) {
 				// create type variables for parameters
-				final TypeVariable[] callTypes = new TypeVariable[parameters.size()];
+				final TypeVariable[] callTypes = new TypeVariable[parameters.length];
 				for (int i = 0; i < callTypes.length; i++) {
 					final Variable p = function.parameter(i);
 					final TypeVariable tyvar = new VariableTypeVariable(p);
@@ -1270,9 +1270,9 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 			else {
 				parameterTypes = new IType[fun.numParameters()];
-				final List<Variable> parms = fun.parameters();
-				for (int i = 0; i < parms.size(); i++) {
-					final Variable p = parms.get(i);
+				final Variable[] parms = fun.parameters();
+				for (int i = 0; i < parms.length; i++) {
+					final Variable p = parms[i];
 					final TypeVariable parTy = typeEnvironment.get(p);
 					parameterTypes[i] = parTy != null ? parTy.get() : p.type();
 				}

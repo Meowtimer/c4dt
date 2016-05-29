@@ -1442,7 +1442,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		switch (scope) {
 		case PARAMETER:
 			result.setParent(function);
-			function.parameters().add(result);
+			function.addParameter(result);
 			break;
 		case VAR:
 			result.setParent(function);
