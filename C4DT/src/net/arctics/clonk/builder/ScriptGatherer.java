@@ -41,9 +41,9 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 	private static final boolean INDEX_C4GROUPS = true;
 	private final Set<Script> obsoleted = new HashSet<Script>();
 	private final ClonkBuilder builder;
-
+	
 	public ScriptGatherer(final ClonkBuilder clonkBuilder) { builder = clonkBuilder; }
-
+	
 	public void obsoleteCorrespondingScriptFromIndex(final IResource deleted, final Index index) {
 		index.allScripts(new Sink<Script>() {
 			@Override
@@ -63,7 +63,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			}
 		});
 	}
-
+	
 	private Definition createDefinition(final IContainer folder) {
 		final IFile defCore = as(findMemberCaseInsensitively(folder, "DefCore.txt"), IFile.class); //$NON-NLS-1$
 		final IFile scenario = as(findMemberCaseInsensitively(folder, "Scenario.txt"), IFile.class); //$NON-NLS-1$
@@ -97,6 +97,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			return null;
 		}
 	}
+
 	@Override
 	public boolean visit(final IResourceDelta delta) {
 		if (delta == null) {
@@ -181,6 +182,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		builder.monitor().worked(1);
 		return visitChildren;
 	}
+
 	@Override
 	public boolean visit(final IResource resource) throws CoreException {
 		if (builder.monitor().isCanceled()) {
@@ -211,6 +213,7 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		}
 		return false;
 	}
+	
 	private boolean processAuxiliaryFiles(final IFile file, final Script script) throws CoreException {
 		boolean result = true;
 		Structure structure;
@@ -234,10 +237,12 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 		}
 		return result;
 	}
+	
 	public void removeObsoleteScripts() {
 		obsoleted.forEach(builder.index()::removeScript);
 		obsoleted.clear();
 	}
+	
 	private SystemScript makeSystemScript(final IResource resource) {
 		final SystemScript pinned = SystemScript.pinned(resource, true);
 		return pinned != null ? pinned : resource instanceof IFile ? block(() -> {
@@ -261,10 +266,13 @@ public class ScriptGatherer implements IResourceDeltaVisitor, IResourceVisitor {
 			}
 		}) : null;
 	}
+	
 	public boolean isMapScript(final IResource resource) {
 		return resource instanceof IFile && resource.getName().equals("Map.c");
 	}
+	
 	private boolean isSystemGroup(final IContainer container) {
 		return container.getName().equals(builder.index().engine().groupName("System", FileExtension.ResourceGroup)); //$NON-NLS-1$
 	}
+
 }
