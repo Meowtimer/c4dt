@@ -349,13 +349,12 @@ public class CLI implements IApplication, AutoCloseable {
 			}
 		}));
 		parser.parse();
-		final DabbleInference inf = new DabbleInference();
-		inf.configure(parser.script().index(), "");
-		inf.steer(() -> {
-			inf.initialize(new Markers(), new NullProgressMonitor(), new Script[] { parser.script() });
-			inf.run();
-			inf.apply();
-			inf.run2();
+		final DabbleInference inference = new DabbleInference(parser.script().index(), "");
+		inference.steer(() -> {
+			inference.initialize(new Markers(), new NullProgressMonitor(), new Script[] { parser.script() });
+			inference.run();
+			inference.apply();
+			inference.run2();
 		});
 		try (PrintWriter output = new PrintWriter(System.out)) {
 			CPPTemplate.render(parser.script().index(), parser.script(), output);

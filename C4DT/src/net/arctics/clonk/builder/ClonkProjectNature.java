@@ -418,7 +418,7 @@ public class ClonkProjectNature implements IProjectNature {
 		}
 	}
 
-	private static final List<ProblemReportingStrategy> NULL_PROBLEM_REPORTERS = Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy());
+	private static final List<ProblemReportingStrategy> NULL_PROBLEM_REPORTERS = Arrays.<ProblemReportingStrategy>asList(new NullProblemReportingStrategy(null, ""));
 
 	public List<ProblemReportingStrategy> instantiateProblemReportingStrategies(final int requiredCapabilities) {
 		try {
@@ -433,8 +433,7 @@ public class ClonkProjectNature implements IProjectNature {
 					continue;
 				}
 				try {
-					final ProblemReportingStrategy instance = c.cls.newInstance();
-					instance.configure(index(), c.args);
+					final ProblemReportingStrategy instance = c.cls.getConstructor(Index.class, String.class).newInstance(index(), c.args);
 					instances.add(instance);
 				} catch (InstantiationException | IllegalAccessException e) {
 					e.printStackTrace();

@@ -190,9 +190,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	private boolean noticeParameterCountMismatch;
 
-	@Override
-	public DabbleInference configure(final Index index, final String args) {
-		super.configure(index, args);
+	public DabbleInference(final Index index, final String args) {
+		super(index, args);
 		for (final String a : args.split("\\|")) {
 			switch (a) {
 			case "noticeParameterCountMismatch": //$NON-NLS-1$
@@ -200,8 +199,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				break;
 			}
 		}
-		assembleCommittee();
-		return this;
+		this.committee = assembleCommittee();
 	}
 
 	@Override
@@ -1312,11 +1310,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean providesInherentType = false;
 
 		public Expert(final Class<T> cls) { super(cls); }
-		public void findSuper() {
+		
+		public void findSuper(Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> result) {
 			for (Class<? super T> s = cls.getSuperclass(); s != null; s = s.getSuperclass()) {
 				@SuppressWarnings("unchecked")
 				final
-				Expert<? super T> sup = (Expert<? super T>)committee.get(s);
+				Expert<? super T> sup = (Expert<? super T>)result.get(s);
 				if (sup != null) {
 					supr = sup;
 					return;
@@ -1491,7 +1490,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		return MASTER_OF_NONE;
 	}
 
-	private Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> committee;
+	private final Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> committee;
 
 	class AccessDeclarationExpert<T extends AccessDeclaration> extends Expert<T> {
 		public AccessDeclarationExpert(final Class<T> cls) { super(cls); }
@@ -1542,7 +1541,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 	}
 
-	private synchronized void assembleCommittee() {
+	private synchronized Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> assembleCommittee() {
 
 		class AccessVarExpert<T extends AccessVar> extends AccessDeclarationExpert<T> {
 			private AccessVarExpert(final Class<T> cls) { super(cls); }
@@ -3187,10 +3186,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 		};
-		committee = stream(classes).collect(Collectors.toMap(Expert::cls, x -> x));
+		final Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> result = stream(classes).collect(Collectors.toMap(Expert::cls, x -> x));
 		for (final Expert<?> expert : classes) {
-			expert.findSuper();
+			expert.findSuper(result);
 		}
+		return result;
 	}
 
 	@Override

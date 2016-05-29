@@ -27,6 +27,17 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  */
 public abstract class ProblemReportingStrategy implements Runnable {
 
+	/**
+	 * Perform initial configuration before this strategy can be further initialized using {@link #initialize(Markers, IProgressMonitor, Collection)}/{@link #initialize(Markers, IProgressMonitor, Script[])}
+	 * @param index The {@link Index} to run on
+	 * @param args Custom arguments string
+	 * @return Return call target.
+	 */
+	public ProblemReportingStrategy(final Index index, final String args) {
+		this.index = index;
+		findProjectName();
+	}
+	
 	protected static final Markers NULL_MARKERS = new Markers(false) {
 		@Override
 		public void enabled(final boolean value) {
@@ -136,18 +147,6 @@ public abstract class ProblemReportingStrategy implements Runnable {
 	 * @param observer The observer
 	 */
 	public void setObserver(final IASTVisitor<ProblemReporter> observer) { this.observer = observer; }
-
-	/**
-	 * Perform initial configuration before this strategy can be further initialized using {@link #initialize(Markers, IProgressMonitor, Collection)}/{@link #initialize(Markers, IProgressMonitor, Script[])}
-	 * @param index The {@link Index} to run on
-	 * @param args Custom arguments string
-	 * @return Return call target.
-	 */
-	public ProblemReportingStrategy configure(final Index index, final String args) {
-		this.index = index;
-		findProjectName();
-		return this;
-	}
 
 	/**
 	 * Capture markers on functions the strategy is configured to operate on.

@@ -25,12 +25,17 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.c4script.typing.TypingJudgementMode;
 import net.arctics.clonk.index.CachedEngineDeclarations;
 import net.arctics.clonk.index.Definition;
+import net.arctics.clonk.index.Index;
 import net.arctics.clonk.parser.Markers;
 import net.arctics.clonk.util.Pair;
 
 @Capabilities(capabilities=Capabilities.ISSUES|Capabilities.TYPING)
 public final class NullProblemReportingStrategy extends ProblemReportingStrategy {
 	
+	public NullProblemReportingStrategy(Index index, String args) {
+		super(index, args);
+	}
+
 	private final class NullReporter implements ProblemReporter {
 		private final Function f;
 		public NullReporter(Function f) { this.f = f; }

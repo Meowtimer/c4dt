@@ -1,5 +1,8 @@
 package net.arctics.clonk.command;
 
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.runtime.NullProgressMonitor;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.c4script.Script;
@@ -8,9 +11,6 @@ import net.arctics.clonk.c4script.typing.dabble.DabbleInference;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.index.IndexEntity.TopLevelEntity;
 import net.arctics.clonk.util.SelfcontainedStorage;
-
-import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.NullProgressMonitor;
 
 public class SelfContainedScript extends Script implements TopLevelEntity {
 
@@ -27,8 +27,7 @@ public class SelfContainedScript extends Script implements TopLevelEntity {
 			try {
 				parser.parse();
 				deriveInformation();
-				new DabbleInference()
-					.configure(index, "")
+				new DabbleInference(index, "")
 					.initialize(null, new NullProgressMonitor(), new Script[] {this})
 					.run();
 			} catch (final ProblemException e) {
