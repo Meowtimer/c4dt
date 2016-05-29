@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 import java.util.Vector;
 
 import org.eclipse.core.resources.IFile;
@@ -324,6 +323,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			script().setTypeAnnotations(typeAnnotations);
 		}
 	}
+
 	private void readUnexpectedBlock() throws ProblemException {
 		eatWhitespace();
 		if (!reachedEOF()) {
@@ -778,43 +778,43 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private VarInitialization parseVarInitialization(final Scope scope, final Comment comment) throws ProblemException {
 		final int backtrack = this.offset;
 		eatWhitespace();
-		TypeAnnotation annot;
-		final int bt = this.offset;
+		TypeAnnotation typeAnnotation;
+		final int backtrackAfterWhitespace = this.offset;
 		int typeExpectedAt = -1;
 		if (typing.allowsNonParameterAnnotations()) {
-			annot = parseTypeAnnotation(true, false);
-			if (annot != null) {
+			typeAnnotation = parseTypeAnnotation(true, false);
+			if (typeAnnotation != null) {
 				eatWhitespace();
 			} else if (typing == Typing.STATIC) {
 				typeExpectedAt = this.offset;
-				annot = typeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
+				typeAnnotation = typeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
 			} else {
-				annot = null;
+				typeAnnotation = null;
 			}
 		} else {
-			annot = placeholderTypeAnnotationIfMigrating(this.offset);
+			typeAnnotation = placeholderTypeAnnotationIfMigrating(this.offset);
 		}
 
-		final int s = this.offset;
-		String varName = readIdent();
-		if (s > bt) {
-			if (varName.length() == 0) {
+		final int backtrackAfterTypeAnnotation = this.offset;
+		String variableName = readIdent();
+		if (backtrackAfterTypeAnnotation > backtrackAfterWhitespace) {
+			if (variableName.length() == 0) {
 				if (typing == Typing.STATIC) {
-					annot = typeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
-					error(Problem.TypeExpected, bt, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
+					typeAnnotation = typeAnnotation(offset, offset, PrimitiveType.ERRONEOUS);
+					error(Problem.TypeExpected, backtrackAfterWhitespace, this.offset, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
 				} else {
-					annot = null;
+					typeAnnotation = null;
 				}
-				seek(bt);
-				varName = readIdent();
-			} else if (migrationTyping == Typing.STATIC && varName.equals(Keywords.In)) {
+				seek(backtrackAfterWhitespace);
+				variableName = readIdent();
+			} else if (migrationTyping == Typing.STATIC && variableName.equals(Keywords.In)) {
 				// ugh - for (var object in ...) workaround
-				annot = null;
-				seek(bt);
-				varName = readIdent();
+				typeAnnotation = null;
+				seek(backtrackAfterWhitespace);
+				variableName = readIdent();
 			}
 		}
-		if (varName.length() == 0) {
+		if (variableName.length() == 0) {
 			this.seek(backtrack);
 			return null;
 		}
@@ -822,26 +822,32 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			typeRequiredAt(typeExpectedAt);
 		}
 
-		final Variable var = script.createVarInScope(this, currentFunction(), varName, scope, fragmentOffset()+bt, fragmentOffset()+this.offset, comment);
-		pushDeclaration(var);
+		final Variable variable = script.createVarInScope(
+			this, currentFunction(), variableName,
+			scope, fragmentOffset()+backtrackAfterWhitespace, fragmentOffset()+this.offset,
+			comment
+		);
+		pushDeclaration(variable);
 		try {
-			if (annot != null) {
-				annot.setTarget(var);
-				if (var.scope() == Scope.PARAMETER) {
-					error(Problem.LocalOverridesParameter, s, s+var.name().length(), Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, var.name());
+			if (typeAnnotation != null) {
+				typeAnnotation.setTarget(variable);
+				if (variable.scope() == Scope.PARAMETER) {
+					error(Problem.LocalOverridesParameter, backtrackAfterTypeAnnotation, backtrackAfterTypeAnnotation+variable.name().length(),
+						Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, variable.name()
+					);
 				} else {
-					var.assignType(annot.type(), true);
+					variable.assignType(typeAnnotation.type(), true);
 				}
 			}
 			eatWhitespace();
 			return new VarInitialization(
-				varName,
-				parseInitializationExpression(var),
-				bt-sectionOffset(), this.offset-sectionOffset(),
-				var, annot
+				variableName,
+				parseInitializationExpression(variable),
+				backtrackAfterWhitespace-sectionOffset(), this.offset-sectionOffset(),
+				variable, typeAnnotation
 			);
 		} finally {
-			popDeclaration(var);
+			popDeclaration(variable);
 		}
 	}
 
@@ -853,13 +859,12 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			}
 			read();
 			eatWhitespace();
-			final ASTNode e = parseExpression();
-			var.setInitializationExpression(e);
-			return e;
+			final ASTNode initializationExpression = parseExpression();
+			var.setInitializationExpression(initializationExpression);
+			return initializationExpression;
 		} else if (scope == Scope.CONST && script != engine) {
 			error(Problem.ConstantValueExpected, this.offset-1, this.offset, Markers.NO_THROW);
-		} else if (scope == Scope.STATIC && script == engine)
-		 {
+		} else if (scope == Scope.STATIC && script == engine) {
 			var.forceType(PrimitiveType.INT); // most likely
 		}
 		return null;
@@ -870,10 +875,11 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			? placeholderTypeAnnotation(offset)
 			: null;
 	}
+
 	private TypeAnnotation placeholderTypeAnnotation(final int offset) {
-		final TypeAnnotation annot = typeAnnotation(offset, offset, null);
-		typeAnnotations.add(annot);
-		return annot;
+		final TypeAnnotation result = typeAnnotation(offset, offset, null);
+		typeAnnotations.add(result);
+		return result;
 	}
 
 	private void typeRequiredAt(final int typeExpectedAt) throws ProblemException {
@@ -888,7 +894,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private TypeAnnotation parseTypeAnnotation(final boolean topLevel, boolean required) throws ProblemException {
 		required |= typing == Typing.STATIC && migrationTyping == null;
 		final int start = this.offset;
-		String str;
+		String identifier;
 		TypeAnnotation result = null;
 		ID id;
 		if (peek() == '&') {
@@ -904,26 +910,26 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			final Placeholder p = makePlaceholder(placeholderString);
 			return typeAnnotation(start, this.offset, p);
 		}
-		else if ((str = parseIdentifier()) != null || ((id = parseID()) != null && (str = id.stringValue()) != null)) {
-			final PrimitiveType pt = PrimitiveType.fromString(str, typing==Typing.STATIC);
-			if (pt != null && script.engine().supportsPrimitiveType(pt)) {
+		else if ((identifier = parseIdentifier()) != null || ((id = parseID()) != null && (identifier = id.stringValue()) != null)) {
+			final PrimitiveType primitiveType = PrimitiveType.fromString(identifier, typing==Typing.STATIC);
+			if (primitiveType != null && script.engine().supportsPrimitiveType(primitiveType)) {
 				/* give explicit parameter types authority boost -
 				 * they won't unify with Definitions so that parameters
 				 * explicitly accepting any object won't be restricted to specific
 				 * definitions
 				 */
-				result = typeAnnotation(start, offset, pt.unified());
+				result = typeAnnotation(start, offset, primitiveType.unified());
 			} else if (typing.allowsNonParameterAnnotations()) {
-				if (script.index() != null && engine.acceptsID(str)) {
-					final Definition def = script.index().definitionNearestTo(script.file(), ID.get(str));
-					if (def != null) {
-						result = typeAnnotation(start, offset, def);
+				if (script.index() != null && engine.acceptsID(identifier)) {
+					final Definition definition = script.index().definitionNearestTo(script.file(), ID.get(identifier));
+					if (definition != null) {
+						result = typeAnnotation(start, offset, definition);
 					}
 				}
 			}
 			if (result != null) {
 				final List<TypeAnnotation> subAnnotations = new LinkedList<>();
-				final int p = offset;
+				final int beforeRefinement = offset;
 				eatWhitespace();
 				RefinementIndicator: switch (read()) {
 				case '&':
@@ -950,7 +956,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 					}
 					break RefinementIndicator;
 				default:
-					seek(p);
+					seek(beforeRefinement);
 				}
 				while (true) {
 					final int backtrack = this.offset;
