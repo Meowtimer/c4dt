@@ -1874,6 +1874,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<ArrayElementExpression>(ArrayElementExpression.class) {
+				
 				@Override
 				public IType type(final ArrayElementExpression node, final Visitor visitor) {
 					final IType t = supr.type(node, visitor);
@@ -1894,6 +1895,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					return PrimitiveType.ANY;
 				}
+				
 				@Override
 				public boolean judgement(final ArrayElementExpression leftSide, final IType rightSideType, final ASTNode origin, final Visitor visitor, final TypingJudgementMode mode) {
 					final IType predType_ = predecessorType(leftSide, visitor);
@@ -1914,6 +1916,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					return true;
 				}
+				
 				@Override
 				public void visit(final ArrayElementExpression node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
@@ -1947,11 +1950,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					}
 				}
+				
 				@Override
 				public boolean isModifiable(final ArrayElementExpression node, final Visitor visitor) { return true; }
+				
 			},
 
 			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
+				
 				private void warnIfNotArray(final ASTNode node, final Visitor visitor, final IType type) {
 					if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
 						typing.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
@@ -1959,14 +1965,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, node, 0);
 					}
 				}
+				
 				@Override
 				public void visit(final ArraySliceExpression node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					final IType type = predecessorType(node, visitor);
 					warnIfNotArray(node.predecessor(), visitor, type);
 				}
+				
 				@Override
 				public boolean isModifiable(final ArraySliceExpression node, final Visitor visitor) { return false; }
+				
+				@Override
+				public IType type(final ArraySliceExpression node, final Visitor visitor) {
+					final ArrayType arrayType = as(predecessorType(node, visitor), ArrayType.class);
+					return defaulting(arrayType, PrimitiveType.ARRAY);
+				}
+				
 			},
 
 			new Expert<OperatorExpression>(OperatorExpression.class) {
@@ -2111,19 +2126,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public boolean isModifiable(final UnaryOp node, final Visitor visitor) {
 					return node.placement() == Placement.Prefix && node.operator().returnsRef();
-				}
-			},
-
-			new Expert<BoolLiteral>(BoolLiteral.class) {
-				@Override
-				public void visit(final BoolLiteral node, final Visitor visitor) throws ProblemException {
-					supr.visit(node, visitor);
-					if (node.parent() instanceof BinaryOp) {
-						final Operator op = ((BinaryOp) node.parent()).operator();
-						if (op == Operator.And || op == Operator.Or) {
-							visitor.markers().warningAtNode(visitor, Problem.BoolLiteralAsOpArg, node, this.toString());
-						}
-					}
 				}
 			},
 
@@ -2631,14 +2633,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
-				@Override
-				public IType type(final ArraySliceExpression node, final Visitor visitor) {
-					final ArrayType arrayType = as(predecessorType(node, visitor), ArrayType.class);
-					return defaulting(arrayType, PrimitiveType.ARRAY);
-				}
-			},
-
 			new Expert<Nil>(Nil.class) {
 				@Override
 				public IType type(final Nil node, final Visitor visitor) {
@@ -2732,8 +2726,21 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new LiteralExpert<BoolLiteral>(BoolLiteral.class) {
+				
 				@Override
 				public IType type(final BoolLiteral node, final Visitor visitor) { return PrimitiveType.BOOL; }
+				
+				@Override
+				public void visit(final BoolLiteral node, final Visitor visitor) throws ProblemException {
+					supr.visit(node, visitor);
+					if (node.parent() instanceof BinaryOp) {
+						final Operator op = ((BinaryOp) node.parent()).operator();
+						if (op == Operator.And || op == Operator.Or) {
+							visitor.markers().warningAtNode(visitor, Problem.BoolLiteralAsOpArg, node, this.toString());
+						}
+					}
+				}
+				
 			},
 
 			new Expert<CallExpr>(CallExpr.class) {
