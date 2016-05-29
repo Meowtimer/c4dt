@@ -99,7 +99,8 @@ public enum Problem {
 	FunctionCallAfterDot(Messages.FunctionCallAfterDot),
 	GlobalFunctionInAppendTo(Messages.GlobalFunctionInAppendTo),
 	NoopAssignment(Messages.NoopAssignment),
-	EmptyBody(Messages.EmptyBody);
+	EmptyBody(Messages.EmptyBody),
+	AnonymousFunctionNotAllowedHere("Anonymous functions can only be used as values in proplists and not be nested in other functions");
 
 	private String message;
 	private String[] formatArgumentDescriptions;

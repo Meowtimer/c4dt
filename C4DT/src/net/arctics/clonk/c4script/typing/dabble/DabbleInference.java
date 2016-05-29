@@ -3151,6 +3151,15 @@ public class DabbleInference extends ProblemReportingStrategy {
 			new Expert<Function>(Function.class) {
 
 				@Override
+				public void visit(Function function, Visitor visitor) throws ProblemException {
+					final PropListExpression proplist = function.parent(PropListExpression.class);
+					final Function outerFunction = function.parent(Function.class);
+					if (proplist == null || (outerFunction != null && !(outerFunction instanceof InitializationFunction))) {
+						visitor.markers().nonThrowingErrorAtNode(visitor.script(), Problem.AnonymousFunctionNotAllowedHere, function);
+					}
+				}
+				
+				@Override
 				public IType type(Function node, Visitor visitor) {
 					return PrimitiveType.FUNCTION;
 				}
