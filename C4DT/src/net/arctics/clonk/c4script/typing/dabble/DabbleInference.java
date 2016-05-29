@@ -1491,7 +1491,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		return MASTER_OF_NONE;
 	}
 
-	private Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> committee = new HashMap<Class<? extends ASTNode>, Expert<?>>();
+	private Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> committee;
 
 	class AccessDeclarationExpert<T extends AccessDeclaration> extends Expert<T> {
 		public AccessDeclarationExpert(final Class<T> cls) { super(cls); }
