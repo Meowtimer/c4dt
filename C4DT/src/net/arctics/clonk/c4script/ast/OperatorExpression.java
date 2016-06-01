@@ -25,10 +25,12 @@ public class OperatorExpression extends ASTNode implements IPlaceholderPatternMa
 
 	@Override
 	public boolean equalAttributes(final ASTNode other) {
-		if (!super.equalAttributes(other))
+		if (!super.equalAttributes(other)) {
 			return false;
-		if (operator != ((OperatorExpression)other).operator)
+		}
+		if (operator != ((OperatorExpression)other).operator) {
 			return false;
+		}
 		return true;
 	}
 

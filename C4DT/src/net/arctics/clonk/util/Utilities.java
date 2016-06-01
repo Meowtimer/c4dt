@@ -58,10 +58,11 @@ public abstract class Utilities {
 	}
 
 	public static Script scriptForResource(final IResource resource) {
-		return
+		return (
 			resource instanceof IContainer ? Definition.at((IContainer) resource) :
 			resource instanceof IFile ?  Script.get(resource, true) :
-			null;
+			null
+		);
 	}
 
 	public static Script scriptForEditor(final IEditorPart editor) {
@@ -85,7 +86,7 @@ public abstract class Utilities {
 	 * @return true if resource is below container, false if not
 	 */
 	public static boolean resourceInside(final IResource resource, final IContainer container) {
-		return walk(resource instanceof IContainer ? (IContainer)resource : resource.getParent(), c -> c.getParent())
+		return walk(resource instanceof IContainer ? (IContainer)resource : resource.getParent(), IContainer::getParent)
 			.anyMatch(c -> c.equals(container));
 	}
 
@@ -174,9 +175,13 @@ public abstract class Utilities {
 	public static Enum<?>[] enumValues(final Class<?> enumClass) {
 		try {
 			return (Enum<?>[]) enumClass.getMethod("values").invoke(null); //$NON-NLS-1$
-		} catch (IllegalAccessException | IllegalArgumentException
-			| InvocationTargetException | NoSuchMethodException
-			| SecurityException e) {
+		} catch (
+			IllegalAccessException |
+			IllegalArgumentException |
+			InvocationTargetException |
+			NoSuchMethodException |
+			SecurityException e
+		) {
 			e.printStackTrace();
 			return null;
 		}
@@ -367,7 +372,7 @@ public abstract class Utilities {
 		ThrowHappy<? super T, E> throwing,
 		Class<E> expectedException
 	) {
-		return splittingException(throwing, expectedException, e -> e.printStackTrace());
+		return splittingException(throwing, expectedException, Exception::printStackTrace);
 	}
 
 	public static <T> Stream<T> walk(T start, Predicate<T> condition, Function<T, T> next) {

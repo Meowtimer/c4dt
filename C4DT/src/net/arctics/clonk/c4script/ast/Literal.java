@@ -48,10 +48,12 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 
 	@Override
 	public boolean equalAttributes(final ASTNode other) {
-		if (!super.equalAttributes(other))
+		if (!super.equalAttributes(other)) {
 			return false;
-		if (!literalsEqual((Literal<?>)other))
+		}
+		if (!literalsEqual((Literal<?>)other)) {
 			return false;
+		}
 		return true;
 	}
 
@@ -64,4 +66,5 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 	public boolean allowsSequenceSuccessor(final ASTNode successor) { return false; }
 	@Override
 	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor == null; }
+
 }

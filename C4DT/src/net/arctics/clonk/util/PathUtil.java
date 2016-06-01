@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.List;
 
 public abstract class PathUtil {
+
 	public static String chopPath(final String containerPath, final String path) {
 		final int ndx = path.lastIndexOf(containerPath);
 		return ndx != -1
@@ -18,7 +19,9 @@ public abstract class PathUtil {
 		final boolean duplicate = truncatedPath != null && urls.stream()
 			.map(oldURL -> chopPath(containerPathIncludingEngine, oldURL.getPath()))
 			.anyMatch(chopped -> eq(chopped, truncatedPath));
-		if (!duplicate)
+		if (!duplicate) {
 			urls.add(url);
+		}
 	}
+
 }

@@ -12,20 +12,26 @@ import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.MessageConsole;
 
 public abstract class Console {
+
 	private final static MessageConsole clonkConsole = withName("Clonk");
+
 	public static MessageConsole clonkConsole() { return clonkConsole; }
+
 	private static MessageConsole withName(final String name) {
 		final ConsolePlugin plugin = ConsolePlugin.getDefault();
 		final IConsoleManager conMan = plugin.getConsoleManager();
 		final IConsole[] existing = conMan.getConsoles();
-		for (int i = 0; i < existing.length; i++)
-			if (name.equals(existing[i].getName()))
+		for (int i = 0; i < existing.length; i++) {
+			if (name.equals(existing[i].getName())) {
 				return (MessageConsole) existing[i];
+			}
+		}
 		//no console found, so create a new one
 		final MessageConsole console = new MessageConsole(name, null);
 		conMan.addConsoles(new IConsole[] {console});
 		return console;
 	}
+
 	public static void display() {
 		Display.getDefault().asyncExec(() -> {
 			final IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -40,4 +46,5 @@ public abstract class Console {
 			}
 		});
 	}
+
 }
