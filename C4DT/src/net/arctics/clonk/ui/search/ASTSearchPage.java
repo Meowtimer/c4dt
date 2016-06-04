@@ -17,15 +17,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.ast.ASTNode;
-import net.arctics.clonk.ast.Structure;
-import net.arctics.clonk.builder.ClonkProjectNature;
-import net.arctics.clonk.c4script.Script;
-import net.arctics.clonk.util.Sink;
-import net.arctics.clonk.util.StringUtil;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
@@ -56,6 +47,15 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.PlatformUI;
+
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ProblemException;
+import net.arctics.clonk.ast.ASTNode;
+import net.arctics.clonk.ast.Structure;
+import net.arctics.clonk.builder.ClonkProjectNature;
+import net.arctics.clonk.c4script.Script;
+import net.arctics.clonk.util.Sink;
+import net.arctics.clonk.util.StringUtil;
 
 public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePage {
 
@@ -94,9 +94,9 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 			if (obj instanceof Recent) {
 				final Recent r = (Recent)obj;
 				return eq(template, r.template) && eq(replacement, r.replacement);
-			}
-			else
+			} else {
 				return false;
+			}
 		}
 		@Override
 		public String toString() {
@@ -110,11 +110,13 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		final Recent recent = new Recent(templateText.getText(), replacementText.getText());
 		final ArrayList<Recent> list = new ArrayList<Recent>(Arrays.asList((Recent[])recentsCombo.getInput()));
 		final int ndx = list.indexOf(recent);
-		if (ndx != -1)
+		if (ndx != -1) {
 			list.remove(ndx);
+		}
 		list.add(recent);
-		while (list.size() > MAX_RECENTS)
+		while (list.size() > MAX_RECENTS) {
 			list.remove(0);
+		}
 		recentsCombo.setInput(list.toArray(new Recent[list.size()]));
 		final IPreferenceStore prefs = Core.instance().getPreferenceStore();
 		prefs.setValue(PREF_RECENTS, StringUtil.blockString("", "", "", map(list,
@@ -131,7 +133,9 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		final String[] recentsRaw = s != null ? s.split(Pattern.quote(RECENTS_SEPARATOR)) : new String[0];
 		final Recent[] recents = new Recent[recentsRaw.length/2+recentsRaw.length%2];
 		for (int i = 0; i < recents.length; i++)
+		 {
 			recents[i] = new Recent(recentsRaw[i*2], i*2+1 < recentsRaw.length ? recentsRaw[i*2+1] : ""); //$NON-NLS-1$
+		}
 		recentsCombo.setInput(recents);
 	}
 
@@ -209,11 +213,13 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		final Sink<? super Script> scopeSink = collectionSink(scope);
 		final IResourceVisitor scopeVisitor = resource -> {
 			final Structure script = Script.get(resource, true);
-			if (script != null)
+			if (script != null) {
 				return scope.add(script);
+			}
 			final Structure pinned = Structure.pinned(resource, true, false);
-			if (pinned != null)
+			if (pinned != null) {
 				return scope.add(pinned);
+			}
 			return true;
 		};
 		switch (container.getSelectedScope()) {
@@ -228,26 +234,28 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 			final IStructuredSelection ssel = input != null
 				? new StructuredSelection(input.getFile())
 				: as(sel, IStructuredSelection.class);
-			if (ssel != null)
+			if (ssel != null) {
 				ofType(stream(ssel.toArray()), IResource.class).forEach(printingException(
 					r -> r.accept(scopeVisitor),
 					CoreException.class
 				));
+			}
 			break;
 		}
 		case ISearchPageContainer.WORKSPACE_SCOPE: {
 			final IFileEditorInput input = as(container.getActiveEditorInput(), IFileEditorInput.class);
 			final ClonkProjectNature nature = input != null ? ClonkProjectNature.get(input.getFile()) : null;
-			if (nature != null)
+			if (nature != null) {
 				stream(ClonkProjectNature.allInWorkspace())
 					.filter(n -> n.index().engine() == nature.index().engine())
 					.forEach(n -> n.index().allScripts(scopeSink));
+			}
 			break;
 		}
 		case ISearchPageContainer.WORKING_SET_SCOPE:
 			stream(container.getSelectedWorkingSets())
 				.flatMap(ws -> stream(ws.getElements()))
-				.map(a -> (IResource)a.getAdapter(IResource.class))
+				.map(a -> a.getAdapter(IResource.class))
 				.filter(r -> r != null)
 				.forEach(printingException(r -> r.accept(scopeVisitor), CoreException.class));
 			break;
@@ -275,8 +283,9 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 		addRecent();
 		final ASTSearchQuery query = newQuery(false);
 		final IStatus status = NewSearchUI.runQueryInForeground(container.getRunnableContext(), query);
-		if (status.matches(IStatus.CANCEL))
+		if (status.matches(IStatus.CANCEL)) {
 			return false;
+		}
 
 		Display.getCurrent().asyncExec(() -> {
 			final ISearchResultViewPart view = NewSearchUI.activateSearchResultView();
@@ -288,8 +297,9 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 						struct.saveNodes(ofType(stream(result.getMatches(struct)), ASTSearchQuery.Match.class).map(qm -> {
 							final ASTNode replacement = query.replacement();
 							ASTNode repl = replacement.transform(qm.subst(), replacement);
-							if (repl == replacement)
+							if (repl == replacement) {
 								repl = repl.clone();
+							}
 							repl.setLocation(qm.node());
 							repl.setParent(qm.node().parent());
 							return repl;
@@ -303,4 +313,5 @@ public class ASTSearchPage extends DialogPage implements ISearchPage, IReplacePa
 
 	@Override
 	public void setContainer(final ISearchPageContainer container) { this.container = container; }
+
 }
