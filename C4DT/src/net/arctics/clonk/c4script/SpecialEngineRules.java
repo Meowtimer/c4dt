@@ -23,6 +23,12 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
@@ -82,12 +88,6 @@ import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StringUtil;
 import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.Region;
 
 /**
  * This class contains some special rules that are applied to certain objects during parsing
@@ -208,20 +208,24 @@ public abstract class SpecialEngineRules {
 		public static String[] getFunctionsAppliedTo(final Field instanceReference, final int role) {
 			AppliedTo[] annots;
 			final AppliedTo annot = instanceReference.getAnnotation(AppliedTo.class);
-			if (annot != null)
+			if (annot != null) {
 				annots = new AppliedTo[] {annot};
-			else {
+			} else {
 				final AppliedTos list = instanceReference.getAnnotation(AppliedTos.class);
-				if (list != null)
+				if (list != null) {
 					annots = list.list();
-				else
+				} else {
 					return null;
+				}
 			}
 			final Set<String> funs = new HashSet<String>(5);
-			for (final AppliedTo a : annots)
-				if ((role & a.role()) != 0)
-					for (final String f : a.functions())
+			for (final AppliedTo a : annots) {
+				if ((role & a.role()) != 0) {
+					for (final String f : a.functions()) {
 						funs.add(f);
+					}
+				}
+			}
 			return funs.toArray(new String[funs.size()]);
 		}
 		/**
@@ -232,13 +236,14 @@ public abstract class SpecialEngineRules {
 		 */
 		public final int computeRoleMask() {
 			int result = 0;
-			for (final Method m : getClass().getMethods())
+			for (final Method m : getClass().getMethods()) {
 				try {
 					Class<?> cls = m.getDeclaringClass().getSuperclass();
 					while (cls != null) {
 						final Method baseMethod = cls.getMethod(m.getName(), m.getParameterTypes());
-						if (baseMethod == null)
+						if (baseMethod == null) {
 							break;
+						}
 						final SignifiesRole annot = baseMethod.getAnnotation(SignifiesRole.class);
 						if (annot != null) {
 							result |= annot.role();
@@ -249,6 +254,7 @@ public abstract class SpecialEngineRules {
 				} catch (final Exception e) {
 					continue;
 				}
+			}
 			return result;
 		}
 	}
@@ -351,18 +357,32 @@ public abstract class SpecialEngineRules {
 	}
 	private void putFuncRule(final SpecialFuncRule rule, final FunctionsByRole functionsGetter) {
 		final int mask = rule.computeRoleMask();
-		if ((mask & ARGUMENT_VALIDATOR) != 0) for (final String func : functionsGetter.functions(ARGUMENT_VALIDATOR))
-			argumentValidators.put(func, rule);
-		if ((mask & DECLARATION_LOCATOR) != 0) for (final String func : functionsGetter.functions(DECLARATION_LOCATOR))
-			declarationLocators.put(func, rule);
-		if ((mask & RETURNTYPE_MODIFIER) != 0) for (final String func : functionsGetter.functions(RETURNTYPE_MODIFIER))
-			returnTypeModifiers.put(func, rule);
-		if ((mask & DEFAULT_PARMTYPE_ASSIGNER) != 0)
+		if ((mask & ARGUMENT_VALIDATOR) != 0) {
+			for (final String func : functionsGetter.functions(ARGUMENT_VALIDATOR)) {
+				argumentValidators.put(func, rule);
+			}
+		}
+		if ((mask & DECLARATION_LOCATOR) != 0) {
+			for (final String func : functionsGetter.functions(DECLARATION_LOCATOR)) {
+				declarationLocators.put(func, rule);
+			}
+		}
+		if ((mask & RETURNTYPE_MODIFIER) != 0) {
+			for (final String func : functionsGetter.functions(RETURNTYPE_MODIFIER)) {
+				returnTypeModifiers.put(func, rule);
+			}
+		}
+		if ((mask & DEFAULT_PARMTYPE_ASSIGNER) != 0) {
 			defaultParmTypeAssigners.add(rule);
-		if ((mask & FUNCTION_EVENT_LISTENER) != 0)
+		}
+		if ((mask & FUNCTION_EVENT_LISTENER) != 0) {
 			functionEventListeners.add(rule);
-		if ((mask & FUNCTION_PARM_PROPOSALS_CONTRIBUTOR) != 0) for (final String func : functionsGetter.functions(FUNCTION_PARM_PROPOSALS_CONTRIBUTOR))
-			parmProposalContributors.put(func, rule);
+		}
+		if ((mask & FUNCTION_PARM_PROPOSALS_CONTRIBUTOR) != 0) {
+			for (final String func : functionsGetter.functions(FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)) {
+				parmProposalContributors.put(func, rule);
+			}
+		}
 	}
 
 	public SpecialRule rule(final String name) {
@@ -380,7 +400,7 @@ public abstract class SpecialEngineRules {
 	}
 
 	private Field fieldWithValue(final Object value) {
-		for (Class<?> c = getClass(); c != null; c = c.getSuperclass())
+		for (Class<?> c = getClass(); c != null; c = c.getSuperclass()) {
 			for (final Field f : c.getDeclaredFields()) {
 				Object obj;
 				try {
@@ -388,30 +408,34 @@ public abstract class SpecialEngineRules {
 				} catch (final Exception e) {
 					continue;
 				}
-				if (obj == value)
+				if (obj == value) {
 					return f;
+				}
 			}
+		}
 		return null;
 	}
 
 	public void putFuncRule(final SpecialFuncRule rule, final String... functions) {
 		final Field field  = fieldWithValue(rule);
-		if (field != null)
+		if (field != null) {
 			putRule(rule, field);
+		}
 		putFuncRule(rule, role -> functions);
 	}
 
 	public SpecialFuncRule funcRuleFor(final String function, final int role) {
-		if (role == ARGUMENT_VALIDATOR)
+		if (role == ARGUMENT_VALIDATOR) {
 			return argumentValidators.get(function);
-		else if (role == DECLARATION_LOCATOR)
+		} else if (role == DECLARATION_LOCATOR) {
 			return declarationLocators.get(function);
-		else if (role == RETURNTYPE_MODIFIER)
+		} else if (role == RETURNTYPE_MODIFIER) {
 			return returnTypeModifiers.get(function);
-		else if (role == FUNCTION_PARM_PROPOSALS_CONTRIBUTOR)
+		} else if (role == FUNCTION_PARM_PROPOSALS_CONTRIBUTOR) {
 			return parmProposalContributors.get(function);
-		else
+		} else {
 			return null;
+		}
 	}
 
 	/**
@@ -424,11 +448,13 @@ public abstract class SpecialEngineRules {
 			if (callFunc.params().length >= 1) {
 				final IType t = processor.typeOf(callFunc.params()[0]);
 				IType r = PrimitiveType.OBJECT;
-				for (final IType ty : t)
-					if (ty instanceof MetaDefinition)
+				for (final IType ty : t) {
+					if (ty instanceof MetaDefinition) {
 						r = processor.script().typing().unify(r, ((MetaDefinition)ty).definition());
-					else if (ty instanceof Definition)
+					} else if (ty instanceof Definition) {
 						r = processor.script().typing().unify(r, ty);
+					}
+				}
 				return r;
 			}
 			return null;
@@ -460,28 +486,34 @@ public abstract class SpecialEngineRules {
 		@Override
 		public IType returnType(final ProblemReporter processor, final CallDeclaration callFunc) {
 			IType t = searchCriteriaAssumedResult(processor, callFunc, true);
-			if (t == null || t == PrimitiveType.UNKNOWN)
+			if (t == null || t == PrimitiveType.UNKNOWN) {
 				t = PrimitiveType.OBJECT;
+			}
 			if (t != null) {
 				final Function f = (Function) callFunc.declaration();
-				if (f != null && eq(f.returnType(), PrimitiveType.ARRAY))
+				if (f != null && eq(f.returnType(), PrimitiveType.ARRAY)) {
 					return new ArrayType(t);
+				}
 			}
 			return t;
 		}
 		private IType searchCriteriaAssumedResult(final ProblemReporter processor, final CallDeclaration node, final boolean topLevel) {
 			final String declarationName = node.name();
 			// parameters to FindObjects itself are also &&-ed together
-			if (topLevel || declarationName.equals("Find_And"))
+			if (topLevel || declarationName.equals("Find_And")) {
 				return andSubConditions(processor, node);
-			if (declarationName.equals("Find_Or"))
+			}
+			if (declarationName.equals("Find_Or")) {
 				return orSubConditions(processor, node);
-			if (declarationName.equals("Find_ID"))
+			}
+			if (declarationName.equals("Find_ID")) {
 				return typeByID(processor, node);
+			}
 			if (declarationName.equals("Find_Func") && node.params().length >= 1) {
 				final Object ev = node.params()[0].evaluateStatic(node.parent(Function.class));
-				if (ev instanceof String)
+				if (ev instanceof String) {
 					return typeByFunction(processor.script(), ev);
+				}
 			}
 			return null;
 		}
@@ -489,62 +521,81 @@ public abstract class SpecialEngineRules {
 			IType unified = null;
 			if (node.params().length >= 1) {
 				final IType ty = processor.typeOf(node.params()[0]);
-				if (ty != null)
+				if (ty != null) {
 					for (final IType t : ty) {
 						final MetaDefinition mdef = as(t, MetaDefinition.class);
-						if (mdef != null)
+						if (mdef != null) {
 							unified = processor.script().typing().unify(unified, mdef.definition());
+						}
 					}
+				}
 			}
 			return unified;
 		}
 		private IType orSubConditions(final ProblemReporter processor, final CallDeclaration node) {
 			final List<IType> types = new LinkedList<IType>();
-			for (final ASTNode parm : node.params())
+			for (final ASTNode parm : node.params()) {
 				if (parm instanceof CallDeclaration) {
 					final CallDeclaration call = (CallDeclaration)parm;
 					final IType t = searchCriteriaAssumedResult(processor, call, false);
-					if (t != null) for (final IType ty : t)
-						types.add(ty);
+					if (t != null) {
+						for (final IType ty : t) {
+							types.add(ty);
+						}
+					}
 				}
+			}
 			return processor.script().typing().unify(types);
 		}
 		private IType andSubConditions(final ProblemReporter processor, final CallDeclaration node) {
 			final List<IType> types = new LinkedList<IType>();
-			for (final ASTNode parm : node.params())
+			for (final ASTNode parm : node.params()) {
 				if (parm instanceof CallDeclaration) {
 					final CallDeclaration call = (CallDeclaration)parm;
 					final IType t = searchCriteriaAssumedResult(processor, call, false);
 					if (call.name().equals("Find_ID"))
+					 {
 						return t; // short-circuit
-					if (t != null)
+					}
+					if (t != null) {
 						types.add(t);
+					}
 
 				}
+			}
 			return processor.script().typing().unify(types);
 		}
 		private IType typeByFunction(final Script script, final Object ev) {
 			final List<Declaration> functions = functionsNamed(script, (String)ev);
 			final List<IType> types = new ArrayList<IType>(functions.size());
-			for (final Declaration f : functions)
-				if (f instanceof Function)
+			for (final Declaration f : functions) {
+				if (f instanceof Function) {
 					addTypeFromFunction(script, types, (Function) f);
-			for (final Index index : script.index().relevantIndexes())
-				for (final Function f : index.declarationsWithName((String)ev, Function.class))
+				}
+			}
+			for (final Index index : script.index().relevantIndexes()) {
+				for (final Function f : index.declarationsWithName((String)ev, Function.class)) {
 					addTypeFromFunction(script, types, f);
+				}
+			}
 			final IType ty = script.typing().unify(types);
 			return ty;
 		}
 		private void addTypeFromFunction(final Script script, final List<IType> types, final Function f) {
-			if (f.body() != null && RETURN_TRUE.match(f.body()) != null)
-				if (f.script() instanceof Definition)
+			if (f.body() != null && RETURN_TRUE.match(f.body()) != null) {
+				if (f.script() instanceof Definition) {
 					types.add(f.script());
-				else for (final Directive directive : f.script().directives())
-					if (directive.type() == DirectiveType.APPENDTO) {
-						final Definition def = f.script().index().definitionNearestTo(script.resource(), directive.contentAsID());
-						if (def != null)
-							types.add(def);
+				} else {
+					for (final Directive directive : f.script().directives()) {
+						if (directive.type() == DirectiveType.APPENDTO) {
+							final Definition def = f.script().index().definitionNearestTo(script.resource(), directive.contentAsID());
+							if (def != null) {
+								types.add(def);
+							}
+						}
 					}
+				}
+			}
 		};
 	};
 
@@ -556,13 +607,17 @@ public abstract class SpecialEngineRules {
 		@Override
 		public boolean validateArguments(final CallDeclaration node, final ASTNode[] arguments, final ProblemReporter processor) {
 			if (arguments.length < 1)
+			 {
 				return false; // no script expression supplied
+			}
 			final IType objType = arguments.length >= 4 ? processor.typeOf(arguments[3]) : processor.definition();
 			Script script = objType != null ? TypeUtil.definition(objType) : null;
 			if (script == null)
+			 {
 				script = processor.script(); // fallback
+			}
 			final Object scriptExpr = arguments[0].evaluateStatic(script);
-			if (scriptExpr instanceof String)
+			if (scriptExpr instanceof String) {
 				try {
 					new Standalone(iterable(processor.script())).parse((String)scriptExpr, node.parent(Function.class), null, (markers, positionProvider, code, _node, markerStart, markerEnd, flags, severity, args) -> {
 						switch (code) {
@@ -572,16 +627,18 @@ public abstract class SpecialEngineRules {
 						case UndeclaredIdentifier:
 							return Decision.DropCharges;
 						default:
-							if (markers.errorEnabled(code))
+							if (markers.errorEnabled(code)) {
 								try {
 									markers.marker(positionProvider, code, _node, arguments[0].start()+1+markerStart, arguments[0].start()+1+markerEnd, flags, severity, args);
 								} catch (final ProblemException e1) {}
+							}
 							return Decision.PassThrough;
 						}
 					}, null);
 				} catch (final ProblemException e) {
 					// that on slipped through - pretend nothing happened
 				}
+			}
 			return false; // don't stop regular parameter validating
 		};
 		@Override
@@ -594,8 +651,9 @@ public abstract class SpecialEngineRules {
 				} catch (final ProblemException e) {}
 				if (locator.expressionAtRegion() != null) {
 					final EntityRegion reg = locator.expressionAtRegion().entityAt(offsetInExpression, locator);
-					if (reg != null)
+					if (reg != null) {
 						return reg.incrementRegionBy(lit.start()+1);
+					}
 				}
 			}
 			return null;
@@ -611,8 +669,9 @@ public abstract class SpecialEngineRules {
 				final IType t = script.typings().get(callFunc.params()[0]);
 				final Script scriptToLookIn = t instanceof Script ? (Script)t : script;
 				final Function func = scriptToLookIn.findFunction(lit.literal());
-				if (func != null)
+				if (func != null) {
 					return new EntityRegion(func, new Region(lit.start()+1, lit.getLength()-2));
+				}
 			}
 			return null;
 		};
@@ -632,17 +691,20 @@ public abstract class SpecialEngineRules {
 				if (command instanceof String && command.equals("Call")) { //$NON-NLS-1$
 					int givenParam = 0;
 					for (final Variable parm : f.parameters()) {
-						if (givenParam >= arguments.length)
+						if (givenParam >= arguments.length) {
 							break;
+						}
 						final ASTNode given = arguments[givenParam++];
-						if (given == null)
+						if (given == null) {
 							continue;
+						}
 						final IType parmType = givenParam >= 2 && givenParam <= 4 ? PrimitiveType.ANY : parm.type();
 						final IType givenType = processor.typeOf(given);
-						if (processor.script().typing().unifyNoChoice(parmType, givenType) == null)
+						if (processor.script().typing().unifyNoChoice(parmType, givenType) == null) {
 							processor.incompatibleTypesMarker(node, given, parmType, processor.typeOf(given));
-						else
+						} else {
 							processor.judgement(given, parmType, TypingJudgementMode.UNIFY);
+						}
 					}
 					return true;
 				}
@@ -664,19 +726,22 @@ public abstract class SpecialEngineRules {
 				final Scenario scenario = Scenario.nearestScenario(script.resource());
 				if (scenario != null) {
 					final Function scenFunc = scenario.findFunction(lit.stringValue());
-					if (scenFunc != null)
+					if (scenFunc != null) {
 						return new EntityRegion(scenFunc, lit.identifierRegion());
+					}
 				} else {
 					final List<Declaration> decs = new LinkedList<Declaration>();
 					index.forAllRelevantIndexes(ndx -> {
 						for (final Scenario s : ndx.scenarios()) {
 							final Function f = s.findLocalFunction(lit.literal(), true);
-							if (f != null)
+							if (f != null) {
 								decs.add(f);
+							}
 						}
 					});
-					if (decs.size() > 0)
+					if (decs.size() > 0) {
 						return new EntityRegion(new HashSet<IIndexEntity>(decs), lit.identifierRegion());
+					}
 				}
 			}
 			return null;
@@ -693,8 +758,9 @@ public abstract class SpecialEngineRules {
 			if (index == 0 && parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final Function f = script.findFunction(lit.stringValue());
-				if (f != null)
+				if (f != null) {
 					return new EntityRegion(f, lit.identifierRegion());
+				}
 			}
 			return null;
 		};
@@ -716,8 +782,9 @@ public abstract class SpecialEngineRules {
 				);
 				if (def != null) {
 					final Function f = def.findFunction(lit.stringValue());
-					if (f != null)
+					if (f != null) {
 						return new EntityRegion(f, lit.identifierRegion());
+					}
 				}
 			}
 			return null;
@@ -740,8 +807,9 @@ public abstract class SpecialEngineRules {
 				);
 				if (def != null) {
 					final Variable var = def.findVariable(lit.stringValue());
-					if (var != null)
+					if (var != null) {
 						return new EntityRegion(var, lit.identifierRegion());
+					}
 				}
 			}
 			return null;
@@ -768,8 +836,9 @@ public abstract class SpecialEngineRules {
 				final String resourceName = (String)parmEv;
 				final ProjectIndex pi = (ProjectIndex)script.index();
 				final Set<IIndexEntity> e = locateEntitiesByName(node, resourceName, pi, script);
-				if (e != null)
+				if (e != null) {
 					return new EntityRegion(e, parmExpression);
+				}
 			}
 			return null;
 		}
@@ -798,8 +867,9 @@ public abstract class SpecialEngineRules {
 			final CallDeclaration containingCall = as(formatCall.parent(), CallDeclaration.class);
 			if (containingCall != null && containingCall.indexOfParm(formatCall) == 0) {
 				final SpecialFuncRule rule = formatCall.parent(Declaration.class).engine().specialRules().funcRuleFor(containingCall.name(), DECLARATION_LOCATOR);
-				if (rule instanceof LocateResourceByNameRule)
+				if (rule instanceof LocateResourceByNameRule) {
 					return ((LocateResourceByNameRule)rule).locateEntitiesByName(formatCall, name, pi, script);
+				}
 			}
 			return null;
 		}
@@ -812,9 +882,11 @@ public abstract class SpecialEngineRules {
 	public final SpecialFuncRule linkToSound = new LocateResourceByNameRule() {
 		protected void collectSoundResourcesInFolder(final Set<IIndexEntity> set, final Matcher nameMatcher, final Engine engine, final IContainer container, final ProjectIndex pi) {
 			try {
-				for (final IResource r : container.members())
-					if (nameMatcher.reset(r.getName()).matches())
+				for (final IResource r : container.members()) {
+					if (nameMatcher.reset(r.getName()).matches()) {
 						set.add(new ProjectResource(pi, r));
+					}
+				}
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
@@ -825,13 +897,15 @@ public abstract class SpecialEngineRules {
 			name = name.replace(".", "\\\\.").replaceAll("[\\*\\?]", ".*?").replace("%d", "[0-9]*");
 			final HashSet<IIndexEntity> results = new HashSet<IIndexEntity>();
 			boolean extensionWildcardNeeded = true;
-			for (final String e : engine.settings().supportedSoundFileExtensions())
+			for (final String e : engine.settings().supportedSoundFileExtensions()) {
 				if (name.endsWith("\\\\."+e)) {
 					extensionWildcardNeeded = false;
 					break;
 				}
-			if (extensionWildcardNeeded)
+			}
+			if (extensionWildcardNeeded) {
 				name += "\\." + StringUtil.writeBlock(null, "(", ")", "|", engine.settings().supportedSoundFileExtensions().stream());
+			}
 			final Matcher nameMatcher = Pattern.compile(name).matcher("");
 			final String soundGroupName = "Sound."+engine.settings().canonicalToConcreteExtension().get(FileExtension.ResourceGroup);
 			final IResource r = script.resource();
@@ -841,8 +915,9 @@ public abstract class SpecialEngineRules {
 				c = c.getParent(), d = c != null ? as(c.findMember(soundGroupName), IContainer.class) : null
 			) {
 				collectSoundResourcesInFolder(results, nameMatcher, engine, c, pi);
-				if (d != null)
+				if (d != null) {
 					collectSoundResourcesInFolder(results, nameMatcher, engine, d, pi);
+				}
 			}
 			return results;
 		}
@@ -869,8 +944,9 @@ public abstract class SpecialEngineRules {
 						final IniUnit unit = (IniUnit) Structure.pinned(res, true, false);
 						if (unit instanceof IniUnitWithNamedSections) {
 							final IniSection actionSection = unit.sectionMatching(((IniUnitWithNamedSections) unit).nameMatcherPredicate(actionName));
-							if (actionSection != null)
+							if (actionSection != null) {
 								return new EntityRegion(actionSection, actionNameExpression);
+							}
 						}
 					}
 				}
@@ -889,8 +965,9 @@ public abstract class SpecialEngineRules {
 				if (item.dictionary() != null && item.dictionary().contains(name)) {
 					item.requireLoaded();
 					final Function f = item.findFunction(name);
-					if (f != null)
+					if (f != null) {
 						matchingDecs.add(f);
+					}
 				}
 			};
 			script.index().forAllRelevantIndexes(index -> index.allScripts(scriptSink));
@@ -909,8 +986,9 @@ public abstract class SpecialEngineRules {
 			if (parmExpression instanceof StringLiteral) {
 				final StringLiteral lit = (StringLiteral)parmExpression;
 				final List<Declaration> matchingDecs = functionsNamed(script, lit.stringValue());
-				if (matchingDecs.size() > 0)
+				if (matchingDecs.size() > 0) {
 					return new EntityRegion(new HashSet<IIndexEntity>(matchingDecs), lit.identifierRegion());
+				}
 			}
 			return null;
 		};
@@ -933,8 +1011,9 @@ public abstract class SpecialEngineRules {
 					.map(def -> as(def.entries().get(entryName), IniEntryDefinition.class))
 					.filter(x -> x != null)
 					.findFirst().orElse(null));
-				if (entry != null)
+				if (entry != null) {
 					return typeFromEntryClass(entry.entryClass());
+				}
 			}
 			return PrimitiveType.ANY;
 		}
@@ -962,7 +1041,7 @@ public abstract class SpecialEngineRules {
 	 * Annotations are consulted to decide what lists the rules are added to.
 	 */
 	public void initialize() {
-		for (Class<?> c = getClass(); c != null; c = c.getSuperclass())
+		for (Class<?> c = getClass(); c != null; c = c.getSuperclass()) {
 			for (final Field f : c.getDeclaredFields()) {
 				Object obj;
 				try {
@@ -975,6 +1054,7 @@ public abstract class SpecialEngineRules {
 					putFuncRule(funcRule, f);
 				}
 			}
+		}
 	}
 
 	/**
@@ -995,7 +1075,7 @@ public abstract class SpecialEngineRules {
 	}
 
 	public Predicate<Definition> configurationEntryDefinitionFilter(final IniEntry entry) {
-		if (entry instanceof IniEntry && entry.definition() != null && entry.definition().categoryFilter() != null)
+		if (entry instanceof IniEntry && entry.definition() != null && entry.definition().categoryFilter() != null) {
 			return new Predicate<Definition>() {
 				final String filter = entry.definition().categoryFilter();
 				@Override
@@ -1004,14 +1084,15 @@ public abstract class SpecialEngineRules {
 					return category != null && category.constants() != null && category.constants().contains(filter);
 				}
 			};
-		else if (entry.key().equals("Animal"))
+		} else if (entry.key().equals("Animal")) {
 			return item -> item.findFunction("IsAnimal") != null;
-		else if (entry.key().equals("Crew"))
+		} else if (entry.key().equals("Crew")) {
 			return item -> // ignore any definitions that append
 				!item.directives().stream().anyMatch(d -> d.type() == DirectiveType.APPENDTO) &&
 				item.findFunction("IsClonk") != null;
-		else
+		} else {
 			return item -> true;
+		}
 	}
 
 	public void refreshIndex(final Index index) {}

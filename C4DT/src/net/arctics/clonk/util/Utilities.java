@@ -519,8 +519,7 @@ public abstract class Utilities {
 		});
 	}
 
-	public static <K, V> V getOrAdd(Map<K, V> dictionary, K key, Supplier<V> creation)
-	{
+	public static <K, V> V getOrAdd(Map<K, V> dictionary, K key, Supplier<V> creation) {
 		return defaulting(dictionary.get(key), () -> {
 			final V n = creation.get();
 			dictionary.put(key, n);
