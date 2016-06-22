@@ -759,7 +759,7 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 
 	private transient int localIdentifier = -1;
 	public final int localIdentifier() { return localIdentifier; }
-	public final void localIdentifier(final int v) { localIdentifier = v; }
+	public final void localIdentifier(final int value) { localIdentifier = value; }
 
 	public final int sectionOffset() {
 		final IASTSection f = section();

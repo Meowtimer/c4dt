@@ -2,7 +2,6 @@ package net.arctics.clonk.c4script;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
-
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;

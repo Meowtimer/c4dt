@@ -36,6 +36,7 @@ import net.arctics.clonk.c4script.Script.Typings;
 import net.arctics.clonk.c4script.SpecialEngineRules.SpecialFuncRule;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.AccessVar;
+import net.arctics.clonk.c4script.ast.AnonymousFunction;
 import net.arctics.clonk.c4script.ast.ArrayElementExpression;
 import net.arctics.clonk.c4script.ast.ArrayExpression;
 import net.arctics.clonk.c4script.ast.ArraySliceExpression;
@@ -116,13 +117,19 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 	private final Deque<Declaration> currentDeclaration = new ArrayDeque<>();
 
-	private Function currentFunction() {
+	private Function currentFunction(int flags) {
 		for (
 			final Iterator<Declaration> descendingIterator = currentDeclaration.descendingIterator();
 			descendingIterator.hasNext();
 		) {
 			final Function function = as(descendingIterator.next(), Function.class);
 			if (function != null) {
+				if ((flags & FunctionHeader.ALLOW_ANONYMOUS) == 0 && function instanceof AnonymousFunction) {
+					continue;
+				}
+				if ((flags & FunctionHeader.ALLOW_OLD_STYLE) == 0 && function.isOldStyle()) {
+					continue;
+				}
 				return function;
 			}
 		}
@@ -476,7 +483,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				error(Problem.GlobalFunctionInAppendTo, header.nameStart, header.nameStart + header.name.length(),
 					Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, header.name);
 			}
-			final Function function = parseFunctionDeclaration(header, script());
+			final Function function = parseFunctionDeclaration(header, script(), this::newFunction);
 			if (function != null) {
 				return function;
 			}
@@ -765,7 +772,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			}
 			break;
 		case VAR:
-			if (currentFunction() == null) {
+			if (currentFunction(FunctionHeader.ALLOW_ANONYMOUS|FunctionHeader.ALLOW_OLD_STYLE) == null) {
 				error(Problem.VarOutsideFunction, offset-scope.toKeyword().length(), offset, Markers.NO_THROW|Markers.ABSOLUTE_MARKER_LOCATION, scope.toKeyword(), Keywords.GlobalNamed, Keywords.LocalNamed);
 				return Scope.LOCAL;
 			}
@@ -828,7 +835,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		}
 
 		final Variable variable = script.createVarInScope(
-			this, currentFunction(), variableName,
+			this, currentFunction(FunctionHeader.ALLOW_ANONYMOUS|FunctionHeader.ALLOW_OLD_STYLE), variableName,
 			scope, fragmentOffset()+backtrackAfterWhitespace, fragmentOffset()+this.offset,
 			comment
 		);
@@ -859,7 +866,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private ASTNode parseInitializationExpression(final Variable var) throws ProblemException {
 		final Variable.Scope scope = var.scope();
 		if (peek() == '=') {
-			if (scope != Variable.Scope.CONST && currentFunction() == null && !engine.settings().supportsNonConstGlobalVarAssignment) {
+			if (scope != Variable.Scope.CONST && currentFunction(FunctionHeader.ALLOW_ANONYMOUS|FunctionHeader.ALLOW_OLD_STYLE) == null && !engine.settings().supportsNonConstGlobalVarAssignment) {
 				error(Problem.NonConstGlobalVarAssignment, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW);
 			}
 			read();
@@ -1011,13 +1018,13 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * @return The parse function or null if something went wrong
 	 * @throws ProblemException
 	 */
-	private Function parseFunctionDeclaration(final FunctionHeader header, ASTNode parent) throws ProblemException {
+	private Function parseFunctionDeclaration(final FunctionHeader header, ASTNode parent, java.util.function.Function<String, Function> newFunction) throws ProblemException {
 		int endOfHeader;
 		eatWhitespace();
 		if (header.isOldStyle) {
 			warning(Problem.OldStyleFunc, header.nameStart, header.nameStart+header.name.length(), 0);
 		}
-		final Function func = newFunction(header.name);
+		final Function func = newFunction.apply(header.name);
 		pushDeclaration(func);
 		try {
 			header.apply(func);
@@ -1149,7 +1156,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 				}
 			}
 		}
-		return new Function();
+		final Function result = new Function();
+		result.setName(nameWillBe);
+		return result;
 	}
 
 	private Comment collectPrecedingComment(final int absoluteOffset) {
@@ -1544,7 +1553,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 							final int backtrack = this.offset;
 							seek(beforeElement); // function header wants to look at the 'func'
 							final FunctionHeader functionHeader = FunctionHeader.parse(this, FunctionHeader.ALLOW_ANONYMOUS);
-							final Function function = functionHeader != null ? parseFunctionDeclaration(functionHeader, null) : null;
+							final Function function = functionHeader != null
+								? parseFunctionDeclaration(functionHeader, null, AnonymousFunction::new)
+								: null;
 							if (function != null) {
 								elm = function;
 							} else {
@@ -1767,7 +1778,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 								error(Problem.UnexpectedToken, this.offset, this.offset+1, Markers.ABSOLUTE_MARKER_LOCATION|Markers.NO_THROW, (char)c_);
 							} else {
 								eatWhitespace();
-								final Variable variable = new Variable(currentFunction() != null ? Scope.VAR : Scope.LOCAL, name);
+								final Variable variable = new Variable(currentFunction(FunctionHeader.ALLOW_ANONYMOUS|FunctionHeader.ALLOW_OLD_STYLE) != null ? Scope.VAR : Scope.LOCAL, name);
 								variable.setLocation(absoluteSourceLocation(nameStart, nameEnd));
 								final Declaration outerDec = pushDeclaration(variable);
 								try {
@@ -2202,7 +2213,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		if (result == null) {
 			String readWord;
 			int rewind = this.offset;
-			final Function currentFunction = currentFunction();
+			final Function currentFunction = currentFunction(FunctionHeader.ALLOW_OLD_STYLE);
 			// new oldstyle-func begun
 			if (currentFunction != null && currentFunction.isOldStyle() && FunctionHeader.parse(this, FunctionHeader.ALLOW_OLD_STYLE) != null) {
 				this.seek(rewind);
@@ -2780,10 +2791,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	protected int offsetOfScriptFragment;
 
 	/**
-	 * Subtracted from the location of ExprElms created so their location will be relative to the body of the function they are contained in.
+	 * Subtracted from the location of {@link ASTNode}s created so their location will be relative to the body of the function they are contained in.
 	 */
 	public int sectionOffset() {
-		final Function function = currentFunction();
+		final Function function = currentFunction(0);
 		return function != null && function.bodyLocation() != null ? function.bodyLocation().start() : 0;
 	}
 
