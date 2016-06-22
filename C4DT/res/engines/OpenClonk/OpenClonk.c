@@ -280,6 +280,7 @@ global func int Abs(int value);
 global func bool ActIdle();
 global func bool AddCommand(string command, object target, int x, int y, object target2, int delay, any data, int retries, int base_mode);
 global func proplist AddEffect(string name, object target, int priority, int timer, object command_target, any command_target_id, any var1, any var2, any var3, any var4);
+global func proplist CreateEffect(proplist prototype, int priority, int timer, any var1, any var2, any var3, any var4);
 global func int AddMenuItem(string caption, string command, id symbol, int count, any parameter, string info_caption, int extra, any xpar1, any xpar2);
 global func int AddMsgBoardCmd(string command, string script);
 global func int AddVertex(int x, int y);

@@ -21,9 +21,9 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.FileDocumentActions;
 import net.arctics.clonk.Problem;
 import net.arctics.clonk.ProblemException;
-import net.arctics.clonk.FileDocumentActions;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodeMatcher;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -81,6 +81,16 @@ public class SpecialEngineRules_OpenClonk extends SpecialEngineRules {
 	private static final String DEFINITION_FUNCTION = "Definition";
 	private static final Pattern ID_PATTERN = Pattern.compile("[A-Za-z_][A-Za-z_0-9]*");
 
+	@AppliedTo(functions={"CreateEffect"})
+	public final SpecialFuncRule createEffectTyping = new SpecialFuncRule() {
+		@Override
+		public IType returnType(ProblemReporter processor, CallDeclaration callFunc) {
+			final ASTNode[] parameters = callFunc.params();
+			final ASTNode firstParameter = parameters.length > 0 ? parameters[0] : null;
+			return firstParameter != null ? processor.typeOf(firstParameter) : null;
+		}
+	};
+	
 	/**
 	 * Rule to handle typing of effect proplists.<br>
 	 * Assigns default parameters to effect functions.
