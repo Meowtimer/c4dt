@@ -470,7 +470,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			return directive;
 		}
 
-		final FunctionHeader header = FunctionHeader.parse(this, true, false);
+		final FunctionHeader header = FunctionHeader.parse(this, FunctionHeader.ALLOW_OLD_STYLE);
 		if (header != null) {
 			if (header.scope == FunctionScope.GLOBAL && script().hasAppendTo()) {
 				error(Problem.GlobalFunctionInAppendTo, header.nameStart, header.nameStart + header.name.length(),
@@ -601,6 +601,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			this.typeAnnotation = typeAnnotation;
 			this.description = description;
 		}
+		
+		public static final int ALLOW_OLD_STYLE = 1;
+		public static final int ALLOW_ANONYMOUS = 2; 
 
 		/**
 		 * Parse function header, returning null if the upcoming tokens did not look like a function header.
@@ -610,7 +613,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		 * @return {@link FunctionHeader} or null if not recognized as one.
 		 * @throws ProblemException
 		 */
-		public static FunctionHeader parse(final ScriptParser parser, final boolean allowOldStyle, final boolean allowAnonymous) throws ProblemException {
+		public static FunctionHeader parse(final ScriptParser parser, int flags) throws ProblemException {
+			final boolean allowAnonymous = (flags & ALLOW_ANONYMOUS) != 0;
+			final boolean allowOldStyle = (flags & ALLOW_OLD_STYLE) != 0;
 			final Comment desc = parser.collectPrecedingComment(parser.offset);
 			final int initialOffset = parser.offset;
 			int nameStart = parser.offset;
@@ -1538,7 +1543,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						if (word.equals(Keywords.Func)) {
 							final int backtrack = this.offset;
 							seek(beforeElement); // function header wants to look at the 'func'
-							final FunctionHeader functionHeader = FunctionHeader.parse(this, false, true);
+							final FunctionHeader functionHeader = FunctionHeader.parse(this, FunctionHeader.ALLOW_ANONYMOUS);
 							final Function function = functionHeader != null ? parseFunctionDeclaration(functionHeader, null) : null;
 							if (function != null) {
 								elm = function;
@@ -2199,7 +2204,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			int rewind = this.offset;
 			final Function currentFunction = currentFunction();
 			// new oldstyle-func begun
-			if (currentFunction != null && currentFunction.isOldStyle() && FunctionHeader.parse(this, true, false) != null) {
+			if (currentFunction != null && currentFunction.isOldStyle() && FunctionHeader.parse(this, FunctionHeader.ALLOW_OLD_STYLE) != null) {
 				this.seek(rewind);
 				return null;
 			}
