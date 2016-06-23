@@ -40,10 +40,11 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 		if (returnExpr != null && !(returnExpr instanceof Whitespace)) {
 			builder.append(" "); //$NON-NLS-1$
 			// return(); -> return 0;
-			if (returnExpr == ASTNode.NULL_EXPR)
+			if (returnExpr == ASTNode.NULL_EXPR) {
 				builder.append("0"); //$NON-NLS-1$
-			else
+			} else {
 				returnExpr.print(builder, depth);
+			}
 		}
 		builder.append(";"); //$NON-NLS-1$
 	}
@@ -74,16 +75,18 @@ public class ReturnStatement extends KeywordStatement implements ITidyable {
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		// return (0); -> return 0;
-		if (returnExpr instanceof Parenthesized)
+		if (returnExpr instanceof Parenthesized) {
 			return new ReturnStatement(tidy.tidy(((Parenthesized)returnExpr).innerExpression()));
+		}
 		// return (0, Sound("Ugh")); -> { Sound("Ugh"); return 0; }
 		// FIXME: should declare temporary variable so that order of expression execution isn't changed
 		if (returnExpr instanceof Tuple) {
 			final Tuple tuple = (Tuple) returnExpr;
 			final ASTNode[] tupleElements = tuple.subElements();
 			final List<ASTNode> statements = new LinkedList<>();
-			for (int i = 1; i < tupleElements.length; i++)
+			for (int i = 1; i < tupleElements.length; i++) {
 				statements.add(new SimpleStatement(tupleElements[i]));
+			}
 			statements.add(new ReturnStatement(tupleElements[0]));
 			return parent() instanceof ConditionalStatement ? new Block(statements) : new BunchOfStatements(statements);
 		}

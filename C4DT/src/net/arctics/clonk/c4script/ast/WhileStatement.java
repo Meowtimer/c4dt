@@ -32,8 +32,9 @@ public class WhileStatement extends ConditionalStatement implements ILoop {
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		Object ev = null;
 		while (true) {
-			if (condition != null && !TypeUtil.convertToBool(condition.evaluate(context)))
+			if (condition != null && !TypeUtil.convertToBool(condition.evaluate(context))) {
 				break;
+			}
 			ev = body.evaluate(context);
 		}
 		return ev;

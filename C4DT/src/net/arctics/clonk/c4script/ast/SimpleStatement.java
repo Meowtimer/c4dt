@@ -9,13 +9,13 @@ import net.arctics.clonk.ast.IEvaluationContext;
 
 /**
  * Simple statement wrapper for an expression.
- * 
+ *
  */
 public class SimpleStatement extends Statement implements ITidyable {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private ASTNode expression;
-	
+
 	public SimpleStatement(final ASTNode expression) {
 		super();
 		this.expression = expression;
@@ -50,10 +50,12 @@ public class SimpleStatement extends Statement implements ITidyable {
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
 		final ASTNode exprReplacement = tidy.tidy(expression);
-		if (exprReplacement instanceof Statement)
+		if (exprReplacement instanceof Statement) {
 			return exprReplacement;
-		if (exprReplacement == expression)
+		}
+		if (exprReplacement == expression) {
 			return this;
+		}
 		return new SimpleStatement(exprReplacement);
 	}
 
@@ -66,31 +68,34 @@ public class SimpleStatement extends Statement implements ITidyable {
 	public boolean hasSideEffects() {
 		return expression.hasSideEffects();
 	}
-	
+
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		return expression.evaluate(context);
 	}
-	
+
 	public static Statement wrapExpression(final ASTNode expr) {
-		if (expr instanceof Statement)
+		if (expr instanceof Statement) {
 			return (Statement)expr;
-		else if (expr != null)
+		} else if (expr != null) {
 			return new SimpleStatement(expr);
-		else
+		} else {
 			return null;
+		}
 	}
-	
+
 	public static ASTNode unwrap(ASTNode expr) {
-		while (expr instanceof SimpleStatement)
+		while (expr instanceof SimpleStatement) {
 			expr = ((SimpleStatement)expr).expression();
+		}
 		return expr;
 	}
-	
+
 	public static Statement[] wrapExpressions(final ASTNode... expressions) {
 		final Statement[] result = new Statement[expressions.length];
-		for (int i = 0; i < expressions.length; i++)
+		for (int i = 0; i < expressions.length; i++) {
 			result[i] = wrapExpression(expressions[i]);
+		}
 		return result;
 	}
 

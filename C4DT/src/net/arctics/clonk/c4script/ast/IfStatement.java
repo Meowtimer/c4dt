@@ -39,9 +39,9 @@ public class IfStatement extends ConditionalStatement {
 			builder.append("\n"); //$NON-NLS-1$
 			Conf.printIndent(builder, depth);
 			builder.append(Keywords.Else);
-			if (!(elseExpr instanceof IfStatement))
+			if (!(elseExpr instanceof IfStatement)) {
 				printBody(elseExpr, builder, depth);
-			else {
+			} else {
 				builder.append(" ");
 				elseExpr.print(builder, depth);
 			}
@@ -59,8 +59,9 @@ public class IfStatement extends ConditionalStatement {
 	public EnumSet<ControlFlow> possibleControlFlows() {
 		final EnumSet<ControlFlow> result = EnumSet.of(ControlFlow.Continue);
 		result.addAll(body.possibleControlFlows());
-		if (elseExpr != null)
+		if (elseExpr != null) {
 			result.addAll(elseExpr.possibleControlFlows());
+		}
 		return result;
 	}
 
@@ -74,12 +75,13 @@ public class IfStatement extends ConditionalStatement {
 
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
-		if (!condition.evaluate(context).equals(false))
+		if (!condition.evaluate(context).equals(false)) {
 			return body.evaluate(context);
-		else if (elseExpr != null)
+		} else if (elseExpr != null) {
 			return elseExpr.evaluate(context);
-		else
+		} else {
 			return null;
+		}
 	}
 
 }

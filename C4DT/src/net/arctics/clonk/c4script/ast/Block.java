@@ -72,29 +72,31 @@ public class Block extends Statement implements ITidyable {
 
 	@Override
 	public ASTNode tidy(final Tidy tidy) throws CloneNotSupportedException {
-		if (parent() != null && !(parent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements))
+		if (parent() != null && !(parent() instanceof KeywordStatement) && !(this instanceof BunchOfStatements)) {
 			return new BunchOfStatements(statements);
+		}
 		// uncomment never-reached statements
 		boolean notReached = false;
 		ASTNode[] commentedOutList = null;
 		for (int i = 0; i < statements.length; i++) {
 			final ASTNode s = statements[i];
 			if (notReached) {
-				if (commentedOutList != null)
+				if (commentedOutList != null) {
 					commentedOutList[i] = s instanceof Comment ? s : commentedOut(s);
-				else if (!(s instanceof Comment)) {
+				} else if (!(s instanceof Comment)) {
 					commentedOutList = new Statement[statements.length];
 					System.arraycopy(statements, 0, commentedOutList, 0, i);
 					commentedOutList[i] = commentedOut(s);
 				}
-			}
-			else
+			} else {
 				notReached = s != null && s.controlFlow() != ControlFlow.Continue;
+			}
 		}
-		if (commentedOutList != null)
+		if (commentedOutList != null) {
 			return new Block(commentedOutList);
-		else
+		} else {
 			return this;
+		}
 	}
 
 	@Override
@@ -102,8 +104,9 @@ public class Block extends Statement implements ITidyable {
 		for (final ASTNode s : statements) {
 			// look for first statement that breaks execution
 			final ControlFlow cf = s.controlFlow();
-			if (cf != ControlFlow.Continue)
+			if (cf != ControlFlow.Continue) {
 				return cf;
+			}
 		}
 		return ControlFlow.Continue;
 	}
@@ -113,8 +116,9 @@ public class Block extends Statement implements ITidyable {
 		final EnumSet<ControlFlow> result = EnumSet.noneOf(ControlFlow.class);
 		for (final ASTNode s : statements) {
 			final ControlFlow cf = s.controlFlow();
-			if (cf != ControlFlow.Continue)
+			if (cf != ControlFlow.Continue) {
 				return EnumSet.of(cf);
+			}
 			final EnumSet<ControlFlow> cfs = s.possibleControlFlows();
 			result.addAll(cfs);
 		}
@@ -123,9 +127,11 @@ public class Block extends Statement implements ITidyable {
 
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
-		for (final ASTNode s : subElements())
-			if (s != null)
+		for (final ASTNode s : subElements()) {
+			if (s != null) {
 				s.evaluate(context);
+			}
+		}
 		return null;
 	}
 

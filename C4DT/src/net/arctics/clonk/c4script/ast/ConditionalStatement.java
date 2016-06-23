@@ -14,8 +14,10 @@ public abstract class ConditionalStatement extends KeywordStatement {
 	public void setCondition(final ASTNode condition) { this.condition = condition; }
 	public ASTNode body() { return body; }
 	public void setBody(final ASTNode body) { this.body = body; }
+
 	@Override
 	public ASTNode[] subElements() { return new ASTNode[] {condition, body}; }
+
 	@Override
 	public void setSubElements(final ASTNode[] elms) {
 		condition = elms[0];

@@ -62,10 +62,12 @@ public class CachedEngineDeclarations {
 		try {
 			for (final Field f : CachedEngineDeclarations.class.getFields()) {
 				String realName = f.getName();
-				if (realName.startsWith("_"))
+				if (realName.startsWith("_")) {
 					realName = realName.substring(1);
-				if (f.getType() == Function.class)
+				}
+				if (f.getType() == Function.class) {
 					f.set(this, this.f(realName));
+				}
 			}
 			This = this.f("this"); //$NON-NLS-1$
 		} catch (final Exception e) {

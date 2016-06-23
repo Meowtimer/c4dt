@@ -1,6 +1,10 @@
 package net.arctics.clonk.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.as;
+
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -11,9 +15,6 @@ import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
 import net.arctics.clonk.c4script.Function;
 import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.index.serialization.replacements.IDeferredDeclaration;
-
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 
 /**
  * An expression referring to some {@link Declaration}. Derived classes represent access to {@link Variable}s ({@link AccessVar}) and {@link Function} calls ({@link CallDeclaration}).
@@ -83,11 +84,13 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 
 	@Override
 	public boolean equalAttributes(final ASTNode other) {
-		if (!super.equalAttributes(other))
+		if (!super.equalAttributes(other)) {
 			return false;
+		}
 		final AccessDeclaration otherDec = (AccessDeclaration) other;
-		if (!name().equals(otherDec.declarationName))
+		if (!name().equals(otherDec.declarationName)) {
 			return false;
+		}
 		return true;
 	}
 
@@ -102,8 +105,9 @@ public abstract class AccessDeclaration extends ASTNode implements IPlaceholderP
 	@Override
 	public void postLoad(final ASTNode parent) {
 		super.postLoad(parent);
-		if (declaration instanceof IDeferredDeclaration)
+		if (declaration instanceof IDeferredDeclaration) {
 			declaration = as(((IDeferredDeclaration)declaration).resolve(), Declaration.class);
+		}
 	}
 
 }

@@ -23,4 +23,5 @@ public class DoWhileStatement extends WhileStatement {
 		condition.print(builder, depth);
 		builder.append(");"); //$NON-NLS-1$
 	}
+
 }

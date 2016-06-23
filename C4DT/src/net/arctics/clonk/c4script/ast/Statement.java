@@ -144,7 +144,7 @@ public class Statement extends ASTNode implements Cloneable {
 			return super.traversalSubElements();
 		}
 	}
-	
+
 	@Override
 	public ASTNode clone() {
 		final Statement clone = (Statement)super.clone();

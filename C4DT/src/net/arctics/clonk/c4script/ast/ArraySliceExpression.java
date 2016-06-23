@@ -26,11 +26,13 @@ public class ArraySliceExpression extends ASTNode {
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
 		output.append("["); //$NON-NLS-1$
-		if (lo != null)
+		if (lo != null) {
 			lo.print(output, depth+1);
+		}
 		output.append(":"); //$NON-NLS-1$
-		if (hi != null)
+		if (hi != null) {
 			hi.print(output, depth+1);
+		}
 		output.append("]"); //$NON-NLS-1$
 	}
 
@@ -38,11 +40,13 @@ public class ArraySliceExpression extends ASTNode {
 	public ASTNode[] subElements() {
 		return new ASTNode[] {lo, hi};
 	}
+
 	@Override
 	public void setSubElements(final ASTNode[] subElements) {
 		lo  = subElements[0];
 		hi = subElements[1];
 	}
+
 	@Override
 	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor != null; }
 

@@ -26,13 +26,16 @@ public abstract class KeywordStatement extends Statement {
 	}
 
 	protected void printBody(final ASTNode body, final ASTNodePrinter builder, int depth) {
-		if (!(body instanceof Block))
+		if (!(body instanceof Block)) {
 			depth++;
+		}
 		if (!(body instanceof EmptyStatement)) {
 			builder.append('\n');
 			Conf.printIndent(builder, depth);
 		}
-		if (body != null)
+		if (body != null) {
 			body.print(builder, depth);
+		}
 	}
+
 }

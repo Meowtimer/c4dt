@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
 import static java.lang.String.format;
+
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -17,13 +18,14 @@ public class CombinedMatchingPlaceholder extends MatchingPlaceholder {
 		this.left = left;
 		this.right = right;
 		this.operator = operator;
-		if (left.entryName().equals(right.entryName()))
+		if (left.entryName().equals(right.entryName())) {
 			this.entryName = left.entryName();
-		else
+		} else {
 			throw new IllegalArgumentException(
 				format("Combined matching placeholder requires both operands to have same placeholder name (%s <> %s)",
 					left.entryName(), right.entryName())
 			);
+		}
 	}
 
 	@Override

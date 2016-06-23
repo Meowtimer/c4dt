@@ -64,6 +64,7 @@ public abstract class Literal<T> extends ASTNode implements IPlaceholderPatternM
 
 	@Override
 	public boolean allowsSequenceSuccessor(final ASTNode successor) { return false; }
+
 	@Override
 	public boolean isValidInSequence(final ASTNode predecessor) { return predecessor == null; }
 

@@ -10,6 +10,8 @@ import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.lang.reflect.Constructor;
 
+import org.eclipse.jface.text.Region;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -32,8 +34,6 @@ import net.arctics.clonk.c4script.typing.PrimitiveType;
 import net.arctics.clonk.index.EngineFunction;
 import net.arctics.clonk.util.ScriptAccessibles;
 import net.arctics.clonk.util.ScriptAccessibles.Callable;
-
-import org.eclipse.jface.text.Region;
 
 /**
  * An identifier followed by parenthesized parameters. The {@link Declaration} being referenced will more likely be a {@link Function} but may also be a {@link Variable}
@@ -134,11 +134,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		for (int i = 0; i < parms.length; i++) {
 			final ASTNode one = tidy.tidy(parms[i]);
 			final ASTNode two = i+1 < parms.length ? parms[i+1] : null;
-			if (op.leftSide() == null)
+			if (op.leftSide() == null) {
 				op.setLeftSide(one);
-			else if (two == null)
+			} else if (two == null) {
 				op.setRightSide(one);
-			else {
+			} else {
 				final BinaryOp nu = new BinaryOp(operator);
 				op.setRightSide(nu);
 				nu.setLeftSide(one);
@@ -157,23 +157,27 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		final Operator replOperator = Operator.oldStyleFunctionReplacement(declarationName);
 		if (replOperator != null && params.length == 1) {
 			// LessThan(x) -> x < 0
-			if (replOperator.numArgs() == 2)
+			if (replOperator.numArgs() == 2) {
 				return new BinaryOp(replOperator, tidy.tidy(params[0]), IntegerLiteral.ZERO);
+			}
 			ASTNode n = tidy.tidy(params[0]);
-			if (n instanceof BinaryOp)
+			if (n instanceof BinaryOp) {
 				n = new Parenthesized(n);
+			}
 			return new UnaryOp(replOperator, replOperator.isPostfix() ? UnaryOp.Placement.Postfix : UnaryOp.Placement.Prefix, n);
 		}
-		if (replOperator != null && params.length >= 2)
+		if (replOperator != null && params.length >= 2) {
 			return applyOperatorTo(tidy, params, replOperator);
+		}
 
 		// ObjectCall(ugh, "UghUgh", 5) -> ugh->UghUgh(5)
 		if (params.length >= 2 && isEngineFunction("ObjectCall") && params[1] instanceof StringLiteral && (alwaysConvertObjectCalls || !this.containedInLoopHeaderOrNotStandaloneExpression()) && !params[0].hasSideEffects()) {
 			final ASTNode[] parmsWithoutObject = new ASTNode[params.length-2];
-			for (int i = 0; i < parmsWithoutObject.length; i++)
+			for (int i = 0; i < parmsWithoutObject.length; i++) {
 				parmsWithoutObject[i] = tidy.tidy(params[i+2]);
+			}
 			final String lit = ((StringLiteral)params[1]).stringValue();
-			if (lit.length() > 0 && lit.charAt(0) != '~')
+			if (lit.length() > 0 && lit.charAt(0) != '~') {
 				return alwaysConvertObjectCalls && this.containedInLoopHeaderOrNotStandaloneExpression()
 					? new Sequence(new ASTNode[] {
 						tidy.tidy(params[0]),
@@ -188,14 +192,17 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 						)),
 						null
 					);
+			}
 		}
 
 		// OCF_Awesome() -> OCF_Awesome
-		if (params.length == 0 && declaration instanceof Variable)
-			if (!parent(Script.class).engine().settings().supportsProplists && predecessor() != null)
+		if (params.length == 0 && declaration instanceof Variable) {
+			if (!parent(Script.class).engine().settings().supportsProplists && predecessor() != null) {
 				return new CallDeclaration("LocalN", new StringLiteral(declarationName)); //$NON-NLS-1$
-			else
+			} else {
 				return new AccessVar(declarationName);
+			}
+		}
 
 		// also check for not-nullness since in OC Var/Par are gone and declaration == ...Par returns true -.-
 
@@ -203,30 +210,36 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		if (params.length <= 1 && declaration != null && isEngineFunction("Par") && (params.length == 0 || params[0] instanceof IntegerLiteral)) {
 			final IntegerLiteral number = params.length > 0 ? (IntegerLiteral) params[0] : IntegerLiteral.ZERO;
 			final Function func = this.parent(Function.class);
-			if (func != null)
-				if (number.intValue() >= 0 && number.intValue() < func.numParameters() && !func.parameter(number.intValue()).isEllipsis())
+			if (func != null) {
+				if (number.intValue() >= 0 && number.intValue() < func.numParameters() && !func.parameter(number.intValue()).isEllipsis()) {
 					return new AccessVar(parent(Function.class).parameter(number.intValue()).name());
+				}
+			}
 		}
 
 		// SetVar(5, "ugh") -> Var(5) = "ugh"
 		if (params.length == 2 && (isEngineFunction("SetVar") || isEngineFunction("SetLocal") || isEngineFunction("AssignVar")))
+		 {
 			return new BinaryOp(Operator.Assign, new CallDeclaration(declarationName.substring(declarationName.equals("AssignVar") ? "Assign".length() : "Set".length()), tidy.tidy(params[0])), tidy.tidy(params[1])); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		}
 
 		// DecVar(0) -> Var(0)--
-		if (params.length <= 1 && (isEngineFunction("DecVar") || isEngineFunction("IncVar")))
+		if (params.length <= 1 && (isEngineFunction("DecVar") || isEngineFunction("IncVar"))) {
 			return new UnaryOp(isEngineFunction("DecVar") ? Operator.Decrement : Operator.Increment, Placement.Prefix,
 					new CallDeclaration("Var", new ASTNode[] {
 						params.length == 1 ? tidy.tidy(params[0]) : IntegerLiteral.ZERO
 					})
 			);
+		}
 
 		// Call("Func", 5, 5) -> Func(5, 5)
 		if (params.length >= 1 && isEngineFunction("Call") && params[0] instanceof StringLiteral) {
 			final String lit = ((StringLiteral)params[0]).stringValue();
 			if (lit.length() > 0 && lit.charAt(0) != '~') {
 				final ASTNode[] parmsWithoutName = new ASTNode[params.length-1];
-				for (int i = 0; i < parmsWithoutName.length; i++)
+				for (int i = 0; i < parmsWithoutName.length; i++) {
 					parmsWithoutName[i] = tidy.tidy(params[i+1]);
+				}
 				return new CallDeclaration(((StringLiteral)params[0]).stringValue(), parmsWithoutName);
 			}
 		}
@@ -237,17 +250,20 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 	private boolean containedInLoopHeaderOrNotStandaloneExpression() {
 		SimpleStatement simpleStatement = null;
 		for (ASTNode p = parent(); p != null; p = p.parent()) {
-			if (p instanceof Block)
+			if (p instanceof Block) {
 				break;
+			}
 			if (p instanceof ILoop) {
-				if (simpleStatement != null && simpleStatement == ((ILoop)p).body())
+				if (simpleStatement != null && simpleStatement == ((ILoop)p).body()) {
 					return false;
+				}
 				return true;
 			}
-			if (!(p instanceof SimpleStatement))
+			if (!(p instanceof SimpleStatement)) {
 				return true;
-			else
+			} else {
 				simpleStatement = (SimpleStatement) p;
+			}
 		}
 		return false;
 	}
@@ -257,8 +273,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 		return new EntityRegion(set(declaration()), new Region(start(), name().length()));
 	}
 	public ASTNode soleParm() {
-		if (params.length == 1)
+		if (params.length == 1) {
 			return params[0];
+		}
 		return new Tuple(params);
 	}
 	@Override
@@ -274,8 +291,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 			final Function f = (Function) declaration;
 			final int i = indexOfParm(parm);
 			return i >= 0 && i < f.numParameters() ? f.parameter(i) : null;
-		} else
+		} else {
 			return null;
+		}
 	}
 
 	@Override
@@ -285,9 +303,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 			.map(par -> par != null ? evFailsafe(par, context) : null)
 			.toArray(l -> new Object[l]);
 		final Function f = as(declaration, Function.class);
-		if (f != null)
+		if (f != null) {
 			return f.invoke(f.new Invocation(args, context, self));
-		else if (self != null) {
+		} else if (self != null) {
 			final Object varEv = evaluateVariable(context.variable(this, self));
 			if (varEv instanceof Class) {
 				final Constructor<?> ctor = ScriptAccessibles.ctor((Class<?>)varEv);
@@ -296,8 +314,9 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 				final Callable m = ScriptAccessibles.method(self.getClass(), declarationName);
 				return m != null ? attempt(() -> m.invoke(self, args), Exception.class, Exception::printStackTrace) : null;
 			}
-		} else
+		} else {
 			return null;
+		}
 	}
 
 	private static Object evFailsafe(ASTNode par, IEvaluationContext context) {
@@ -311,9 +330,11 @@ public class CallDeclaration extends AccessDeclaration implements IFunctionCall,
 
 	@Override
 	public Class<? extends Declaration> declarationClass() { return Function.class; }
+
 	public final Function function(final ProblemReporter context) {
 		return as(context.obtainDeclaration(this), Function.class);
 	}
+
 	public final Function function() { return as(declaration, Function.class); }
 
 }

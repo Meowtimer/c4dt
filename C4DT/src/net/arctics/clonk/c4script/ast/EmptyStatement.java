@@ -11,4 +11,5 @@ public class EmptyStatement extends Statement {
 	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(";"); //$NON-NLS-1$
 	}
+
 }

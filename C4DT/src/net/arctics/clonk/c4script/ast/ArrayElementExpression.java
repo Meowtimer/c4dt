@@ -48,12 +48,13 @@ public class ArrayElementExpression extends ASTNode {
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		final Object array = evaluateVariable(predecessor().evaluate(context));
-		if (array instanceof List<?>)
+		if (array instanceof List<?>) {
 			return ((List<?>)array).get(((Number)argument.evaluate(context)).intValue());
-		else if (array instanceof Object[])
+		} else if (array instanceof Object[]) {
 			return ((Object[])array)[((Number)argument.evaluate(context)).intValue()];
-		else
+		} else {
 			return null;
+		}
 	}
 
 }

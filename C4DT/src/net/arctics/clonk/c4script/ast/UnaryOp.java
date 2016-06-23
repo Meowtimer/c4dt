@@ -30,8 +30,10 @@ public class UnaryOp extends OperatorExpression implements ITidyable {
 
 	@Override
 	public ASTNode[] subElements() { return new ASTNode[] {argument}; }
+
 	@Override
 	public void setSubElements(final ASTNode[] elements) { argument = elements[0]; }
+
 	public UnaryOp.Placement placement() { return placement; }
 
 	@Override
@@ -121,7 +123,7 @@ public class UnaryOp extends OperatorExpression implements ITidyable {
 		catch (final NullPointerException e) {}
 		return super.evaluateStatic(context);
 	}
-	
+
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		final Object ev = argument.evaluate(context);

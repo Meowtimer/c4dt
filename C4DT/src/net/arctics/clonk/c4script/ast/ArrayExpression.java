@@ -13,25 +13,32 @@ import net.arctics.clonk.ast.ControlFlowException;
 import net.arctics.clonk.ast.IEvaluationContext;
 
 public class ArrayExpression extends ASTNodeWithSubElementsArray {
+
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public ArrayExpression(final ASTNode... elms) { super(elms); }
+
 	@Override
 	public void doPrint(final ASTNodePrinter output, final int depth) {
 		printNodeList(output, elements, depth, "[", "]");
 	}
+
 	@Override
 	public boolean isValidInSequence(final ASTNode predecessor) {
 		return predecessor == null;
 	}
+
 	@Override
 	public boolean isConstant() {
 		return !stream(subElements()).anyMatch(e -> e != null && !e.isConstant());
 	}
+
 	@Override
 	public Object evaluate(final IEvaluationContext context) throws ControlFlowException {
 		final ArrayList<Object> elm = new ArrayList<Object>(elements.length);
-		for (final ASTNode e : elements)
+		for (final ASTNode e : elements) {
 			elm.add(e != null ? evaluateVariable(e.evaluate(context)) : null);
+		}
 		return elm;
 	}
+
 }

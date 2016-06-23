@@ -45,8 +45,9 @@ public class IterateArrayStatement extends KeywordStatement implements ILoop {
 		builder.append(keyword() + " ("); //$NON-NLS-1$
 		elementExpr.print(builder, depth+1);
 		// remove ';' that elementExpr (a statement) prints
-		if (builder.charAt(builder.length()-1) == ';')
+		if (builder.charAt(builder.length()-1) == ';') {
 			builder.deleteCharAt(builder.length()-1);
+		}
 		builder.append(" " + Keywords.In + " "); //$NON-NLS-1$ //$NON-NLS-2$
 		arrayExpr.print(builder, depth+1);
 		builder.append(") "); //$NON-NLS-1$

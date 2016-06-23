@@ -199,4 +199,5 @@ public class EntityLocator extends ExpressionLocator<Void> {
 			return entity.infoText(context);
 		}
 	}
+
 }

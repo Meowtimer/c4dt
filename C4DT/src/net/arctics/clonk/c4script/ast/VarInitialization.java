@@ -1,6 +1,7 @@
 package net.arctics.clonk.c4script.ast;
 
 import static net.arctics.clonk.util.Utilities.eq;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ASTNodePrinter;
@@ -23,7 +24,7 @@ import net.arctics.clonk.util.ArrayUtil;
 public final class VarInitialization extends ASTNode implements IPlaceholderPatternMatchTarget {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	
+
 	public static class Name extends ASTNode {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 		private final String name;
@@ -97,8 +98,9 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 		output.append(name);
 		if (expression != null) {
 			output.append(" =");
-			if (!(expression instanceof PropListExpression))
+			if (!(expression instanceof PropListExpression)) {
 				output.append(' ');
+			}
 			expression.print(output, depth);
 		}
 	}
@@ -123,11 +125,12 @@ public final class VarInitialization extends ASTNode implements IPlaceholderPatt
 	public EntityRegion entityAt(final int offset, final ExpressionLocator<?> locator) { return new EntityRegion(variable, this); }
 	@Override
 	public String patternMatchingText() { return name; }
-	
+
 	@Override
 	protected boolean equalAttributes(final ASTNode _other) {
-		if (!super.equalAttributes(_other))
+		if (!super.equalAttributes(_other)) {
 			return false;
+		}
 		final VarInitialization other = (VarInitialization) _other;
 		return eq(this.name, other.name);
 	}

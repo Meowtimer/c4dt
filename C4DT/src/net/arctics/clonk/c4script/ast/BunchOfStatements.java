@@ -8,9 +8,12 @@ import net.arctics.clonk.ast.ASTNodePrinter;
 import net.arctics.clonk.c4script.Conf;
 
 public class BunchOfStatements extends Block {
+
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
+
 	public BunchOfStatements(final List<ASTNode> statements) { super(statements); }
 	public BunchOfStatements(final ASTNode... statements) { super(statements); }
+
 	@Override
 	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		boolean first = true;
@@ -26,4 +29,5 @@ public class BunchOfStatements extends Block {
 			statement.printSuffix(builder, depth);
 		}
 	}
+
 }

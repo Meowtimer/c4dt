@@ -13,10 +13,11 @@ public abstract class NumberLiteral extends Literal<Number> {
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
 	public static ASTNode from(final Number parsedNumber) {
-		if (parsedNumber instanceof Double)
+		if (parsedNumber instanceof Double) {
 			return new FloatLiteral(parsedNumber.doubleValue());
-		else
+		} else {
 			return new IntegerLiteral(parsedNumber.longValue());
+		}
 	}
 
 }

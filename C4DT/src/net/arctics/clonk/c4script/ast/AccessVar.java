@@ -1,5 +1,8 @@
 package net.arctics.clonk.c4script.ast;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.text.IRegion;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.ControlFlowException;
@@ -10,9 +13,6 @@ import net.arctics.clonk.c4script.Variable;
 import net.arctics.clonk.c4script.Variable.Scope;
 import net.arctics.clonk.c4script.ast.evaluate.EvaluationContextProxy;
 import net.arctics.clonk.index.Definition;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.jface.text.IRegion;
 
 /**
  * Variable name expression element.
@@ -34,7 +34,7 @@ public class AccessVar extends AccessDeclaration {
 
 	@Override
 	public boolean isValidInSequence(final ASTNode predecessor) {
-		return
+		return (
 			// either null or
 			predecessor == null ||
 			// normally, a check would be performed whether the MemberOperator uses '.' instead of '->'
@@ -44,14 +44,16 @@ public class AccessVar extends AccessDeclaration {
 			// parameter information since the function only exists in the definition of obj that is not
 			// consulted in that case, the '.' rule is enforced not here but in reportErrors (!!1)
 			// and anyways, everything is different now that function values are possible yadda
-			predecessor instanceof MemberOperator;
+			predecessor instanceof MemberOperator
+		);
 	}
 
 	private static Definition definitionProxiedBy(final Declaration var) {
-		if (var instanceof Definition.ProxyVar)
+		if (var instanceof Definition.ProxyVar) {
 			return ((Definition.ProxyVar)var).definition();
-		else
+		} else {
 			return null;
+		}
 	}
 
 	public Definition proxiedDefinition() {
@@ -71,16 +73,21 @@ public class AccessVar extends AccessDeclaration {
 					var.initializationExpression().parent(Function.class)) {
 					@Override
 					public void reportOriginForExpression(final ASTNode expression, final IRegion location, final IFile file) {
-						if (expression == var.initializationExpression())
+						if (expression == var.initializationExpression()) {
 							context.reportOriginForExpression(AccessVar.this, location, file);
+						}
 					}
 				});
 				if (val == null)
+				 {
 					val = 1337; // awesome fallback
+				}
 				return val;
 			}
 			else if ((obj = definitionProxiedBy(var)) != null)
+			 {
 				return obj.id(); // just return the id
+			}
 		}
 		return super.evaluateStatic(context);
 	}
@@ -102,9 +109,9 @@ public class AccessVar extends AccessDeclaration {
 			final Variable var = (Variable) declaration();
 			// naturally, consts are constant
 			return var.scope() == Scope.CONST || definitionProxiedBy(var) != null;
-		}
-		else
+		} else {
 			return false;
+		}
 	}
 
 	@Override

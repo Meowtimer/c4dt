@@ -26,13 +26,13 @@ import net.arctics.clonk.util.ArrayUtil;
  *
  */
 public class VarDeclarationStatement extends KeywordStatement {
-	
+
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	private VarInitialization[] varInitializations;
 	private final Scope scope;
-	
+
 	public Scope scope() { return scope; }
-	
+
 	public VarDeclarationStatement(final List<VarInitialization> varInitializations, final Scope scope) {
 		super();
 		this.varInitializations = varInitializations.toArray(new VarInitialization[varInitializations.size()]);
@@ -43,21 +43,21 @@ public class VarDeclarationStatement extends KeywordStatement {
 	public VarDeclarationStatement(final Scope scope, final VarInitialization... varInitializations) {
 		this(Arrays.asList(varInitializations), scope);
 	}
-	
+
 	public VarDeclarationStatement(final String varName, final ASTNode initialization, final int namePos, final Scope scope) {
 		this(ArrayUtil.list(new VarInitialization(varName, initialization, namePos, namePos+varName.length(), null, null)), scope);
 	}
-	
+
 	@Override
 	public String keyword() {
 		return scope.toKeyword();
 	}
-	
+
 	@Override
 	public VarInitialization[] subElements() {
 		return varInitializations;
 	}
-	
+
 	@Override
 	public void setSubElements(final ASTNode[] elms) {
 		final List<VarInitialization> inits = Arrays.asList(filter(elms, VarInitialization.class));
@@ -65,11 +65,11 @@ public class VarDeclarationStatement extends KeywordStatement {
 		System.arraycopy(inits.toArray(), 0, newElms, 0, inits.size());
 		varInitializations = newElms;
 	}
-	
+
 	public final VarInitialization[] variableInitializations() {
 		return varInitializations;
 	}
-	
+
 	@Override
 	public void doPrint(final ASTNodePrinter builder, final int depth) {
 		builder.append(keyword());
@@ -85,7 +85,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 			}
 		}
 	}
-	
+
 	@Override
 	public EntityRegion entityAt(int offset, final ExpressionLocator<?> locator) {
 		final Function activeFunc = this.parent(Function.class);
@@ -102,7 +102,7 @@ public class VarDeclarationStatement extends KeywordStatement {
 		}
 		return super.entityAt(offset, locator);
 	}
-	
+
 	@Override
 	public Object evaluate(IEvaluationContext context) throws ControlFlowException {
 		for (final VarInitialization in : varInitializations) {

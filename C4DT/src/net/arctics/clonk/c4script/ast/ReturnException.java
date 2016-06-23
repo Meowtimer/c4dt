@@ -13,10 +13,10 @@ public class ReturnException extends ControlFlowException {
 	public Object result() {
 		return result;
 	}
-	
+
 	public ReturnException(final Object result) {
 		super(ControlFlow.Return);
 		this.result = result;
 	}
-	
+
 }
