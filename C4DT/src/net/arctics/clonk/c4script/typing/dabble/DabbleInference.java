@@ -150,7 +150,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	static final boolean UNUSEDPARMWARNING = false;
 
-	final Map<Script, Input> input = new HashMap<>();
+	Map<Script, Input> input;
 	Typing typing;
 
 	private Input script(final String script) {
@@ -224,24 +224,23 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 	private void gatherInputFromRestrictedFunctionSet(final Collection<Pair<Script, Function>> functions_) {
 		final ArrayList<Pair<Script, Function>> functions = new ArrayList<>(functions_);
-		input.clear();
+		final Map<Script, Input> input = new HashMap<>();
 		while (functions.size() > 0) {
-			final Pair<Script, Function> frst = functions.get(0);
-			Input i = input.get(frst.first());
-			if (i == null) {
+			final Pair<Script, Function> first = functions.get(0);
+			if (input.get(first.first()) == null) {
 				final List<Function> funcs = new LinkedList<>();
-				final Script s = frst.first().script();
+				final Script script = first.first().script();
 				for (final Iterator<Pair<Script, Function>> it = functions.iterator(); it.hasNext();) {
 					final Pair<Script, Function> f = it.next();
-					if (f.first() == s) {
+					if (f.first() == script) {
 						it.remove();
 						funcs.add(f.second());
 					}
 				}
-				i = new Input(s, 0, funcs.toArray(new Function[funcs.size()]));
-				input.put(s, i);
+				input.put(script, new Input(script, 0, funcs.toArray(new Function[funcs.size()])));
 			}
 		}
+		this.input = input;
 	}
 
 	@Override
@@ -364,13 +363,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	private void gatherInput(final Script[] scripts) {
-		input.clear();
-		for (final Script p : scripts) {
-			if (p != null) {
-				final Input info = new Input(p, 0);
-				input.put(p.script(), info);
-			}
-		}
+		this.input = stream(scripts)
+			.filter(x -> x != null)
+			.map(p -> new Input(p, 0))
+			.collect(Collectors.toMap(Input::script, x -> x));
 	}
 
 	ExecutorService threadPool;
@@ -432,12 +428,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			@Override
 			public int hashCode() { return hash; }
-			
+
 			public Input input() { return Input.this; }
-			
+
 			@Override
 			public String toString() { return function.qualifiedName(script); }
-			
+
 			@Override
 			public void run() {
 				visitor.visit();
@@ -1310,7 +1306,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 		boolean providesInherentType = false;
 
 		public Expert(final Class<T> cls) { super(cls); }
-		
+
 		public void findSuper(Map<Class<? extends ASTNode>, Expert<? extends ASTNode>> result) {
 			for (Class<? super T> s = cls.getSuperclass(); s != null; s = s.getSuperclass()) {
 				@SuppressWarnings("unchecked")
@@ -1609,7 +1605,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				return PrimitiveType.UNKNOWN;
 			}
-			
+
 			private IType unifyVariableTypesForAllPredecessorTypes(final T node, final Visitor visitor, final Declaration d) {
 				IType t = PrimitiveType.UNKNOWN;
 				if (node.predecessor() != null) {
@@ -1645,7 +1641,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 				}
 			}
-			
+
 			private void handleVariable(final T node, final Visitor visitor, final ASTNode pred, final Variable var) throws ProblemException {
 				var.setUsed(true);
 				switch (var.scope()) {
@@ -1873,7 +1869,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<ArrayElementExpression>(ArrayElementExpression.class) {
-				
+
 				@Override
 				public IType type(final ArrayElementExpression node, final Visitor visitor) {
 					final IType t = supr.type(node, visitor);
@@ -1894,7 +1890,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					return PrimitiveType.ANY;
 				}
-				
+
 				@Override
 				public boolean judgement(final ArrayElementExpression leftSide, final IType rightSideType, final ASTNode origin, final Visitor visitor, final TypingJudgementMode mode) {
 					final IType predType_ = predecessorType(leftSide, visitor);
@@ -1915,7 +1911,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					return true;
 				}
-				
+
 				@Override
 				public void visit(final ArrayElementExpression node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
@@ -1949,14 +1945,14 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					}
 				}
-				
+
 				@Override
 				public boolean isModifiable(final ArrayElementExpression node, final Visitor visitor) { return true; }
-				
+
 			},
 
 			new Expert<ArraySliceExpression>(ArraySliceExpression.class) {
-				
+
 				private void warnIfNotArray(final ASTNode node, final Visitor visitor, final IType type) {
 					if (type != null && type != PrimitiveType.UNKNOWN && type != PrimitiveType.ANY &&
 						typing.unifyNoChoice(PrimitiveType.ARRAY, type) == null &&
@@ -1964,25 +1960,25 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().warning(visitor, Problem.NotAnArrayOrProplist, node, node, 0);
 					}
 				}
-				
+
 				@Override
 				public void visit(final ArraySliceExpression node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
 					final IType type = predecessorType(node, visitor);
 					warnIfNotArray(node.predecessor(), visitor, type);
 				}
-				
+
 				@Override
 				public boolean isModifiable(final ArraySliceExpression node, final Visitor visitor) {
 					return true;
 				}
-				
+
 				@Override
 				public IType type(final ArraySliceExpression node, final Visitor visitor) {
 					final ArrayType arrayType = as(predecessorType(node, visitor), ArrayType.class);
 					return defaulting(arrayType, PrimitiveType.ARRAY);
 				}
-				
+
 			},
 
 			new Expert<OperatorExpression>(OperatorExpression.class) {
@@ -2727,10 +2723,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new LiteralExpert<BoolLiteral>(BoolLiteral.class) {
-				
+
 				@Override
 				public IType type(final BoolLiteral node, final Visitor visitor) { return PrimitiveType.BOOL; }
-				
+
 				@Override
 				public void visit(final BoolLiteral node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
@@ -2741,7 +2737,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					}
 				}
-				
+
 			},
 
 			new Expert<CallExpr>(CallExpr.class) {
@@ -3172,7 +3168,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.markers().nonThrowingErrorAtNode(visitor.script(), Problem.AnonymousFunctionNotAllowedHere, function);
 					}
 				}
-				
+
 				@Override
 				public IType type(Function node, Visitor visitor) {
 					return PrimitiveType.FUNCTION;
