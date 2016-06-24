@@ -241,7 +241,10 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @return The identifier region
 	 */
 	public final IRegion identifierRegion() { return new Region(identifierStart(), identifierLength()); }
-	public void setLocation(final int start, final int end) { this.start = start; this.end = end; }
+	public void setLocation(final int start, final int end) {
+		this.setStart(start);
+		this.setEnd(end);
+	}
 	public void setLocation(final IRegion r) { this.setLocation(r.getOffset(), r.getOffset()+r.getLength()); }
 	public void setPredecessor(final ASTNode p) { predecessor = p; }
 	public ASTNode predecessor() { return predecessor; }
@@ -509,10 +512,10 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 */
 	protected void offsetExprRegion(final int amount, final boolean start, final boolean end) {
 		if (start) {
-			this.start += amount;
+			this.setStart(this.start() + amount);
 		}
 		if (end) {
-			this.end += amount;
+			this.setEnd(this.end() + amount);
 		}
 	}
 
@@ -669,10 +672,10 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	 * @param by Amount to offset the location by
 	 */
 	public void offsetLocation(final int by) {
-		setLocation(start+by, end+by);
-		for (final ASTNode e : traversalSubElements()) {
-			if (e != null) {
-				e.offsetLocation(by);
+		setLocation(start()+by, end()+by);
+		for (final ASTNode subElement : traversalSubElements()) {
+			if (subElement != null) {
+				subElement.offsetLocation(by);
 			}
 		}
 	}

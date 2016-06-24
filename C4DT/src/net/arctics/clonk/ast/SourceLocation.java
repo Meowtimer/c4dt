@@ -1,18 +1,19 @@
 package net.arctics.clonk.ast;
 
-import java.io.Serializable;
-import java.util.regex.Matcher;
+import static net.arctics.clonk.util.Utilities.as;
 
-import net.arctics.clonk.Core;
+import java.io.Serializable;
 
 import org.eclipse.jface.text.IRegion;
+
+import net.arctics.clonk.Core;
 
 public class SourceLocation implements IRegion, Serializable, Cloneable, Comparable<SourceLocation> {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 	public static final SourceLocation ZERO = new SourceLocation(0, 0);
 
-	protected int start, end;
+	private int start, end;
 
 	public SourceLocation() {}
 
@@ -20,24 +21,17 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 		this.start = start;
 		this.end = end;
 	}
-	public SourceLocation(final Matcher matcher) {
-		start = matcher.start();
-		end = matcher.end();
-	}
-	public SourceLocation(final int offset, final IRegion relativeLocation) {
-		start = offset+relativeLocation.getOffset();
-		end = offset+relativeLocation.getOffset()+relativeLocation.getLength();
-	}
-	public SourceLocation(final String stringRepresentation) {
-		final int comma = stringRepresentation.indexOf(",");
-		start = Integer.parseInt(stringRepresentation.substring(1, comma));
-		end = Integer.parseInt(stringRepresentation.substring(comma+2, stringRepresentation.length()-1));
+
+	public static SourceLocation offsetRegion(final IRegion region, final int offset) {
+		return new SourceLocation(region.getOffset() + offset, region.getOffset() + region.getLength() + offset);
 	}
 
-	public void setStart(final int start) { this.start = start; }
 	public int start() { return start; }
-	public void setEnd(final int end) { this.end = end; }
 	public int end() { return end; }
+
+	public void setStart(final int start) { this.start = start; }
+	public void setEnd(final int end) { this.end = end; }
+
 	@Override
 	public int getLength() { return end-start; }
 	@Override
@@ -45,12 +39,8 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 
 	@Override
 	public boolean equals(final Object obj) {
-		if (obj instanceof SourceLocation) {
-			final SourceLocation cmp = (SourceLocation) obj;
-			return (cmp.start() == start && cmp.end() == end);
-		}
-		else
-			return false;
+		final SourceLocation cmp = as(obj, SourceLocation.class);
+		return cmp != null && cmp.start() == start && cmp.end() == end;
 	}
 
 	@Override

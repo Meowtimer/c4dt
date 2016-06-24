@@ -88,7 +88,7 @@ public class IniSection
 			.forEach(i -> this.addDeclaration(i));
 	}
 	@Override
-	public int absoluteOffset() { return sectionOffset()+start; }
+	public int absoluteOffset() { return sectionOffset()+start(); }
 
 	public IniSection(final String name) { this.name = name; }
 

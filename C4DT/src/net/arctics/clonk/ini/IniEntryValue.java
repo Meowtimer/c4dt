@@ -11,5 +11,5 @@ public abstract class IniEntryValue extends ASTNode implements IASTSection {
 	public Object value(final Object context) { return toString(); }
 	public boolean isEmpty() { return false; }
 	@Override
-	public int absoluteOffset() { return sectionOffset()+start; }
+	public int absoluteOffset() { return sectionOffset()+start(); }
 }
