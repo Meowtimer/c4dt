@@ -29,8 +29,13 @@ public class SourceLocation implements IRegion, Serializable, Cloneable, Compara
 	public int start() { return start; }
 	public int end() { return end; }
 
-	public void setStart(final int start) { this.start = start; }
-	public void setEnd(final int end) { this.end = end; }
+	public void setStart(final int start) {
+		this.start = start;
+	}
+
+	public void setEnd(final int end) {
+		this.end = end;
+	}
 
 	@Override
 	public int getLength() { return end-start; }

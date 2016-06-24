@@ -765,8 +765,8 @@ public class ASTNode extends SourceLocation implements Cloneable, Herbert<ASTNod
 	public final void localIdentifier(final int value) { localIdentifier = value; }
 
 	public final int sectionOffset() {
-		final IASTSection f = section();
-		return f != null ? f.absoluteOffset() : 0;
+		final IASTSection section = section();
+		return section != null ? section.absoluteOffset() : 0;
 	}
 	public IASTSection section() { return parent(IASTSection.class); }
 	public IRegion absolute() { return this.region(sectionOffset()); }

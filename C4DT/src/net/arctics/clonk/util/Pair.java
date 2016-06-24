@@ -18,36 +18,45 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 		this.first = first;
 		this.second = second;
 	}
+
 	public final First first() {
 		return first;
 	}
+
 	public final void setFirst(final First first) {
 		this.first = first;
 	}
+
 	public final Second second() {
 		return second;
 	}
+
 	public final void setSecond(final Second second) {
 		this.second = second;
 	}
+
 	@Override
 	public String toString() {
 		final Object first = this.first != null ? this.first : "<null>";
 		final Object second = this.second != null ? this.second : "<null>";
 		return "("+first.toString()+", "+second.toString()+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
+
 	@Override
 	public boolean equals(final Object other) {
 		if (other instanceof Pair<?, ?>) {
 			final Pair<?, ?> otherPair = (Pair<?, ?>) other;
 			return eq(first, otherPair.first) && eq(second, otherPair.second);
-		} else
+		} else {
 			return false;
+		}
 	}
+
 	@Override
 	public int hashCode() {
 		return (first == null ? 0 : first.hashCode()) ^ (second == null ? 0 : second.hashCode());
 	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public Pair<First, Second> clone() throws CloneNotSupportedException {
@@ -57,4 +66,5 @@ public class Pair<First, Second> implements Serializable, Cloneable {
 	public static <F, S> Pair<F, S> pair(final F first, final S second) {
 		return new Pair<F, S>(first, second);
 	}
+
 }

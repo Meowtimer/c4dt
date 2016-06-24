@@ -24,6 +24,7 @@ import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IASTPositionProvider;
+import net.arctics.clonk.ast.IASTSection;
 import net.arctics.clonk.ast.MalformedDeclaration;
 import net.arctics.clonk.ast.Placeholder;
 import net.arctics.clonk.ast.Sequence;
@@ -538,18 +539,29 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return result;
 	}
 
+	private void assignLocations(ASTNode rootNode, final int expressionStart) {
+		rootNode.traverse(node -> {
+			if (!(node instanceof IASTSection)) {
+				final int adjustedStart = node.start()-expressionStart;
+				final int adjustedEnd = node.end()-expressionStart;
+				node.setLocation(adjustedStart, adjustedEnd);
+				final CallDeclaration callDeclaration = as(node, CallDeclaration.class);
+				if (callDeclaration != null) {
+					callDeclaration.setParmsRegion(callDeclaration.parmsStart()-expressionStart, callDeclaration.parmsEnd()-expressionStart);
+				}
+				return TraversalContinuation.Continue;
+			} else {
+				// leave sub sections with it's own coordinate system alone
+				return TraversalContinuation.SkipSubElements;
+			}
+		});
+	}
+
 	protected InitializationFunction synthesizeInitializationFunction(final VarInitialization variableInitialization) {
 		final InitializationFunction result = new InitializationFunction(variableInitialization.variable);
 		final SourceLocation expressionLocation = absoluteSourceLocationFromExpr(variableInitialization.expression);
 		final int expressionStart = expressionLocation.start();
-		variableInitialization.expression.traverse((node, parser) -> {
-			node.setLocation(node.start()-expressionStart, node.end()-expressionStart);
-			final CallDeclaration callDeclaration = as(node, CallDeclaration.class);
-			if (callDeclaration != null) {
-				callDeclaration.setParmsRegion(callDeclaration.parmsStart()-expressionStart, callDeclaration.parmsEnd()-expressionStart);
-			}
-			return TraversalContinuation.Continue;
-		}, null);
+		assignLocations(variableInitialization.expression, expressionStart);
 		result.setBodyLocation(expressionLocation);
 		result.storeBody(variableInitialization.expression, readStringAt(expressionLocation));
 		result.setName(variableInitialization.variable.name()+"=");
@@ -608,9 +620,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			this.typeAnnotation = typeAnnotation;
 			this.description = description;
 		}
-		
+
 		public static final int ALLOW_OLD_STYLE = 1;
-		public static final int ALLOW_ANONYMOUS = 2; 
+		public static final int ALLOW_ANONYMOUS = 2;
 
 		/**
 		 * Parse function header, returning null if the upcoming tokens did not look like a function header.
@@ -2765,7 +2777,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			var.forceType(type.type(), true);
 		}
 		var.setName(parmName);
-		var.setLocation(new SourceLocation(nameStart-function.start(), this.offset-function.start()));
+		var.setLocation(nameStart-function.start(), this.offset-function.start());
 		var.setParent(function);
 		if (type != null) {
 			type.setTarget(var);
@@ -2794,7 +2806,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 * Subtracted from the location of {@link ASTNode}s created so their location will be relative to the body of the function they are contained in.
 	 */
 	public int sectionOffset() {
-		final Function function = currentFunction(0);
+		final Function function = currentFunction(FunctionHeader.ALLOW_ANONYMOUS|FunctionHeader.ALLOW_OLD_STYLE);
 		return function != null && function.bodyLocation() != null ? function.bodyLocation().start() : 0;
 	}
 
