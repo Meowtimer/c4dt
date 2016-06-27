@@ -222,27 +222,6 @@ public class DabbleInference extends ProblemReportingStrategy {
 		}
 	}
 
-	private void gatherInputFromRestrictedFunctionSet(final Collection<Pair<Script, Function>> functions_) {
-		final ArrayList<Pair<Script, Function>> functions = new ArrayList<>(functions_);
-		final Map<Script, Input> input = new HashMap<>();
-		while (functions.size() > 0) {
-			final Pair<Script, Function> first = functions.get(0);
-			if (input.get(first.first()) == null) {
-				final List<Function> funcs = new LinkedList<>();
-				final Script script = first.first().script();
-				for (final Iterator<Pair<Script, Function>> it = functions.iterator(); it.hasNext();) {
-					final Pair<Script, Function> f = it.next();
-					if (f.first() == script) {
-						it.remove();
-						funcs.add(f.second());
-					}
-				}
-				input.put(script, new Input(script, 0, funcs.toArray(new Function[funcs.size()])));
-			}
-		}
-		this.input = input;
-	}
-
 	@Override
 	public void run() {
 		subTask(Messages.ComputingGraph);
@@ -362,11 +341,47 @@ public class DabbleInference extends ProblemReportingStrategy {
 		progressMonitor.subTask(String.format("%s: %s", projectName, text)); //$NON-NLS-1$
 	}
 
+	Iterable<Pair<Script, Function>> enumerateAllFunctions(Pair<Script, Function> function) {
+		final List<Pair<Script, Function>> result = new LinkedList<>();
+		result.add(function);
+		final FunctionBody body = function.second().body();
+		final Script script = function.first();
+		if (body != null) {
+			body.traverse(node -> {
+				final Function nestedFunction = as(node, Function.class);
+				result.add(new Pair<>(script, nestedFunction));
+				return TraversalContinuation.Continue;
+			});
+		}
+		return result;
+	}
+
 	private void gatherInput(final Script[] scripts) {
 		this.input = stream(scripts)
 			.filter(x -> x != null)
 			.map(p -> new Input(p, 0))
 			.collect(Collectors.toMap(Input::script, x -> x));
+	}
+
+	private void gatherInputFromRestrictedFunctionSet(final Collection<Pair<Script, Function>> functions_) {
+		final ArrayList<Pair<Script, Function>> functions = new ArrayList<>(functions_);
+		final Map<Script, Input> input = new HashMap<>();
+		while (functions.size() > 0) {
+			final Pair<Script, Function> first = functions.get(0);
+			if (input.get(first.first()) == null) {
+				final List<Function> funcs = new LinkedList<>();
+				final Script script = first.first().script();
+				for (final Iterator<Pair<Script, Function>> it = functions.iterator(); it.hasNext();) {
+					final Pair<Script, Function> f = it.next();
+					if (f.first() == script) {
+						it.remove();
+						funcs.add(f.second());
+					}
+				}
+				input.put(script, new Input(script, 0, funcs.toArray(new Function[funcs.size()])));
+			}
+		}
+		this.input = input;
 	}
 
 	ExecutorService threadPool;
