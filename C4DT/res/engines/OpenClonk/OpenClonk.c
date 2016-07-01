@@ -781,6 +781,6 @@ global func bool GuiUpdate(proplist update, int guiID, int childID, object targe
 
 global func bool DeepEqual(any v1, any v2);
 
-static const CONS_Up;
-static const CONS_Down;
-static const CONS_Moved;
+static const int CONS_Up;
+static const int CONS_Down;
+static const int CONS_Moved;
