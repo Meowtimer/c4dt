@@ -8,7 +8,6 @@ import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.block;
 import static net.arctics.clonk.util.Utilities.defaulting;
-import static net.arctics.clonk.util.Utilities.getOrAdd;
 import static net.arctics.clonk.util.Utilities.pickNearest;
 
 import java.io.File;
@@ -33,7 +32,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -122,7 +123,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
-	protected transient Map<String, Declaration[]> declarationMap = new HashMap<>();
+	protected transient ConcurrentMap<String, Declaration[]> declarationMap = new ConcurrentHashMap<>();
 	protected transient Map<IResource, Script> resourceToScript;
 
 	public Index(final File folder) {
@@ -248,7 +249,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		final Script result = Script.get(file, true);
 		if (result == null) {
 			for (final Script s : this.scripts) {
-				if (s.resource() != null && s.resource().equals(file)) {
+				final IResource resource = s.resource();
+				if (resource != null && resource.equals(file)) {
 					return s;
 				}
 			}
@@ -257,11 +259,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	protected void addToDeclarationMap(final Declaration field) {
-		synchronized (declarationMap) {
-			final String name = field.name();
-			final Declaration[] already = declarationMap.get(name);
-			declarationMap.put(name, already != null ? concat(already, field) : new Declaration[] { field });
-		}
+		declarationMap.compute(field.name(),
+			(key, already) -> already != null ? concat(already, field) : new Declaration[] { field }
+		);
 	}
 
 	private void detectAppendages(final Script script, final Map<ID, List<Script>> detectedAppendages) {
@@ -326,7 +326,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			staticVariables = new LinkedList<Variable>();
 		}
 		if (declarationMap == null) {
-			declarationMap = new HashMap<String, Declaration[]>();
+			declarationMap = new ConcurrentHashMap<String, Declaration[]>();
 		}
 		if (appendages == null) {
 			appendages = new HashMap<ID, List<Script>>();
@@ -642,10 +642,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return An Iterable to iterate over the matching declarations
 	 */
 	public <T extends Declaration> List<T> declarationsWithName(final String name, final Class<T> declarationClass) {
-		synchronized (declarationMap) {
-			final Declaration[] list = this.declarationMap.get(name);
-			return list != null ? ofType(stream(list), declarationClass).collect(Collectors.toList()) : Collections.emptyList();
-		}
+		final Declaration[] list = this.declarationMap.get(name);
+		return list != null ? ofType(stream(list), declarationClass).collect(Collectors.toList()) : Collections.emptyList();
 	}
 
 	/**
@@ -656,12 +654,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T findGlobal(final Class<T> whatYouWant, final String name) {
-		synchronized (declarationMap) {
-			final Declaration[] decs = declarationMap.get(name);
-			return decs != null ?
-				(T)stream(decs).filter(Declaration::isGlobal).filter(whatYouWant::isInstance).findFirst().orElse(null) :
-				null;
-		}
+		final Declaration[] decs = declarationMap.get(name);
+		return decs != null ?
+			(T)stream(decs).filter(Declaration::isGlobal).filter(whatYouWant::isInstance).findFirst().orElse(null) :
+			null;
 	}
 
 	/**
@@ -671,17 +667,12 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return A global {@link Declaration} with a matching name or null.
 	 */
 	public Declaration findGlobalDeclaration(final String declName, final IResource pivot) {
-		synchronized (declarationMap) {
-			final Declaration[] declarations = declarationMap.get(declName);
-			if (declarations != null) {
-				return pivot != null
-					? Utilities.pickNearest(stream(declarations), pivot, IS_GLOBAL)
-					: IS_GLOBAL.test(declarations[0])
-					? declarations[0]
-					: null;
-			}
-			return null;
-		}
+		final Declaration[] declarations = declarationMap.get(declName);
+		return declarations != null ? (
+			pivot != null ? Utilities.pickNearest(stream(declarations), pivot, IS_GLOBAL) :
+			IS_GLOBAL.test(declarations[0]) ? declarations[0]
+			: null
+		) : null;
 	}
 
 	/**
@@ -1082,10 +1073,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public void loadScriptsContainingDeclarationsNamed(final String name) {
 		allScripts(new Sink<Script>() {
 			@Override
-			public void receive(final Script item) { item.requireLoaded(); }
+			public void receive(final Script item) {
+				item.requireLoaded();
+			}
 			@Override
 			public boolean filter(final Script s) {
-				return s.dictionary() != null && s.dictionary().contains(name);
+				final Set<String> dictionary = s.dictionary();
+				return dictionary != null && dictionary.contains(name);
 			}
 		});
 	}
@@ -1098,9 +1092,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The copy or null if no declarations with that name are currently loaded.
 	 */
 	public Declaration[] snapshotOfDeclarationsNamed(final String name) {
-		synchronized (declarationMap) {
-			return declarationMap.get(name);
-		}
+		return declarationMap.get(name);
 	}
 
 	public List<CallDeclaration> callsTo(final String functionName) {
@@ -1134,11 +1126,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	private transient ConcurrentHashMap<IncludesParameters, Collection<Script>> cachedIncludes;
 
 	public Collection<Script> includes(final IncludesParameters parms) {
-		final Map<IncludesParameters, Collection<Script>> map = defaulting(
+		final ConcurrentMap<IncludesParameters, Collection<Script>> map = defaulting(
 			cachedIncludes,
 			() -> cachedIncludes = new ConcurrentHashMap<IncludesParameters, Collection<Script>>()
 		);
-		return getOrAdd(map, parms, () -> {
+		return map.computeIfAbsent(parms, key -> {
 			final HashSet<Script> result = new HashSet<Script>();
 			parms.script.gatherIncludes(this, parms.origin, result, parms.options);
 			result.remove(parms.script);
