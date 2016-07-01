@@ -8,19 +8,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 
-import net.arctics.clonk.Core;
-import net.arctics.clonk.ast.Declaration;
-import net.arctics.clonk.ast.DeclarationLocation;
-import net.arctics.clonk.c4script.Function;
-import net.arctics.clonk.index.DocumentedFunction;
-import net.arctics.clonk.index.Engine;
-import net.arctics.clonk.index.IIndexEntity;
-import net.arctics.clonk.index.ProjectResource;
-import net.arctics.clonk.preferences.ClonkPreferences;
-import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
-import net.arctics.clonk.util.ArrayUtil;
-import net.arctics.clonk.util.UI;
-
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.jface.text.IRegion;
@@ -38,6 +25,19 @@ import org.eclipse.ui.internal.browser.WorkbenchBrowserSupport;
 import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import net.arctics.clonk.Core;
+import net.arctics.clonk.ast.Declaration;
+import net.arctics.clonk.ast.DeclarationLocation;
+import net.arctics.clonk.c4script.Function;
+import net.arctics.clonk.index.DocumentedFunction;
+import net.arctics.clonk.index.Engine;
+import net.arctics.clonk.index.IIndexEntity;
+import net.arctics.clonk.index.ProjectResource;
+import net.arctics.clonk.preferences.ClonkPreferences;
+import net.arctics.clonk.ui.editors.actions.c4script.EntityChooser;
+import net.arctics.clonk.util.ArrayUtil;
+import net.arctics.clonk.util.UI;
+
 /**
  * A hyperlink that stores a reference to the hyperlinked Clonk declaration
  */
@@ -52,7 +52,7 @@ public class EntityHyperlink implements IHyperlink {
 		this.region = region;
 		this.targets = ArrayUtil.list(target);
 	}
-	
+
 	public EntityHyperlink(final IRegion region, final Collection<? extends IIndexEntity> targets) {
 		this.region = region;
 		this.targets = targets;
@@ -65,8 +65,9 @@ public class EntityHyperlink implements IHyperlink {
 
 	@Override
 	public String getHyperlinkText() {
-		for (final IIndexEntity t : targets)
+		for (final IIndexEntity t : targets) {
 			return t.name();
+		}
 		return "hyperlink to ?"; //$NON-NLS-1$
 	}
 
@@ -77,10 +78,11 @@ public class EntityHyperlink implements IHyperlink {
 
 	@Override
 	public void open() {
-		if (this.targets.size() == 1)
+		if (this.targets.size() == 1) {
 			openTarget(this.targets.iterator().next(), true);
-		else
+		} else {
 			chooseDeclarations();
+		}
 	}
 
 	private void chooseDeclarations() {
@@ -90,8 +92,9 @@ public class EntityHyperlink implements IHyperlink {
 
 	public static void openTarget(IIndexEntity target, final boolean activateEditor) {
 		try {
-			if (target instanceof DeclarationLocation)
+			if (target instanceof DeclarationLocation) {
 				target = ((DeclarationLocation)target).declaration();
+			}
 			final DocumentedFunction documentedFunction = as(target, DocumentedFunction.class);
 			if (documentedFunction != null && documentedFunction.originInfo() != null) {
 				final IFileStore sourceFile = EFS.getLocalFileSystem().fromLocalFile(
@@ -102,15 +105,18 @@ public class EntityHyperlink implements IHyperlink {
 					new FileStoreEditorInput(sourceFile),
 					EditorsUI.DEFAULT_TEXT_EDITOR_ID
 				);
-				if (editor instanceof ITextEditor)
+				if (editor instanceof ITextEditor) {
 					((ITextEditor)editor).selectAndReveal(documentedFunction.start(), documentedFunction.getLength());
+				}
 			}
 			else if (target instanceof Declaration) {
 				final Declaration dec = (Declaration)target;
-				if (StructureTextEditor.openDeclaration(dec, activateEditor) == null)
+				if (StructureTextEditor.openDeclaration(dec, activateEditor) == null) {
 					// can't open editor so try something else like opening up a documentation page in the browser
-					if (dec.isEngineDeclaration())
+					if (dec.isEngineDeclaration()) {
 						openDocumentationForFunction(dec.name(), dec.engine());
+					}
+				}
 			}
 			else if (target instanceof ProjectResource) {
 				final CommonNavigator nav = UI.projectExplorer();
@@ -121,7 +127,7 @@ public class EntityHyperlink implements IHyperlink {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static WeakReference<IWebBrowser> internalBrowser = new WeakReference<IWebBrowser>(null);
 
 	public static void openDocumentationForFunction(final String functionName, final Engine engine) throws PartInitException, MalformedURLException {
@@ -136,15 +142,17 @@ public class EntityHyperlink implements IHyperlink {
 	public static void openURL(final URL url) throws PartInitException {
 		final IWorkbenchBrowserSupport support = WorkbenchBrowserSupport.getInstance();
 		IWebBrowser browser;
-		if (Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable())
+		if (Core.instance().getPreferenceStore().getBoolean(ClonkPreferences.OPEN_EXTERNAL_BROWSER) || !support.isInternalWebBrowserAvailable()) {
 			browser = support.getExternalBrowser();
-		else {
+		} else {
 			browser = internalBrowser.get();
-			if (browser == null)
+			if (browser == null) {
 				internalBrowser = new WeakReference<IWebBrowser>(browser = support.createBrowser(null));
+			}
 		}
-		if (browser != null)
+		if (browser != null) {
 			browser.openURL(url);
+		}
 	}
 
 	public IRegion region() {
@@ -154,7 +162,7 @@ public class EntityHyperlink implements IHyperlink {
 	public IIndexEntity target() {
 		return targets.iterator().next();
 	}
-	
+
 	public Collection<? extends IIndexEntity> targets() {
 		return targets;
 	}

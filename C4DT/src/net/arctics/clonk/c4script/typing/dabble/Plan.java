@@ -88,14 +88,15 @@ class Plan {
 				final AccessVar av = (AccessVar) node;
 				for (final Script s : v.input().conglomerate) {
 					final List<AccessVar> references = s.varReferences().get(av.name());
-					if (references != null)
-						for (final AccessVar ref : references)
-							for (ASTNode p = ref.parent(); p != null; p = p.parent())
+					if (references != null) {
+						for (final AccessVar ref : references) {
+							for (ASTNode p = ref.parent(); p != null; p = p.parent()) {
 								if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment() && ref.containedIn(((BinaryOp)p).leftSide())) {
 									final Function fun = ref.parent(Function.class);
 									final Visit other = v.input().visits.get(fun);
-									if (other != null)
+									if (other != null) {
 										addEdge(other, v);
+									}
 									/*	final List<CallDeclaration> calls = s.callMap().get(fun.name());
 										if (calls != null)
 											for (final CallDeclaration cd : calls) {
@@ -105,15 +106,20 @@ class Plan {
 											} */
 									break;
 								}
+							}
+						}
+					}
 				}
 			}
 			return TraversalContinuation.Continue;
 		}
 
 		private boolean containedInAssignment(final ASTNode node) {
-			for (ASTNode p = node.parent(); p != null; p = p.parent())
-				if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment())
+			for (ASTNode p = node.parent(); p != null; p = p.parent()) {
+				if (p instanceof BinaryOp && ((BinaryOp)p).operator().isAssignment()) {
 					return true;
+				}
+			}
 			return false;
 		}
 
@@ -125,8 +131,9 @@ class Plan {
 	private final static class VisitsByName extends LinkedList<Visit> implements Runnable {
 		@Override
 		public void run() {
-			for (final Visit v : this)
+			for (final Visit v : this) {
 				v.prepare();
+			}
 		}
 	}
 
@@ -136,9 +143,11 @@ class Plan {
 			if (node instanceof CallDeclaration && resultNeeded(node)) {
 				final CallDeclaration cd = (CallDeclaration) node;
 				final List<Visit> calledVisits = visits.get(cd.name());
-				if (calledVisits != null)
-					for (final Visit cv : calledVisits)
+				if (calledVisits != null) {
+					for (final Visit cv : calledVisits) {
 						addEdge(cv, v);
+					}
+				}
 			}
 			return TraversalContinuation.Continue;
 		}
@@ -146,10 +155,12 @@ class Plan {
 		public boolean resultNeeded(final ASTNode node) {
 			boolean resultUsed = false;
 			for (ASTNode p = node.parent(), c = node; p != null; c = p, p = p.parent()) {
-				if (p instanceof SimpleStatement)
+				if (p instanceof SimpleStatement) {
 					break;
-				if (p instanceof Sequence && ((Sequence)p).lastElement() == c)
+				}
+				if (p instanceof Sequence && ((Sequence)p).lastElement() == c) {
 					continue;
+				}
 				resultUsed = true;
 				break;
 			}
@@ -195,16 +206,18 @@ class Plan {
 		this.linear = linear();
 		this.total = linear.length;
 		determineDependencies();
-		if (DEBUG)
-			for (final Visit v : linear)
+		if (DEBUG) {
+			for (final Visit v : linear) {
 				System.out.println(format("%s: %s", v, blockString("", "", ", ", v.dependencies)));
+			}
+		}
 		//transferEdges();
 		findRoots();
 	}
 
 	private Map<String, VisitsByName> visitsMap() {
 		final Map<String, VisitsByName> visits = new HashMap<>();
-		for (final Input i : inference.input.values())
+		for (final Input i : inference.input.values()) {
 			for (final Visit v : i.visits.values()) {
 				VisitsByName list = visits.get(v.function.name());
 				if (list == null) {
@@ -213,33 +226,39 @@ class Plan {
 				}
 				list.add(v);
 			}
+		}
 		return visits;
 	}
 
 	private Visit[] linear() {
 		int num = 0;
-		for (final Input i : inference.input.values())
+		for (final Input i : inference.input.values()) {
 			num += i.visits.size();
+		}
 		final Visit[] result = new Visit[num];
 		num = 0;
-		for (final Input i : inference.input.values())
-			for (final Visit v : i.visits.values())
+		for (final Input i : inference.input.values()) {
+			for (final Visit v : i.visits.values()) {
 				result[num++] = v;
+			}
+		}
 		return result;
 	}
 
 	private final Object edgeLock = new Object();
 
 	private void addEdge(final Visit dependency, final Visit dependent) {
-		if (dependency == dependent)
+		if (dependency == dependent) {
 			return;
+		}
 		synchronized (edgeLock) {
 			if (!new DependencyTester(dependent).test(dependency)) {
 				dependent.dependencies.add(dependency);
 				dependency.dependents.add(dependent);
 			} else {
-				if (DEBUG)
+				if (DEBUG) {
 					System.out.println(format("Not adding requirement %s to %s", dependency.toString(), dependent.toString()));
+				}
 				dependent.doubleTake = true;
 				doubleTakes.add(dependent);
 			}
@@ -249,8 +268,9 @@ class Plan {
 
 	private Collection<Runnable> visitorRunnables(final IASTVisitor<Visit> visitor) {
 		final List<Runnable> list = new ArrayList<>(total);
-		for (final Visit v : linear)
+		for (final Visit v : linear) {
 			list.add(new ASTVisitorRunnable(v, visitor));
+		}
 		return list;
 	}
 
@@ -274,9 +294,12 @@ class Plan {
 	}
 
 	private void findRoots() {
-		for (final Input i : inference.input.values())
-			for (final Visit v : i.visits.values())
-				if (v.dependencies.isEmpty())
+		for (final Input i : inference.input.values()) {
+			for (final Visit v : i.visits.values()) {
+				if (v.dependencies.isEmpty()) {
 					roots.add(v);
+				}
+			}
+		}
 	}
 }
