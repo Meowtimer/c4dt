@@ -636,10 +636,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	/**
 	 * Return all declarations with the specified name that are instances of the specified class.
-	 * @param <T> Genericly typed so no casting necessary
+	 * @param <T> Generically typed so no casting necessary
 	 * @param name The name
 	 * @param declarationClass The class of the declarations to return
-	 * @return An Iterable to iterate over the matching declarations
+	 * @return An {@link Iterable} to iterate over the matching declarations
 	 */
 	public <T extends Declaration> List<T> declarationsWithName(final String name, final Class<T> declarationClass) {
 		final Declaration[] list = this.declarationMap.get(name);
