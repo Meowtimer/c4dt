@@ -34,6 +34,19 @@ public class ArrayUtil {
 		return stream(items).allMatch(pred);
 	}
 
+	/** Concat a list of arrays into a large array */
+	public static <T> T[] concat(Class<T> type, final Collection<T[]> chain) {
+		final int requiredLength = chain.stream().mapToInt(a -> a.length).reduce(0, (result, length) -> result + length);
+		@SuppressWarnings("unchecked")
+		final T[] result = (T[]) Array.newInstance(type, requiredLength);
+		int at = 0;
+		for (final T[] array : chain) {
+			System.arraycopy(array, 0, result, at, array.length);
+			at += array.length;
+		}
+		return result;
+	}
+
 	@SafeVarargs
 	@SuppressWarnings("unchecked")
 	public static <T> T[] concat(final T[] a, final T... b) {

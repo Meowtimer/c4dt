@@ -1095,20 +1095,16 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		return declarationMap.get(name);
 	}
 
-	public List<CallDeclaration> callsTo(final String functionName) {
-		final List<CallDeclaration> result = new ArrayList<>(10);
+	public CallDeclaration[] callsTo(final String functionName) {
+		final LinkedList<CallDeclaration[]> chain = new LinkedList<>();
 		allScripts(item -> {
-			final Map<String, List<CallDeclaration>> calls = item.callMap();
-			if (calls != null) {
-				synchronized (calls) {
-					final List<CallDeclaration> list = calls.get(functionName);
-					if (list != null) {
-						result.addAll(list);
-					}
-				}
+			final Map<String, CallDeclaration[]> calls = item.callMap();
+			final CallDeclaration[] list = calls != null ? calls.get(functionName) : null;
+			if (list != null) {
+				chain.add(list);
 			}
 		});
-		return result.size() > 0 ? result : null;
+		return chain.size() > 0 ? concat(CallDeclaration.class, chain) : null;
 	}
 
 	@Override

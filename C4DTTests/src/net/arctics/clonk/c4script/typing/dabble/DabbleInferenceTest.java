@@ -34,14 +34,13 @@ import net.arctics.clonk.util.StringUtil;
 public class DabbleInferenceTest extends TestBase {
 
 	public static class Setup extends ScriptParserTest.Setup {
-		public final DabbleInference inference = new DabbleInference();
+		public final DabbleInference inference = new DabbleInference(index, "");
 		public final Markers inferenceMarkers = new Markers();
 		public Setup(final DefinitionInfo... scripts) {
 			this((Object[])scripts);
 		}
 		public Setup(final Object... scripts) {
 			super(scripts);
-			inference.configure(index, "");
 			parsers.forEach(Runnable::run);
 			index.refresh();
 			this.scripts.forEach(Script::deriveInformation);
@@ -96,7 +95,7 @@ public class DabbleInferenceTest extends TestBase {
 	@Test
 	public void testCallTypesChained() {
 		def baseSource =
-			
+
 			StringUtil.join("\n",
 
 				func Func3(s)
@@ -108,11 +107,11 @@ public class DabbleInferenceTest extends TestBase {
 			{
 				CreateObject(Derived)->Func2(123);
 			}
-			
+
 
 			)
 		def derivedSource =
-			
+
 			StringUtil.join("\n",
 
 				#include Base
@@ -121,7 +120,7 @@ public class DabbleInferenceTest extends TestBase {
 			{
 				CreateObject(Base)->Func3(x);
 			}
-			
+
 
 			)
 		def order = { baseThenDerived ->
@@ -375,7 +374,7 @@ public class DabbleInferenceTest extends TestBase {
 	public void testAbysseses() {
 		System.out.println("Abyssesses! ---");
 		final String[] funcs = new String[] {
-			
+
 			StringUtil.join("\n",
 				"func MakeAbyssMarkers()",
 				"{",
@@ -394,7 +393,7 @@ public class DabbleInferenceTest extends TestBase {
 				"	return abyssObjects;",
 				"}"
 			),
-			
+
 			StringUtil.join("\n",
 				"func PrepareAbyss(first, second, abyss, num)",
 				"{",
@@ -406,7 +405,7 @@ public class DabbleInferenceTest extends TestBase {
 				"		return PrepareAbyssTwo(abyss);",
 				"}"
 			),
-			
+
 			StringUtil.join("\n",
 				"func PrepareAbyssOne(abyss)",
 				"{",
@@ -418,7 +417,7 @@ public class DabbleInferenceTest extends TestBase {
 				"	return abyss;",
 				"}"
 			),
-			
+
 			StringUtil.join("\n",
 				"func PrepareAbyssTwo(abyss)",
 				"{",

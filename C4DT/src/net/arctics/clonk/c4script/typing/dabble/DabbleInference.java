@@ -556,10 +556,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 
 			private void typeParametersFromCalls(final Function function, final Function baseFunction, final TypeVariable[] parameterTypes) {
-				final List<CallDeclaration> calls = index.callsTo(function.name());
+				final CallDeclaration[] calls = index.callsTo(function.name());
 				if (calls != null) {
 
-					final IType[][] types = new IType[parameterTypes.length][calls.size()];
+					final IType[][] types = new IType[parameterTypes.length][calls.length];
 					gatherCallTypes(function, baseFunction, parameterTypes, calls, types);
 
 					for (int pa = 0; pa < parameterTypes.length; pa++) {
@@ -576,12 +576,12 @@ public class DabbleInference extends ProblemReportingStrategy {
 				final Function function,
 				final Function baseFunction,
 				final TypeVariable[] parameterTypes,
-				final List<? extends CallDeclaration> calls,
+				final CallDeclaration[] calls,
 				final IType[][] types
 			) {
 				final Function base = (Function) function.baseFunction().latestVersion();
-				for (int ci = 0; ci < calls.size(); ci++) {
-					final CallDeclaration call = calls.get(ci);
+				for (int callIndex = 0; callIndex < calls.length; callIndex++) {
+					final CallDeclaration call = calls[callIndex];
 					if (call.predecessor() instanceof MemberOperator && ((MemberOperator) call.predecessor()).hasTilde()) {
 						continue;
 					}
@@ -629,7 +629,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 							final ASTNode concretePar = call.params()[pa];
 							if (concretePar != null) {
 								script().addUsedScript(other);
-								types[pa][ci] = nodeType(f, other, v, vtor, concretePar);
+								types[pa][callIndex] = nodeType(f, other, v, vtor, concretePar);
 							}
 						}
 					}

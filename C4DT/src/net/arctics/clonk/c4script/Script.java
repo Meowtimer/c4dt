@@ -169,7 +169,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private transient Map<String, Function> cachedFunctionMap;
 	private transient Map<String, Variable> cachedVariableMap;
 	private transient Scenario scenario;
-	private transient Map<String, List<CallDeclaration>> callMap = new HashMap<>();
+	private transient Map<String, CallDeclaration[]> callMap = new HashMap<>();
 	private transient Map<String, List<AccessVar>> varReferencesMap = new HashMap<>();
 
 	private Set<String> dictionary;
@@ -195,7 +195,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 	}
 
-	public Map<String, List<CallDeclaration>> callMap() { return defaulting(callMap, Collections.<String, List<CallDeclaration>>emptyMap()); }
+	public Map<String, CallDeclaration[]> callMap() { return defaulting(callMap, Collections.<String, CallDeclaration[]>emptyMap()); }
 	public Map<String, List<AccessVar>> varReferences() { return defaulting(varReferencesMap, Collections.<String, List<AccessVar>>emptyMap()); }
 
 	/**
@@ -1361,7 +1361,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				f.traverse(populator, this);
 			}
 		}
-		this.callMap = Collections.unmodifiableMap(populator.callMap);
+		this.callMap = Collections.unmodifiableMap(
+			populator.callMap.entrySet().stream().collect(Collectors.toMap(
+				kv -> kv.getKey(),
+				kv -> kv.getValue().toArray(new CallDeclaration[kv.getValue().size()])
+			))
+		);	
 		this.varReferencesMap = Collections.unmodifiableMap(populator.varReferencesMap);
 	}
 
