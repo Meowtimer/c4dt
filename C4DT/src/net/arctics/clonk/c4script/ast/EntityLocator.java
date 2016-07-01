@@ -4,6 +4,7 @@ import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.attempt;
 import static net.arctics.clonk.util.Utilities.defaulting;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -108,6 +109,7 @@ public class EntityLocator extends ExpressionLocator<Void> {
 			script.index().relevantIndexes().stream()
 				.map(i -> i.declarationMap().get(declarationName))
 				.filter(x -> x != null)
+				.map(Arrays::asList)
 				.forEach(projectDeclarations::addAll);
 
 			if (projectDeclarations != null) {

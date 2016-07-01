@@ -2259,11 +2259,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 							declaration = visitor.script().index().engine().findFunction(functionName);
 						}
 
-						final List<Declaration> allFromLocalIndex = visitor.script().index().declarationMap().get(functionName);
+						final Declaration[] allFromLocalIndex = visitor.script().index().declarationMap().get(functionName);
 						final Declaration decl = visitor.script().engine().findLocalFunction(functionName, false);
 						int numCandidates = 0;
 						if (allFromLocalIndex != null) {
-							numCandidates += allFromLocalIndex.size();
+							numCandidates += allFromLocalIndex.length;
 						}
 						if (decl != null) {
 							numCandidates++;
@@ -2293,7 +2293,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 				private int globalCompetitors(final Visitor visitor, final Function global) {
 					int num = 0;
-					final List<Declaration> allFromLocalIndex = visitor.script().index().declarationMap().get(global.name());
+					final Declaration[] allFromLocalIndex = visitor.script().index().declarationMap().get(global.name());
 					if (allFromLocalIndex != null) {
 						for (final Declaration d : allFromLocalIndex) {
 							if (d instanceof Function && ((Function)d).baseFunction() != global) {

@@ -1,11 +1,12 @@
 package net.arctics.clonk.c4script;
 
+import static java.util.Arrays.stream;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import net.arctics.clonk.c4script.typing.PrimitiveType;
-
 
 /**
  *
@@ -56,7 +57,9 @@ public enum Operator {
 	NotIdentical(PrimitiveType.ANY, PrimitiveType.ANY, PrimitiveType.BOOL, "===", 9);
 
 	public static final int RETURNS_REF = 1;
+
 	public static final int RIGHTASSOCIATIVE = 2;
+
 	public static final int ASSOCIATIVE_OP = 4;
 
 	final PrimitiveType firstArgType, secondArgType, resultType;
@@ -68,8 +71,9 @@ public enum Operator {
 
 	static {
 		final HashMap<String, Operator> workInProgress = new HashMap<String, Operator>();
-		for (final Operator op : values())
+		for (final Operator op : values()) {
 			workInProgress.put(op.operatorName(), op);
+		}
 		stringToOperatorMap = Collections.unmodifiableMap(workInProgress);
 	}
 
@@ -79,8 +83,9 @@ public enum Operator {
 			final PrimitiveType resultType, final String operatorName, final int priority,
 			final String oldStyleFunctionEquivalent, int flags) {
 
-		if (name().startsWith("Assign")) //$NON-NLS-1$
+		if (name().startsWith("Assign")) {
 			flags |= RIGHTASSOCIATIVE;
+		}
 
 		this.firstArgType = firstArgType;
 		this.secondArgType = secondArgType;
@@ -102,10 +107,15 @@ public enum Operator {
 	}
 
 	public String operatorName() { return operatorName; }
+
 	public PrimitiveType firstArgType() { return firstArgType; }
+
 	public PrimitiveType secondArgType() { return secondArgType; }
+
 	public PrimitiveType returnType() { return resultType; }
+
 	public int numArgs() { return secondArgType != null ? 2 : 1; }
+
 	public boolean isUnary() {
 		switch (this) {
 		case Not: case Increment: case Decrement: case Add: case Subtract:
@@ -114,8 +124,11 @@ public enum Operator {
 			return false;
 		}
 	}
+
 	public boolean isBinary() { return !isUnary() || this == Add || this == Subtract; }
+
 	public boolean isPostfix() { return this == Increment || this == Decrement; }
+
 	public boolean isPrefix() {
 		switch (this) {
 		case Increment: case Decrement: case Not: case Add: case Subtract: case BitNot:
@@ -124,8 +137,11 @@ public enum Operator {
 			return false;
 		}
 	}
+
 	public boolean modifiesArgument() { return this == Increment || this == Decrement || isAssignment(); }
+
 	public String oldStyleFunctionEquivalent() { return oldStyleFunctionEquivalent; }
+
 	public boolean isAssignment() {
 		switch (this) {
 		case Assign: case AssignAdd: case AssignSubtract: case AssignMultiply: case AssignDivide:
@@ -135,30 +151,42 @@ public enum Operator {
 			return false;
 		}
 	}
+
 	public static Operator oldStyleFunctionReplacement(final String funcName) {
-		for (final Operator o : values())
-			if (o.oldStyleFunctionEquivalent() != null && o.oldStyleFunctionEquivalent().equals(funcName))
+		for (final Operator o : values()) {
+			if (o.oldStyleFunctionEquivalent() != null && o.oldStyleFunctionEquivalent().equals(funcName)) {
 				return o;
+			}
+		}
 		return null;
 	}
+
 	public int priority() { return priority; }
+
 	public boolean isRightAssociative() { return (flags & RIGHTASSOCIATIVE) != 0; }
+
 	public boolean spaceNeededBetweenMeAnd(final Operator other) {
-		return
-			((this == Add || this == Increment) && (other == Add || other == Increment)) ||
-			((this == Subtract || this == Decrement) && (other == Subtract || other == Decrement));
+		switch (this) {
+		case Add: case Increment:
+			return other == Add || other == Increment;
+		case Subtract: case Decrement:
+			return other == Subtract || other == Decrement;
+		default:
+			return false;
+		}
 	}
+
 	public boolean returnsRef() { return (flags & RETURNS_REF) != 0; }
+
 	public boolean isAssociative() { return (flags & ASSOCIATIVE_OP) != 0; }
+
 	public static String[] operatorNames() {
-		final String[] result = new String[values().length];
-		for (final Operator o : values())
-			result[o.ordinal()] = o.operatorName();
-		return result;
+		return stream(values()).map(Operator::operatorName).toArray(length -> new String[length]);
 	}
 
 	@Override
 	public String toString() {
 		return String.format("%s (%s)", super.toString(), operatorName());
 	}
+
 }

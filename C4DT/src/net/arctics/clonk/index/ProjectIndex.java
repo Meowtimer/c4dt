@@ -176,7 +176,7 @@ public class ProjectIndex extends Index {
 				return true;
 			}
 		};
-		final List<T> r = new LinkedList<T>();
+		final List<T> structures = new LinkedList<T>();
 		for (final Index i : relevantIndexes()) {
 			if (i instanceof ProjectIndex) {
 				finder.reset();
@@ -187,11 +187,11 @@ public class ProjectIndex extends Index {
 					continue;
 				}
 				if (finder.result() != null) {
-					r.add(finder.result());
+					structures.add(finder.result());
 				}
 			}
 		}
-		return Utilities.pickNearest(r, pivot, null);
+		return Utilities.pickNearest(structures.stream(), pivot, null);
 	}
 
 	public static ProjectIndex fromResource(final IResource res) {

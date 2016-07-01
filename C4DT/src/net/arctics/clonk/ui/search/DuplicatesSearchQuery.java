@@ -7,6 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.search.ui.ISearchResult;
+import org.eclipse.search.ui.text.AbstractTextSearchResult;
+import org.eclipse.search.ui.text.Match;
+import org.eclipse.ui.IEditorPart;
+
 import net.arctics.clonk.ast.ASTComparisonDelegate;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.Declaration;
@@ -23,16 +33,7 @@ import net.arctics.clonk.c4script.ast.Parenthesized;
 import net.arctics.clonk.c4script.ast.ReturnStatement;
 import net.arctics.clonk.index.Index;
 import net.arctics.clonk.preferences.ClonkPreferences;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.search.ui.ISearchResult;
-import org.eclipse.search.ui.text.AbstractTextSearchResult;
-import org.eclipse.search.ui.text.Match;
-import org.eclipse.ui.IEditorPart;
+import net.arctics.clonk.util.ArrayUtil;
 
 /**
  * Query to find potential duplicates of functions.
@@ -55,12 +56,15 @@ public class DuplicatesSearchQuery extends SearchQuery {
 		public boolean acceptRightExtraElement(final ASTNode rightNode) { return irrelevant(rightNode); }
 		@Override
 		public boolean acceptSubElementDifference(final ASTNode left, final ASTNode right) {
-			if (left == null || right == null)
+			if (left == null || right == null) {
 				return false;
-			if (left instanceof Parenthesized)
+			}
+			if (left instanceof Parenthesized) {
 				return ((Parenthesized)left).innerExpression().compare(right, this);
-			if (right instanceof Parenthesized)
+			}
+			if (right instanceof Parenthesized) {
 				return left.compare(((Parenthesized)right).innerExpression(), this);
+			}
 
 			// ignore differing variable names if both variables are parameters at the same index in their respective functions
 			if (left instanceof AccessVar && right instanceof AccessVar) {
@@ -69,8 +73,9 @@ public class DuplicatesSearchQuery extends SearchQuery {
 				if (varA.declaration() instanceof Variable && varB.declaration() instanceof Variable) {
 					final int parmA = ((Variable)varA.declaration()).parameterIndex();
 					final int parmB = ((Variable)varB.declaration()).parameterIndex();
-					if (parmA != -1 && parmA == parmB)
+					if (parmA != -1 && parmA == parmB) {
 						return true;
+					}
 				}
 			}
 
@@ -78,7 +83,7 @@ public class DuplicatesSearchQuery extends SearchQuery {
 			if (left.parent() instanceof BinaryOp && right.parent() instanceof BinaryOp) {
 				final BinaryOp opA = (BinaryOp) left.parent();
 				final BinaryOp opB = (BinaryOp) right.parent();
-				if (opA.operator() == opB.operator() && opA.operator().isAssociative())
+				if (opA.operator() == opB.operator() && opA.operator().isAssociative()) {
 					if (
 						right == opB.leftSide() || right == opB.rightSide() &&
 						left == opA.leftSide() || left == opA.rightSide()
@@ -89,14 +94,17 @@ public class DuplicatesSearchQuery extends SearchQuery {
 						final ASTComparisonDelegate proxy = new ASTComparisonDelegate(right) {
 							@Override
 							public boolean acceptSubElementDifference(final ASTNode left, final ASTNode right) {
-								if (left == aCounterpart || left == bCounterpart)
+								if (left == aCounterpart || left == bCounterpart) {
 									return false;
+								}
 								return moi.acceptSubElementDifference(left, right);
 							}
 						};
-						if (aCounterpart.compare(right, proxy) && left.compare(bCounterpart, proxy))
+						if (aCounterpart.compare(right, proxy) && left.compare(bCounterpart, proxy)) {
 							return true;
+						}
 					}
+				}
 			}
 
 			return false;
@@ -117,10 +125,13 @@ public class DuplicatesSearchQuery extends SearchQuery {
 	public static DuplicatesSearchQuery queryWithFunctions(final List<Function> functions) {
 		final DuplicatesSearchQuery result = new DuplicatesSearchQuery();
 		result.fillFunctionMapWithFunctionList(functions);
-		for (final List<Function> fnList : result.functionsToBeChecked.values())
-			for (final Function f : fnList)
-				for (final Index i : f.index().relevantIndexes())
+		for (final List<Function> fnList : result.functionsToBeChecked.values()) {
+			for (final Function f : fnList) {
+				for (final Index i : f.index().relevantIndexes()) {
 					result.indexes.add(i);
+				}
+			}
+		}
 		return result;
 	}
 
@@ -142,8 +153,9 @@ public class DuplicatesSearchQuery extends SearchQuery {
 
 	private void fillFunctionMapWithFunctionList(final List<Function> functions) {
 		for (final Function f : functions) {
-			if (f.body() == null || f instanceof SynthesizedFunction)
+			if (f.body() == null || f instanceof SynthesizedFunction) {
 				continue;
+			}
 			List<Function> list = functionsToBeChecked.get(f.name());
 			if (list == null) {
 				list = new LinkedList<Function>();
@@ -160,37 +172,47 @@ public class DuplicatesSearchQuery extends SearchQuery {
 		detectedDupes.clear();
 		final Set<Index> indexes = new HashSet<Index>();
 		final Set<Function> deemedDuplicate = new HashSet<Function>();
-		for (final List<Function> fnList : functionsToBeChecked.values())
-			for (final Function f : fnList)
-				for (final Index i : f.index().relevantIndexes())
+		for (final List<Function> fnList : functionsToBeChecked.values()) {
+			for (final Function f : fnList) {
+				for (final Index i : f.index().relevantIndexes()) {
 					indexes.add(i);
-		for (final Map.Entry<String, List<Function>> entry : functionsToBeChecked.entrySet())
+				}
+			}
+		}
+		for (final Map.Entry<String, List<Function>> entry : functionsToBeChecked.entrySet()) {
 			for (final Function function : entry.getValue()) {
-				for (final Index index : indexes)
+				for (final Index index : indexes) {
 					index.loadScriptsContainingDeclarationsNamed(function.name());
-				if (deemedDuplicate.contains(function))
+				}
+				if (deemedDuplicate.contains(function)) {
 					continue;
+				}
 				final Block functionCodeBlock = function.body();
 				// ignore simple return functions
-				if (ignoreSimpleFunctions)
-					if (functionCodeBlock == null || functionCodeBlock.statements().length == 1 && functionCodeBlock.statements()[0] instanceof ReturnStatement)
+				if (ignoreSimpleFunctions) {
+					if (functionCodeBlock == null || functionCodeBlock.statements().length == 1 && functionCodeBlock.statements()[0] instanceof ReturnStatement) {
 						continue;
+					}
+				}
 				for (final Index index : indexes) {
-					final List<Declaration> decs = index.snapshotOfDeclarationsNamed(function.name());
-					if (decs == null)
+					final Declaration[] decs = index.snapshotOfDeclarationsNamed(function.name());
+					if (decs == null || ArrayUtil.indexOf(function, decs) == -1) {
 						continue;
-					if (!decs.contains(function)) // happens when a newly-parsed function is not already added to the declaration map
-						continue;
-					for (final Declaration d : decs)
+					}
+					for (final Declaration d : decs) {
 						if (d instanceof Function) {
 							final Function otherFn = (Function) d;
-							if (deemedDuplicate.contains(d))
+							if (deemedDuplicate.contains(d)) {
 								continue;
-							if (function == otherFn)
+							}
+							if (function == otherFn) {
 								continue;
+							}
 							final Block block = otherFn.body();
 							if (block == null)
+							 {
 								continue; // -.-
+							}
 							if (functionCodeBlock.compare(block, comparisonDelegate)) {
 								List<FindDuplicatesMatch> dupes = detectedDupes.get(function);
 								if (dupes == null) {
@@ -203,8 +225,10 @@ public class DuplicatesSearchQuery extends SearchQuery {
 								deemedDuplicate.add(otherFn);
 							}
 						}
+					}
 				}
 			}
+		}
 		return Status.OK_STATUS;
 	}
 
@@ -213,13 +237,15 @@ public class DuplicatesSearchQuery extends SearchQuery {
 		final StringBuilder builder = new StringBuilder(30);
 		int size = 3;
 		for (final String f : functionsToBeChecked.keySet()) {
-			if (builder.length() > 0)
+			if (builder.length() > 0) {
 				builder.append(", ");
+			}
 			if (size-- == 0) {
 				builder.append("...");
 				break;
-			} else
+			} else {
 				builder.append(f);
+			}
 		}
 		return String.format(Messages.FindDuplicatesQuery_Label, builder.toString());
 	}
@@ -246,8 +272,9 @@ public class DuplicatesSearchQuery extends SearchQuery {
 
 	@Override
 	public ISearchResult getSearchResult() {
-		if (result == null)
+		if (result == null) {
 			result = new FindDuplicatesSearchResult(this);
+		}
 		return result;
 	}
 

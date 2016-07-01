@@ -15,6 +15,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.bindings.TriggerSequence;
+import org.eclipse.jface.bindings.keys.KeySequence;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.contentassist.ContentAssistEvent;
+import org.eclipse.jface.text.contentassist.ICompletionListener;
+import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.IContentAssistantExtension2;
+import org.eclipse.jface.text.contentassist.IContentAssistantExtension3;
+import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.keys.IBindingService;
+import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
 import net.arctics.clonk.ast.DeclMask;
@@ -65,29 +88,6 @@ import net.arctics.clonk.ui.editors.StructureCompletionProcessor;
 import net.arctics.clonk.ui.editors.c4script.ScriptEditingState.Assistant;
 import net.arctics.clonk.util.UI;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.bindings.TriggerSequence;
-import org.eclipse.jface.bindings.keys.KeySequence;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.contentassist.ContentAssistEvent;
-import org.eclipse.jface.text.contentassist.ICompletionListener;
-import org.eclipse.jface.text.contentassist.ICompletionListenerExtension;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.contentassist.IContentAssistantExtension2;
-import org.eclipse.jface.text.contentassist.IContentAssistantExtension3;
-import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.jface.text.contentassist.IContextInformationValidator;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.keys.IBindingService;
-import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
-
 /**
  * Handles calculating completion lists shown when invoking Content Assist in C4Script editors.
  * @author madeen
@@ -110,8 +110,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			ex2.setRepeatedInvocationMode(true);
 			ex2.setStatusLineVisible(true);
 		}
-		if (ex3 != null)
+		if (ex3 != null) {
 			ex3.setRepeatedInvocationTrigger(iterationBinding());
+		}
 
 		proposalCycle = null;
 	}
@@ -138,49 +139,59 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		final int declarationsMask = site.declarationsMask();
 		if (site.function != null) {
 			final Scenario s2 = site.function.scenario();
-			if ((declarationsMask & DeclMask.FUNCTIONS) != 0)
+			if ((declarationsMask & DeclMask.FUNCTIONS) != 0) {
 				for (final Function func : index.globalFunctions()) {
 					final Scenario fScen = func.scenario();
-					if (fScen != null && fScen != s2)
+					if (fScen != null && fScen != s2) {
 						continue;
+					}
 					proposalForFunc(site, state().structure(), func);
 				}
-			if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0)
+			}
+			if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0) {
 				for (final Variable var : index.staticVariables()) {
 					// ignore static variables from editor script since those are proposed already
-					if (var.parentDeclaration() == site.script)
+					if (var.parentDeclaration() == site.script) {
 						continue;
+					}
 					final Scenario vScen = var.scenario();
-					if (vScen != null && vScen != s2)
+					if (vScen != null && vScen != s2) {
 						continue;
+					}
 					proposalForVar(site, index.engine(), var);
 				}
+			}
 		}
-		if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0)
+		if ((declarationsMask & DeclMask.STATIC_VARIABLES) != 0) {
 			proposalsForIndexedDefinitions(site, index);
+		}
 	}
 
 	private ProposalsSite makeProposalsSite(final ITextViewer viewer, int offset) {
 		int wordOffset;
 		final IDocument doc = viewer.getDocument();
-		for (wordOffset = offset - 1; wordOffset >= 0; wordOffset--)
+		for (wordOffset = offset - 1; wordOffset >= 0; wordOffset--) {
 			try {
 				final char c = doc.getChar(wordOffset);
-				if (!(BufferedScanner.isWordPart(c) || Character.isLetter(c)))
+				if (!(BufferedScanner.isWordPart(c) || Character.isLetter(c))) {
 					break;
+				}
 			} catch (final BadLocationException e) {
 				break;
 			}
+		}
 		String prefix = null;
 		try {
 			wordOffset++;
 			if (wordOffset < offset) {
 				prefix = doc.get(wordOffset, offset - wordOffset);
 				offset = wordOffset;
-			} else
+			} else {
 				prefix = "";
-			if (prefix.length() > 0 && !DeclarationProposal.validPrefix(prefix))
+			}
+			if (prefix.length() > 0 && !DeclarationProposal.validPrefix(prefix)) {
 				return null;
+			}
 		} catch (final BadLocationException e) { }
 
 		return new ProposalsSite(
@@ -194,26 +205,31 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	public ICompletionProposal[] computeCompletionProposals(final ITextViewer viewer, final int offset) {
 		super.computeCompletionProposals(viewer, offset);
 		site = makeProposalsSite(viewer, offset);
-		if (site == null)
+		if (site == null) {
 			return null;
+		}
 		if (!(site.function == null
 			? computeProposalsOutsideFunction(viewer, site)
-			: computeProposalsInsideFunction(site)))
+			: computeProposalsInsideFunction(site))) {
 			return null;
+		}
 		final Assistant a = state().assistant();
-		if (a != null)
+		if (a != null) {
 			a.setStatusMessage(proposalCycleMessage());
+		}
 		ICompletionProposal[] proposals = site.finish(proposalCycle);
-		if (proposals != null && site.prefix == null || site.prefix.length() == 0)
+		if (proposals != null && site.prefix == null || site.prefix.length() == 0) {
 			proposals = appendWhitespaceLocalGlobalDelimiter(proposals);
+		}
 		guardedSort(proposals);
 		return proposals;
 	}
 
 	private ICompletionProposal[] appendWhitespaceLocalGlobalDelimiter(ICompletionProposal[] proposals) {
-		if (proposals == null)
+		if (proposals == null) {
 			return null;
-		for (final ICompletionProposal p : proposals)
+		}
+		for (final ICompletionProposal p : proposals) {
 			if (p instanceof DeclarationProposal && ((DeclarationProposal)p).category() < cats.LocalGlobalDelimiter) {
 				final DeclarationProposal[] w = new DeclarationProposal[3];
 				for (int i = 0; i < w.length; i++) {
@@ -223,6 +239,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				proposals = concat(proposals, w);
 				break;
 			}
+		}
 		return proposals;
 	}
 
@@ -234,26 +251,31 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private boolean computeProposalsInsideFunction(final ProposalsSite site) {
 		site.pos(site.offset - (site.function != null ? site.function.bodyLocation().start() : 0));
 		final ScriptEditingState state = state();
-		if (site.script != null && state != null)
+		if (site.script != null && state != null) {
 			state.updateFunctionFragment(site.function, site, true);
+		}
 
-		if (!checkProposalConditions(site))
+		if (!checkProposalConditions(site)) {
 			return false;
+		}
 
 		proposalCycle = proposalCycle == null ? ProposalCycle.ALL : proposalCycle.cycle();
 
 		if (!skipProposalsInFunction(site.contextExpression)) {
 			final boolean restrictedProposals = computeStringProposals(site) || varInitializationProposals(site) || proplistKeyProposals(site);
-			if (!restrictedProposals)
+			if (!restrictedProposals) {
 				innerProposalsInFunction(site);
+			}
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 
 	private boolean proplistKeyProposals(final ProposalsSite site) {
-		if (site.contextExpression instanceof PropListExpression)
+		if (site.contextExpression instanceof PropListExpression) {
 			return true;
+		}
 		return false;
 	}
 
@@ -271,28 +293,32 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 					arrowOffset--;
 					//$FALL-THROUGH$
 				case '>':
-					if (site.document.getChar(arrowOffset-1) != '-')
+					if (site.document.getChar(arrowOffset-1) != '-') {
 						return whitespace || (site.prefix != null && site.prefix.length() > 0);
+					}
 					targetCall = true;
 					break Loop;
 				case ':':
-					if (site.contextExpression != null && site.contextExpression.parent(PropListExpression.class) != null)
+					if (site.contextExpression != null && site.contextExpression.parent(PropListExpression.class) != null) {
 						return true;
-					if (site.document.getChar(arrowOffset-1) != ':')
+					}
+					if (site.document.getChar(arrowOffset-1) != ':') {
 						return false;
+					}
 					targetCall = true;
 					break Loop;
 				default:
 					if (Character.isWhitespace(c)) {
 						whitespace = true;
 						continue Loop;
-					}
-					else
+					} else {
 						break Loop;
+					}
 				}
 			}
-			if (!targetCall && site.wordOffset >= 0 && Character.isWhitespace(site.document.getChar(site.wordOffset)))
+			if (!targetCall && site.wordOffset >= 0 && Character.isWhitespace(site.document.getChar(site.wordOffset))) {
 				return false;
+			}
 		} catch (final BadLocationException bl) {
 			return false;
 		}
@@ -314,8 +340,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private void removeProposalForVariableBeingDeclared(final ProposalsSite site) {
 		if (site.contextExpression != null) {
 			final VarInitialization init = site.contextExpression.parent(VarInitialization.class);
-			if (init != null && init.variable != null)
+			if (init != null && init.variable != null) {
 				site.removeProposalForDeclaration(init.variable);
+			}
 		}
 	}
 
@@ -326,32 +353,41 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private static final Text WHITESPACE = new Text("");
 
 	private void engineProposals(final ProposalsSite site) {
-		if (noStructureType(site))
+		if (noStructureType(site)) {
 			return;
+		}
 		final Engine ngn = site.script.index().engine();
 		if (ngn != null) {
-			if ((site.declarationsMask() & DeclMask.FUNCTIONS) != 0)
-				for (final Function func : ngn.functions())
+			if ((site.declarationsMask() & DeclMask.FUNCTIONS) != 0) {
+				for (final Function func : ngn.functions()) {
 					proposalForFunc(site, state().structure(), func);
-			if ((site.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0)
-				for (final Variable var : ngn.variables())
+				}
+			}
+			if ((site.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0) {
+				for (final Variable var : ngn.variables()) {
 					proposalForVar(site, site.script.engine(), var);
+				}
+			}
 		}
 	}
 
 	private void functionLocalProposals(final ProposalsSite site) {
-		if ((site.declarationsMask() & DeclMask.FUNCTIONS) != 0)
+		if ((site.declarationsMask() & DeclMask.FUNCTIONS) != 0) {
 			if (site.contextSequence == null && site.function != null) {
-				for (final Variable v : site.function.parameters())
+				for (final Variable v : site.function.parameters()) {
 					proposalForVar(site, site.function, v);
-				for (final Variable v : site.function.locals())
+				}
+				for (final Variable v : site.function.locals()) {
 					proposalForVar(site, site.function, v);
+				}
 			}
+		}
 	}
 
 	private void globalIndexProposals(final ProposalsSite site) {
-		for (final Index i : site.index.relevantIndexes())
+		for (final Index i : site.index.relevantIndexes()) {
 			proposalsForIndex(site, i);
+		}
 	}
 
 	@SuppressWarnings("serial")
@@ -371,13 +407,15 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		final Declaration target, final Declaration structure, final int distanceToTarget,
 		final Set<Declaration> catcher
 	) {
-		if (!catcher.add(structure))
+		if (!catcher.add(structure)) {
 			return;
+		}
 		final List<DeclarationProposal> props = proposalsForStructure(site, target, structure);
 		for (final DeclarationProposal p : props) {
 			p.setCategory(p.category()+distanceToTarget*cats.SUBPAGE);
-			if (p.declaration() instanceof Variable && distanceToTarget == 0)
+			if (p.declaration() instanceof Variable && distanceToTarget == 0) {
 				p.setCategory(cats.SelfField);
+			}
 		}
 		if (structure instanceof IHasIncludes) {
 			Iterable<? extends IHasIncludes<?>> includes;
@@ -388,36 +426,42 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				includes = ((IHasIncludes<IHasIncludes<?>>)structure)
 					.includes(site.index, (IHasIncludes<IHasIncludes<?>>)structure, GatherIncludesOptions.Recursive);
 			}
-			for (final IHasIncludes<?> inc : includes)
+			for (final IHasIncludes<?> inc : includes) {
 				recursiveProposalsForStructure(site, target, (Declaration) inc, distanceToTarget+1, catcher);
+			}
 		}
 	}
 
 	private void structureProposals(final ProposalsSite site) {
 		final Set<Declaration> proposalTypes = determineProposalTypes(site);
-		if (proposalTypes.size() > 0)
-			for (final Declaration s : proposalTypes)
+		if (proposalTypes.size() > 0) {
+			for (final Declaration s : proposalTypes) {
 				recursiveProposalsForStructure(site, s, s, 0, new HashSet<Declaration>());
-		else
+			}
+		} else {
 			proposeAllTheThings(site);
+		}
 	}
 
 	public void proposeAllTheThings(final ProposalsSite site) {
 		final List<DeclarationProposal> old = Arrays.asList(filter(site.proposals, DeclarationProposal.class));
 		final List<Index> relevantIndexes = site.index.relevantIndexes();
 		final int declarationMask = site.declarationsMask();
-		for (final Index x : relevantIndexes)
-			for (final Map.Entry<String, List<Declaration>> decs : x.declarationMap().entrySet()) {
-				final Declaration d = decs.getValue().get(0);
-				if ((declarationMask & DeclMask.FUNCTIONS) != 0 && d instanceof Function && !((Function)d).isGlobal())
-					proposalForFunc(site, defaulting(as(site.precedingType, Script.class), site.function.engine()), (Function) d);
-				else if ((declarationMask & DeclMask.VARIABLES) != 0 && d instanceof Variable && ((Variable)d).scope() == Scope.LOCAL)
-					proposalForVar(site, as(site.precedingType, Script.class), (Variable)d);
+		for (final Index x : relevantIndexes) {
+			for (final Map.Entry<String, Declaration[]> decs : x.declarationMap().entrySet()) {
+				final Declaration first = decs.getValue()[0];
+				if ((declarationMask & DeclMask.FUNCTIONS) != 0 && first instanceof Function && !((Function)first).isGlobal()) {
+					proposalForFunc(site, defaulting(as(site.precedingType, Script.class), site.function.engine()), (Function) first);
+				} else if ((declarationMask & DeclMask.VARIABLES) != 0 && first instanceof Variable && ((Variable)first).scope() == Scope.LOCAL) {
+					proposalForVar(site, as(site.precedingType, Script.class), (Variable)first);
+				}
 			}
+		}
 		for (final ICompletionProposal p : site.proposals) {
 			final DeclarationProposal ccp = as(p, DeclarationProposal.class);
-			if (ccp != null && !old.contains(ccp))
+			if (ccp != null && !old.contains(ccp)) {
 				ccp.setImage(UI.halfTransparent(ccp.getImage()));
+			}
 		}
 	}
 
@@ -425,8 +469,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		boolean noStructure = true;
 		for (final IType t : site.precedingType()) {
 			IType ty = t;
-			if (ty instanceof IRefinedPrimitiveType)
+			if (ty instanceof IRefinedPrimitiveType) {
 				ty = ((IRefinedPrimitiveType)ty).simpleType();
+			}
 			noStructure &=
 				eq(ty, PrimitiveType.VOID) ||
 				eq(ty, PrimitiveType.ARRAY) ||
@@ -442,22 +487,26 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private Set<Declaration> determineProposalTypes(final ProposalsSite site) {
 		final Set<Declaration> contextStructures = new HashSet<Declaration>();
 		if (site.contextSequence != null) {
-			if (noStructureType(site))
+			if (noStructureType(site)) {
 				contextStructures.add(NO_STRUCTURE_TYPE);
-			else for (final IType t : site.precedingType()) {
-				Declaration structure;
-				if (t instanceof Declaration)
-					structure = (Declaration) t;
-				else if (t instanceof MetaDefinition)
-					structure = ((MetaDefinition)t).definition();
-				else
-					structure = as(t, Script.class);
-				if (structure != null)
-					contextStructures.add(structure);
+			} else {
+				for (final IType t : site.precedingType()) {
+					Declaration structure;
+					if (t instanceof Declaration) {
+						structure = (Declaration) t;
+					} else if (t instanceof MetaDefinition) {
+						structure = ((MetaDefinition)t).definition();
+					} else {
+						structure = as(t, Script.class);
+					}
+					if (structure != null) {
+						contextStructures.add(structure);
+					}
+				}
 			}
-		}
-		else
+		} else {
 			contextStructures.add(site.script);
+		}
 		return contextStructures;
 	}
 
@@ -465,11 +514,13 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		if (site.contextSequence == null && (site.declarationsMask() & DeclMask.STATIC_VARIABLES) != 0) {
 			final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 			final List<String> keywords = new ArrayList<>(BuiltInDefinitions.KEYWORDS);
-			if (site.index.typing() != Typing.STATIC)
+			if (site.index.typing() != Typing.STATIC) {
 				keywords.remove(Keywords.Cast);
+			}
 			for(final String keyword : keywords) {
-				if (site.prefix != null && !stringMatchesPrefix(keyword, site.prefix))
+				if (site.prefix != null && !stringMatchesPrefix(keyword, site.prefix)) {
 					continue;
+				}
 				final DeclarationProposal prop = new DeclarationProposal(null, null, keyword, site.offset, site.prefix != null ? site.prefix.length() : 0, keyword.length(), keywordImg ,
 					keyword, null ,null, ": keyword", site);
 				prop.setCategory(cats.Keywords);
@@ -481,23 +532,27 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private boolean varInitializationProposals(final ProposalsSite site) {
 		final VarInitialization vi = as(site.contextExpression, VarInitialization.class);
 		final TypeAnnotation annot = as(site.contextExpression, TypeAnnotation.class);
-		if (vi == null && annot == null)
+		if (vi == null && annot == null) {
 			return false;
-		if (annot == null && vi != null && (vi.typeAnnotation == null || vi.typeAnnotation.type() != PrimitiveType.ERRONEOUS))
+		}
+		if (annot == null && vi != null && (vi.typeAnnotation == null || vi.typeAnnotation.type() != PrimitiveType.ERRONEOUS)) {
 			return true;
+		}
 		final Typing typing = site.index instanceof ProjectIndex
 			? ((ProjectIndex)site.index).nature().settings().typing
 			: Typing.INFERRED;
 		switch (typing) {
 		case STATIC:
-			for (final Index ndx : site.index.relevantIndexes())
+			for (final Index ndx : site.index.relevantIndexes()) {
 				proposalsForIndexedDefinitions(site, ndx);
-			for (final PrimitiveType t : PrimitiveType.values())
+			}
+			for (final PrimitiveType t : PrimitiveType.values()) {
 				if (t != PrimitiveType.UNKNOWN && t != PrimitiveType.ERRONEOUS && site.index.engine().supportsPrimitiveType(t)) {
 					final DeclarationProposal prop = new PrimitiveTypeProposal(site, t);
 					prop.setCategory(cats.Keywords);
 					site.addProposal(prop);
 				}
+			}
 			return true;
 		default:
 			return true;
@@ -505,8 +560,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	}
 
 	private void ruleBasedProposals(final ProposalsSite site) {
-		if (site.contextExpression == null)
+		if (site.contextExpression == null) {
 			return;
+		}
 		final CallDeclaration innermostCallFunc = site.contextExpression.thisOrParent(CallDeclaration.class);
 		if (innermostCallFunc != null) {
 			final SpecialEngineRules rules = site.script.engine().specialRules();
@@ -522,43 +578,49 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 
 	private void setCategoryOrdering(final ProposalsSite site) {
 		cats.defaultOrdering();
-		if (site.contextExpression == null)
+		if (site.contextExpression == null) {
 			return;
+		}
 		CallDeclaration innermostCallFunc = site.contextExpression.parent(CallDeclaration.class);
 		// elevate definition proposals for parameters of id type
 		Variable parm;
-		if (innermostCallFunc != null && site.contextExpression.parent() == innermostCallFunc)
+		if (innermostCallFunc != null && site.contextExpression.parent() == innermostCallFunc) {
 			parm = innermostCallFunc.parmDefinitionForParmExpression(site.contextExpression);
-		else if ((innermostCallFunc = as(site.contextExpression, CallDeclaration.class)) != null && innermostCallFunc.params().length == 0 &&
-			innermostCallFunc.declaration() instanceof Function && ((Function)innermostCallFunc.declaration()).numParameters() > 0)
+		} else if ((innermostCallFunc = as(site.contextExpression, CallDeclaration.class)) != null && innermostCallFunc.params().length == 0 &&
+			innermostCallFunc.declaration() instanceof Function && ((Function)innermostCallFunc.declaration()).numParameters() > 0) {
 			parm = ((Function)innermostCallFunc.declaration()).parameter(0);
-		else
+		} else {
 			parm = null;
+		}
 		if (parm != null && parm.type() != PrimitiveType.ANY && parm.type() != PrimitiveType.UNKNOWN &&
-			(eq(parm.type(), PrimitiveType.ID) || TypeChoice.contained(parm.type(), MetaDefinition.class) != null))
-				cats.Definitions = cats.SelfField-cats.PAGE/2;
+			(eq(parm.type(), PrimitiveType.ID) || TypeChoice.contained(parm.type(), MetaDefinition.class) != null)) {
+			cats.Definitions = cats.SelfField-cats.PAGE/2;
+		}
 	}
 
 	private boolean computeStringProposals(final ProposalsSite site) {
 		// only present completion proposals specific to the <expr>->... thingie if cursor inside identifier region of declaration access expression.
 		if (site.contextExpression instanceof Placeholder || site.contextExpression instanceof StringLiteral) {
 			try {
-				if (site.document.getChar(site.offset-1) != '$')
+				if (site.document.getChar(site.offset-1) != '$') {
 					return true;
+				}
 			} catch (final BadLocationException e1) {
 				return true;
 			}
 			final Set<String> availableLocalizationStrings = new HashSet<>();
 			try {
 				for (final IResource r : (site.script.resource() instanceof IContainer ? (IContainer)site.script.resource() : site.script.resource().getParent()).members()) {
-					if (!(r instanceof IFile))
+					if (!(r instanceof IFile)) {
 						continue;
+					}
 					final IFile f = (IFile) r;
 					final Matcher m = StringTbl.PATTERN.matcher(r.getName());
 					if (m.matches()) {
 						final StringTbl tbl = (StringTbl)Structure.pinned(f, true, false);
-						if (tbl != null)
+						if (tbl != null) {
 							availableLocalizationStrings.addAll(tbl.map().keySet());
+						}
 					}
 				}
 			} catch (final CoreException e) {
@@ -566,16 +628,18 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			}
 			final Image keywordImg = UI.imageForPath("icons/keyword.png"); //$NON-NLS-1$
 			for (final String loc : availableLocalizationStrings) {
-				if (site.prefix != null && !stringMatchesPrefix(loc, site.prefix))
+				if (site.prefix != null && !stringMatchesPrefix(loc, site.prefix)) {
 					continue;
+				}
 				final DeclarationProposal prop = new DeclarationProposal(null, null, loc, site.offset, site.prefix != null ? site.prefix.length() : 0 , loc.length(),
 					keywordImg , loc, null, null, Messages.C4ScriptCompletionProcessor_Engine, site);
 				prop.setCategory(cats.Keywords);
 				site.addProposal(prop);
 			}
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 
 	/**
@@ -616,8 +680,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	) {
 		final Image img = UI.imageForPath("icons/callback.png"); //$NON-NLS-1$
 		int replacementLength = 0;
-		if (site.prefix != null)
+		if (site.prefix != null) {
 			replacementLength = site.prefix.length();
+		}
 		final DeclarationProposal prop = new DeclarationProposal(
 			null, null, "", site.wordOffset, replacementLength,  //$NON-NLS-1$
 			0, img, callback != null ? callback : displayString,
@@ -628,9 +693,11 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				final int replaceOffset = replacementOffset();
 				try {
 					final String prefix = document.get(replaceOffset, offset - replaceOffset).toLowerCase();
-					for (final String kw : BuiltInDefinitions.DECLARATORS)
-						if (kw.toLowerCase().equals(prefix))
+					for (final String kw : BuiltInDefinitions.DECLARATORS) {
+						if (kw.toLowerCase().equals(prefix)) {
 							return false;
+						}
+					}
 					return callback == null || stringMatchesPrefix(callback, prefix);
 				} catch (final BadLocationException e) {
 					return false;
@@ -640,13 +707,14 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			public void apply(final ITextViewer viewer, final char trigger, final int stateMask, final int offset) {
 				final int replaceOffset = replacementOffset();
 				String cb = callback;
-				if (cb == null)
+				if (cb == null) {
 					try {
 						cb = viewer.getDocument().get(replaceOffset, offset - replaceOffset);
 					} catch (final BadLocationException e) {
 						e.printStackTrace();
 						return;
 					}
+				}
 				cb = String.format(nameFormat, cb);
 				replacementString = funcSupplied
 					? cb
@@ -669,12 +737,14 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			precededBy(viewer, site.offset, "#" + Directive.DirectiveType.INCLUDE.toString()) || //$NON-NLS-1$
 			precededBy(viewer, site.offset, "#" + Directive.DirectiveType.APPENDTO.toString()); //$NON-NLS-1$
 
-		for (final String kw: BuiltInDefinitions.DECLARATORS)
-			if (precededBy(viewer, site.offset, kw))
+		for (final String kw: BuiltInDefinitions.DECLARATORS) {
+			if (precededBy(viewer, site.offset, kw)) {
 				return false;
+			}
+		}
 
 		final IDocument doc = viewer.getDocument();
-		Check: for (int i = site.offset; i >= 0; i--)
+		Check: for (int i = site.offset; i >= 0; i--) {
 			try {
 				switch (doc.getChar(i)) {
 				case '(': case ',': case '=': case ':':
@@ -685,6 +755,7 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			} catch (final BadLocationException e) {
 				break;
 			}
+		}
 
 		if (!directiveExpectingDefinition) {
 			overrideProposals(site, funcSupplied);
@@ -695,15 +766,17 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 				declaratorProposals(site);
 				directiveProposals(site);
 			}
-		} else
+		} else {
 			directiveDefinitionArgumentProposals(site);
+		}
 		return true;
 	}
 
 	private void directiveDefinitionArgumentProposals(final ProposalsSite site) {
 		// propose objects for #include or something
-		for (final Index i : site.index.relevantIndexes())
+		for (final Index i : site.index.relevantIndexes()) {
 			proposalsForIndex(site, i);
+		}
 	}
 
 	private void directiveProposals(final ProposalsSite site) {
@@ -711,11 +784,15 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		final Image directiveIcon = UI.imageForPath("icons/directive.png"); //$NON-NLS-1$
 		for(final Directive directive : Directive.CANONICALS) {
 			String txt = directive.type().toString();
-			if (site.prefix != null)
-				if (!stringMatchesPrefix(txt, site.prefix))
+			if (site.prefix != null) {
+				if (!stringMatchesPrefix(txt, site.prefix)) {
 					continue;
+				}
+			}
 			int replacementLength = 0;
-			if (site.prefix != null) replacementLength = site.prefix.length();
+			if (site.prefix != null) {
+				replacementLength = site.prefix.length();
+			}
 			txt = "#"+txt+" "; //$NON-NLS-1$ //$NON-NLS-2$
 			final DeclarationProposal prop = new DeclarationProposal(
 				directive, directive, txt, site.offset, replacementLength, txt.length(),
@@ -730,12 +807,16 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private void declaratorProposals(final ProposalsSite site) {
 		// propose declaration keywords (var, static, ...)
 		for(final String declarator : BuiltInDefinitions.DECLARATORS) {
-			if (site.prefix != null)
-				if (!stringMatchesPrefix(declarator, site.prefix))
+			if (site.prefix != null) {
+				if (!stringMatchesPrefix(declarator, site.prefix)) {
 					continue;
+				}
+			}
 			final Image declaratorImg = UI.imageForPath("icons/declarator.png"); //$NON-NLS-1$
 			int replacementLength = 0;
-			if (site.prefix != null) replacementLength = site.prefix.length();
+			if (site.prefix != null) {
+				replacementLength = site.prefix.length();
+			}
 			final DeclarationProposal prop = new DeclarationProposal(null, null, declarator,site.offset,replacementLength,declarator.length(), declaratorImg , declarator.trim(),null,null,Messages.C4ScriptCompletionProcessor_Engine, site);
 			prop.setCategory(cats.Keywords);
 			site.addProposal(prop);
@@ -758,15 +839,19 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private void newFunctionProposal(final ProposalsSite site, final boolean funcSupplied) {
 		// propose to just create function with the name already typed
 		if (site.untamperedPrefix != null && site.untamperedPrefix.length() > 0)
+		 {
 			callbackProposal(site, null, "%s", Messages.C4ScriptCompletionProcessor_InsertFunctionScaffoldProposalDisplayString, funcSupplied).setCategory(cats.NewFunction); //$NON-NLS-1$
+		}
 	}
 
 	private void standardCallbackProposals(final ProposalsSite site, final boolean funcSupplied) {
 		// propose creating functions for standard callbacks
 		for(final String callback : state().structure().engine().settings().callbackFunctions()) {
-			if (site.prefix != null)
-				if (!stringMatchesPrefix(callback, site.prefix))
+			if (site.prefix != null) {
+				if (!stringMatchesPrefix(callback, site.prefix)) {
 					continue;
+				}
+			}
 			callbackProposal(site, callback, "%s", null, funcSupplied).setCategory(cats.Callbacks); //$NON-NLS-1$
 		}
 	}
@@ -775,22 +860,26 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		// propose overriding inherited functions
 		final Script script = state().structure();
 		final List<Script> cong = script.conglomerate();
-		for (final Script c : cong)
-			if (c != script)
+		for (final Script c : cong) {
+			if (c != script) {
 				for (final Declaration dec : c.subDeclarations(site.index, DeclMask.FUNCTIONS)) {
-					if (!script.seesSubDeclaration(dec))
+					if (!script.seesSubDeclaration(dec)) {
 						continue;
+					}
 					final Function func = as(dec, Function.class);
 					callbackProposal(site, func.name(), "%s", null, funcSupplied, func.parameters()).setCategory(cats.Callbacks);
 				}
+			}
+		}
 	}
 
 	private static boolean precededBy(final ITextViewer viewer, int offset, final String what) {
 		try {
-			do
-				if (offset >= what.length() + 1 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what))
+			do {
+				if (offset >= what.length() + 1 && viewer.getDocument().get(offset - what.length() - 1, what.length()).equalsIgnoreCase(what)) {
 					return true;
-			while (offset-- > 0 && Character.isWhitespace(viewer.getDocument().getChar(offset)));
+				}
+			} while (offset-- > 0 && Character.isWhitespace(viewer.getDocument().getChar(offset)));
 			return false;
 		} catch (final BadLocationException e) {
 			return false;
@@ -805,14 +894,16 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	private List<DeclarationProposal> proposalsForStructure(final ProposalsSite site, final Declaration target, final Declaration structure) {
 		final List<DeclarationProposal> result = new LinkedList<>();
 		for (final Declaration dec : structure.subDeclarations(site.index, site.declarationsMask())) {
-			if (!target.seesSubDeclaration(dec))
+			if (!target.seesSubDeclaration(dec)) {
 				continue;
+			}
 			final Function func = as(dec, Function.class);
 			final Variable var = as(dec, Variable.class);
 			final Text text = as(dec, Text.class);
 			if (func != null && func.visibility() != FunctionScope.GLOBAL) {
-				if (target instanceof Script && !((Script)target).seesFunction(func))
+				if (target instanceof Script && !((Script)target).seesFunction(func)) {
 					continue;
+				}
 				final DeclarationProposal pf = proposalForFunc(site, target, func);
 				if (pf != null) {
 					pf.setCategory(cats.LocalFunction);
@@ -821,12 +912,14 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 			}
 			else if (var != null) {
 				final DeclarationProposal pv = proposalForVar(site, target, var);
-				if (pv != null)
+				if (pv != null) {
 					result.add(pv);
+				}
 			} else if (text != null) {
 				final DeclarationProposal pt = proposalForText(site, text);
-				if (pt != null)
+				if (pt != null) {
 					result.add(pt);
+				}
 			}
 		}
 		return result;
@@ -851,17 +944,20 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		try {
 			final Function cursorFunc = state().activeEditor().functionAtCursor();
 			final ScriptEditingState state = state();
-			if (cursorFunc != null && state != null)
+			if (cursorFunc != null && state != null) {
 				state.updateFunctionFragment(cursorFunc, null, false);
+			}
 			final ScriptEditingState.Call funcCallInfo = state.innermostFunctionCallParmAtOffset(offset);
 			if (funcCallInfo != null) {
 				IIndexEntity entity = functionFromCall(funcCallInfo.callFunc);
-				if (entity == null)
+				if (entity == null) {
 					entity = state().mergeFunctions(offset, funcCallInfo);
+				}
 				final Function function = state().functionFromEntity(entity);
 				if (function != null) {
-					if (function instanceof IDocumentedDeclaration)
+					if (function instanceof IDocumentedDeclaration) {
 						((IDocumentedDeclaration)function).fetchDocumentation();
+					}
 					Script context;
 					final ASTNode pred = funcCallInfo.callPredecessor();
 					ContextSelection: {
@@ -869,12 +965,14 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 							final Function.Typing map = cursorFunc.script().typings().get(cursorFunc);
 							if (map != null) {
 								final IType t = map.nodeTypes[pred.localIdentifier()];
-								if (t != null)
-									for (final IType t2 : t)
+								if (t != null) {
+									for (final IType t2 : t) {
 										if (t2 instanceof Script) {
 											context = (Script)t2;
 											break ContextSelection;
 										}
+									}
+								}
 							}
 						}
 						context = state().structure();
@@ -892,8 +990,9 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 		}
 		try {
 			// HACK: if changed, hide the old one -.-
-			if (!eq(prevInformation, info))
+			if (!eq(prevInformation, info)) {
 				state().assistant().hide();
+			}
 			return info != null ? new IContextInformation[] {info} : null;
 		} finally {
 			prevInformation = info;
@@ -907,9 +1006,10 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	public String getErrorMessage() { return null; }
 
 	private KeySequence iterationBinding() {
-		if (Core.instance().runsHeadless())
+		if (Core.instance().runsHeadless()) {
 			return null;
-		final IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(IBindingService.class);
+		}
+		final IBindingService bindingSvc = PlatformUI.getWorkbench().getAdapter(IBindingService.class);
 		final TriggerSequence binding = bindingSvc.getBestActiveBindingFor(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 		return binding instanceof KeySequence ? (KeySequence) binding : null;
 	}
@@ -917,10 +1017,11 @@ public class ScriptCompletionProcessor extends StructureCompletionProcessor<Scri
 	@Override
 	public char[] getContextInformationAutoActivationCharacters() {
 		final C4ScriptEditor ed = as(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart(), C4ScriptEditor.class);
-		if (ed != null && !ed.showParametersEnabled())
+		if (ed != null && !ed.showParametersEnabled()) {
 			return new char[0];
-		else
+		} else {
 			return super.getContextInformationAutoActivationCharacters();
+		}
 	}
 
 }

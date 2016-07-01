@@ -2,10 +2,13 @@ package net.arctics.clonk.index;
 
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.Flags.DEBUG;
+import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.StreamUtil.concatStreams;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
 import static net.arctics.clonk.util.Utilities.block;
+import static net.arctics.clonk.util.Utilities.defaulting;
+import static net.arctics.clonk.util.Utilities.getOrAdd;
 import static net.arctics.clonk.util.Utilities.pickNearest;
 
 import java.io.File;
@@ -119,7 +122,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
-	protected transient Map<String, List<Declaration>> declarationMap = new HashMap<>();
+	protected transient Map<String, Declaration[]> declarationMap = new HashMap<>();
 	protected transient Map<IResource, Script> resourceToScript;
 
 	public Index(final File folder) {
@@ -255,12 +258,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	protected void addToDeclarationMap(final Declaration field) {
 		synchronized (declarationMap) {
-			List<Declaration> list = declarationMap.get(field.name());
-			if (list == null) {
-				list = new LinkedList<Declaration>();
-				declarationMap.put(field.name(), list);
-			}
-			list.add(field);
+			final String name = field.name();
+			final Declaration[] already = declarationMap.get(name);
+			declarationMap.put(name, already != null ? concat(already, field) : new Declaration[] { field });
 		}
 	}
 
@@ -317,7 +317,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public synchronized void refresh(final boolean postLoad) {
 		cachedIncludes = new ConcurrentHashMap<IncludesParameters, Collection<Script>>();
 		relevantIndexes = null;
-		
+
 		// delete old cache
 		if (globalFunctions == null) {
 			globalFunctions = new LinkedList<Function>();
@@ -326,7 +326,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			staticVariables = new LinkedList<Variable>();
 		}
 		if (declarationMap == null) {
-			declarationMap = new HashMap<String, List<Declaration>>();
+			declarationMap = new HashMap<String, Declaration[]>();
 		}
 		if (appendages == null) {
 			appendages = new HashMap<ID, List<Script>>();
@@ -342,11 +342,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				addGlobalsFromScript(item, newAppendages);
 			}
 		});
-		
+
 		scenarios().forEach(scenario -> scenario.setStaticVariables(
 			staticVariables().stream().filter(variable -> variable.scenario() == scenario)
 		));
-		
+
 		if (!postLoad) {
 			appendages = newAppendages;
 		}
@@ -485,10 +485,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public void removeScript(final Script script) {
 		if (script instanceof Definition) {
 			removeDefinition((Definition)script);
-		} else
+		} else {
 			if (scripts.remove(script)) {
 				scriptRemoved(script);
 			}
+		}
 		entities.remove(script.entityId());
 		script.index = null;
 	}
@@ -542,7 +543,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	public List<Script> scripts() { return Collections.unmodifiableList(scripts); }
 	public List<Function> globalFunctions() { return Collections.unmodifiableList(globalFunctions); }
 	public List<Variable> staticVariables() { return Collections.unmodifiableList(staticVariables); }
-	public Map<String, List<Declaration>> declarationMap() { return Collections.unmodifiableMap(declarationMap); }
+	public Map<String, Declaration[]> declarationMap() { return Collections.unmodifiableMap(declarationMap); }
 
 	/**
 	 * Return the last {@link Definition} with the specified {@link ID}, whereby 'last' is arbitrary, maybe loosely based on the directory and lexical structure of the project.
@@ -607,10 +608,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		final java.util.function.Function<Index, Definition> quadratHuhn = index -> {
 			if (resource != null) {
 				final List<? extends Definition> objs = index.definitionsWithID(id);
-				return
+				return (
 					objs == null ? null :
 					objs.size() == 1 ? objs.get(0) :
-					pickNearest(objs, resource, null);
+					pickNearest(objs.stream(), resource, null)
+				);
 			} else {
 				return index.lastDefinitionWithId(id);
 			}
@@ -641,8 +643,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public <T extends Declaration> List<T> declarationsWithName(final String name, final Class<T> declarationClass) {
 		synchronized (declarationMap) {
-			final List<Declaration> list = this.declarationMap.get(name);
-			return list != null ? ofType(list.stream(), declarationClass).collect(Collectors.toList()) : Collections.emptyList();
+			final Declaration[] list = this.declarationMap.get(name);
+			return list != null ? ofType(stream(list), declarationClass).collect(Collectors.toList()) : Collections.emptyList();
 		}
 	}
 
@@ -655,9 +657,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T findGlobal(final Class<T> whatYouWant, final String name) {
 		synchronized (declarationMap) {
-			final List<Declaration> decs = declarationMap.get(name);
+			final Declaration[] decs = declarationMap.get(name);
 			return decs != null ?
-				(T)decs.stream().filter(d -> d.isGlobal() && whatYouWant.isInstance(d)).findFirst().orElse(null) :
+				(T)stream(decs).filter(Declaration::isGlobal).filter(whatYouWant::isInstance).findFirst().orElse(null) :
 				null;
 		}
 	}
@@ -670,12 +672,12 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public Declaration findGlobalDeclaration(final String declName, final IResource pivot) {
 		synchronized (declarationMap) {
-			final List<Declaration> declarations = declarationMap.get(declName);
+			final Declaration[] declarations = declarationMap.get(declName);
 			if (declarations != null) {
 				return pivot != null
-					? Utilities.pickNearest(declarations, pivot, IS_GLOBAL)
-					: IS_GLOBAL.test(declarations.get(0))
-					? declarations.get(0)
+					? Utilities.pickNearest(stream(declarations), pivot, IS_GLOBAL)
+					: IS_GLOBAL.test(declarations[0])
+					? declarations[0]
 					: null;
 			}
 			return null;
@@ -710,7 +712,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return An {@link Iterable} to iterate over this presumably large subset of all the {@link Definition}s managed by the index.
 	 */
 	public Stream<Definition> definitionsIgnoringRemoteDuplicates(final IResource pivot) {
-		return definitions.values().stream().map(from -> Utilities.pickNearest(from, pivot, null));
+		return definitions.values().stream().map(
+			from -> Utilities.pickNearest(from.stream(), pivot, null)
+		);
 	}
 
 	/**
@@ -1093,14 +1097,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param name Name key passed to {@link #declarationMap()}
 	 * @return The copy or null if no declarations with that name are currently loaded.
 	 */
-	public List<Declaration> snapshotOfDeclarationsNamed(final String name) {
+	public Declaration[] snapshotOfDeclarationsNamed(final String name) {
 		synchronized (declarationMap) {
-			final List<Declaration> decs = declarationMap.get(name);
-			if (decs == null) {
-				return null;
-			}
-			final ArrayList<Declaration> result = new ArrayList<Declaration>(decs);
-			return result;
+			return declarationMap.get(name);
 		}
 	}
 
@@ -1135,18 +1134,16 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	private transient ConcurrentHashMap<IncludesParameters, Collection<Script>> cachedIncludes;
 
 	public Collection<Script> includes(final IncludesParameters parms) {
-		Map<IncludesParameters, Collection<Script>> map = cachedIncludes;
-		if (map == null) {
-			map = cachedIncludes = new ConcurrentHashMap<IncludesParameters, Collection<Script>>();
-		}
-		Collection<Script> result = map.get(parms);
-		if (result == null) {
-			result = new HashSet<Script>();
+		final Map<IncludesParameters, Collection<Script>> map = defaulting(
+			cachedIncludes,
+			() -> cachedIncludes = new ConcurrentHashMap<IncludesParameters, Collection<Script>>()
+		);
+		return getOrAdd(map, parms, () -> {
+			final HashSet<Script> result = new HashSet<Script>();
 			parms.script.gatherIncludes(this, parms.origin, result, parms.options);
 			result.remove(parms.script);
-			map.put(parms, result);
-		}
-		return result;
+			return result;
+		});
 	}
 
 }

@@ -101,17 +101,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public static final class Typings implements Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-		
+
 		/**
 		 * Map mapping field variable name to type.
 		 */
 		private final Map<String, IType> variableTypes;
-		
+
 		/**
 		 * Map mapping function name to return type.
 		 */
 		private final Map<String, Function.Typing> functionTypings;
-		
+
 		public Typings(
 			final Map<String, IType> variableTypes,
 			final Map<String, Function.Typing> functionTypings
@@ -120,15 +120,15 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			this.variableTypes = variableTypes == Collections.EMPTY_MAP ? new HashMap<>() : variableTypes;
 			this.functionTypings = functionTypings == Collections.EMPTY_MAP ? new HashMap<>() : functionTypings;
 		}
-		
+
 		public Function.Typing get(final Function function) {
 			return functionTypings != null ? functionTypings.get(function.name()) : null;
 		}
-		
+
 		public IType get(final Variable variable) {
 			return variableTypes != null ? variableTypes.get(variable.name()) : null;
 		}
-		
+
 		public IType get(final ASTNode node) {
 			final Function f = node.parent(Function.class);
 			if (f == null) {
@@ -137,7 +137,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			final Function.Typing typing = get(f);
 			return typing != null ? typing.nodeTypes[node.localIdentifier()] : null;
 		}
-		
+
 		public void update(final Map<String, IType> variableTypes, final Map<String, Function.Typing> functionTypings) {
 			synchronized (this) {
 				for (final Entry<String, IType> x : variableTypes.entrySet()) {
@@ -152,11 +152,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		public IType getVariableType(String variableName) {
 			return variableTypes != null ? variableTypes.get(variableName) : null;
 		}
-		
+
 		public Function.Typing getFunctionTyping(String functionName) {
 			return functionTypings != null ? functionTypings.get(functionName) : null;
 		}
-		
+
 	}
 	private transient Typings typings;
 
@@ -453,7 +453,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 							? null
 							: (origin == null || origin.resource() == null)
 							? defs.get(0)
-							: pickNearest(defs, origin.resource(), null);
+							: pickNearest(defs.stream(), origin.resource(), null);
 						if (pick != null) {
 							if ((options & GatherIncludesOptions.Recursive) == 0) {
 								set.add(pick);
@@ -723,7 +723,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	private Declaration findGlobalDeclaration(final FindDeclarationInfo info) {
-		
+
 		// prefer static variables associated with scenario context
 		if (info.findGlobalVariables && info.scenario() != null) {
 			final Variable scenarioStaticVariable = info.scenario().getStaticVariable(info.name);
@@ -731,7 +731,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				return scenarioStaticVariable;
 			}
 		}
-		
+
 		// prefer declarations from scripts that were previously determined to be the providers of global declarations
 		// this will also probably and rightly lead to those scripts being fully loaded from their index file.
 		if (usedScripts != null) {

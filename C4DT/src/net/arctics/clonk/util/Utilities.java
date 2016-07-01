@@ -123,8 +123,8 @@ public abstract class Utilities {
 	 * @param filter A filter to exclude some of the items contained in the list
 	 * @return The item 'nearest' to resource
 	 */
-	public static <T extends IHasRelatedResource> T pickNearest(final List<? extends T> fromList, final IResource resource, final Predicate<T> filter) {
-		final Weighted<T> w = (fromList != null ? fromList.stream() : Stream.<T>empty())
+	public static <T extends IHasRelatedResource> T pickNearest(final Stream<? extends T> fromList, final IResource resource, final Predicate<T> filter) {
+		final Weighted<T> w = (fromList != null ? fromList : Stream.<T>empty())
 			.filter(defaulting(filter, (T x) -> true))
 			.map(o -> {
 				final IResource res = o.resource();
@@ -328,7 +328,7 @@ public abstract class Utilities {
 	public interface ThrowHappySupplier<T, E extends Exception> {
 		T get() throws E;
 	}
-	
+
 	/**
 	 * Consumes an exception which occurs in a context described by the first argument.
 	 * @author madeen
@@ -377,9 +377,9 @@ public abstract class Utilities {
 
 	public static <T> Stream<T> walk(T start, Predicate<T> condition, Function<T, T> next) {
 		return StreamSupport.stream(new Spliterator<T>() {
-			
+
 			private T current = start;
-			
+
 			@Override
 			public boolean tryAdvance(Consumer<? super T> action) {
 				if (current != null) {
@@ -419,7 +419,7 @@ public abstract class Utilities {
 			return null;
 		};
 	}
-	
+
 	/**
 	 * Given a consumer which potentially throws an exception, return a consumer which forwards to the original one and
 	 * channels exceptions to an exception consumer when they occur.
