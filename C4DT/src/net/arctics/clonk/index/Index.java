@@ -3,6 +3,9 @@ package net.arctics.clonk.index;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.Flags.DEBUG;
 import static net.arctics.clonk.util.ArrayUtil.concat;
+import static net.arctics.clonk.util.ArrayUtil.indexOf;
+import static net.arctics.clonk.util.ArrayUtil.iterable;
+import static net.arctics.clonk.util.ArrayUtil.removeElement;
 import static net.arctics.clonk.util.StreamUtil.concatStreams;
 import static net.arctics.clonk.util.StreamUtil.ofType;
 import static net.arctics.clonk.util.Utilities.as;
@@ -75,6 +78,7 @@ import net.arctics.clonk.index.serialization.replacements.EntityReference;
 import net.arctics.clonk.util.ArrayUtil;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.Sink.Decision;
+import net.arctics.clonk.util.TaskExecution;
 import net.arctics.clonk.util.Utilities;
 
 /**
@@ -97,17 +101,17 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	public transient Object saveSynchronizer = new Object();
 	public transient Object loadSynchronizer = new Object();
-	public final Object saveSynchronizer() {return saveSynchronizer;}
-	public final Object loadSynchronizer() {return loadSynchronizer;}
+	public final Object saveSynchronizer() { return saveSynchronizer; }
+	public final Object loadSynchronizer() { return loadSynchronizer; }
 
-	private transient static final Predicate<Declaration> IS_GLOBAL = item -> item.isGlobal();
+	private transient static final Predicate<Declaration> IS_GLOBAL = Declaration::isGlobal;
 
 	private final Map<Long, IndexEntity> entities = new HashMap<Long, IndexEntity>();
-	private final Map<ID, List<Definition>> definitions = new HashMap<ID, List<Definition>>();
+	private final ConcurrentMap<ID, Definition[]> definitions = TaskExecution.newConcurrentMap();
 	private final List<Script> scripts = new LinkedList<Script>();
 	private final List<Scenario> scenarios = new LinkedList<Scenario>();
 	private final List<Declaration> globalsContainers = new LinkedList<Declaration>();
-	private Map<ID, List<Script>> appendages = new HashMap<ID, List<Script>>();
+	private Map<ID, Script[]> appendages = new HashMap<ID, Script[]>();
 
 	protected File folder;
 	protected Built built = Built.No;
@@ -123,7 +127,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	protected transient List<Function> globalFunctions = new LinkedList<Function>();
 	protected transient List<Variable> staticVariables = new LinkedList<Variable>();
-	protected transient ConcurrentMap<String, Declaration[]> declarationMap = new ConcurrentHashMap<>();
+	protected transient ConcurrentMap<String, Declaration[]> declarationMap = TaskExecution.newConcurrentMap();
 	protected transient Map<IResource, Script> resourceToScript;
 
 	public Index(final File folder) {
@@ -156,20 +160,14 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param id The id
 	 * @return The list
 	 */
-	public List<? extends Definition> definitionsWithID(final ID id) {
-		return definitions == null ? null : definitions.get(id);
+	public Definition[] definitionsWithID(final ID id) {
+		return definitions.get(id);
 	}
 
 	public void postLoad() throws CoreException {
-		if (pendingScriptAdds == null) {
-			pendingScriptAdds = new LinkedList<Script>();
-		}
-		if (saveSynchronizer == null) {
-			saveSynchronizer = new Object();
-		}
-		if (loadSynchronizer == null) {
-			loadSynchronizer = new Object();
-		}
+		pendingScriptAdds = defaulting(pendingScriptAdds, LinkedList::new);
+		saveSynchronizer = defaulting(saveSynchronizer, Object::new);
+		loadSynchronizer = defaulting(loadSynchronizer, Object::new);
 		// make sure all the things are actually in the entity map...
 		ofType(stream(subElements()), IndexEntity.class).forEach(e -> {
 			if (entities.put(e.entityId(), e) == null) {
@@ -205,8 +203,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			if (idProperty == null) {
 				return null;
 			}
-			final List<? extends Definition> objects = definitionsWithID(ID.get(idProperty));
-			final Definition def = objects != null ? objects.stream().filter(
+			final Definition[] objects = definitionsWithID(ID.get(idProperty));
+			final Definition def = objects != null ? stream(objects).filter(
 				d -> d.relativePath.equalsIgnoreCase(folder.getProjectRelativePath().toPortableString())
 			).findFirst().orElse(null) : null;
 			return def != null ? block(() -> {
@@ -219,7 +217,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			}) : null;
 		} catch (final CoreException e) {
 			// likely due to getSessionProperty being called on non-existent resources
-			for (final List<Definition> list : definitions.values()) {
+			for (final Definition[] list : definitions.values()) {
 				for (final Definition obj : list) {
 					if (obj instanceof Definition) {
 						final Definition def = obj;
@@ -247,15 +245,17 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public Script scriptAt(final IFile file) {
 		final Script result = Script.get(file, true);
-		if (result == null) {
+		if (result != null) {
+			return result;
+		} else {
 			for (final Script s : this.scripts) {
 				final IResource resource = s.resource();
 				if (resource != null && resource.equals(file)) {
 					return s;
 				}
 			}
+			return null;
 		}
-		return result;
 	}
 
 	protected void addToDeclarationMap(final Declaration field) {
@@ -264,22 +264,20 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		);
 	}
 
-	private void detectAppendages(final Script script, final Map<ID, List<Script>> detectedAppendages) {
+	private void detectAppendages(final Script script, final Map<ID, Script[]> detectedAppendages) {
 		if (detectedAppendages != null) {
 			for (final Directive d : script.directives()) {
 				if (d.type() == DirectiveType.APPENDTO) {
-					List<Script> appendtoList = detectedAppendages.get(d.contentAsID());
-					if (appendtoList == null) {
-						appendtoList = new LinkedList<Script>();
-						detectedAppendages.put(d.contentAsID(), appendtoList);
-					}
-					appendtoList.add(script);
+					detectedAppendages.compute(d.contentAsID(), (id, existing) -> (
+						existing != null ? concat(existing, script) :
+						new Script[] { script }
+					));
 				}
 			}
 		}
 	}
 
-	protected <T extends Script> void addGlobalsFromScript(final T script, final Map<ID, List<Script>> detectedAppendages) {
+	protected <T extends Script> void addGlobalsFromScript(final T script, final Map<ID, Script[]> detectedAppendages) {
 		for (final Function func : script.functions()) {
 			if (func.visibility() == FunctionScope.GLOBAL) {
 				globalFunctions.add(func);
@@ -315,27 +313,20 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param postLoad true if called from {@link #postLoad()}. Will not clear some state in that case since it's assumed that it was properly loaded from the index file.
 	 */
 	public synchronized void refresh(final boolean postLoad) {
-		cachedIncludes = new ConcurrentHashMap<IncludesParameters, Collection<Script>>();
+		cachedIncludes = TaskExecution.newConcurrentMap();
 		relevantIndexes = null;
 
 		// delete old cache
-		if (globalFunctions == null) {
-			globalFunctions = new LinkedList<Function>();
-		}
-		if (staticVariables == null) {
-			staticVariables = new LinkedList<Variable>();
-		}
-		if (declarationMap == null) {
-			declarationMap = new ConcurrentHashMap<String, Declaration[]>();
-		}
-		if (appendages == null) {
-			appendages = new HashMap<ID, List<Script>>();
-		}
+		globalFunctions = defaulting(globalFunctions, LinkedList::new);
+		staticVariables = defaulting(staticVariables, LinkedList::new);
+		declarationMap = defaulting(declarationMap, ConcurrentHashMap::new);
+		appendages = defaulting(appendages, HashMap::new);
+
 		globalFunctions.clear();
 		staticVariables.clear();
 		declarationMap.clear();
 
-		final Map<ID, List<Script>> newAppendages = postLoad ? null : new HashMap<ID, List<Script>>();
+		final Map<ID, Script[]> newAppendages = postLoad ? null : new HashMap<ID, Script[]>();
 		allScripts(new IndexEntity.LoadedEntitiesSink<Script>() {
 			@Override
 			public void receive(final Script item) {
@@ -396,7 +387,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param definition The {@link Definition} to add. Attempts to add {@link Definition}s with no id will be ignored.
 	 */
 	public void addDefinition(final Definition definition) {
-		if (definition.id() == null) {
+		final ID id = definition.id();
+		if (id == null) {
 			return;
 		}
 		synchronized (pendingScriptAdds) {
@@ -404,14 +396,12 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				pendingScriptAdds.add(definition);
 				return;
 			}
-			List<Definition> alreadyDefinedObjects = definitions.get(definition.id());
-			if (alreadyDefinedObjects == null) {
-				alreadyDefinedObjects = new LinkedList<Definition>();
-				definitions.put(definition.id(), alreadyDefinedObjects);
-			} else if (alreadyDefinedObjects.contains(definition)) {
-				return;
-			}
-			alreadyDefinedObjects.add(definition);
+			definitions.compute(id, (key, previous) -> (
+				previous != null ? (
+					indexOf(previous, definition) != -1 ? previous :
+					concat(previous, definition)
+				) : new Definition[] { definition }
+			));
 		}
 	}
 
@@ -443,10 +433,10 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 
 	@SuppressWarnings("unchecked")
 	private <T> Sink.Decision allDefinitionsInternal(final Sink<T> sink) {
-		final Iterator<List<Definition>> defsIt = definitions.values().iterator();
+		final Iterator<Definition[]> defsIt = definitions.values().iterator();
 		while (defsIt.hasNext()) {
-			final List<Definition> list = defsIt.next();
-			final Iterator<Definition> defIt = list.iterator();
+			final Definition[] definitions = defsIt.next();
+			final Iterator<Definition> defIt = iterable(definitions).iterator();
 			while (defIt.hasNext()) {
 				switch (sink.elutriate((T)defIt.next())) {
 				case PurgeItem:
@@ -458,7 +448,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 					break;
 				}
 			}
-			if (list.size() == 0) {
+			if (definitions.length == 0) {
 				defsIt.remove();
 			}
 		}
@@ -505,18 +495,19 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			removeScenario((Scenario)definition);
 			return;
 		}
-		if (definition.id() == null) {
+		final ID id = definition.id();
+		if (id == null) {
 			return;
 		}
-		final List<Definition> alreadyDefinedObjects = definitions.get(definition.id());
-		if (alreadyDefinedObjects != null) {
-			if (alreadyDefinedObjects.remove(definition)) {
-				if (alreadyDefinedObjects.size() == 0) {
-					definitions.remove(definition.id());
-				}
+		definitions.compute(id, (key, previous) -> {
+			final int index = previous != null ? indexOf(previous, definition) : -1;
+			if (index != -1) {
 				scriptRemoved(definition);
+				return removeElement(previous, index);
+			} else {
+				return previous;
 			}
-		}
+		});
 	}
 
 	/**
@@ -551,15 +542,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return The 'last' {@link Definition} with that id
 	 */
 	public Definition lastDefinitionWithId(final ID id) {
-		final Iterable<? extends Definition> objs = definitionsWithID(id);
-		if (objs != null) {
-			Definition result = null;
-			for (final Definition def : objs) {
-				result = def;
-			}
-			return result;
-		}
-		return null;
+		final Definition[] definitions = definitionsWithID(id);
+		return definitions != null && definitions.length > 0 ? definitions[definitions.length - 1] : null;
 	}
 
 	public static void addIndexesFromReferencedProjects(final List<Index> result, final Index index) {
@@ -567,10 +551,11 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 			final ProjectIndex projIndex = (ProjectIndex) index;
 			try {
 				final List<Index> newOnes = new LinkedList<Index>();
-				for (final IProject p : projIndex.nature().getProject().getReferencedProjects()) {
-					final ClonkProjectNature n = ClonkProjectNature.get(p);
-					if (n != null && n.index() != null && !result.contains(n.index())) {
-						newOnes.add(n.index());
+				for (final IProject referencedProject : projIndex.nature().getProject().getReferencedProjects()) {
+					final ClonkProjectNature nature = ClonkProjectNature.get(referencedProject);
+					final ProjectIndex referencedIndex = nature != null ? nature.index() : null;
+					if (referencedIndex != null && !result.contains(referencedIndex)) {
+						newOnes.add(referencedIndex);
 					}
 				}
 				result.addAll(newOnes);
@@ -605,13 +590,13 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public Definition definitionNearestTo(final IResource resource, final ID id) {
 
-		final java.util.function.Function<Index, Definition> quadratHuhn = index -> {
+		final java.util.function.Function<Index, Definition> definitionFromIndex = index -> {
 			if (resource != null) {
-				final List<? extends Definition> objs = index.definitionsWithID(id);
+				final Definition[] definitions = index.definitionsWithID(id);
 				return (
-					objs == null ? null :
-					objs.size() == 1 ? objs.get(0) :
-					pickNearest(objs.stream(), resource, null)
+					definitions == null ? null :
+					definitions.length == 1 ? definitions[0] :
+					pickNearest(stream(definitions), resource, null)
 				);
 			} else {
 				return index.lastDefinitionWithId(id);
@@ -619,7 +604,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		};
 
 		return relevantIndexes().stream()
-			.map(quadratHuhn)
+			.map(definitionFromIndex)
 			.filter(x -> x != null)
 			.findFirst()
 			.orElse(null);
@@ -654,9 +639,9 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends Declaration> T findGlobal(final Class<T> whatYouWant, final String name) {
-		final Declaration[] decs = declarationMap.get(name);
-		return decs != null ?
-			(T)stream(decs).filter(Declaration::isGlobal).filter(whatYouWant::isInstance).findFirst().orElse(null) :
+		final Declaration[] declarations = declarationMap.get(name);
+		return declarations != null ?
+			(T)stream(declarations).filter(Declaration::isGlobal).filter(whatYouWant::isInstance).findFirst().orElse(null) :
 			null;
 	}
 
@@ -679,9 +664,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * Clear the index so it won't keep around references to any {@link Declaration} objects after this call.
 	 */
 	public synchronized void clear() {
-		synchronized(definitions) {
-			definitions.clear();
-		}
+		definitions.clear();
 		scripts.clear();
 		scenarios.clear();
 		clearEntityFiles();
@@ -704,7 +687,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 */
 	public Stream<Definition> definitionsIgnoringRemoteDuplicates(final IResource pivot) {
 		return definitions.values().stream().map(
-			from -> Utilities.pickNearest(from.stream(), pivot, null)
+			from -> Utilities.pickNearest(stream(from), pivot, null)
 		);
 	}
 
@@ -713,16 +696,8 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @param definition The definition to return 'appendages' of
 	 * @return The appendages
 	 */
-	public List<Script> appendagesOf(final Definition definition) {
-		if (appendages == null) {
-			return null;
-		}
-		final List<Script> a = appendages.get(definition.id());
-		if (a != null) {
-			return new ArrayList<Script>(a);
-		} else {
-			return null;
-		}
+	public Script[] appendagesOf(final Definition definition) {
+		return appendages != null ? appendages.get(definition.id()) : null;
 	}
 
 	@Override
@@ -820,12 +795,15 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	private class EntityLoader {
+
 		@SuppressWarnings("serial")
 		class PostLoadQueue extends LinkedList<IndexEntity> {}
+
 		private final ThreadLocal<PostLoadQueue> postLoadQueue = new ThreadLocal<PostLoadQueue>() {
 			@Override
 			protected PostLoadQueue initialValue() { return new PostLoadQueue(); }
 		};
+
 		private void doPostLoad(final IndexEntity e) {
 			try {
 				e.postLoad(Index.this, Index.this);
@@ -833,6 +811,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				System.out.println(String.format("Error post-loading '%s': %s", e.qualifiedName(), x.getMessage()));
 			}
 		}
+
 		public void loadEntity(final IndexEntity entity) {
 			try {
 				final PostLoadQueue queue = postLoadQueue.get();
@@ -848,6 +827,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				e.printStackTrace();
 			}
 		}
+
 		private void doLoad(final IndexEntity entity) throws IOException {
 			try (final ObjectInputStream inputStream = newEntityInputStream(entity)) {
 				entity.load(inputStream);
@@ -863,6 +843,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 				addGlobalsFromScript((Script)entity, appendages);
 			}
 		}
+
 	}
 
 	private transient EntityLoader entityLoader;
@@ -874,9 +855,7 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	}
 
 	public void loadAllEntities() {
-		for (final IndexEntity e : entities.values()) {
-			e.requireLoaded();
-		}
+		entities.values().forEach(IndexEntity::requireLoaded);
 	}
 
 	public void loadEntity(final IndexEntity entity) throws FileNotFoundException, IOException, ClassNotFoundException {
@@ -932,11 +911,12 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 	 * @return
 	 */
 	public IDeserializationResolvable saveReplacementForEntity(final IndexEntity entity) {
-		return
+		return (
 			entity == null ? null :
 			entity instanceof Engine ? new EngineRef((Engine)entity) :
 			entity.index() == this ? new EntityId(entity) :
-			new EntityReference(entity);
+			new EntityReference(entity)
+		);
 	}
 
 	/**
@@ -1112,19 +1092,19 @@ public class Index extends Declaration implements Serializable, ILatestDeclarati
 		return concatStreams(
 			scenarios.stream(),
 			scripts.stream(),
-			definitions.values().stream().flatMap(x -> x.stream())
+			definitions.values().stream().flatMap(Arrays::stream)
 		).collect(ArrayUtil.toArray(ASTNode.class));
 	}
 
 	@Override
 	public Typing typing() { return Typing.INFERRED; }
 
-	private transient ConcurrentHashMap<IncludesParameters, Collection<Script>> cachedIncludes;
+	private transient ConcurrentMap<IncludesParameters, Collection<Script>> cachedIncludes;
 
 	public Collection<Script> includes(final IncludesParameters parms) {
 		final ConcurrentMap<IncludesParameters, Collection<Script>> map = defaulting(
 			cachedIncludes,
-			() -> cachedIncludes = new ConcurrentHashMap<IncludesParameters, Collection<Script>>()
+			() -> cachedIncludes = TaskExecution.newConcurrentMap()
 		);
 		return map.computeIfAbsent(parms, key -> {
 			final HashSet<Script> result = new HashSet<Script>();

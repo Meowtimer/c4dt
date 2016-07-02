@@ -41,10 +41,11 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 
 	public IndexEntity(final Index index) {
 		this.index = index;
-		if (index != null)
+		if (index != null) {
 			entityId = index.addEntity(this);
-		else if (!(this instanceof TopLevelEntity))
+		} else if (!(this instanceof TopLevelEntity)) {
 			throw new InvalidParameterException("index");
+		}
 	}
 
 	@Override
@@ -58,16 +59,18 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	 * Require this entity to be loaded. If {@link #loaded} is false it is set to true and {@link Index#loadEntity(IndexEntity)} is called.
 	 */
 	public final void requireLoaded() {
-		if (index == null || loaded == Loaded.Yes)
+		if (index == null || loaded == Loaded.Yes) {
 			return;
+		}
 		synchronized (index.loadSynchronizer()) {
 			if (loaded == Loaded.No) {
 				loaded = Loaded.Pending;
 				try {
 					index.loadEntity(this);
 				} catch (final Exception e) {
-					if (e instanceof FileNotFoundException)
+					if (e instanceof FileNotFoundException) {
 						System.out.println("Entity file for " + this.toString() + " not found");
+					}
 					e.printStackTrace();
 				}
 				loaded = Loaded.Yes;
@@ -111,8 +114,9 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 	 * @throws IOException
 	 */
 	public final void save() throws IOException {
-		if (index == null)
+		if (index == null) {
 			return;
+		}
 		synchronized (index.saveSynchronizer()) {
 			requireLoaded();
 			index.saveEntity(this);
@@ -135,10 +139,12 @@ public abstract class IndexEntity extends Structure implements IReplacedWhenSave
 
 	@Override
 	public boolean equals(final Object obj) {
-		if (obj == this)
+		if (obj == this) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
+		}
 		return obj.getClass() == this.getClass() && ((IndexEntity)obj).entityId == this.entityId && ((IndexEntity)obj).index == this.index;
 	}
 

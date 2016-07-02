@@ -321,7 +321,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				case APPENDTO: case INCLUDE:
 					final ID id = d.contentAsID();
 					if (id != null) {
-						final List<? extends Definition> defs = index.definitionsWithID(id);
+						final Definition[] defs = index.definitionsWithID(id);
 						if (defs != null) {
 							for (final Definition def : defs) {
 								def.requireLoaded();
@@ -448,12 +448,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				case APPENDTO:
 					final ID id = d.contentAsID();
 					for (final Index in : contextIndex.relevantIndexes()) {
-						final List<? extends Definition> defs = in.definitionsWithID(id);
+						final Definition[] defs = in.definitionsWithID(id);
 						final Definition pick = defs == null
 							? null
 							: (origin == null || origin.resource() == null)
-							? defs.get(0)
-							: pickNearest(defs.stream(), origin.resource(), null);
+							? defs[0]
+							: pickNearest(stream(defs), origin.resource(), null);
 						if (pick != null) {
 							if ((options & GatherIncludesOptions.Recursive) == 0) {
 								set.add(pick);
@@ -1366,7 +1366,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				kv -> kv.getKey(),
 				kv -> kv.getValue().toArray(new CallDeclaration[kv.getValue().size()])
 			))
-		);	
+		);
 		this.varReferencesMap = Collections.unmodifiableMap(populator.varReferencesMap);
 	}
 

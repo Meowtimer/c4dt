@@ -47,10 +47,11 @@ public class StructureOutlinePage extends ContentOutlinePage {
 	public StructureTextEditor editor() { return editor; }
 
 	private IIndexEntity pampelmuse(Object from) {
-		return
+		return (
 			from instanceof IAdaptable ? (IIndexEntity)((IAdaptable)from).getAdapter(Declaration.class) :
 			from instanceof IIndexEntity ? (IIndexEntity)from :
-			from instanceof Declaration ? ((Declaration)from).parent(IIndexEntity.class) : null;
+			from instanceof Declaration ? ((Declaration)from).parent(IIndexEntity.class) : null
+		);
 	}
 
 	private void openForeignDeclarations() {
@@ -61,8 +62,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 				final List<? extends IIndexEntity> entities =
 					entity instanceof Directive ? block(() -> {
 						final Directive d = (Directive)entity;
-						final Iterable<? extends Definition> defs =
-							editor.structure().index().definitionsWithID(d.contentAsID());
+						final Definition[] defs = editor.structure().index().definitionsWithID(d.contentAsID());
 						return defs != null ? list(defs) : list(entity);
 					}) : list(entity);
 				new EntityHyperlink(null, entities).open();
@@ -174,7 +174,7 @@ public class StructureOutlinePage extends ContentOutlinePage {
 	public void setEditor(final StructureTextEditor editor) {
 		this.editor = editor;
 	}
-	
+
 	private boolean isRefreshing;
 
 	public void refresh() {

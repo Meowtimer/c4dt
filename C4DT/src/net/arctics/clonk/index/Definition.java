@@ -14,6 +14,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.Declaration;
 import net.arctics.clonk.ast.IPlaceholderPatternMatchTarget;
@@ -38,15 +47,6 @@ import net.arctics.clonk.util.Pair;
 import net.arctics.clonk.util.Sink;
 import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 
 /**
  * A Clonk object definition.
@@ -101,19 +101,21 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 	 * @param newId
 	 */
 	public void setId(final ID newId) {
-		if (id.equals(newId))
+		if (id.equals(newId)) {
 			return;
+		}
 		final Index index = this.index();
 		index.removeDefinition(this);
 		id = newId;
 		index.addDefinition(this);
 
-		if (definitionFolder != null)
+		if (definitionFolder != null) {
 			try {
 				definitionFolder.setPersistentProperty(Core.FOLDER_C4ID_PROPERTY_ID, id().stringValue());
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
+		}
 	}
 
 	@Override
@@ -133,34 +135,40 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 
 	public void readNames(final String namesText) throws IOException {
 		final Matcher matcher = langNamePairPattern.matcher(namesText);
-		if (localizedNames == null)
+		if (localizedNames == null) {
 			localizedNames = new HashMap<String, String>();
-		else
+		} else {
 			localizedNames.clear();
-		while (matcher.find())
+		}
+		while (matcher.find()) {
 			localizedNames.put(matcher.group(1), matcher.group(2));
+		}
 		chooseLocalizedName();
 	}
 
 	public void chooseLocalizedName() {
 		if (localizedNames != null) {
 			final String preferredName = localizedNames.get(ClonkPreferences.languagePref());
-			if (preferredName != null)
+			if (preferredName != null) {
 				setName(preferredName);
+			}
 		}
 	}
 
 	@Override
 	public void deriveInformation() {
 		super.deriveInformation();
-		if (definitionFolder != null)
+		if (definitionFolder != null) {
 			try {
-				for (final IResource r : definitionFolder.members())
-					if (r instanceof IFile)
+				for (final IResource r : definitionFolder.members()) {
+					if (r instanceof IFile) {
 						processDefinitionFolderFile((IFile)r);
+					}
+				}
 			} catch (CoreException | IOException e) {
 				e.printStackTrace();
 			}
+		}
 	}
 
 	public Map<String, String> localizedNames() {
@@ -169,32 +177,39 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 
 	@Override
 	public boolean matchedBy(final Matcher matcher) {
-		if (super.matchedBy(matcher))
+		if (super.matchedBy(matcher)) {
 			return true;
-		if (id() != null && matcher.reset(id().stringValue()).lookingAt())
+		}
+		if (id() != null && matcher.reset(id().stringValue()).lookingAt()) {
 			return true;
-		if (localizedNames != null)
+		}
+		if (localizedNames != null) {
 			for (final String key : localizedNames.keySet()) {
 				final String value = localizedNames.get(key);
-				if (matcher.reset(value).lookingAt())
+				if (matcher.reset(value).lookingAt()) {
 					return true;
+				}
 			}
+		}
 		return false;
 	}
 
 	@Override
 	public  boolean gatherIncludes(final Index contextIndex, final Script origin, final Collection<Script> set, final int options) {
-		if (!super.gatherIncludes(contextIndex, origin, set, options))
+		if (!super.gatherIncludes(contextIndex, origin, set, options)) {
 			return false;
+		}
 		if ((options & GatherIncludesOptions.NoAppendages) == 0) {
 			try {
 				final IContainer defFolder = definitionFolder();
-				if (defFolder != null)
+				if (defFolder != null) {
 					for (final IResource r : defFolder.members()) {
 						final LocalizedScript ls = as(SystemScript.pinned(r, false), LocalizedScript.class);
-						if (ls != null)
+						if (ls != null) {
 							set.add(ls);
+						}
 					}
+				}
 			} catch (final CoreException e) {
 				e.printStackTrace();
 			}
@@ -203,25 +218,29 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 				? Scenario.containingScenario(((IHasRelatedResource)origin).resource()) : null;
 			final List<Index> ndxes = defaulting(contextIndex.relevantIndexes(), Collections.<Index>emptyList());
 			for (final Index i : ndxes) {
-				final List<Script> appendages = i.appendagesOf(Definition.this);
-				if (appendages != null)
+				final Script[] appendages = i.appendagesOf(Definition.this);
+				if (appendages != null) {
 					for (final Script s : appendages) {
 						final Scenario scriptScenario = s.scenario();
-						if (scriptScenario != null && originScenario != scriptScenario)
+						if (scriptScenario != null && originScenario != scriptScenario) {
 							continue;// scenario boundary; ignore
-						if ((options & GatherIncludesOptions.Recursive) == 0)
+						}
+						if ((options & GatherIncludesOptions.Recursive) == 0) {
 							set.add(s);
-						else
+						} else {
 							s.gatherIncludes(i, origin, set, options | GatherIncludesOptions.NoAppendages);
+						}
 					}
+				}
 			}
 		}
 		return true;
 	}
 
 	public synchronized MetaDefinition metaDefinition() {
-		if (metaDefinition == null)
+		if (metaDefinition == null) {
 			metaDefinition = new MetaDefinition(this);
+		}
 		return metaDefinition;
 	}
 
@@ -288,10 +307,12 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 	 * Helper variable used for long-id definitions.
 	 */
 	public ProxyVar proxyVar() {
-		if (engine() != null && !engine().settings().definitionsHaveProxyVariables)
+		if (engine() != null && !engine().settings().definitionsHaveProxyVariables) {
 			return proxyVar = null;
-		if (proxyVar == null)
+		}
+		if (proxyVar == null) {
 			proxyVar = new ProxyVar();
+		}
 		return proxyVar;
 	}
 
@@ -329,11 +350,13 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 	 * @throws CoreException
 	 */
 	public void setDefinitionFolder(final IContainer folder) {
-		if (Utilities.eq(folder, definitionFolder))
+		if (Utilities.eq(folder, definitionFolder)) {
 			return;
+		}
 		try {
-			if (definitionFolder != null && definitionFolder.exists())
+			if (definitionFolder != null && definitionFolder.exists()) {
 				definitionFolder.setSessionProperty(Core.FOLDER_DEFINITION_REFERENCE_ID, null);
+			}
 			// on setObjectFolder(null): don't actually set objectFolder to null, so ILatestDeclarationVersionProvider machinery still works
 			// (see ClonkIndex.getLatestVersion)
 			definitionFolder = folder;
@@ -366,8 +389,9 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 		final ProjectIndex index = ProjectIndex.fromResource(folder);
 		final Definition obj = index != null ? index.definitionAt(folder) : null;
 		// haxxy cleanup: might have been lost by <insert unlikely event>
-		if (obj != null)
+		if (obj != null) {
 			obj.definitionFolder = folder;
+		}
 		return obj;
 	}
 
@@ -382,9 +406,9 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 		if (res instanceof IContainer) {
 			this.setDefinitionFolder((IContainer)res);
 			return true;
-		}
-		else
+		} else {
 			return false;
+		}
 	}
 
 	@Override
@@ -417,8 +441,9 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 	 * @throws CoreException
 	 */
 	public void processDefinitionFolderFile(final IFile file) throws IOException, CoreException {
-		if (file.getName().equalsIgnoreCase("Names.txt"))
+		if (file.getName().equalsIgnoreCase("Names.txt")) {
 			readNames(StreamUtil.stringFromFileDocument(file));
+		}
 	}
 
 	@Override
@@ -429,8 +454,9 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 	@Override
 	public Variable addComponent(final Variable variable, final boolean adhoc) {
 		final Variable v = this.findVariable(variable.name());
-		if (v != null)
+		if (v != null) {
 			return v;
+		}
 		addDeclaration(variable);
 		return variable;
 	}
@@ -468,14 +494,16 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 	public String qualifiedName() { return id().stringValue(); }
 
 	static {
-		if (!Core.instance().runsHeadless())
+		if (!Core.instance().runsHeadless()) {
 			Core.instance().getPreferenceStore().addPropertyChangeListener(event -> {
 				if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
 					final Sink<Definition> sink = item -> item.chooseLocalizedName();
-					for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace())
+					for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
 						ClonkProjectNature.get(proj).index().allDefinitions(sink);
+					}
 				}
 			});
+		}
 	}
 
 	@Override
