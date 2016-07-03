@@ -112,6 +112,7 @@ import net.arctics.clonk.util.Utilities;
  */
 public final class ScriptEditingState extends StructureEditingState<C4ScriptEditor, Script> implements IASTPositionProvider {
 
+
 	public final class Assistant extends ContentAssistant {
 		private ScriptCompletionProcessor processor;
 		public Assistant() {
@@ -169,6 +170,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			}
 		}
 	}
+
 
 	public class ScriptTextHover extends ClonkTextHover {
 		private EntityLocator entityLocator;
@@ -269,6 +271,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	@Override
 	protected ContentAssistant createAssistant() { return new Assistant(); }
+
 	@Override
 	public Assistant assistant() { return (Assistant) assistant; }
 
@@ -279,10 +282,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		obtainStructureLock = new Object();
 	private final ScriptAutoEditStrategy autoEditStrategy = new ScriptAutoEditStrategy(this);
 
+
 	public ScriptAutoEditStrategy autoEditStrategy() { return autoEditStrategy; }
+
 
 	@Override
 	public void documentAboutToBeChanged(final DocumentEvent event) {}
+
 
 	@Override
 	public void documentChanged(final DocumentEvent event) {
@@ -313,6 +319,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		cancelReparsingTimer();
 		reparseWithDocumentContents(refreshEditorsRunnable());
 	}
+
 
 	@Override
 	public void refreshAfterBuild(final Markers markers) {
@@ -375,6 +382,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 	}
 
+
 	public List<ProblemReportingStrategy> problemReportingStrategies() {
 		try {
 			return ClonkProjectNature.get(structure().file()).problemReportingStrategies();
@@ -382,6 +390,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			return new ArrayList<>();
 		}
 	}
+
 
 	public void scheduleReparsing(final boolean onlyDeclarations) {
 		reparseTask = cancelTimerTask(reparseTask);
@@ -411,6 +420,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			}
 		}, 1000);
 	}
+
 
 	public static void removeMarkers(final Function func, final Script script) {
 		if (script != null && script.resource() != null) {
@@ -499,6 +509,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			}
 		}, 1000);
 	}
+
 
 	public Markers reportProblems(final Function function) {
 		// ignore this request when errors while typing disabled
@@ -665,12 +676,14 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return !ClonkPreferences.toggle(ClonkPreferences.SHOW_ERRORS_WHILE_TYPING, true);
 	}
 
+
 	@Override
 	public void cancelReparsingTimer() {
 		reparseTask = runAndCancelTimerTask(reparseTask);
 		reportFunctionProblemsTask = runAndCancelTimerTask(reportFunctionProblemsTask);
 		super.cancelReparsingTimer();
 	}
+
 
 	@Override
 	public void cleanupAfterRemoval() {
@@ -696,6 +709,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	 *  can be considered a hack to make viewing (svn) revisions of a file work
 	 */
 	private WeakReference<Script> cachedScript = new WeakReference<Script>(null);
+
 
 	@Override
 	public Script structure() {
@@ -743,6 +757,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 	}
 
+
 	@Override
 	public void invalidate() {
 		cachedScript = new WeakReference<Script>(null);
@@ -751,6 +766,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 	}
 
 	private FunctionBody oldFunctionBody;
+
 
 	public FunctionFragmentParser updateFunctionFragment(
 		final Function function,
@@ -778,6 +794,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 	}
 
+
 	@Override
 	public void partActivated(final IWorkbenchPart part) {
 		if (editors.contains(part) && structure() != null) {
@@ -804,6 +821,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		super.partBroughtToTop(part);
 	}
 
+
 	public Function functionAt(final int offset) {
 		final Script script = structure();
 		if (script != null) {
@@ -812,6 +830,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 		return null;
 	}
+
 
 	public static class Call {
 		public IFunctionCall callFunc;
@@ -829,6 +848,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			return callFunc instanceof ASTNode ? ((ASTNode)callFunc).predecessor() : null;
 		}
 	}
+
 
 	public Call innermostFunctionCallParmAtOffset(final int offset) throws BadLocationException, ProblemException {
 		final Function f = functionAt(offset);
@@ -871,6 +891,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return null;
 	}
 
+
 	@Override
 	public void completionProposalApplied(final DeclarationProposal proposal) {
 		autoEditStrategy().completionProposalApplied(proposal);
@@ -902,6 +923,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		return function;
 	}
 
+
 	public IIndexEntity mergeFunctions(final int offset, final ScriptEditingState.Call call) {
 		IIndexEntity entity = null;
 		call.locator.initializePotentialEntities(structure(), null, (ASTNode)call.callFunc);
@@ -916,18 +938,16 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 						commono = new Function(Messages.C4ScriptCompletionProcessor_MultipleCandidates, FunctionScope.PRIVATE);
 					}
 					entity = commono;
-					final Function f = functionFromEntity(e);
-					if (f != null) {
-						for (int i = 0; i < f.numParameters(); i++) {
-							final Variable fpar = f.parameter(i);
+					final Function function = functionFromEntity(e);
+					if (function != null) {
+						for (int i = 0; i < function.numParameters(); i++) {
+							final Variable fpar = function.parameter(i);
 							final Variable cpar = commono.numParameters() > i
-								? commono.parameter(i)
-									: commono.addParameter(new Variable(fpar.name(), fpar.type()));
-								cpar.forceType(structure().typing().unify(cpar.type(), fpar.type()));
-								if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name()))
-								 {
-									cpar.setName(cpar.name()+"/"+fpar.name()); //$NON-NLS-1$
-								}
+								? commono.parameter(i) : commono.addParameter(new Variable(fpar.name(), fpar.type()));
+							cpar.forceType(structure().typing().unify(cpar.type(), fpar.type()));
+							if (!Arrays.asList(cpar.name().split("/")).contains(fpar.name())) {
+								cpar.setName(cpar.name()+"/"+fpar.name()); //$NON-NLS-1$
+							}
 						}
 					}
 				}
@@ -938,17 +958,22 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 	private static ScannerPerEngine<ScriptCodeScanner> SCANNERS = new ScannerPerEngine<ScriptCodeScanner>(ScriptCodeScanner.class);
 	private final ITextDoubleClickStrategy doubleClickStrategy = new DoubleClickStrategy();
+
 	public ScriptEditingState(final IPreferenceStore store) { super(store); }
+
 	@Override
 	public String[] getConfiguredContentTypes(final ISourceViewer sourceViewer) { return CStylePartitionScanner.PARTITIONS; }
+
 	@Override
 	public ITextDoubleClickStrategy getDoubleClickStrategy(final ISourceViewer sourceViewer, final String contentType) { return doubleClickStrategy; }
+
 	@Override
 	public IQuickAssistAssistant getQuickAssistAssistant(final ISourceViewer sourceViewer) {
 		final IQuickAssistAssistant assistant = new QuickAssistAssistant();
 		assistant.setQuickAssistProcessor(new ScriptQuickAssistProcessor());
 		return assistant;
 	}
+
 	@Override
 	public IPresentationReconciler getPresentationReconciler(final ISourceViewer sourceViewer) {
 		final PresentationReconciler reconciler = new PresentationReconciler();
@@ -981,6 +1006,7 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 
 		return reconciler;
 	}
+
 	@Override
 	public IHyperlinkDetector[] getHyperlinkDetectors(final ISourceViewer sourceViewer) {
 		return new IHyperlinkDetector[] {
@@ -988,10 +1014,12 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 			urlDetector
 		};
 	}
+
 	@Override
 	public IAutoEditStrategy[] getAutoEditStrategies(final ISourceViewer sourceViewer, final String contentType) {
 		return new IAutoEditStrategy[] {autoEditStrategy};
 	}
+
 	@Override
 	public ITextHover getTextHover(final ISourceViewer sourceViewer, final String contentType) {
 	    if (hover == null) {
@@ -999,10 +1027,13 @@ public final class ScriptEditingState extends StructureEditingState<C4ScriptEdit
 		}
 	    return hover;
 	}
+
 	@Override
 	public IFile file() { return structure().file(); }
+
 	@Override
 	public Declaration container() { return structure(); }
+
 	@Override
 	public int fragmentOffset() { return 0; }
 

@@ -59,35 +59,45 @@ public class C4ScriptEditor extends StructureTextEditor {
 	private boolean showParametersEnabled = true;
 
 	private final class ShowContentAssistAtKeyUpListener implements MouseListener, KeyListener {
+
 		@Override
 		public void keyPressed(final KeyEvent e) {}
+
 		@Override
 		public void keyReleased(final KeyEvent e) {
 			showParameters();
 		}
+
 		@Override
 		public void mouseDoubleClick(final MouseEvent e) {}
+
 		@Override
 		public void mouseDown(final MouseEvent e) {}
+
 		@Override
 		public void mouseUp(final MouseEvent e) { showParameters(); }
+
 	}
 
 	@CommandId(id="ui.editors.actions.ToggleParametersShown")
 	public static class ToggleParametersShown extends ClonkTextEditorAction {
-		private C4ScriptEditor ed() { return (C4ScriptEditor)getTextEditor(); }
+
+		private C4ScriptEditor scriptEditor() { return (C4ScriptEditor)getTextEditor(); }
+
 		public ToggleParametersShown(final ResourceBundle bundle, final String prefix, final ITextEditor editor) {
 			super(bundle, prefix, editor);
 		}
+
 		@Override
 		public void run() {
-			final C4ScriptEditor ed = ed();
-			if (ed.showParametersEnabled = !ed.showParametersEnabled) {
-				ed.showParameters();
+			final C4ScriptEditor editor = scriptEditor();
+			if (editor.showParametersEnabled = !editor.showParametersEnabled) {
+				editor.showParameters();
 			} else {
-				ed.hideContentAssistance();
+				editor.hideContentAssistance();
 			}
 		}
+
 	}
 
 	private static final String ENABLE_BRACKET_HIGHLIGHT = Core.id("enableBracketHighlighting"); //$NON-NLS-1$

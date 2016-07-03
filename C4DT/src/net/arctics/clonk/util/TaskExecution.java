@@ -44,7 +44,7 @@ public class TaskExecution {
 	}
 
 	public static <Key, Value> ConcurrentMap<Key, Value> newConcurrentMap() {
-		return new ConcurrentHashMap<Key, Value>(10, 0.75f, ClonkPreferences.integer(ClonkPreferences.TASKEXECUTION_THREADS));
+		return new ConcurrentHashMap<Key, Value>(10, 0.75f, Runtime.getRuntime().availableProcessors());
 	}
 
 }

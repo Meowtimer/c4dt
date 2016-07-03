@@ -494,8 +494,9 @@ public class Definition extends Script implements IProplistDeclaration, IPlaceho
 	public String qualifiedName() { return id().stringValue(); }
 
 	static {
-		if (!Core.instance().runsHeadless()) {
-			Core.instance().getPreferenceStore().addPropertyChangeListener(event -> {
+		final Core core = Core.instance();
+		if (core != null && !core.runsHeadless()) {
+			core.getPreferenceStore().addPropertyChangeListener(event -> {
 				if (event.getProperty().equals(ClonkPreferences.PREFERRED_LANGID)) {
 					final Sink<Definition> sink = item -> item.chooseLocalizedName();
 					for (final IProject proj : ClonkProjectNature.clonkProjectsInWorkspace()) {
