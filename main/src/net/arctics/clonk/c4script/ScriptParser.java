@@ -154,7 +154,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	private Engine engine;
 
 	/** Return the special rules the parser is operating with */
-	public final SpecialEngineRules specialEngineRules() {return specialEngineRules;}
+	public final SpecialEngineRules specialEngineRules() { return specialEngineRules; }
 
 	/** Return the typing mode the parser is parsing with */
 	public final Typing typing() { return typing; }
@@ -2865,8 +2865,10 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 
 	@Override
 	public IFile file() { return scriptFile; }
+
 	@Override
 	public Declaration container() { return script(); }
+
 	@Override
 	public int fragmentOffset() { return offsetOfScriptFragment; }
 
