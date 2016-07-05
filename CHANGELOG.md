@@ -1,5 +1,9 @@
 # CHANGELOG
 
+* 2.2.1:
+
+	* Then I decided to change all the internal lists to plain arrays or something
+
 * 2.2.0:
 
 	* After a long period of inward-facing ponderance, release whatever the current code state is as a version
