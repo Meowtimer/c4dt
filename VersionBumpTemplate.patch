@@ -6,9 +6,9 @@
 # Parent  aac051f751023ecdcf49be236f35a0a72a7c1506
 Version: $NEW
 
-diff --git a/C4DT/META-INF/MANIFEST.MF b/C4DT/META-INF/MANIFEST.MF
---- a/C4DT/META-INF/MANIFEST.MF
-+++ b/C4DT/META-INF/MANIFEST.MF
+diff --git a/main/META-INF/MANIFEST.MF b/main/META-INF/MANIFEST.MF
+--- a/main/META-INF/MANIFEST.MF
++++ b/main/META-INF/MANIFEST.MF
 @@ -2,7 +2,7 @@
  Bundle-ManifestVersion: 2
  Bundle-Name: C4DT
@@ -18,9 +18,9 @@ diff --git a/C4DT/META-INF/MANIFEST.MF b/C4DT/META-INF/MANIFEST.MF
  Bundle-Activator: net.arctics.clonk.Core
  Bundle-Localization: res/plugin
  Require-Bundle: org.eclipse.core.expressions;bundle-version="[3.4.100,4.5.0)",
-diff --git a/C4DTFeature/feature.xml b/C4DTFeature/feature.xml
---- a/C4DTFeature/feature.xml
-+++ b/C4DTFeature/feature.xml
+diff --git a/feature/feature.xml b/feature/feature.xml
+--- a/feature/feature.xml
++++ b/feature/feature.xml
 @@ -2,7 +2,7 @@
  <feature
        id="net.arctics.clonk.c4dtFeature"
@@ -30,9 +30,9 @@ diff --git a/C4DTFeature/feature.xml b/C4DTFeature/feature.xml
  
     <description url="http://www.example.com/description">
        Clonk Development Tools for Eclipse.
-diff --git a/C4DT_DE/META-INF/MANIFEST.MF b/C4DT_DE/META-INF/MANIFEST.MF
---- a/C4DT_DE/META-INF/MANIFEST.MF
-+++ b/C4DT_DE/META-INF/MANIFEST.MF
+diff --git a/de/META-INF/MANIFEST.MF b/de/META-INF/MANIFEST.MF
+--- a/de/META-INF/MANIFEST.MF
++++ b/de/META-INF/MANIFEST.MF
 @@ -2,6 +2,6 @@
  Bundle-ManifestVersion: 2
  Bundle-Name: C4DT German
@@ -41,9 +41,9 @@ diff --git a/C4DT_DE/META-INF/MANIFEST.MF b/C4DT_DE/META-INF/MANIFEST.MF
 +Bundle-Version: $NEW.qualifier
  Bundle-RequiredExecutionEnvironment: JavaSE-1.8
  Fragment-Host: net.arctics.clonk
-diff --git a/C4DT_DE_Feature/feature.xml b/C4DT_DE_Feature/feature.xml
---- a/C4DT_DE_Feature/feature.xml
-+++ b/C4DT_DE_Feature/feature.xml
+diff --git a/feature.de/feature.xml b/feature.de/feature.xml
+--- a/feature.de/feature.xml
++++ b/feature.de/feature.xml
 @@ -2,7 +2,7 @@
  <feature
        id="net.arctics.clonk.c4dt_de_feature"
