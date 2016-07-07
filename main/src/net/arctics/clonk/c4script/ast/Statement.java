@@ -2,12 +2,13 @@ package net.arctics.clonk.c4script.ast;
 
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.filter;
+import static net.arctics.clonk.util.Utilities.attempt;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.ASTNode;
@@ -149,19 +150,13 @@ public class Statement extends ASTNode implements Cloneable {
 	public ASTNode clone() {
 		final Statement clone = (Statement)super.clone();
 		if (this.attachments != null) {
-			clone.attachments = new ArrayList<Attachment>(this.attachments);
-			for (int i = 0; i < clone.attachments.size(); i++) {
-				try {
-					final Attachment a = clone.attachments.get(i).clone();
-					if (a instanceof ASTNode) {
-						((ASTNode)a).setParent(this);
-					}
-					clone.attachments.set(i, a);
-				} catch (final CloneNotSupportedException e) {
-					clone.attachments.remove(i);
-					i--;
+			clone.attachments = this.attachments.stream().map(myAttachment -> {
+				final Attachment clonedAttachment = attempt(myAttachment::clone);
+				if (clonedAttachment instanceof ASTNode) {
+					((ASTNode)clonedAttachment).setParent(clone);
 				}
-			}
+				return clonedAttachment;
+			}).filter(x -> x != null).collect(Collectors.toList());
 		}
 		return clone;
 	}
