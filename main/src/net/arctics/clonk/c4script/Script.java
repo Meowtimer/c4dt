@@ -449,11 +449,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					final ID id = d.contentAsID();
 					for (final Index in : contextIndex.relevantIndexes()) {
 						final Definition[] defs = in.definitionsWithID(id);
-						final Definition pick = defs == null
-							? null
-							: (origin == null || origin.resource() == null)
-							? defs[0]
-							: pickNearest(stream(defs), origin.resource(), null);
+						final Definition pick = (
+							defs == null ? null :
+							(origin == null || origin.resource() == null) ? defs[0] :
+							pickNearest(stream(defs), origin.resource(), null)
+						);
 						if (pick != null) {
 							if ((options & GatherIncludesOptions.Recursive) == 0) {
 								set.add(pick);
@@ -1081,7 +1081,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	 */
 	public Map<String, Effect> effects() {
 		requireLoaded();
-		return effects != null ? effects : Collections.<String, Effect>emptyMap();
+		return defaulting(effects, Collections::emptyMap);
 	}
 
 	public Map<String, ProplistDeclaration> proplistDeclarations() {
