@@ -14,8 +14,6 @@ import net.arctics.clonk.c4script.ast.Comment;
  */
 public class CStyleScanner extends BufferedScanner {
 
-	protected Comment lastComment;
-
 	public CStyleScanner(final Object source) { super(source); }
 
 	protected Comment parseComment() {
@@ -25,11 +23,11 @@ public class CStyleScanner extends BufferedScanner {
 		if (a == -1 || b == -1) {
 			this.seek(start);
 			return null;
-		} else if (a == '/' && b == '/') { 
+		} else if (a == '/' && b == '/') {
 			final boolean javadoc = read() == '/' ? true : block(() -> { unread(); return false; });
 			final String commentText = this.readStringUntil(BufferedScanner.NEWLINE_CHARS);
 			return new Comment(commentText, false, javadoc);
-		} else if (a == '/' && b == '*') { 
+		} else if (a == '/' && b == '*') {
 			final boolean javadoc = read() == '*' ? true : block(() -> { unread(); return false; });
 			final int startMultiline = this.offset;
 			while (!this.reachedEOF()) {

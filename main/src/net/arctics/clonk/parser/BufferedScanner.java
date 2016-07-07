@@ -16,14 +16,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import net.arctics.clonk.util.StreamUtil;
-import net.arctics.clonk.util.StringUtil;
-
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.rules.ICharacterScanner;
+
+import net.arctics.clonk.util.StreamUtil;
+import net.arctics.clonk.util.StringUtil;
 
 /**
  * Scanner operating on a string stored in memory. Can be created from a file, an input stream or a raw string
@@ -75,26 +75,32 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	protected byte figureOutIndentation() {
 		Set<BigInteger> leadingWhitespaceCounts = null;
-		for (final String line : StringUtil.lines(new CharArrayReader(buffer)))
-			if (line.length() > 0 && line.charAt(0) == '\t')
+		for (final String line : StringUtil.lines(new CharArrayReader(buffer))) {
+			if (line.length() > 0 && line.charAt(0) == '\t') {
 				// one tab is enough to conclude that
 				return indentationMode = TABINDENTATIONMODE;
-			else {
+			} else {
 				int numWhitespace;
-				for (numWhitespace = 0; numWhitespace < line.length() && line.charAt(numWhitespace) == ' '; numWhitespace++);
+				for (numWhitespace = 0; numWhitespace < line.length() && line.charAt(numWhitespace) == ' '; numWhitespace++) {
+					;
+				}
 				if (numWhitespace > 0) {
-					if (leadingWhitespaceCounts == null)
+					if (leadingWhitespaceCounts == null) {
 						leadingWhitespaceCounts = new HashSet<BigInteger>();
+					}
 					leadingWhitespaceCounts.add(BigInteger.valueOf(numWhitespace));
 				}
 			}
+		}
 		if (leadingWhitespaceCounts != null) {
 			BigInteger gcd = null;
-			for (final BigInteger wc : leadingWhitespaceCounts)
+			for (final BigInteger wc : leadingWhitespaceCounts) {
 				gcd = gcd == null ? wc : wc.gcd(gcd);
+			}
 			return indentationMode = gcd.byteValue();
-		} else
+		} else {
 			return indentationMode = TABINDENTATIONMODE;
+		}
 	}
 
 	/**
@@ -160,8 +166,9 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return the read string
 	 */
 	public final String readString(final int length) {
-		if (offset+length > size)
+		if (offset+length > size) {
 			return null;
+		}
 		final String result = new String(buffer, offset, length);
 		offset += length;
 		return result;
@@ -200,9 +207,9 @@ public class BufferedScanner implements ICharacterScanner {
 			final boolean win = offset == start+1
 				? isWordStart(readByte)
 				: isWordPart(readByte);
-			if (win)
+			if (win) {
 				length++;
-			else {
+			} else {
 				seek(start);
 				return length == 0 ? "" : readString(length);
 			}
@@ -220,11 +227,12 @@ public class BufferedScanner implements ICharacterScanner {
 		int subtract = 0;
 		Outer: do {
 			final int readByte = read();
-			for (int i = 0; i < delimiters.length; i++)
+			for (int i = 0; i < delimiters.length; i++) {
 				if (readByte == delimiters[i]) {
 					subtract = 1;
 					break Outer;
 				}
+			}
 		} while(!reachedEOF());
 		final int stringLength = offset - start - subtract;
 		seek(start);
@@ -236,11 +244,12 @@ public class BufferedScanner implements ICharacterScanner {
 		int len;
 		Outer: for (len = 0; !reachedEOF(); len++) {
 			final int readByte = read();
-			for(int i = 0; i < delimiters.length;i++)
+			for(int i = 0; i < delimiters.length;i++) {
 				if (readByte == delimiters[i]) {
 					subtract = 1;
 					break Outer;
 				}
+			}
 		}
 		seek(this.offset-subtract);
 		return len;
@@ -248,8 +257,9 @@ public class BufferedScanner implements ICharacterScanner {
 
 	public final boolean skipSingleLineEnding() {
 		if (read() == '\r') {
-			if (read() != '\n')
+			if (read() != '\n') {
 				unread();
+			}
 			return true;
 		} else {
 			unread();
@@ -265,18 +275,21 @@ public class BufferedScanner implements ICharacterScanner {
 	public final String readLine() {
 		final int start = offset;
 		final String line = readStringUntil(NEWLINE_CHARS);
-		if (line == null)
+		if (line == null) {
 			return readStringAt(start, offset);
+		}
 		if (read() == '\r') {
-			if (read() != '\n')
+			if (read() != '\n') {
 				unread();
+			}
 			return line;
 		}
 		else {
 			unread();
 			if (read() == '\n') {
-				if (read() != '\r')
+				if (read() != '\r') {
 					unread();
+				}
 				return line;
 			}
 		}
@@ -290,9 +303,11 @@ public class BufferedScanner implements ICharacterScanner {
 	public final void moveUntil(final char[] delimiters) {
 		do {
 			final int readByte = read();
-			for(int i = 0; i < delimiters.length;i++)
-				if (readByte == delimiters[i])
+			for(int i = 0; i < delimiters.length;i++) {
+				if (readByte == delimiters[i]) {
 					return;
+				}
+			}
 		} while(!reachedEOF());
 	}
 
@@ -302,17 +317,20 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	public final int eat(final char[] charsToEat) {
 		if (reachedEOF())
+		 {
 			return 0; // no unreading() when already reached EOF
+		}
 		int result = 0;
 		do {
 			final int readByte = read();
 			boolean doEat = false;
-			for (int i = 0; i < charsToEat.length;i++)
+			for (int i = 0; i < charsToEat.length;i++) {
 				if (readByte == charsToEat[i]) {
 					doEat = true;
 					result++;
 					break;
 				}
+			}
 			if (!doEat) {
 				unread();
 				return result;
@@ -323,17 +341,20 @@ public class BufferedScanner implements ICharacterScanner {
 
 	public final int eatUntil(final char ...delimiters) {
 		if (reachedEOF())
+		 {
 			return 0; // no unreading() when already reached EOF
+		}
 		int result = 0;
 		do {
 			final int readByte = read();
 			boolean isDelimiter = false;
-			for (int i = 0; i < delimiters.length;i++)
+			for (int i = 0; i < delimiters.length;i++) {
 				if (readByte == delimiters[i]) {
 					isDelimiter = true;
 					result++;
 					break;
 				}
+			}
 			if (isDelimiter) {
 				unread();
 				return result;
@@ -358,29 +379,38 @@ public class BufferedScanner implements ICharacterScanner {
 	 * @return The indentation at the specified position.
 	 */
 	public static int indentationOfStringAtPos(final CharSequence s, int pos, final byte indentationMode) {
-		if (pos >= s.length())
+		if (pos >= s.length()) {
 			pos = s.length();
+		}
 		switch (indentationMode) {
 		case TABINDENTATIONMODE:
 			int tabs = 0;
 			for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--)
-				if (pos < s.length() && s.charAt(pos) == '\t')
+			 {
+				if (pos < s.length() && s.charAt(pos) == '\t') {
 					tabs++;
-				else
+				}
+				else {
 					tabs = 0; // don't count tabs not at the start of the line
+				}
+			}
 			return tabs;
 		default:
 			int whitespace = 0;
 			if (indentationMode > 0) {
 				for (--pos; pos >= 0 && !isLineDelimiterChar(s.charAt(pos)); pos--)
-					if (pos < s.length() && s.charAt(pos) == ' ')
+				 {
+					if (pos < s.length() && s.charAt(pos) == ' ') {
 						whitespace++;
-					else
+					}
+					else {
 						whitespace = 0; // don't count tabs not at the start of the line
+					}
+				}
 				return whitespace / indentationMode;
-			}
-			else
+			} else {
 				return 0;
+			}
 		}
 
 	}
@@ -419,7 +449,9 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	public final int move(final int distance) {
 		offset += distance;
-		if (offset >= size) offset = size - 1;
+		if (offset >= size) {
+			offset = size - 1;
+		}
 		return offset;
 	}
 
@@ -447,7 +479,9 @@ public class BufferedScanner implements ICharacterScanner {
 	 */
 	public final String readStringAt(final int start, final int end) {
 		if (start == end)
+		 {
 			return ""; //$NON-NLS-1$
+		}
 		final int p = tell();
 		seek(start);
 		final String result = readString(end-start);
@@ -502,8 +536,12 @@ public class BufferedScanner implements ICharacterScanner {
 
 	public final IRegion regionOfLineContainingRegion(final IRegion regionInLine) {
 		int start, end;
-		for (start = regionInLine.getOffset(); start > 0 && start < this.buffer.length && !isLineDelimiterChar(this.buffer[start-1]); start--);
-		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < this.buffer.length && !isLineDelimiterChar(this.buffer[end]); end++);
+		for (start = regionInLine.getOffset(); start > 0 && start < this.buffer.length && !isLineDelimiterChar(this.buffer[start-1]); start--) {
+			;
+		}
+		for (end = regionInLine.getOffset()+regionInLine.getLength(); end < this.buffer.length && !isLineDelimiterChar(this.buffer[end]); end++) {
+			;
+		}
 		return new Region(start, end-start);
 	}
 
@@ -554,8 +592,9 @@ public class BufferedScanner implements ICharacterScanner {
 	}
 
 	public final void reset(String text) {
-		if (text == null)
+		if (text == null) {
 			text = "";
+		}
 		buffer = text.toCharArray();
 		offset = 0;
 		size = buffer.length;

@@ -363,9 +363,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		for (Comment c; (c = parseComment()) != null;) {
 			sourceComment = c;
 		}
-		if (sourceComment != null)
-		 {
-			script.setSourceComment(sourceComment.text().replaceAll("\\r?\\n", "<br/>")); //$NON-NLS-1$ //$NON-NLS-2$
+		if (sourceComment != null) {
+			script.setSourceComment(sourceComment.text().replaceAll("\\r?\\n", "<br />")); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
 
@@ -444,6 +443,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		return variadicParameter;
 	}
 
+	private Comment lastComment;
+
 	@Override
 	protected Comment parseComment() {
 		final int offset = this.offset;
@@ -472,13 +473,14 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	protected Declaration parseDeclaration() throws ProblemException {
 		final int rewind = this.offset;
+		final Comment comment = collectPrecedingComment(rewind);
 
 		final Declaration directive = parseDirective();
 		if (directive != null) {
 			return directive;
 		}
 
-		final FunctionHeader header = FunctionHeader.parse(this, FunctionHeader.ALLOW_OLD_STYLE);
+		final FunctionHeader header = FunctionHeader.parse(this, comment, FunctionHeader.ALLOW_OLD_STYLE);
 		if (header != null) {
 			if (header.scope == FunctionScope.GLOBAL && script().hasAppendTo()) {
 				error(Problem.GlobalFunctionInAppendTo, header.nameStart, header.nameStart + header.name.length(),
@@ -493,7 +495,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		final String word = readIdent();
 		final Scope scope = word != null ? Variable.Scope.makeScope(word) : null;
 		if (scope != null) {
-			final List<VarInitialization> vars = parseVariableDeclaration(true, scope, collectPrecedingComment(rewind));
+			final List<VarInitialization> vars = parseVariableDeclaration(true, scope, comment);
 			if (vars != null) {
 				for (final VarInitialization vi : vars) {
 					if (vi.expression != null) {
@@ -632,10 +634,9 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		 * @return {@link FunctionHeader} or null if not recognized as one.
 		 * @throws ProblemException
 		 */
-		public static FunctionHeader parse(final ScriptParser parser, int flags) throws ProblemException {
+		public static FunctionHeader parse(final ScriptParser parser, Comment desc, int flags) throws ProblemException {
 			final boolean allowAnonymous = (flags & ALLOW_ANONYMOUS) != 0;
 			final boolean allowOldStyle = (flags & ALLOW_OLD_STYLE) != 0;
-			final Comment desc = parser.collectPrecedingComment(parser.offset);
 			final int initialOffset = parser.offset;
 			int nameStart = parser.offset;
 			boolean isOldStyle = false;
@@ -1058,11 +1059,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			break;
 		}
 		endOfHeader = this.offset;
-		lastComment = null;
 		eatWhitespace();
-		if (lastComment != null) {
-			func.setUserDescription(lastComment.text());
-		}
 
 		// check initial opening bracket which is mandatory for NET2 funcs
 		final int token = read();
@@ -1564,7 +1561,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						if (word.equals(Keywords.Func)) {
 							final int backtrack = this.offset;
 							seek(beforeElement); // function header wants to look at the 'func'
-							final FunctionHeader functionHeader = FunctionHeader.parse(this, FunctionHeader.ALLOW_ANONYMOUS);
+							final FunctionHeader functionHeader = FunctionHeader.parse(this, null, FunctionHeader.ALLOW_ANONYMOUS);
 							final Function function = functionHeader != null
 								? parseFunctionDeclaration(functionHeader, null, AnonymousFunction::new)
 								: null;
@@ -2227,7 +2224,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 			int rewind = this.offset;
 			final Function currentFunction = currentFunction(FunctionHeader.ALLOW_OLD_STYLE);
 			// new oldstyle-func begun
-			if (currentFunction != null && currentFunction.isOldStyle() && FunctionHeader.parse(this, FunctionHeader.ALLOW_OLD_STYLE) != null) {
+			if (currentFunction != null && currentFunction.isOldStyle() && FunctionHeader.parse(this, null, FunctionHeader.ALLOW_OLD_STYLE) != null) {
 				this.seek(rewind);
 				return null;
 			}
