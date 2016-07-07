@@ -19,4 +19,5 @@ public class CallInherited extends CallDeclaration {
 
 	@Override
 	public String name() { return failsafe ? Keywords.SafeInherited : Keywords.Inherited; }
+
 }
