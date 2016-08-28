@@ -1128,8 +1128,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 						commentBuilder.append(parameterCommentPre.text());
 					}
 					if (parameterCommentPost != null) {
-						if (parameterCommentPre != null)
-						 {
+						if (parameterCommentPre != null) {
 							commentBuilder.append("\n"); //$NON-NLS-1$
 						}
 						commentBuilder.append(parameterCommentPost.text());
@@ -2707,11 +2706,7 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 	 */
 	private ID parseID() throws ProblemException {
 		ID id;
-		if (offset < size && (id = specialEngineRules != null ? specialEngineRules.parseID(this) : null) != null) {
-			return id;
-		} else {
-			return null;
-		}
+		return offset < size && (id = specialEngineRules != null ? specialEngineRules.parseID(this) : null) != null ? id : null;
 	}
 
 	/**
