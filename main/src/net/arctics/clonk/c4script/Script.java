@@ -1492,16 +1492,16 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return decs.toArray(new ASTNode[decs.size()]);
 	}
 
+	@SuppressWarnings("unchecked")
+	static final Class<? extends ASTNode>[] categoryClasses = new Class[] { Function.class, Variable.class, Directive.class };
+
 	private static Class<? extends ASTNode> categoryClass(ASTNode node) {
-		if (node instanceof Function) {
-			return Function.class;
-		} else if (node instanceof Variable) {
-			return Variable.class;
-		} else if (node instanceof Directive) {
-			return Directive.class;
-		} else {
-			return node.getClass();
+		for (final Class<? extends ASTNode> c : categoryClasses) {
+			if (c.isInstance(node)) {
+				return c;
+			}
 		}
+		return node.getClass();
 	}
 
 	private static boolean inRegularFunction(ASTNode node) {
@@ -1547,4 +1547,5 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 		return null;
 	}
+
 }
