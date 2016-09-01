@@ -42,8 +42,9 @@ public class Standalone {
 			if (result == null || result instanceof Variables) {
 				seek(saved);
 				return attempt(() -> parseStandaloneStatement(function), ProblemException.class, e -> {});
-			} else
+			} else {
 				return result;
+			}
 		}
 	}
 
@@ -65,14 +66,16 @@ public class Standalone {
 		Typing typing = null;
 		final HashSet<Index> indices = new HashSet<>();
 		for (final Structure s : scripts) {
-			if (engine == null)
+			if (engine == null) {
 				engine = s.engine();
-			else if (s.engine() != null && engine != s.engine())
+			} else if (s.engine() != null && engine != s.engine()) {
 				throw new IllegalArgumentException("Structures from different engines");
-			if (typing == null)
+			}
+			if (typing == null) {
 				typing = s.typing();
-			else if (typing != s.typing())
+			} else if (typing != s.typing()) {
 				throw new IllegalArgumentException("Structures have different typing modes");
+			}
 			indices.addAll(s.index().relevantIndexes());
 		}
 		this.engine = engine;
@@ -123,8 +126,9 @@ public class Standalone {
 		final Parser tempParser = function != null ? parser(source, function) : parser(source);
 		tempParser.markers().setListener(markerListener);
 		final ASTNode result = tempParser.parseNode();
-		if (visitor != null && result != null)
+		if (visitor != null && result != null) {
 			result.traverse(visitor, context);
+		}
 		return result;
 	}
 
