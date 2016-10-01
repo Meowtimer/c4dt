@@ -3,7 +3,6 @@ package net.arctics.clonk.index;
 import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.Utilities.attempt;
-import static net.arctics.clonk.util.Utilities.attemptWithResource;
 import static net.arctics.clonk.util.Utilities.voidResult;
 
 import java.io.FileNotFoundException;
@@ -196,10 +195,10 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 	 */
 	@Override
 	public Engine engine() { return this; }
-	
+
 	@Override
 	public IFile source() { return null; }
-	
+
 	public Scenario templateScenario() { return templateScenario; }
 
 	@Override
@@ -307,9 +306,12 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 			return;
 		}
 		prefetchDocumentation(xmlFiles.stream().map(xmlFile -> {
-			final Boolean isConst = attemptWithResource(xmlFile::openStream,
-				s -> attemptWithResource(() -> new InputStreamReader(s), r -> {
-					for (final String l : StringUtil.lines(r)) {
+			final Boolean isConst = attempt(() -> {
+				try (
+					InputStream stream = xmlFile.openStream();
+					InputStreamReader reader = new InputStreamReader(stream)
+				) {
+					for (final String l : StringUtil.lines(reader)) {
 						if (l.contains("<const>")) {
 							return true;
 						} else if (l.contains("<func>")) {
@@ -317,9 +319,8 @@ public class Engine extends Script implements IndexEntity.TopLevelEntity {
 						}
 					}
 					return false;
-				}, IOException.class, Exception::printStackTrace),
-				Exception.class, Exception::printStackTrace
-			);
+				}
+			});
 			if (isConst == null) {
 				return null;
 			}
