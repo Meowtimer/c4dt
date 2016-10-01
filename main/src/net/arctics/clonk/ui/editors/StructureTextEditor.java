@@ -165,7 +165,9 @@ public class StructureTextEditor extends TextEditor {
 			final IEditorInput input = structure.makeEditorInput();
 			if (input != null) {
 				try {
-					final IEditorDescriptor descriptor = input instanceof IFileEditorInput ? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile()) : null;
+					final IEditorDescriptor descriptor = input instanceof IFileEditorInput
+						? IDE.getEditorDescriptor(((IFileEditorInput)input).getFile(), true, true)
+						: null;
 					if (descriptor != null) {
 						final IEditorPart editor = IDE.openEditor(workbenchPage, input, descriptor.getId(), activate);
 						revealInEditor(target, structure, editor);
@@ -210,7 +212,7 @@ public class StructureTextEditor extends TextEditor {
 		try {
 			IEditorPart ed = null;
 			if (location.resource() instanceof IFile) {
-				final IEditorDescriptor descriptor = IDE.getEditorDescriptor((IFile) location.resource());
+				final IEditorDescriptor descriptor = IDE.getEditorDescriptor((IFile) location.resource(), true, true);
 				ed = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), (IFile) location.resource(), descriptor.getId());
 			}
 			else if (location.resource() instanceof IContainer) {
