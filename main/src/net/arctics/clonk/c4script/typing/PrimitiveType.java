@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.arctics.clonk.Core;
+import net.arctics.clonk.c4script.Keywords;
 import net.arctics.clonk.index.ID;
 import net.arctics.clonk.index.IDeserializationResolvable;
 import net.arctics.clonk.index.Index;
@@ -127,6 +128,7 @@ public enum PrimitiveType implements IType {
 			map.put(t.scriptName, t);
 		}
 		map.put("def", ID);
+		map.put(Keywords.Func, FUNCTION);
 		REGULAR_MAP = Collections.unmodifiableMap(map);
 	}
 
