@@ -36,6 +36,7 @@ import net.arctics.clonk.ui.navigator.ClonkOutlineProvider;
 import net.arctics.clonk.ui.navigator.WeakReferencingContentProvider;
 import net.arctics.clonk.util.StringUtil;
 
+@SuppressWarnings("deprecation")
 public class StructureOutlinePage extends ContentOutlinePage {
 
 	private Composite composite;

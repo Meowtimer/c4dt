@@ -15,17 +15,18 @@ import net.arctics.clonk.builder.ClonkProjectNature;
 import net.arctics.clonk.c4group.FileExtension;
 import net.arctics.clonk.index.Engine;
 
+@SuppressWarnings("deprecation")
 public class ClonkSorter extends ViewerSorter {
 
 	private transient IProject cachedProject;
 	private transient Engine cachedEngine;
 	private transient Map<String, Integer> colorTagToCategory = new HashMap<String, Integer>();
-	
-	final static private String[] sortPriorities = new String[] {".c", ".txt", ".bmp", ".png" , ".wav", ".pal"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ 
+
+	final static private String[] sortPriorities = new String[] {".c", ".txt", ".bmp", ".png" , ".wav", ".pal"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
 	final static private FileExtension[] groupSortOrder = new FileExtension[] {
 		FileExtension.FolderGroup, FileExtension.ScenarioGroup, FileExtension.DefinitionGroup, FileExtension.ResourceGroup
 	};
-	
+
 	public ClonkSorter() {
 		super();
 	}
@@ -33,7 +34,7 @@ public class ClonkSorter extends ViewerSorter {
 	public ClonkSorter(final Collator collator) {
 		super(collator);
 	}
-	
+
 	private int getSortPriorityIgnoringTags(final IResource resource) {
 		if (!resource.getProject().equals(cachedProject)) {
 			cachedProject = resource.getProject();
@@ -54,7 +55,7 @@ public class ClonkSorter extends ViewerSorter {
 		}
 		return sortPriorities.length+1;
 	}
-	
+
 	private synchronized int getSortPriority(final IResource resource) {
 		final int simplePriority = getSortPriorityIgnoringTags(resource);
 		String relatedTag;
@@ -75,7 +76,7 @@ public class ClonkSorter extends ViewerSorter {
 		}
 		return tagCateg * (groupSortOrder.length+sortPriorities.length) + simplePriority;
 	}
-	
+
 	@Override
 	public int category(final Object element) {
 		if (element instanceof Declaration) {
@@ -86,7 +87,7 @@ public class ClonkSorter extends ViewerSorter {
 			return 0;
 		}
 	}
-	
+
 	@Override
 	public int compare(final Viewer viewer, final Object e1, final Object e2) {
 		return super.compare(viewer, e1, e2);
