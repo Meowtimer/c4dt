@@ -4,6 +4,10 @@ import static java.util.Arrays.stream;
 import static net.arctics.clonk.util.StreamUtil.stringFromInputStream;
 import static net.arctics.clonk.util.StringUtil.blockString;
 import static net.arctics.clonk.util.Utilities.attempt;
+
+import org.eclipse.core.runtime.CoreException;
+import org.junit.Test;
+
 import net.arctics.clonk.DefinitionInfo;
 import net.arctics.clonk.ProblemException;
 import net.arctics.clonk.TestBase;
@@ -20,13 +24,11 @@ import net.arctics.clonk.c4script.ast.UnaryOp.Placement;
 import net.arctics.clonk.c4script.ast.WhileStatement;
 import net.arctics.clonk.parser.Markers;
 
-import org.eclipse.core.runtime.CoreException;
-import org.junit.Test;
-
 public class FunctionFragmentParserTest extends TestBase {
 	@Test
 	public void testUpdate() {
 
+		@SuppressWarnings("unused")
 		final Block ast = new Block(
 			new SimpleStatement(new CallDeclaration("Log", new StringLiteral("There are many bodies, but this one's mine"))),
 			new WhileStatement(
@@ -51,6 +53,7 @@ public class FunctionFragmentParserTest extends TestBase {
 
 		final Function func = setup.script.findLocalFunction("Func", false);
 
+		@SuppressWarnings("unused")
 		final FunctionFragmentParser parser = new FunctionFragmentParser(
 			documentMock(attempt(() -> stringFromInputStream(setup.script.source().getContents()), CoreException.class, Exception::printStackTrace)),
 			setup.script, func, new Markers()
