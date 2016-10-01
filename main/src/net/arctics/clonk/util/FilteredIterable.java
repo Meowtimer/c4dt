@@ -31,12 +31,12 @@ public class FilteredIterable<T, B> implements Iterable<T> {
 	protected boolean stillValid(final B item) {
 		return true;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected T map(final B original) {
 		return cls.isAssignableFrom(original.getClass()) ? (T) original : null;
 	}
-	
+
 	@Override
 	public Iterator<T> iterator() {
 		return new Iterator<T>() {
@@ -45,9 +45,9 @@ public class FilteredIterable<T, B> implements Iterable<T> {
 			private T next;
 			@Override
 			public boolean hasNext() {
-				if (calledHasNext)
+				if (calledHasNext) {
 					return next != null;
-				else {
+				} else {
 					calledHasNext = true;
 					while (baseIterator.hasNext()) {
 						final B n = baseIterator.next();
@@ -56,8 +56,9 @@ public class FilteredIterable<T, B> implements Iterable<T> {
 							next = mapped;
 							return true;
 						} else // not deemed valid? remove!
-						if (callRemove)
+						if (callRemove) {
 							baseIterator.remove();
+						}
 					}
 					next = null;
 					return false;

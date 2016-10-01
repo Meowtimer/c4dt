@@ -29,10 +29,11 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 	public URL locatorForEntry(final String entryName, final boolean create) {
 		try {
 			final File file = fileForEntry(entryName);
-			if (file == null)
+			if (file == null) {
 				return null;
+			}
 			try {
-				if (create)
+				if (create) {
 					try {
 						file.getParentFile().mkdirs();
 						file.createNewFile();
@@ -40,6 +41,7 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 						e.printStackTrace();
 						return null;
 					}
+				}
 				return file.exists() ? file.toURI().toURL() : null;
 			} catch (final MalformedURLException e) {
 				e.printStackTrace();
@@ -73,16 +75,18 @@ public abstract class FolderStorageLocation implements IStorageLocation {
 			} catch (final MalformedURLException e) {
 				e.printStackTrace();
 			}
-			if (recurse && f.isDirectory())
+			if (recurse && f.isDirectory()) {
 				addFilesFrom(f, containerPath, list, true);
+			}
 		}
 	}
 
 	@Override
 	public void collectURLsOfContainer(String containerPath, final boolean recurse, final List<URL> listToAddTo) {
 		final File folder = fileForEntry(containerPath);
-		if (folder == null || !folder.exists())
+		if (folder == null || !folder.exists()) {
 			return;
+		}
 		containerPath = name() + "/" + containerPath;
 		addFilesFrom(folder, containerPath, listToAddTo, recurse);
 	}

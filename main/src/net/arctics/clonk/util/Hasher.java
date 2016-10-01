@@ -1,7 +1,7 @@
 package net.arctics.clonk.util;
 
 public final class Hasher {
-	
+
 	int result = 17;
 
 	public Hasher in(int c) {
