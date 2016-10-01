@@ -124,12 +124,14 @@
 	</extension>
 
 	<extension point="org.eclipse.ui.navigator.navigatorContent">
-		<navigatorContent name="%ClonkResources_Name"
-			priority="high" icon="icons/Clonk_Object.ico" activeByDefault="true"
+		<navigatorContent name="%ClonkResources_Name" id="net.arctics.clonk.navigator.resourceContent"
+			priority="high"
+			icon="icons/Clonk_Object.ico"
+			activeByDefault="true"
 			contentProvider="net.arctics.clonk.ui.navigator.ClonkNavigator"
 			labelProvider="net.arctics.clonk.ui.navigator.ClonkLabelProvider"
 			providesSaveables="false"
-			id="net.arctics.clonk.navigator.resourceContent">
+		>
 			
 			<!--
 			<override
