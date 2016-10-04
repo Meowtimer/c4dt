@@ -1123,7 +1123,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		final List<Object> all = new LinkedList<Object>();
 		for (final Script c : conglomerate()) {
-			for (final Declaration sd : c.subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|(c==this?DeclMask.DIRECTIVES:0))) {
+			for (final Declaration sd : c.subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|(c == this ? DeclMask.DIRECTIVES : 0))) {
 				if (sd instanceof SynthesizedFunction) {
 					continue;
 				}

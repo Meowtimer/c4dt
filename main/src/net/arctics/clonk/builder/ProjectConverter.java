@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.eclipse.core.resources.IContainer;
@@ -206,11 +205,9 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 												break;
 											}
 											return new Variable(Scope.VAR, n, v);
-										})
-										.collect(Collectors.toList())
+										}).toArray(length -> new Variable[length])
 								))
-							))
-							.collect(Collectors.toList())
+							)).toArray(length -> new Variable[length])
 						);
 						descs.forEach(d -> d.second().parent().removeSubElement(d.second()));
 						script.addDeclaration(new Variable(Scope.LOCAL, "FunctionDescriptions", new PropListExpression(dec)));
@@ -250,7 +247,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 			public Engine engine() { return ProjectConverter.this.destinationProject.index().engine(); }
 		};
 	}
-	
+
 	public static IPath convertPath(Engine sourceEngine, Engine targetEngine, final IPath path) {
 		IPath result = new Path("");
 		for (int i = 0; i < path.segmentCount(); i++) {
@@ -263,7 +260,7 @@ public class ProjectConverter implements IResourceVisitor, Runnable {
 		}
 		return result;
 	}
-	
+
 	@Override
 	public void run() {
 		try {

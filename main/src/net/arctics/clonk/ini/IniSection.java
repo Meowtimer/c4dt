@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.arctics.clonk.Core;
@@ -258,6 +257,7 @@ public class IniSection
 			}
 		}
 	}
+
 	@Override
 	public Declaration findLocalDeclaration(String declarationName, Class<? extends Declaration> declarationClass) {
 		return as(map.get(declarationName), declarationClass);
@@ -279,8 +279,9 @@ public class IniSection
 			}
 		}
 		return new ProplistDeclaration(
-			ls.map(i -> new Variable(Variable.Scope.VAR, proplistKey(unit, i), i.toExpression())
-		).collect(Collectors.toList()));
+			ls.map(i -> new Variable(Variable.Scope.VAR, proplistKey(unit, i), i.toExpression()))
+				.toArray(length -> new Variable[length])
+		);
 	}
 
 	private String proplistKey(IniUnit unit, IniItem i) {
@@ -288,4 +289,5 @@ public class IniSection
 		final IniEntry nameEntry = s != null && unit != null ? as(s.item(unit.nameEntryName(s)), IniEntry.class) : null;
 		return nameEntry != null ? nameEntry.value().toString() : i.key();
 	}
+
 }

@@ -2,7 +2,6 @@ package net.arctics.clonk.c4script.effect;
 
 import static net.arctics.clonk.util.Utilities.isAnyOf;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +30,6 @@ public class Effect extends ProplistDeclaration {
 	);
 
 	public Effect(final String name, final Iterable<EffectFunction> functions) {
-		super(new ArrayList<Variable>(5));
 		setName(name);
 		functions.forEach(this::addFunction);
 		for (final Map.Entry<String, IType> engineDefinedProperty : engineDefinedProperties.entrySet()) {

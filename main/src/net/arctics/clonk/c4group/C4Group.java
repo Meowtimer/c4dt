@@ -34,7 +34,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.util.DispatchCase;
@@ -529,7 +529,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				monitor.beginTask("", opWork); //$NON-NLS-1$
 				monitor.subTask(Messages.C4Group_Copying);
 				// create directory
-				destination.mkdir(EFS.NONE, new SubProgressMonitor(monitor, 1));
+				destination.mkdir(EFS.NONE, SubMonitor.convert(monitor, 1));
 				// don't copy attributes since that is stupid
 				//transferAttributes(sourceInfo, destination);
 
@@ -538,7 +538,7 @@ public class C4Group extends C4GroupItem implements Serializable, ITreeNode {
 				}
 				// copy children
 				for (final IFileStore element : children) {
-					element.copy(destination.getChild(element.getName()), options, new SubProgressMonitor(monitor, 1));
+					element.copy(destination.getChild(element.getName()), options, SubMonitor.convert(monitor, 1));
 				}
 			} finally {
 				monitor.done();

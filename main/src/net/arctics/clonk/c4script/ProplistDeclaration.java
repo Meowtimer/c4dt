@@ -1,5 +1,7 @@
 package net.arctics.clonk.c4script;
 
+import static java.util.Arrays.stream;
+import static net.arctics.clonk.util.ArrayUtil.concat;
 import static net.arctics.clonk.util.ArrayUtil.iterable;
 import static net.arctics.clonk.util.Utilities.as;
 
@@ -8,10 +10,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import net.arctics.clonk.Core;
 import net.arctics.clonk.ast.DeclMask;
@@ -31,40 +31,40 @@ import net.arctics.clonk.util.StringUtil;
 public class ProplistDeclaration extends Structure implements IRefinedPrimitiveType, IHasIncludes<ProplistDeclaration>, Cloneable, IProplistDeclaration {
 
 	private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
-	protected final List<Variable> components;
-	protected List<Variable> added;
+
+	protected Variable[] components = NO_VARIABLES;
+	protected Variable[] added = NO_VARIABLES;
+
 	protected ProplistDeclaration prototype;
+
+	static final Variable[] NO_VARIABLES = new Variable[0];
 
 	/**
 	 * Create a new ProplistDeclaration, passing it component variables it takes over directly. The list won't be copied.
 	 * @param components The component variables
 	 */
-	public ProplistDeclaration(final List<Variable> components) { this.components = components; }
-	
-	public ProplistDeclaration(final String name) { this(new LinkedList<Variable>()); setName(name); }
+	public ProplistDeclaration(Variable[] components) { this.components = components; }
+
+	/** Create initially empty proplist */
+	public ProplistDeclaration() { }
+
+	public ProplistDeclaration(final String name) { this(NO_VARIABLES); setName(name); }
 
 	/* (non-Javadoc)
 	 * @see net.arctics.clonk.parser.c4script.IProplistDeclaration#addComponent(net.arctics.clonk.parser.c4script.Variable)
 	 */
 	@Override
-	public Variable addComponent(final Variable variable, final boolean adhoc) {
+	public synchronized Variable addComponent(final Variable variable, final boolean adhoc) {
 		final Variable found = findComponent(variable.name());
 		if (found != null) {
 			return found;
 		} else {
-			List<Variable> list;
-			if (adhoc) {
-				synchronized (components) {
-					if (added == null) {
-						added = new ArrayList<Variable>(5);
-					}
-					list = added;
-				}
-			} else {
-				list = components;
-			}
 			variable.setParent(this);
-			synchronized (components) { list.add(variable); }
+			if (adhoc) {
+				added = concat(added, variable);
+			} else {
+				components = concat(components, variable);
+			}
 			return variable;
 		}
 	}
@@ -76,28 +76,22 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 		if (!recursionPrevention.add(this)) {
 			return null;
 		}
-		synchronized (components) {
-			for (final Variable v : components) {
-				if (v.name().equals(declarationName)) {
-					return v;
-				}
+		for (final Variable v : components) {
+			if (v.name().equals(declarationName)) {
+				return v;
 			}
-			if (added != null) {
-				for (final Variable v : added) {
-					if (v.name().equals(declarationName)) {
-						return v;
-					}
-				}
+		}
+		for (final Variable v : added) {
+			if (v.name().equals(declarationName)) {
+				return v;
 			}
 		}
 		final IProplistDeclaration proto = prototype();
-		if (proto instanceof ProplistDeclaration) {
-			return ((ProplistDeclaration)proto).findComponent(declarationName, recursionPrevention);
-		} else if (proto != null) {
-			return proto.findComponent(declarationName);
-		} else {
-			return null;
-		}
+		return (
+			proto instanceof ProplistDeclaration ? ((ProplistDeclaration)proto).findComponent(declarationName, recursionPrevention) :
+			proto != null ? proto.findComponent(declarationName) :
+			null
+		);
 	}
 
 	/* (non-Javadoc)
@@ -110,18 +104,14 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	@Override
 	public Declaration findLocalDeclaration(final String declarationName, final Class<? extends Declaration> declarationClass) {
-		synchronized (components) {
-			for (final Variable v : components) {
-				if (v.name().equals(declarationName)) {
-					return v;
-				}
+		for (final Variable v : components) {
+			if (v.name().equals(declarationName)) {
+				return v;
 			}
-			if (added != null) {
-				for (final Variable v : added) {
-					if (v.name().equals(declarationName)) {
-						return v;
-					}
-				}
+		}
+		for (final Variable v : added) {
+			if (v.name().equals(declarationName)) {
+				return v;
 			}
 		}
 		return null;
@@ -130,11 +120,9 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	@Override
 	public List<? extends Declaration> subDeclarations(final Index contextIndex, final int mask) {
 		if ((mask & DeclMask.VARIABLES) != 0) {
-			final ArrayList<Variable> items = new ArrayList<>(components.size()+(added != null ? added.size() : 0));
-			items.addAll(components);
-			if (added != null) {
-				items.addAll(added);
-			}
+			final ArrayList<Variable> items = new ArrayList<>(components.length + added.length);
+			Collections.addAll(items, components);
+			Collections.addAll(items,  added);
 			return items;
 		} else {
 			return Collections.emptyList();
@@ -237,7 +225,7 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 	@Override
 	public ProplistDeclaration clone() {
 		final ProplistDeclaration clone = new ProplistDeclaration(
-			components.stream().map(Variable::clone).collect(Collectors.toList())
+			stream(components).map(Variable::clone).toArray(length -> new Variable[length])
 		);
 		clone.setLocation(this);
 		return clone;
@@ -245,13 +233,13 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	@Override
 	public String toString() {
-		return StringUtil.writeBlock(null, "{", "}", ", ", components.stream()).toString();
+		return StringUtil.writeBlock(null, "{", "}", ", ", stream(components)).toString();
 	}
 
 	/**
 	 * Set {@link #implicitPrototype()} and return this declaration.
 	 * @param prototypeExpression The implicit prototype to set
-	 * @return 
+	 * @return
 	 * @return This one.
 	 */
 	public ProplistDeclaration setPrototype(final ProplistDeclaration prototype) {
@@ -261,20 +249,16 @@ public class ProplistDeclaration extends Structure implements IRefinedPrimitiveT
 
 	@Override
 	public Collection<Variable> components(final boolean includeAdhocComponents) {
-		synchronized(components) {
-			final ArrayList<Variable> list = new ArrayList<Variable>(components.size()+(includeAdhocComponents&&added!=null?added.size():0));
-			list.addAll(components);
-			if (includeAdhocComponents && added != null) {
-				list.addAll(added);
-			}
-			return list;
+		final ArrayList<Variable> list = new ArrayList<Variable>(components.length + (includeAdhocComponents ? added.length : 0));
+		Collections.addAll(list, components);
+		if (includeAdhocComponents) {
+			Collections.addAll(list, added);
 		}
+		return list;
 	}
 
 	public int numComponents(final boolean includeAdhocComponents) {
-		synchronized(components) {
-			return components.size() + (includeAdhocComponents && added != null ? added.size() : 0);
-		}
+		return components.length + (includeAdhocComponents ? added.length : 0);
 	}
 
 	@Override

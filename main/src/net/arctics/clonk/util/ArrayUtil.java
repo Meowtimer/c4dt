@@ -397,13 +397,14 @@ public class ArrayUtil {
 	}
 
 	public static <T> Sink<? super T> collectionSink(final Collection<? super T> collection) {
-		return item -> collection.add(item);
+		return collection::add;
 	}
 
 	public static <T> boolean same(T[] a, T[] b, BiFunction<T, T, Boolean> comp) {
-		return
+		return (
 			a.length == b.length &&
-			IntStream.range(0, a.length).allMatch(x -> comp.apply(a[x], b[x]));
+			IntStream.range(0, a.length).allMatch(x -> comp.apply(a[x], b[x]))
+		);
 	}
 
 	@SuppressWarnings("unchecked")
