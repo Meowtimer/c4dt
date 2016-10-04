@@ -74,6 +74,10 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
 
+		public final IType[] parameterTypes;
+		public final IType returnType;
+		public final IType[] nodeTypes;
+
 		public Typing(final IType[] parameterTypes, final IType returnType, final IType[] nodeTypes) {
 			super();
 			this.parameterTypes = parameterTypes;
@@ -81,15 +85,11 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			this.nodeTypes = nodeTypes;
 		}
 
-		public final IType[] parameterTypes;
 
 		public final IType parameterType(final Variable parameter) {
 			final int ndx = parameter.parameterIndex();
 			return parameterTypes != null && ndx < parameterTypes.length ? parameterTypes[ndx] : parameter.type();
 		}
-
-		public final IType returnType;
-		public final IType[] nodeTypes;
 
 		public void printNodeTypes(final Function containing) {
 			System.out.println("===================== This is " + containing.qualifiedName() + "=====================");
@@ -435,8 +435,7 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 			string.append("("); //$NON-NLS-1$
 		}
 		printParametersString(new AppendableBackedNodePrinter(string), options);
-		if (options.functionName)
-		 {
+		if (options.functionName) {
 			string.append(")"); //$NON-NLS-1$
 		}
 		return string.toString();
@@ -1052,5 +1051,17 @@ public class Function extends Structure implements Serializable, ITypeable, IHas
 
 	@Override
 	public int identifierStart() { return nameStart(); }
+
+	@Override
+	public String toString() {
+		final FunctionBody body = this.body;
+		return isAnonymous()
+			? String.format("%s (%s) %s",
+				Keywords.Func,
+				this.parameterString(new PrintParametersOptions(null, false, true, false)),
+				body != null ? body.toString() : "{ ... }"
+			)
+			: super.toString();
+	}
 
 }
