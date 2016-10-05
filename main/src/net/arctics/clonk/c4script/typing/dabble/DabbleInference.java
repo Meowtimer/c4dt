@@ -258,15 +258,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 	}
 
 	static class ParameterValidation {
+
 		final Function called;
 		final CallDeclaration node;
 		final Visitor visitor;
+
 		public ParameterValidation(final Visitor visitor, final CallDeclaration node, final Function called) {
 			super();
 			this.visitor = visitor;
 			this.node = node;
 			this.called = called;
 		}
+
 		void validateTypes() {
 			final ASTNode[] params = node.params();
 			final Script script = visitor.script();
@@ -301,6 +304,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				validateParameterCount();
 			}
 		}
+
 		private void validateParameterCount() {
 			final ASTNode[] params = node.params();
 			final Script script = visitor.script();
@@ -313,8 +317,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 				} catch (final ProblemException e) {}
 			}
 		}
+
 		@Override
 		public String toString() { return node.printed(); }
+
 	}
 
 	final List<ParameterValidation> parameterValidations = Collections.synchronizedList(new LinkedList<ParameterValidation>());
@@ -671,8 +677,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 				final Function function = visit.function();
 				final Script funScript = function.script();
-				if (DEBUG)
-				 {
+				if (DEBUG) {
 					log("Visiting %s", function.qualifiedName(script())); //$NON-NLS-1$
 				}
 				final boolean ownedFunction = funScript == script();
@@ -1847,6 +1852,32 @@ public class DabbleInference extends ProblemReportingStrategy {
 			}
 		}
 
+		abstract class PropListExpert<T extends ASTNode> extends Expert<T> {
+
+			public PropListExpert(Class<T> cls) {
+				super(cls);
+			}
+
+			protected void checkSupported(Visitor visitor, ASTNode proplistNode) throws ProblemException {
+				if (!visitor.script().engine().settings().supportsProplists) {
+					visitor.markers().nonThrowingErrorAtNode(visitor, Problem.NotSupported, proplistNode,
+						"",
+						visitor.script().engine().name()
+					);
+				}
+			}
+
+			protected void judgeComponents(Visitor visitor, ProplistDeclaration declaration) throws ProblemException {
+				for (final Variable v : declaration.components(false)) {
+					if (v.initializationExpression() != null) {
+						visitor.visit(v.initializationExpression(), true);
+						visitor.judgement(new TempAccessVar(v, declaration), visitor.ty(v.initializationExpression()), TypingJudgementMode.UNIFY);
+					}
+				}
+			}
+
+		}
+
 		final Expert<?>[] classes = new Expert[] {
 
 			new AccessDeclarationExpert<AccessDeclaration>(AccessDeclaration.class),
@@ -2006,6 +2037,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<BinaryOp>(BinaryOp.class) {
+
 				@Override
 				public IType type(final BinaryOp node, final Visitor visitor) {
 					switch (node.operator()) {
@@ -2024,8 +2056,10 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return supr.type(node, visitor);
 					}
 				}
+
 				@Override
 				public boolean skipReportingProblemsForSubElements() { return true; }
+
 				@Override
 				public void visit(final BinaryOp node, final Visitor visitor) throws ProblemException {
 					final Operator op = node.operator();
@@ -2078,6 +2112,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						visitor.judgement(right, expectedRight, TypingJudgementMode.UNIFY);
 					}
 				}
+
 				private void detectProblems(final BinaryOp node, final Visitor visitor, final Operator op, final ASTNode left, final ASTNode right) throws ProblemException {
 					// i'm an assignment operator and i can't modify my left side :C
 					if (op.modifiesArgument() && !visitor.expert(left).isModifiable(left, visitor)) {
@@ -2103,6 +2138,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					return super.createTypeVariable(node, visitor);
 				}
+
 				@Override
 				public Declaration typeEnvironmentKey(final BinaryOp node, final Visitor visitor) {
 					final ASTNode leftSide = node.leftSide();
@@ -2112,13 +2148,17 @@ public class DabbleInference extends ProblemReportingStrategy {
 						return null;
 					}
 				}
+
 				@Override
 				public boolean isModifiable(final BinaryOp node, final Visitor visitor) { return node.operator().returnsRef(); }
+
 			},
 
 			new Expert<UnaryOp>(UnaryOp.class) {
+
 				@Override
 				public IType type(final UnaryOp node, final Visitor visitor) { return node.operator().returnType(); }
+
 				@Override
 				public void visit(final UnaryOp node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
@@ -2135,13 +2175,16 @@ public class DabbleInference extends ProblemReportingStrategy {
 						xprt.judgement(arg, firstArgType, node, visitor, TypingJudgementMode.UNIFY);
 					}
 				}
+
 				@Override
 				public boolean isModifiable(final UnaryOp node, final Visitor visitor) {
 					return node.placement() == Placement.Prefix && node.operator().returnsRef();
 				}
+
 			},
 
 			new Expert<ContinueStatement>(ContinueStatement.class) {
+
 				@Override
 				public void visit(final ContinueStatement node, final Visitor visitor) throws ProblemException {
 					if (node.parent(ILoop.class) == null) {
@@ -2152,6 +2195,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 			},
 
 			new Expert<BreakStatement>(BreakStatement.class) {
+
 				@Override
 				public void visit(final BreakStatement node, final Visitor visitor) throws ProblemException {
 					if (node.parent(ILoop.class) == null) {
@@ -2159,9 +2203,11 @@ public class DabbleInference extends ProblemReportingStrategy {
 					}
 					supr.visit(node, visitor);
 				}
+
 			},
 
 			new Expert<ReturnStatement>(ReturnStatement.class) {
+
 				private void warnAboutTupleInReturnExpr(final Visitor visitor, final ASTNode node, final boolean tupleIsError) throws ProblemException {
 					if (node == null) {
 						return;
@@ -2178,6 +2224,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 						warnAboutTupleInReturnExpr(visitor, e, true);
 					}
 				}
+
 				@Override
 				public void visit(final ReturnStatement node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
@@ -2199,17 +2246,21 @@ public class DabbleInference extends ProblemReportingStrategy {
 						}
 					}
 				}
+
 				@Override
 				public TypeVariable createTypeVariable(final ReturnStatement node, final Visitor visitor) {
 					return new FunctionReturnTypeVariable(node.parent(Function.class));
 				}
+
 				@Override
 				public Declaration typeEnvironmentKey(final ReturnStatement node, final Visitor visitor) {
 					return node.parent(Function.class);
 				}
+
 			},
 
 			new AccessDeclarationExpert<CallDeclaration>(CallDeclaration.class) {
+
 				/**
 				 * Find a {@link Function} for some hypothetical {@link CallDeclaration}, using contextual information such as the {@link ASTNode#type(ProblemReporter)} of the {@link ASTNode} preceding this {@link CallDeclaration} in the {@link Sequence}.
 				 * @param input Context to use for searching
@@ -2840,7 +2891,7 @@ public class DabbleInference extends ProblemReportingStrategy {
 				}
 			},
 
-			new Expert<PropListExpression>(PropListExpression.class) {
+			new PropListExpert<PropListExpression>(PropListExpression.class) {
 
 				@Override
 				public IType type(final PropListExpression node, final Visitor visitor) {
@@ -2853,18 +2904,8 @@ public class DabbleInference extends ProblemReportingStrategy {
 				@Override
 				public void visit(final PropListExpression node, final Visitor visitor) throws ProblemException {
 					supr.visit(node, visitor);
-					if (!visitor.script().engine().settings().supportsProplists) {
-						visitor.markers().nonThrowingErrorAtNode(visitor, Problem.NotSupported, node,
-							"",
-							visitor.script().engine().name());
-					}
-
-					for (final Variable v : node.components()) {
-						if (v.initializationExpression() != null) {
-							visitor.visit(v.initializationExpression(), true);
-							visitor.judgement(new TempAccessVar(v, node), visitor.ty(v.initializationExpression()), TypingJudgementMode.UNIFY);
-						}
-					}
+					checkSupported(visitor, node);
+					judgeComponents(visitor, node.definedDeclaration());
 				}
 
 				@Override
@@ -3099,11 +3140,18 @@ public class DabbleInference extends ProblemReportingStrategy {
 
 			new ConditionalStatementExpert<WhileStatement>(WhileStatement.class),
 
-			new Expert<NewProplist>(NewProplist.class) {
+			new PropListExpert<NewProplist>(NewProplist.class) {
 
 				@Override
 				public void visit(final NewProplist node, final Visitor visitor) throws ProblemException {
 					node.definedDeclaration().setPrototype(as(visitor.ty(node.prototype()), ProplistDeclaration.class));
+					checkSupported(visitor, node);
+					judgeComponents(visitor, node.definedDeclaration());
+				}
+
+				@Override
+				public boolean skipReportingProblemsForSubElements() {
+					return true;
 				}
 
 				@Override
