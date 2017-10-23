@@ -603,7 +603,8 @@ public class ScriptParser extends CStyleScanner implements IASTPositionProvider,
 		 * @param typeAnnotation Type annotation. Mostly null for regular dynamically typed C4Script functions.
 		 * @param description Description extracted from preceding comment.
 		 */
-		public FunctionHeader(final int start,
+		public FunctionHeader(
+			final int start,
 			final String name,
 			final FunctionScope scope,
 			final boolean isOldStyle,

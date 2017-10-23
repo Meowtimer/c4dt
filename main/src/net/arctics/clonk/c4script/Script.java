@@ -77,8 +77,9 @@ import net.arctics.clonk.util.StreamUtil;
 import net.arctics.clonk.util.Utilities;
 
 /**
- * Base class for various objects that act as containers of stuff declared in scripts/ini files.
- * Subclasses include {@link Definition}, {@link SystemScript} etc.
+ * Base class for various objects that act as containers of stuff declared in
+ * scripts/ini files. Subclasses include {@link Definition},
+ * {@link SystemScript} etc.
  */
 public abstract class Script extends IndexEntity implements ITreeNode, IRefinedPrimitiveType, IEvaluationContext, IHasIncludes<Script> {
 
@@ -96,6 +97,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	/**
 	 * Typing judgments on variables and function return types.
+	 * 
 	 * @author madeen
 	 *
 	 */
@@ -112,10 +114,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		 */
 		private final Map<String, Function.Typing> functionTypings;
 
-		public Typings(
-			final Map<String, IType> variableTypes,
-			final Map<String, Function.Typing> functionTypings
-		) {
+		public Typings(final Map<String, IType> variableTypes, final Map<String, Function.Typing> functionTypings) {
 			super();
 			this.variableTypes = variableTypes == Collections.EMPTY_MAP ? new HashMap<>() : variableTypes;
 			this.functionTypings = functionTypings == Collections.EMPTY_MAP ? new HashMap<>() : functionTypings;
@@ -158,10 +157,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 
 	}
+
 	private transient Typings typings;
 
 	// serialized directly
-	/** set of scripts this script is using functions and/or static variables from */
+	/**
+	 * set of scripts this script is using functions and/or static variables
+	 * from
+	 */
 	private Set<Script> usedScripts;
 	protected List<Directive> directives;
 
@@ -175,15 +178,20 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	private Set<String> dictionary;
 	private List<TypeAnnotation> typeAnnotations;
 
-	private static final Typings NO_TYPINGS = new Typings(
-		Collections.<String, IType>emptyMap(),
-		Collections.<String, Function.Typing>emptyMap()
-	);
+	private static final Typings NO_TYPINGS = new Typings(Collections.<String, IType> emptyMap(), Collections.<String, Function.Typing> emptyMap());
 
-	public Typings typings() { return defaulting(typings, NO_TYPINGS); }
-	public void setTypings(final Typings typings) { this.typings = typings; }
+	public Typings typings() {
+		return defaulting(typings, NO_TYPINGS);
+	}
 
-	public List<TypeAnnotation> typeAnnotations() { return typeAnnotations; }
+	public void setTypings(final Typings typings) {
+		this.typings = typings;
+	}
+
+	public List<TypeAnnotation> typeAnnotations() {
+		return typeAnnotations;
+	}
+
 	public void setTypeAnnotations(final List<TypeAnnotation> typeAnnotations) {
 		this.typeAnnotations = typeAnnotations;
 		if (this.typeAnnotations != null) {
@@ -195,27 +203,42 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 	}
 
-	public Map<String, CallDeclaration[]> callMap() { return defaulting(callMap, Collections.<String, CallDeclaration[]>emptyMap()); }
-	public Map<String, List<AccessVar>> varReferences() { return defaulting(varReferencesMap, Collections.<String, List<AccessVar>>emptyMap()); }
+	public Map<String, CallDeclaration[]> callMap() {
+		return defaulting(callMap, Collections.<String, CallDeclaration[]> emptyMap());
+	}
+
+	public Map<String, List<AccessVar>> varReferences() {
+		return defaulting(varReferencesMap, Collections.<String, List<AccessVar>> emptyMap());
+	}
 
 	/**
-	 * The script's dictionary contains names of variables and functions defined in it.
-	 * It can be queried before {@link #requireLoaded()} was called, enabling one to look before-hand whether the script contains
-	 * a declaration with some name.
+	 * The script's dictionary contains names of variables and functions defined
+	 * in it. It can be queried before {@link #requireLoaded()} was called,
+	 * enabling one to look before-hand whether the script contains a
+	 * declaration with some name.
+	 * 
 	 * @return The dictionary
 	 */
-	public Set<String> dictionary() { return dictionary; }
+	public Set<String> dictionary() {
+		return dictionary;
+	}
 
 	/**
-	 * Return list of scripts used by this one. A script is considered to be using another one if it calls a global function or accesses a static variable defined in the other script.
-	 * Kept and managed to make reparsing a script using global declarations from some other script work without requiring a reload of all scripts in the index.
+	 * Return list of scripts used by this one. A script is considered to be
+	 * using another one if it calls a global function or accesses a static
+	 * variable defined in the other script. Kept and managed to make reparsing
+	 * a script using global declarations from some other script work without
+	 * requiring a reload of all scripts in the index.
+	 * 
 	 * @return The list of used scripts
 	 */
 	public Collection<? extends Script> usedScripts() {
-		return copyListOrReturnDefaultList(usedScripts, Collections.<Script>emptyList());
+		return copyListOrReturnDefaultList(usedScripts, Collections.<Script> emptyList());
 	}
 
-	protected Script(final Index index) { super(index); }
+	protected Script(final Index index) {
+		super(index);
+	}
 
 	protected static class SaveState implements Serializable {
 		private static final long serialVersionUID = Core.SERIAL_VERSION_UID;
@@ -225,14 +248,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		public Set<Script> used;
 		public Typings typings;
 		public Map<String, ProplistDeclaration> proplistDeclarations;
-		public void initialize(
-			final Map<String, Effect> effects,
-			final List<Function> functions,
-			final List<Variable> variables,
-			final Set<Script> used,
-			final Typings typings,
-			final Map<String, ProplistDeclaration> proplistDeclarations
-		) {
+
+		public void initialize(final Map<String, Effect> effects, final List<Function> functions, final List<Variable> variables, final Set<Script> used, final Typings typings, final Map<String, ProplistDeclaration> proplistDeclarations) {
 			this.effects = effects;
 			this.functions = functions;
 			this.variables = variables;
@@ -246,14 +263,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public void save(final ObjectOutputStream stream) throws IOException {
 		super.save(stream);
 		final SaveState state = makeSaveState();
-		state.initialize(
-			effects,
-			functions,
-			variables,
-			usedScripts,
-			typings,
-			proplistDeclarations
-		);
+		state.initialize(effects, functions, variables, usedScripts, typings, proplistDeclarations);
 		try {
 			stream.writeObject(state);
 		} catch (final IllegalStateException e) {
@@ -263,22 +273,24 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		populateDictionary();
 	}
 
-	public SaveState makeSaveState() { return new SaveState(); }
+	public SaveState makeSaveState() {
+		return new SaveState();
+	}
 
 	@Override
 	public void load(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		super.load(stream);
 		loadIncludes();
-		extractSaveState((SaveState)stream.readObject());
+		extractSaveState((SaveState) stream.readObject());
 		loadUsedScripts();
 	}
 
 	protected void extractSaveState(final SaveState state) {
-		effects     = state.effects;
-		functions   = state.functions;
-		variables   = state.variables;
+		effects = state.effects;
+		functions = state.functions;
+		variables = state.variables;
 		usedScripts = state.used;
-		typings     = state.typings;
+		typings = state.typings;
 		proplistDeclarations = state.proplistDeclarations;
 
 		purgeNullEntries(functions, variables, usedScripts);
@@ -318,7 +330,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		if (directives != null && index != null) {
 			for (final Directive d : directives) {
 				switch (d.type()) {
-				case APPENDTO: case INCLUDE:
+				case APPENDTO:
+				case INCLUDE:
 					final ID id = d.contentAsID();
 					if (id != null) {
 						final Definition[] defs = index.definitionsWithID(id);
@@ -356,7 +369,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				final String sub = s.substring(0, i);
 				final List<EffectFunction> matching = allEffectFunctions.stream().filter(item -> {
 					try {
-						return item.name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length(), EffectFunction.FUNCTION_NAME_PREFIX.length()+sub.length()).equals(sub);
+						return item.name().substring(EffectFunction.FUNCTION_NAME_PREFIX.length(), EffectFunction.FUNCTION_NAME_PREFIX.length() + sub.length()).equals(sub);
 					} catch (final StringIndexOutOfBoundsException e) {
 						return false;
 					}
@@ -366,7 +379,8 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				}
 				effectName = sub;
 				effectCandidates = matching;
-			};
+			}
+			;
 			if (effectName != null) {
 				allEffectFunctions.removeAll(effectCandidates);
 				if (effects == null) {
@@ -383,51 +397,52 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	protected void populateDictionary(final List<Script> conglomerate) {
-		dictionary = conglomerate.stream()
-			.flatMap(s -> s.subDeclarations(index(), DeclMask.ALL).stream())
-			.map(d -> d.name())
-			.collect(Collectors.toSet());
+		dictionary = conglomerate.stream().flatMap(s -> s.subDeclarations(index(), DeclMask.ALL).stream()).map(d -> d.name()).collect(Collectors.toSet());
 	}
 
-	protected final void populateDictionary() { populateDictionary(conglomerate()); }
+	protected final void populateDictionary() {
+		populateDictionary(conglomerate());
+	}
 
 	/**
 	 * Returns the strict level of the script
-	 * @return the #strict level set for this script or the default level supplied by the engine configuration
+	 * 
+	 * @return the #strict level set for this script or the default level
+	 *         supplied by the engine configuration
 	 */
 	public int strictLevel() {
 		requireLoaded();
-		return this.directives().stream()
-			.filter(d -> d.type() == DirectiveType.STRICT)
-			.mapToInt(d -> {
-				try {
-					return Integer.parseInt(d.contents());
-				}
-				catch (final NumberFormatException e) {
-					return 1;
-				}
-			})
-			.reduce((int)(engine() != null ? engine().settings().strictDefaultLevel : -1), Math::max);
+		return this.directives().stream().filter(d -> d.type() == DirectiveType.STRICT).mapToInt(d -> {
+			try {
+				return Integer.parseInt(d.contents());
+			} catch (final NumberFormatException e) {
+				return 1;
+			}
+		}).reduce((int) (engine() != null ? engine().settings().strictDefaultLevel : -1), Math::max);
 	}
 
 	/**
 	 * Returns \#include and \#appendto directives
+	 * 
 	 * @return The directives
 	 */
 	public Directive[] includeDirectives() {
 		requireLoaded();
-		final List<Directive> result = directives().stream()
-			.filter(d -> d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO)
-			.collect(Collectors.toList());
+		final List<Directive> result = directives().stream().filter(d -> d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO).collect(Collectors.toList());
 		return result.toArray(new Directive[result.size()]);
 	}
 
 	/**
-	 * Tries to gather all of the script's includes (including appendtos in the case of object scripts).
-	 * Attention: The passed collection needs to reject duplicates, meaning its {@link Collection#add(Object)} method needs to return false when an attempt is being
-	 * made to add an already-existing item. {@link Set} classes are good candidates.
-	 * @param set A collection to be filled with the includes gathered.
-	 * @param contextIndex The project index to search for includes in.
+	 * Tries to gather all of the script's includes (including appendtos in the
+	 * case of object scripts). Attention: The passed collection needs to reject
+	 * duplicates, meaning its {@link Collection#add(Object)} method needs to
+	 * return false when an attempt is being made to add an already-existing
+	 * item. {@link Set} classes are good candidates.
+	 * 
+	 * @param set
+	 *            A collection to be filled with the includes gathered.
+	 * @param contextIndex
+	 *            The project index to search for includes in.
 	 */
 	@Override
 	public boolean gatherIncludes(final Index contextIndex, final Script origin, final Collection<Script> set, int options) {
@@ -436,7 +451,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 		if (directives != null) {
 			List<Directive> directivesCopy;
-			synchronized(directives) {
+			synchronized (directives) {
 				directivesCopy = new ArrayList<Directive>(directives);
 			}
 			for (final Directive d : directivesCopy) {
@@ -449,11 +464,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					final ID id = d.contentAsID();
 					for (final Index in : contextIndex.relevantIndexes()) {
 						final Definition[] defs = in.definitionsWithID(id);
-						final Definition pick = (
-							defs == null ? null :
-							(origin == null || origin.resource() == null) ? defs[0] :
-							pickNearest(stream(defs), origin.resource(), null)
-						);
+						final Definition pick = (defs == null ? null : (origin == null || origin.resource() == null) ? defs[0] : pickNearest(stream(defs), origin.resource(), null));
 						if (pick != null) {
 							if ((options & GatherIncludesOptions.Recursive) == 0) {
 								set.add(pick);
@@ -475,8 +486,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	/**
-	 * Return {@link #includes(Index, boolean)}({@link #index()}, {@code recursive});
-	 * @param options Whether the returned collection also contains includes of the includes.
+	 * Return {@link #includes(Index, boolean)}({@link #index()},
+	 * {@code recursive});
+	 * 
+	 * @param options
+	 *            Whether the returned collection also contains includes of the
+	 *            includes.
 	 * @return The includes
 	 */
 	public Collection<Script> includes(final int options) {
@@ -486,14 +501,12 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public Collection<Script> includes(final Index index, final Script origin, final int options) {
-		return index != null
-			? index.includes(new IncludesParameters(this, origin, options))
-			: block(() -> {
-				final HashSet<Script> result = new HashSet<Script>();
-				gatherIncludes(index, origin, result, options);
-				result.remove(this);
-				return result;
-			});
+		return index != null ? index.includes(new IncludesParameters(this, origin, options)) : block(() -> {
+			final HashSet<Script> result = new HashSet<Script>();
+			gatherIncludes(index, origin, result, options);
+			result.remove(this);
+			return result;
+		});
 	}
 
 	public boolean directlyIncludes(final Definition other) {
@@ -501,22 +514,25 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	/**
-	 * Returns an include directive that includes a specific {@link Definition}'s script
-	 * @param definition The {@link Definition} to return a corresponding {@link Directive} for
-	 * @return The {@link Directive} or null if no matching directive exists in this script.
+	 * Returns an include directive that includes a specific
+	 * {@link Definition}'s script
+	 * 
+	 * @param definition
+	 *            The {@link Definition} to return a corresponding
+	 *            {@link Directive} for
+	 * @return The {@link Directive} or null if no matching directive exists in
+	 *         this script.
 	 */
 	public Directive directiveIncludingDefinition(final Definition definition) {
 		requireLoaded();
-		return stream(includeDirectives()).filter(
-			d ->
-				(d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) &&
-				nearestDefinitionWithId(d.contentAsID()) == definition
-		).findFirst().orElse(null);
+		return stream(includeDirectives()).filter(d -> (d.type() == DirectiveType.INCLUDE || d.type() == DirectiveType.APPENDTO) && nearestDefinitionWithId(d.contentAsID()) == definition).findFirst().orElse(null);
 	}
 
 	/**
 	 * Finds a declaration in this script or an included one
-	 * @param name Name of declaration to find.
+	 * 
+	 * @param name
+	 *            Name of declaration to find.
 	 * @return The declaration or null if not found
 	 */
 	@Override
@@ -564,9 +580,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	/**
-	 * Returns a declaration representing this script if the name matches the name of the script
-	 * @param name The name
-	 * @param info Additional info
+	 * Returns a declaration representing this script if the name matches the
+	 * name of the script
+	 * 
+	 * @param name
+	 *            The name
+	 * @param info
+	 *            Additional info
 	 * @return the declaration or null if there is no match
 	 */
 	protected Declaration representingDeclaration(final String name, final FindDeclarationInfo info) {
@@ -578,7 +598,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		final ArrayList<Declaration> decs = new ArrayList<Declaration>();
 		List<Variable> vars = null;
-		if ((mask & DeclMask.VARIABLES|DeclMask.STATIC_VARIABLES) != 0) {
+		if ((mask & DeclMask.VARIABLES | DeclMask.STATIC_VARIABLES) != 0) {
 			if (variables != null) {
 				synchronized (variables) {
 					vars = new ArrayList<>(variables);
@@ -619,20 +639,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Declaration> T latestVersionOf(final T from) {
-		final int mask =
-			from instanceof Variable ? DeclMask.VARIABLES :
-			from instanceof Function ? DeclMask.FUNCTIONS :
-			from instanceof Directive ? DeclMask.DIRECTIVES : 0;
+		final int mask = from instanceof Variable ? DeclMask.VARIABLES : from instanceof Function ? DeclMask.FUNCTIONS : from instanceof Directive ? DeclMask.DIRECTIVES : 0;
 		T candidate = null;
 		boolean locationMatch = false;
 		for (final Declaration d : subDeclarations(this.index(), mask)) {
 			if (d == from) {
-				return (T)d;
+				return (T) d;
 			}
 			if (d.name().equals(from.name())) {
 				final boolean newLocationMatch = d.sameLocation(from);
 				if (candidate == null || (newLocationMatch && !locationMatch)) {
-					candidate = (T)d;
+					candidate = (T) d;
 					locationMatch = newLocationMatch;
 				}
 			}
@@ -660,8 +677,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	/**
-	 * Finds a declaration with the given name using information from the helper object
-	 * @param info Information container describing the search
+	 * Finds a declaration with the given name using information from the helper
+	 * object
+	 * 
+	 * @param info
+	 *            Information container describing the search
 	 * @return the declaration or <tt>null</tt> if not found
 	 */
 	@Override
@@ -675,8 +695,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		final Class<? extends Declaration> decClass = info.declarationClass;
 		final String name = info.name;
 
-		if (info.recursion == 0 && info.contextFunction != null && info.findGlobalVariables &&
-			(decClass == null || decClass.isAssignableFrom(Variable.class))) {
+		if (info.recursion == 0 && info.contextFunction != null && info.findGlobalVariables && (decClass == null || decClass.isAssignableFrom(Variable.class))) {
 			final Declaration v = info.contextFunction.findVariable(name);
 			if (v != null) {
 				return v;
@@ -732,8 +751,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			}
 		}
 
-		// prefer declarations from scripts that were previously determined to be the providers of global declarations
-		// this will also probably and rightly lead to those scripts being fully loaded from their index file.
+		// prefer declarations from scripts that were previously determined to
+		// be the providers of global declarations
+		// this will also probably and rightly lead to those scripts being fully
+		// loaded from their index file.
 		if (usedScripts != null) {
 			for (final Script s : usedScripts()) {
 				final Declaration f = s.findDeclaration(info);
@@ -784,8 +805,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	/**
-	 * Add declaration to this script. Proplists will be named automatically when added without prior name.
-	 * @param declaration Declaration to add. Can be a {@link Variable}, a {@link Function}, a {@link Directive} or a {@link ProplistDeclaration}
+	 * Add declaration to this script. Proplists will be named automatically
+	 * when added without prior name.
+	 * 
+	 * @param declaration
+	 *            Declaration to add. Can be a {@link Variable}, a
+	 *            {@link Function}, a {@link Directive} or a
+	 *            {@link ProplistDeclaration}
 	 */
 	@Override
 	public <T extends Declaration> T addDeclaration(final T declaration) {
@@ -796,7 +822,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				if (functions == null) {
 					functions = new ArrayList<Function>(5);
 				}
-				functions.add((Function)declaration);
+				functions.add((Function) declaration);
 				// function added after generating cache? put it
 				if (cachedFunctionMap != null) {
 					cachedFunctionMap.put(declaration.name(), (Function) declaration);
@@ -807,7 +833,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				if (variables == null) {
 					variables = new ArrayList<Variable>(5);
 				}
-				variables.add((Variable)declaration);
+				variables.add((Variable) declaration);
 				// variable added after generating cache? put it
 				if (cachedVariableMap != null) {
 					cachedVariableMap.put(declaration.name(), (Variable) declaration);
@@ -818,7 +844,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				if (directives == null) {
 					directives = new ArrayList<Directive>(5);
 				}
-				directives.add((Directive)declaration);
+				directives.add((Directive) declaration);
 			}
 		} else if (declaration instanceof ProplistDeclaration) {
 			synchronized (this) {
@@ -826,7 +852,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					proplistDeclarations = new HashMap<>();
 				}
 				if (declaration.name() == null) {
-					declaration.setName("proplist"+proplistDeclarations.size());
+					declaration.setName("proplist" + proplistDeclarations.size());
 				}
 				proplistDeclarations.put(declaration.name(), (ProplistDeclaration) declaration);
 			}
@@ -834,7 +860,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			throw new IllegalArgumentException("declaration");
 		}
 		if (dictionary != null) {
-			synchronized (dictionary) { dictionary.add(declaration.name()); }
+			synchronized (dictionary) {
+				dictionary.add(declaration.name());
+			}
 		}
 		return declaration;
 	}
@@ -850,15 +878,13 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 					functions.remove(declaration);
 				}
 			}
-		}
-		else if (declaration instanceof Variable) {
+		} else if (declaration instanceof Variable) {
 			if (variables != null) {
 				synchronized (functions) {
 					variables.remove(declaration);
 				}
 			}
-		}
-		else if (declaration instanceof Directive) {
+		} else if (declaration instanceof Directive) {
 			if (directives != null) {
 				synchronized (directives) {
 					directives.remove(declaration);
@@ -884,15 +910,23 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public IFile file() {
 		final IStorage storage = source();
-		return storage instanceof IFile ? (IFile)storage : null;
+		return storage instanceof IFile ? (IFile) storage : null;
 	}
 
 	@Override
-	public Script script() { return this; }
+	public Script script() {
+		return this;
+	}
+
 	@Override
-	public Structure topLevelStructure() { return this; }
+	public Structure topLevelStructure() {
+		return this;
+	}
+
 	@Override
-	public IResource resource() { return null; }
+	public IResource resource() {
+		return null;
+	}
 
 	public Function findFunction(final FindDeclarationInfo info) {
 		info.resetState();
@@ -925,9 +959,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		for (final Function f : functions()) {
 			final int fStart = f.bodyLocation().getOffset();
-			final int fEnd   = f.bodyLocation().getOffset()+f.bodyLocation().getLength();
+			final int fEnd = f.bodyLocation().getOffset() + f.bodyLocation().getLength();
 			final int rStart = region.getOffset();
-			final int rEnd   = region.getOffset()+region.getLength();
+			final int rEnd = region.getOffset() + region.getLength();
 			if (rStart <= fStart && rEnd >= fEnd || rStart >= fStart && rStart <= fEnd || rEnd >= fEnd && rEnd <= fEnd) {
 				return f;
 			}
@@ -952,7 +986,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	/**
 	 * Return whether this script includes another one.
-	 * @param other The other script
+	 * 
+	 * @param other
+	 *            The other script
 	 * @return True if this script includes the other one, false if not.
 	 */
 	@Override
@@ -983,7 +1019,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		if (catcher != null && !catcher.add(this)) {
 			return null;
 		}
-		for (final Function func: functions()) {
+		for (final Function func : functions()) {
 			if (func.name().equals(name)) {
 				return func;
 			}
@@ -1040,16 +1076,19 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	/**
 	 * Return the list of functions defined in this script.
+	 * 
 	 * @return The functions list
 	 */
 	public List<? extends Function> functions() {
 		requireLoaded();
-		return copyListOrReturnDefaultList(functions, Collections.<Function>emptyList());
+		return copyListOrReturnDefaultList(functions, Collections.<Function> emptyList());
 	}
 
 	/**
 	 * Iterate over all functions of a certain function class.
-	 * @param cls The {@link Function} class
+	 * 
+	 * @param cls
+	 *            The {@link Function} class
 	 * @return The {@link Iterable}
 	 */
 	public <T extends Function> Iterable<T> functions(final Class<T> cls) {
@@ -1059,24 +1098,27 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	/**
 	 * Return the list of variables defined in this script.
+	 * 
 	 * @return The variables list
 	 */
 	public List<? extends Variable> variables() {
 		requireLoaded();
-		return copyListOrReturnDefaultList(variables, Collections.<Variable>emptyList());
+		return copyListOrReturnDefaultList(variables, Collections.<Variable> emptyList());
 	}
 
 	/**
 	 * Return the list of directives defined in this script.
+	 * 
 	 * @return The directives list
 	 */
 	public List<? extends Directive> directives() {
 		requireLoaded();
-		return directives != null ? directives : Collections.<Directive>emptyList();
+		return directives != null ? directives : Collections.<Directive> emptyList();
 	}
 
 	/**
 	 * Return a map mapping effect name to {@link Effect} object
+	 * 
 	 * @return The map
 	 */
 	public Map<String, Effect> effects() {
@@ -1086,7 +1128,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public Map<String, ProplistDeclaration> proplistDeclarations() {
 		requireLoaded();
-		return proplistDeclarations != null ? proplistDeclarations : Collections.<String, ProplistDeclaration>emptyMap();
+		return proplistDeclarations != null ? proplistDeclarations : Collections.<String, ProplistDeclaration> emptyMap();
 	}
 
 	public Definition nearestDefinitionWithId(final ID id) {
@@ -1098,7 +1140,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	/**
-	 * Returns a list containing all scripts that are included by this script plus the script itself.
+	 * Returns a list containing all scripts that are included by this script
+	 * plus the script itself.
+	 * 
 	 * @return The list
 	 */
 	public List<Script> conglomerate() {
@@ -1123,11 +1167,11 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		requireLoaded();
 		final List<Object> all = new LinkedList<Object>();
 		for (final Script c : conglomerate()) {
-			for (final Declaration sd : c.subDeclarations(index(), DeclMask.FUNCTIONS|DeclMask.VARIABLES|DeclMask.STATIC_VARIABLES|(c == this ? DeclMask.DIRECTIVES : 0))) {
+			for (final Declaration sd : c.subDeclarations(index(), DeclMask.FUNCTIONS | DeclMask.VARIABLES | DeclMask.STATIC_VARIABLES | (c == this ? DeclMask.DIRECTIVES : 0))) {
 				if (sd instanceof SynthesizedFunction) {
 					continue;
 				}
-				if (sd instanceof Function && !seesFunction(((Function)sd))) {
+				if (sd instanceof Function && !seesFunction(((Function) sd))) {
 					continue;
 				}
 				all.add(sd);
@@ -1137,8 +1181,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	private String sourceComment;
-	public String sourceComment() { return sourceComment; }
-	public void setSourceComment(final String s) { sourceComment = s; }
+
+	public String sourceComment() {
+		return sourceComment;
+	}
+
+	public void setSourceComment(final String s) {
+		sourceComment = s;
+	}
 
 	@Override
 	public String infoText(final IIndexEntity context) {
@@ -1147,7 +1197,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 		final Object f = source();
 		if (f instanceof IFile) {
-			final IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile)f).getParent(), "Desc"+ClonkPreferences.languagePref()+".txt"); //$NON-NLS-1$ //$NON-NLS-2$
+			final IResource infoFile = Utilities.findMemberCaseInsensitively(((IFile) f).getParent(), "Desc" + ClonkPreferences.languagePref() + ".txt"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (infoFile instanceof IFile) {
 				try {
 					return StreamUtil.stringFromFileDocument((IFile) infoFile);
@@ -1162,7 +1212,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public ITreeNode parentNode() {
-		return parentDeclaration() instanceof ITreeNode ? (ITreeNode)parentDeclaration() : null;
+		return parentDeclaration() instanceof ITreeNode ? (ITreeNode) parentDeclaration() : null;
 	}
 
 	@Override
@@ -1174,13 +1224,14 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	public void addChild(final ITreeNode node) {
 		requireLoaded();
 		if (node instanceof Declaration) {
-			addDeclaration((Declaration)node);
+			addDeclaration((Declaration) node);
 		}
 	}
 
 	public void addUsedScript(final Script script) {
 		if (script == null) {
-			// this does happen, for example when adding the script of some variable read from PlayerControls.txt
+			// this does happen, for example when adding the script of some
+			// variable read from PlayerControls.txt
 			// which is null
 			return;
 		}
@@ -1240,17 +1291,28 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	@Override
 	public Iterator<IType> iterator() {
-		return iterable(new IType[] {PrimitiveType.OBJECT, this}).iterator();
+		return iterable(new IType[] { PrimitiveType.OBJECT, this }).iterator();
 	}
 
 	@Override
-	public IType simpleType() { return PrimitiveType.OBJECT; }
+	public IType simpleType() {
+		return PrimitiveType.OBJECT;
+	}
+
 	@Override
-	public Function function() { return null; }
+	public Function function() {
+		return null;
+	}
+
 	@Override
-	public void reportOriginForExpression(final ASTNode expression, final IRegion location, final IFile file) { /* cool */ }
+	public void reportOriginForExpression(final ASTNode expression, final IRegion location, final IFile file) {
+		/* cool */ }
+
 	@Override
-	public Object[] arguments() { return new Object[0]; }
+	public Object[] arguments() {
+		return new Object[0];
+	}
+
 	@Override
 	public IVariable variable(final AccessDeclaration access, final Object obj) {
 		if (access.predecessor() == null) {
@@ -1267,14 +1329,21 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		}
 		return null;
 	}
+
 	@Override
-	public int codeFragmentOffset() { return 0; }
+	public int codeFragmentOffset() {
+		return 0;
+	}
+
 	@Override
-	public Object self() { return null; }
+	public Object self() {
+		return null;
+	}
 
 	/**
-	 * Return whether this function is accessible from this script - that is, it belongs to this script or one included by it and is
-	 * not overridden.
+	 * Return whether this function is accessible from this script - that is, it
+	 * belongs to this script or one included by it and is not overridden.
+	 * 
 	 * @param function
 	 * @return
 	 */
@@ -1289,7 +1358,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 	public Function override(final Function function) {
 		if (cachedFunctionMap != null) {
-			final Function ovr = cachedFunctionMap.get(function);
+			final Function ovr = cachedFunctionMap.get(function.name());
 			if (ovr != null) {
 				return ovr;
 			}
@@ -1300,20 +1369,26 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	@Override
 	public boolean seesSubDeclaration(final Declaration subDeclaration) {
 		if (subDeclaration instanceof Function) {
-			return seesFunction((Function)subDeclaration);
+			return seesFunction((Function) subDeclaration);
 		} else {
 			return true;
 		}
 	}
 
 	/**
-	 * Populate various helper structures and caches with information derived from the truth
-	 * read from the source. These things include:
+	 * Populate various helper structures and caches with information derived
+	 * from the truth read from the source. These things include:
 	 * <ol>
-	 * 	<li>{@link #dictionary()} is populated with names of declarations contained in this script.</li>
-	 *  <li>An internal cache for finding declarations is generated so that {@link #findDeclaration(String, FindDeclarationInfo)} does faster lookup.</li>
-	 *  <li>{@link #varReferences()} and {@link #callMap()} are populated with references to respective AST nodes ({@link AccessVar} and {@link CallDeclaration}).</li>
-	 *  <li>{@link Effect} objects are created by applying some camel-case finding strategy on functions named Fx.* ({@link #effects()})
+	 * <li>{@link #dictionary()} is populated with names of declarations
+	 * contained in this script.</li>
+	 * <li>An internal cache for finding declarations is generated so that
+	 * {@link #findDeclaration(String, FindDeclarationInfo)} does faster
+	 * lookup.</li>
+	 * <li>{@link #varReferences()} and {@link #callMap()} are populated with
+	 * references to respective AST nodes ({@link AccessVar} and
+	 * {@link CallDeclaration}).</li>
+	 * <li>{@link Effect} objects are created by applying some camel-case
+	 * finding strategy on functions named Fx.* ({@link #effects()})
 	 * </ol>
 	 */
 	public synchronized void deriveInformation() {
@@ -1332,18 +1407,18 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	static class NodeMapsPopulator implements IASTVisitor<Script> {
 		final Map<String, List<CallDeclaration>> callMap = new HashMap<>();
 		final Map<String, List<AccessVar>> varReferencesMap = new HashMap<>();
+
 		@Override
 		public TraversalContinuation visitNode(final ASTNode node, final Script script) {
 			if (node instanceof CallDeclaration) {
-				final CallDeclaration call = (CallDeclaration)node;
+				final CallDeclaration call = (CallDeclaration) node;
 				List<CallDeclaration> list = callMap.get(call.name());
 				if (list == null) {
 					callMap.put(call.name(), list = new ArrayList<>(3));
 				}
 				list.add(call);
-			}
-			else if (node instanceof AccessVar) {
-				final AccessVar var = (AccessVar)node;
+			} else if (node instanceof AccessVar) {
+				final AccessVar var = (AccessVar) node;
 				List<AccessVar> list = varReferencesMap.get(var.name());
 				if (list == null) {
 					varReferencesMap.put(var.name(), list = new ArrayList<>(3));
@@ -1361,12 +1436,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 				f.traverse(populator, this);
 			}
 		}
-		this.callMap = Collections.unmodifiableMap(
-			populator.callMap.entrySet().stream().collect(Collectors.toMap(
-				kv -> kv.getKey(),
-				kv -> kv.getValue().toArray(new CallDeclaration[kv.getValue().size()])
-			))
-		);
+		this.callMap = Collections.unmodifiableMap(populator.callMap.entrySet().stream().collect(Collectors.toMap(kv -> kv.getKey(), kv -> kv.getValue().toArray(new CallDeclaration[kv.getValue().size()]))));
 		this.varReferencesMap = Collections.unmodifiableMap(populator.varReferencesMap);
 	}
 
@@ -1376,8 +1446,10 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		for (final Script i : conglo) {
 			if (i.functions != null) {
 				for (final Function f1 : i.functions) {
-					// prefer putting non-global functions into the map so when in doubt the object function is picked
-					// for cases where one script defines two functions with same name that differ in their globality (Power.ocd)
+					// prefer putting non-global functions into the map so when
+					// in doubt the object function is picked
+					// for cases where one script defines two functions with
+					// same name that differ in their globality (Power.ocd)
 					final Function existing = cachedFunctionMap.get(f1.name());
 					if (existing != null && existing.script() == i && f1.isGlobal() && !existing.isGlobal()) {
 						continue;
@@ -1395,9 +1467,17 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		this.cachedVariableMap = cachedVariableMap;
 	}
 
-	public Function function(final String name) { return cachedFunctionMap != null ? cachedFunctionMap.get(name) : null; }
-	public Variable variable(final String name) { return cachedVariableMap != null ? cachedVariableMap.get(name) : null; }
-	public Map<String, Function> functionMap() { return defaulting(cachedFunctionMap, Collections.<String, Function>emptyMap()); }
+	public Function function(final String name) {
+		return cachedFunctionMap != null ? cachedFunctionMap.get(name) : null;
+	}
+
+	public Variable variable(final String name) {
+		return cachedVariableMap != null ? cachedVariableMap.get(name) : null;
+	}
+
+	public Map<String, Function> functionMap() {
+		return defaulting(cachedFunctionMap, Collections.<String, Function> emptyMap());
+	}
 
 	@Override
 	public String qualifiedName() {
@@ -1421,18 +1501,15 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 		return scenario;
 	}
 
-	public Variable createVarInScope(
-		final IVariableFactory factory,
-		final Function function, final String varName, final Scope scope,
-		final int start, final int end,
-		final Comment description
-	) {
+	public Variable createVarInScope(final IVariableFactory factory, final Function function, final String varName, final Scope scope, final int start, final int end, final Comment description) {
 		Variable result;
 		switch (scope) {
 		case VAR:
 			result = function != null ? function.findVariable(varName) : null;
 			break;
-		case CONST: case STATIC: case LOCAL:
+		case CONST:
+		case STATIC:
+		case LOCAL:
 			result = findLocalVariable(varName, true);
 			break;
 		default:
@@ -1453,7 +1530,9 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 			result.setParent(function);
 			function.addLocal(result);
 			break;
-		case CONST: case STATIC: case LOCAL:
+		case CONST:
+		case STATIC:
+		case LOCAL:
 			result.setParent(this);
 			addDeclaration(result);
 		}
@@ -1463,10 +1542,18 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 	}
 
 	@Override
-	public PrimitiveType primitiveType() { return PrimitiveType.OBJECT; }
-	public void setScriptFile(final IFile f) {}
+	public PrimitiveType primitiveType() {
+		return PrimitiveType.OBJECT;
+	}
+
+	public void setScriptFile(final IFile f) {
+	}
+
 	@Override
-	public boolean isGlobal() { return true; }
+	public boolean isGlobal() {
+		return true;
+	}
+
 	public boolean hasAppendTo() {
 		for (final Directive d : directives()) {
 			if (d.type() == DirectiveType.APPENDTO) {
@@ -1520,10 +1607,7 @@ public abstract class Script extends IndexEntity implements ITreeNode, IRefinedP
 
 		ASTNode prev = null;
 		for (final ASTNode se : subElements()) {
-			final boolean skip =
-				se == null || se instanceof ProplistDeclaration ||
-				se instanceof SynthesizedFunction ||
-				(se instanceof Variable && ((Variable)se).initializationExpression() != null && inRegularFunction(((Variable)se).initializationExpression()));
+			final boolean skip = se == null || se instanceof ProplistDeclaration || se instanceof SynthesizedFunction || (se instanceof Variable && ((Variable) se).initializationExpression() != null && inRegularFunction(((Variable) se).initializationExpression()));
 			if (!skip) {
 				if (prev != null) {
 					output.lb();
